@@ -12,7 +12,26 @@
     "exit": "Registrar salida",
     "open": "Jornada abierta",
     "privacy": "La ubicación es opcional y se guarda únicamente en este marcaje; no hay rastreo continuo.",
-    "mode": "Modalidad del marcaje"
+    "mode": "Modalidad del marcaje",
+    "today": "Hoy",
+    "next": "Siguiente paso",
+    "lunchStart": "Salida a comer",
+    "lunchEnd": "Regreso de comer",
+    "timeline": "Marcajes de hoy",
+    "options": "Opciones de marcaje (modalidad, nota, ubicación)",
+    "status": {
+      "none": "Sin checar",
+      "working": "En jornada",
+      "lunch": "En comida",
+      "back": "De regreso",
+      "done": "Jornada terminada",
+      "clockOnly": "Checadas en reloj"
+    },
+    "clock": "Reloj",
+    "entryShort": "Entrada",
+    "exitShort": "Salida",
+    "register": "Registrar {{action}}",
+    "channelHint": "Checa desde la web o con tu reloj físico: todas tus checadas se ven aquí."
   },
   "punches": {
     "title": "Mis marcajes",
@@ -22,7 +41,9 @@
     "entry": "Entrada",
     "exit": "Salida",
     "noType": "Registro",
-    "report": "Reportar discrepancia"
+    "report": "Reportar discrepancia",
+    "clock": "Checada del reloj",
+    "access": "Acceso"
   },
   "sourceClock": "Reloj",
   "sourceAccess": "Acceso",

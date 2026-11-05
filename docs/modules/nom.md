@@ -70,6 +70,12 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 
 `GET /export/stps` devuelve, por periodo (`DAY`/`WEEK`/`FORTNIGHT`/`MONTH`) y persona: día, número de empleado, nombre, departamento, horario, turno, minutos trabajados/programados/extra, descanso, sin horario y última salida. Incluye metadatos (cliente, periodo, zona horaria, totales, `generatedAt`, `sha256` del contenido). **El layout no es el oficial de la STPS**: está versionado y se ajustará cuando se publique la disposición (F2-06).
 
+## Marcaje remoto (F2-07) — web y futura app
+
+- Secuencia del día: **ENTRY → LUNCH_START → LUNCH_END → EXIT** (también ENTRY → EXIT directo). El mismo API (`POST /nom/me/punch`) sirve a la web actual y a la app futura; el canal siempre es el mismo registro `remote_punches`, con hora del servidor e idempotencia por `clientEventId`.
+- La secuencia se reinicia cada día del cliente (zona horaria del tenant), aunque el día anterior haya quedado abierto.
+- Mi jornada muestra el **siguiente paso** resaltado y los cuatro movimientos con su hora; las checadas del reloj físico y los accesos se siguen viendo en la misma línea de tiempo.
+
 ## Marcaje remoto (F2-07)
 
 - `POST /nom/me/punch` con `{ type: "ENTRY"|"EXIT", workMode?, clientEventId?, latitude?, longitude?, gpsAccuracyMeters?, note? }`. La **hora es la del servidor** (`occurredAt`); `clientReportedAt` solo guarda lo que reportó el dispositivo (reintentos offline).
@@ -179,3 +185,10 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - Endpoints: `/nom/me/leave/balance|requests` (trabajador, con `/cancel`), `/nom/leave/types|requests` y decisión de RH.
 - UI: tarjeta de vacaciones en **Mi jornada** y pantalla **RH → Vacaciones** para aprobar/rechazar y configurar tipos.
 - Validaciones: rango, solape entre solicitudes, días hábiles y saldo suficiente para vacaciones.
+
+## Checada multicanal (reloj, web, app)
+
+- **Reloj físico**: `time_clock_punches` (ISAPI), inmutable y sincronizado por el agente.
+- **Web**: `remote_punches` vía `POST /nom/me/punch` con secuencia entrada/comida/regreso/salida.
+- **App futura**: reutiliza el mismo endpoint y tipos de checada; no requiere backend nuevo, solo el cliente móvil y su autenticación.
+- Todas las fuentes se muestran juntas en Mi jornada y en el reporte de asistencia.

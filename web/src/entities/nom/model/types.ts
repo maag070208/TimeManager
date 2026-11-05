@@ -1,7 +1,7 @@
 /** Tipos del módulo NOM (registro de jornada LFT 2027 + NOM-037 teletrabajo). */
 
 export type PunchSource = "CLOCK" | "ACCESS" | "REMOTE";
-export type PunchType = "ENTRY" | "EXIT";
+export type PunchType = "ENTRY" | "EXIT" | "LUNCH_START" | "LUNCH_END";
 export type RemoteWorkMode = "PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO";
 
 export interface MyPunch {

@@ -17,29 +17,32 @@ import {
   LuClock,
   LuFileText,
   LuLaptop,
+  LuCoffee,
   LuLogIn,
   LuLogOut,
   LuMapPin,
+  LuUtensils,
   LuRefreshCw,
   LuX,
 } from "react-icons/lu";
-import type { MyPunch, PunchType } from "@entities/nom";
+import type { PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { dateLocale } from "@shared/i18n";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
 import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
 import { useMyLeave } from "@features/nom/worker-portal/model/useMyLeave";
 
-const SOURCE_LABEL: Record<MyPunch["source"], string> = {
+const SOURCE_LABEL: Record<"CLOCK" | "ACCESS" | "REMOTE", string> = {
   CLOCK: "sourceClock",
   ACCESS: "sourceAccess",
   REMOTE: "sourceRemote",
 };
 
 const timeOf = (iso: string): string =>
-  new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  new Date(iso).toLocaleTimeString(dateLocale(), { hour: "2-digit", minute: "2-digit", hour12: false });
 
 const dateOf = (iso: string): string =>
-  new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+  new Date(iso).toLocaleDateString(dateLocale(), { day: "2-digit", month: "short", year: "numeric" });
 
 const sameDay = (iso: string): boolean =>
   new Date(iso).toDateString() === new Date().toDateString();
@@ -75,15 +78,6 @@ export default function MyWorkdayPage() {
   const [leaveReason, setLeaveReason] = useState("");
 
   const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
-  const entry = useMemo(() => todayPunches.find((row) => row.type === "ENTRY") ?? null, [todayPunches]);
-  const exit = useMemo(
-    () => [...todayPunches].reverse().find((row) => row.type === "EXIT") ?? null,
-    [todayPunches]
-  );
-  const open = useMemo(() => {
-    const last = todayPunches[0];
-    return !!last && last.type === "ENTRY";
-  }, [todayPunches]);
   const telework = fx.telework;
   const checklistItems = telework?.checklistTemplate.items ?? [];
 
@@ -107,24 +101,51 @@ export default function MyWorkdayPage() {
     if (ok) setAnswers({});
   };
 
-  const summary = (label: string, icon: ReactNode, row: MyPunch | null) => (
-    <ITCard contentClassName="!p-4">
-      <ITFlex direction="column" gap={1}>
-        <ITFlex align="center" gap={2} className="text-slate-500">
-          {icon}
-          <ITText muted className="!text-[11px] font-semibold uppercase tracking-wide">
-            {label}
-          </ITText>
-        </ITFlex>
-        <ITText className="!text-2xl font-extrabold tabular-nums">
-          {row ? timeOf(row.occurredAt) : "--:--"}
-        </ITText>
-        <ITText muted className="!text-[11px]">
-          {row ? tr(SOURCE_LABEL[row.source]) : "—"}
-        </ITText>
-      </ITFlex>
-    </ITCard>
+  // Flujo de checada web: entrada → salida a comer → regreso → salida.
+  const PUNCH_LABEL: Record<PunchType, string> = {
+    ENTRY: tr("punch.entryShort"),
+    LUNCH_START: tr("punch.lunchStart"),
+    LUNCH_END: tr("punch.lunchEnd"),
+    EXIT: tr("punch.exitShort"),
+  };
+  const remoteToday = useMemo(
+    () => todayPunches.filter((row) => row.source === "REMOTE").reverse(),
+    [todayPunches]
   );
+  const lastType = remoteToday.length > 0 ? remoteToday[remoteToday.length - 1].type : null;
+  const nextTypes: PunchType[] =
+    lastType === null
+      ? ["ENTRY"]
+      : lastType === "ENTRY"
+        ? ["LUNCH_START", "EXIT"]
+        : lastType === "LUNCH_START"
+          ? ["LUNCH_END"]
+          : lastType === "LUNCH_END"
+            ? ["EXIT"]
+            : ["ENTRY"];
+  const primaryNext = nextTypes[0];
+  const timeByType = (type: PunchType): string | null => {
+    const row = [...remoteToday].reverse().find((punch) => punch.type === type);
+    return row ? timeOf(row.occurredAt) : null;
+  };
+  const statusLabel: Record<string, string> = {
+    none: todayPunches.length > 0 ? tr("punch.status.clockOnly") : tr("punch.status.none"),
+    ENTRY: tr("punch.status.working"),
+    LUNCH_START: tr("punch.status.lunch"),
+    LUNCH_END: tr("punch.status.back"),
+    EXIT: tr("punch.status.done"),
+  };
+  const statusTone = !lastType ? "gray" : lastType === "LUNCH_START" ? "warning" : lastType === "EXIT" ? "gray" : "success";
+  const primaryLabel =
+    primaryNext === "ENTRY" || primaryNext === "EXIT"
+      ? tr("punch.register", { action: PUNCH_LABEL[primaryNext] })
+      : PUNCH_LABEL[primaryNext];
+  const PUNCH_ICON: Record<PunchType, ReactNode> = {
+    ENTRY: <LuLogIn size={18} />,
+    LUNCH_START: <LuUtensils size={18} />,
+    LUNCH_END: <LuCoffee size={18} />,
+    EXIT: <LuLogOut size={18} />,
+  };
 
   return (
     <ITPage
@@ -155,84 +176,140 @@ export default function MyWorkdayPage() {
           <ContentSkeleton />
         ) : (
           <>
-            {/* Resumen de hoy: en móvil caben las dos tarjetas lado a lado. */}
-            <div className="grid grid-cols-2 gap-3">
-              {summary(t("punch.entry"), <LuLogIn size={14} />, entry)}
-              {summary(t("punch.exit"), <LuLogOut size={14} />, exit)}
-            </div>
-
-            {/* Marcaje del día */}
+            {/* Checada del día: siguiente paso grande + los 4 movimientos. */}
             <ITCard contentClassName="!p-4 sm:!p-5">
-              <ITFlex direction="column" gap={3}>
-                <ITFlex align="center" justify="between" gap={2} className="min-w-0">
-                  <CardHeader icon={<LuClock size={16} />} title={t("punch.title")} />
-                  {open && (
-                    <ITBadget color="warning" size="sm">
-                      {t("punch.open")}
-                    </ITBadget>
-                  )}
+              <ITFlex direction="column" gap={4}>
+                <ITFlex align="center" justify="between" gap={2} wrap="wrap">
+                  <ITFlex direction="column" gap={0.5}>
+                    <ITText muted className="!text-[11px] font-semibold uppercase tracking-[0.08em]">
+                      {tr("punch.today")}
+                    </ITText>
+                    <ITText className="!text-[15px] font-bold">
+                      {new Date().toLocaleDateString(dateLocale(), { weekday: "long", day: "numeric", month: "long" })}
+                    </ITText>
+                  </ITFlex>
+                  <ITBadget color={statusTone as never} size="sm">
+                    {statusLabel[lastType ?? "none"]}
+                  </ITBadget>
                 </ITFlex>
-                <ITText muted className="!text-[12px]">
-                  {t("punch.hint")}
-                </ITText>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <ITSelect
-                    name="punchMode"
-                    label={t("punch.mode")}
-                    value={workMode}
-                    onChange={(event) => setWorkMode(event.target.value as typeof workMode)}
-                    options={[
-                      { value: "REMOTO", label: t("telework.mode.REMOTO") },
-                      { value: "HIBRIDO", label: t("telework.mode.HIBRIDO") },
-                      { value: "PRESENCIAL", label: t("telework.mode.PRESENCIAL") },
-                      { value: "CAMPO", label: t("telework.mode.CAMPO") },
-                    ]}
-                  />
-                  <ITInput
-                    name="punchNote"
-                    label={t("punch.note")}
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                  />
-                </div>
-
-                <label className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-[12px] text-slate-700">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={withGeo}
-                    onChange={(event) => setWithGeo(event.target.checked)}
-                  />
-                  <span className="flex items-center gap-1.5">
-                    <LuMapPin size={13} />
-                    {t("punch.shareLocation")}
+                <button
+                  type="button"
+                  disabled={fx.busy}
+                  onClick={() => void doPunch(primaryNext)}
+                  style={{ backgroundColor: "#0f2e3d" }}
+                  className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-4 text-left text-white transition hover:brightness-110 disabled:opacity-60"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15">
+                      {PUNCH_ICON[primaryNext]}
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70">
+                        {tr("punch.next")}
+                      </span>
+                      <span className="text-[18px] font-extrabold leading-tight">
+                        {primaryLabel}
+                      </span>
+                    </span>
                   </span>
-                </label>
+                  <span className="text-[20px] font-black tabular-nums">
+                    {fx.busy ? "…" : timeOf(new Date().toISOString())}
+                  </span>
+                </button>
 
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <ITButton
-                    variant="filled"
-                    color="primary"
-                    className="w-full"
-                    disabled={fx.busy}
-                    onClick={() => void doPunch("ENTRY")}
-                  >
-                    {t("punch.entry")}
-                  </ITButton>
-                  <ITButton
-                    variant="outlined"
-                    color="secondary"
-                    className="w-full"
-                    disabled={fx.busy}
-                    onClick={() => void doPunch("EXIT")}
-                  >
-                    {t("punch.exit")}
-                  </ITButton>
-                </div>
-                <ITText muted className="!text-[11px]">
-                  {t("punch.privacy")}
+                <ITText muted className="!text-[11.5px]">
+                  {tr("punch.channelHint")}
                 </ITText>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {(["ENTRY", "LUNCH_START", "LUNCH_END", "EXIT"] as PunchType[]).map((type) => {
+                    const suggested = nextTypes.includes(type);
+                    const time = timeByType(type);
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        disabled={fx.busy || !suggested}
+                        onClick={() => void doPunch(type)}
+                        className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left transition ${
+                          suggested
+                            ? "border-slate-300 bg-white hover:border-slate-400"
+                            : "border-slate-100 bg-slate-50 opacity-60"
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+                          {PUNCH_ICON[type]}
+                          {PUNCH_LABEL[type]}
+                        </span>
+                        <span className="text-[15px] font-extrabold tabular-nums text-slate-800">
+                          {time ?? "--:--"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {todayPunches.length > 0 && (
+                  <ITFlex direction="column" gap={1.5}>
+                    <ITText muted className="!text-[11px] font-semibold uppercase tracking-[0.08em]">
+                      {tr("punch.timeline")}
+                    </ITText>
+                    {[...todayPunches].reverse().map((row) => (
+                      <div key={row.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-1.5">
+                        <ITFlex align="center" gap={2}>
+                          <ITText className="!text-[12.5px] font-semibold tabular-nums">{timeOf(row.occurredAt)}</ITText>
+                          <ITText className="!text-[12px]">
+                            {row.type
+                              ? PUNCH_LABEL[row.type]
+                              : row.source === "CLOCK"
+                                ? tr("punches.clock")
+                                : tr("punches.access")}
+                          </ITText>
+                        </ITFlex>
+                        <ITBadget color={row.source === "REMOTE" ? "info" : "gray"} size="sm">
+                          {tr(SOURCE_LABEL[row.source])}
+                        </ITBadget>
+                      </div>
+                    ))}
+                  </ITFlex>
+                )}
+
+                <details className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
+                  <summary className="cursor-pointer text-[12px] font-semibold text-slate-600">
+                    {tr("punch.options")}
+                  </summary>
+                  <div className="mt-3 flex flex-col gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <ITSelect
+                        name="punchMode"
+                        label={t("punch.mode")}
+                        value={workMode}
+                        onChange={(event) => setWorkMode(event.target.value as typeof workMode)}
+                        options={[
+                          { value: "REMOTO", label: t("telework.mode.REMOTO") },
+                          { value: "HIBRIDO", label: t("telework.mode.HIBRIDO") },
+                          { value: "PRESENCIAL", label: t("telework.mode.PRESENCIAL") },
+                          { value: "CAMPO", label: t("telework.mode.CAMPO") },
+                        ]}
+                      />
+                      <ITInput
+                        name="punchNote"
+                        label={t("punch.note")}
+                        value={note}
+                        onChange={(event) => setNote(event.target.value)}
+                      />
+                    </div>
+                    <label className="flex items-start gap-2 text-[12px] text-slate-700">
+                      <input type="checkbox" className="mt-0.5" checked={withGeo} onChange={(event) => setWithGeo(event.target.checked)} />
+                      <span className="flex items-center gap-1.5">
+                        <LuMapPin size={13} />
+                        {t("punch.shareLocation")}
+                      </span>
+                    </label>
+                    <ITText muted className="!text-[11px]">{t("punch.privacy")}</ITText>
+                  </div>
+                </details>
               </ITFlex>
             </ITCard>
 

@@ -74,7 +74,7 @@ export const PunchQueryDto = z
 
 export const RemotePunchDto = z
   .object({
-    type: z.enum(["ENTRY", "EXIT"]),
+    type: z.enum(["ENTRY", "EXIT", "LUNCH_START", "LUNCH_END"]),
     workMode: z.enum(["PRESENCIAL", "HIBRIDO", "REMOTO", "CAMPO"]).optional(),
     clientEventId: z.string().uuid().optional(),
     clientReportedAt: isoDate.optional(),

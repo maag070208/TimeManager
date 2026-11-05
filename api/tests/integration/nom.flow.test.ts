@@ -577,6 +577,23 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     });
     expectError(duplicate, 409, "INVALID_PUNCH_SEQUENCE", "secuencia de marcaje");
 
+    // Comida: entrada → salida a comer → regreso de comer → salida.
+    const lunchStart = await api("POST", "/nom/me/punch", {
+      token: session.token,
+      body: { type: "LUNCH_START" },
+    });
+    expectStatus(lunchStart, 201, "salida a comer");
+    const entryDuringLunch = await api("POST", "/nom/me/punch", {
+      token: session.token,
+      body: { type: "ENTRY" },
+    });
+    expectError(entryDuringLunch, 409, "INVALID_PUNCH_SEQUENCE", "entrada durante comida");
+    const lunchEnd = await api("POST", "/nom/me/punch", {
+      token: session.token,
+      body: { type: "LUNCH_END" },
+    });
+    expectStatus(lunchEnd, 201, "regreso de comer");
+
     // Geolocalización: ambas coordenadas o ninguna (no hay rastreo continuo).
     const halfGeo = await api("POST", "/nom/me/punch", {
       token: session.token,
@@ -607,7 +624,7 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     const remoteRows = (mine.body as Array<{ source: string }>).filter(
       (row) => row.source === "REMOTE"
     );
-    assert.ok(remoteRows.length >= 2, "entrada y salida remotas en el portal");
+    assert.ok(remoteRows.length >= 4, "entrada, comida y salida remotas en el portal");
 
     // El cliente puede deshabilitar el marcaje remoto.
     const hr = await clientSession("HUMAN_RESOURCES", { tenant });

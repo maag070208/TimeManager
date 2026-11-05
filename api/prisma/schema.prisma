@@ -1648,6 +1648,8 @@ enum AgentJobStatus {
 enum RemotePunchType {
   ENTRY
   EXIT
+  LUNCH_START
+  LUNCH_END
 }
 
 /// Modalidad declarada al marcar (NOM-037 distingue teletrabajo del trabajo

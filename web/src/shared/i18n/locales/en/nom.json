@@ -12,7 +12,26 @@
     "exit": "Clock out",
     "open": "Workday open",
     "privacy": "Location is optional and stored only with this punch; there is no continuous tracking.",
-    "mode": "Punch mode"
+    "mode": "Punch mode",
+    "today": "Today",
+    "next": "Next step",
+    "lunchStart": "Lunch out",
+    "lunchEnd": "Lunch back",
+    "timeline": "Today's punches",
+    "options": "Punch options (mode, note, location)",
+    "status": {
+      "none": "Not checked in",
+      "working": "Working",
+      "lunch": "At lunch",
+      "back": "Back from lunch",
+      "done": "Day finished",
+      "clockOnly": "Clock punches"
+    },
+    "clock": "Clock",
+    "entryShort": "Entry",
+    "exitShort": "Exit",
+    "register": "Register {{action}}",
+    "channelHint": "Check in from the web or your physical clock: all your punches show here."
   },
   "punches": {
     "title": "My records",
@@ -22,7 +41,9 @@
     "entry": "Entry",
     "exit": "Exit",
     "noType": "Record",
-    "report": "Report discrepancy"
+    "report": "Report discrepancy",
+    "clock": "Clock punch",
+    "access": "Access"
   },
   "sourceClock": "Clock",
   "sourceAccess": "Access",

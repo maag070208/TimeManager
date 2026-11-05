@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { localDateKey } from "@core/utils/timezone";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import type { RemotePunchDto, RemotePunchInput } from "../models/entity/nom.entity";
 import type { NomSettingsService } from "./nom-settings.service";
@@ -49,7 +50,7 @@ export class RemotePunchService {
   ): Promise<{ punch: RemotePunchDto; created: boolean }> {
     const user = await this.db.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, tenantId: true },
+      select: { id: true, name: true, tenantId: true, tenant: { select: { timezone: true } } },
     });
     if (!user) throw new HttpError(404, "USER_NOT_FOUND");
     if (!user.tenantId) throw new HttpError(400, "TENANT_REQUIRED");
@@ -85,13 +86,29 @@ export class RemotePunchService {
       if (existing) return { punch: this.toDto(existing), created: false };
     }
 
-    // Secuencia: no dos entradas o dos salidas seguidas (contra el último remoto).
+    // Secuencia del día: entrada → (comida → regreso) → salida. Al cambiar de
+    // día la secuencia arranca de nuevo, aunque ayer no se haya marcado salida.
     const last = await this.db.remotePunch.findFirst({
       where: { userId },
       orderBy: { occurredAt: "desc" },
     });
-    if (last && last.type === input.type) {
-      throw new HttpError(409, "INVALID_PUNCH_SEQUENCE", { type: input.type });
+    const timezone = user.tenant?.timezone ?? "America/Mexico_City";
+    const today = localDateKey(new Date(), timezone);
+    const lastIsToday = last ? localDateKey(last.occurredAt, timezone) === today : false;
+    if (lastIsToday) {
+      const allowed: Record<string, string[]> = {
+        ENTRY: ["LUNCH_START", "EXIT"],
+        LUNCH_START: ["LUNCH_END"],
+        LUNCH_END: ["EXIT"],
+        EXIT: ["ENTRY"],
+      };
+      const next = allowed[last!.type] ?? ["ENTRY"];
+      if (!next.includes(input.type)) {
+        throw new HttpError(409, "INVALID_PUNCH_SEQUENCE", {
+          type: input.type,
+          expected: next,
+        });
+      }
     }
 
     const clientReportedAt = input.clientReportedAt ? new Date(input.clientReportedAt) : null;

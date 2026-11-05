@@ -138,7 +138,7 @@ export interface PunchHistory {
 export interface MyPunch {
   id: string;
   source: "CLOCK" | "ACCESS" | "REMOTE";
-  type: "ENTRY" | "EXIT" | null;
+  type: RemotePunchDirection | null;
   occurredAt: string;
   method: string;
   clockSerial: string | null;
@@ -239,7 +239,7 @@ export interface StpsExportResult {
 
 // ── F2-07 marcaje remoto ────────────────────────────────────────────────────
 
-export type RemotePunchDirection = "ENTRY" | "EXIT";
+export type RemotePunchDirection = "ENTRY" | "EXIT" | "LUNCH_START" | "LUNCH_END";
 export type RemoteWorkMode = "PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO";
 
 export interface RemotePunchInput {
