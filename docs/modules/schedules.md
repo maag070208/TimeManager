@@ -52,3 +52,9 @@ Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Hor
 - Reglas de jornada (tope 12 h diarias, 46 h en 2027, reducción a 40 h en 2030) deben ser **configurables por tenant** (cada cliente puede tener reglas distintas mientras la ley lo permita).
 - El cierre de nómina es la frontera de integración: en SaaS, exportar por cliente (API/webhook) en vez de acoplar a una nómina interna.
 - **Resuelto (F2-05)**: el retardo mal calculado de DEMO-911 venía de la resolución de la asignación (ganaba la vigencia más antigua) y ya usa la más reciente; el cálculo en sí (`computeWorkday`) siempre estuvo bien.
+
+## Validación legal y transición 2027 (F2)
+
+- **H-02:** `POST /schedules` y `PATCH /schedules/:id` validan la semana contra el tope legal del año (`validateScheduleLegality`): rechazan 400 `SCHEDULE_ILLEGAL` si la semana ordinaria pasa del máximo (48/46/44/42/40 h) o si no hay día de descanso. Devuelven avisos (no bloquean) por jornada diaria arriba del estándar del turno o descanso no declarado.
+- **H-03:** `GET /schedules/legal-transition?year=YYYY` lista los horarios activos que dejan de ser legales en ese año, con minutos semanales, tope legal, infracciones, avisos, jornada diaria máxima y personas asignadas (para ajustar antes del 1-ene sin bajar salario).
+- El tipo de turno del art. 60 (`shiftTypeOf`) se calcula por día y viaja en el cálculo de jornada.

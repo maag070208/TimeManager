@@ -420,6 +420,7 @@ export const es = {
     HOLIDAY_ALREADY_EXISTS: "Ese día ya está en el catálogo de festivos",
     HOLIDAY_NOT_FOUND: "Festivo no encontrado",
     INVALID_HOLIDAY_NAME: "El nombre del festivo debe tener al menos 3 caracteres",
+    SCHEDULE_ILLEGAL: "El horario no cumple la jornada legal del año: {{violations}}",
     INVALID_WEEKLY_LIMIT: "El límite semanal debe estar entre {{min}} y {{max}} minutos",
     WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",
     INVALID_RETENTION_MONTHS: "La retención debe estar entre {{min}} y {{max}} meses (vacío desactiva el archivado)",

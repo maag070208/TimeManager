@@ -65,6 +65,16 @@ export class ScheduleController {
     res.json(await this.service.list(includeInactive));
   };
 
+
+  legalTransition = async (req: Request, res: Response): Promise<void> => {
+    const targetYear = Number(req.query.year) || new Date().getUTCFullYear() + 1;
+    if (!Number.isInteger(targetYear) || targetYear < 2000 || targetYear > 2100) {
+      res.status(400).json({ code: "INVALID_REPORT_DATE" });
+      return;
+    }
+    res.json(await this.service.legalTransition(targetYear));
+  };
+
   create = async (req: Request, res: Response): Promise<void> => {
     const input = ScheduleCreateDto.parse(req.body);
     res.status(201).json(await this.service.create(input));

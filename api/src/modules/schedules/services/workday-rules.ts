@@ -1,4 +1,5 @@
 import { startOfLocalDay } from "@core/utils/timezone";
+import { weeklyLimitForYear } from "@modules/nom/services/nom-settings.service";
 
 /**
  * Regla única del cálculo de una jornada (horas programadas, tiempo extra y
@@ -227,5 +228,81 @@ export const computeWorkday = (
     restDay: false,
     scheduleName: schedule.name,
     withoutSchedule: false,
+  };
+};
+
+export interface ScheduleValidationDay {
+  weekday: number;
+  startTime: string | null;
+  endTime: string | null;
+  splitStartTime: string | null;
+  splitEndTime: string | null;
+  restDay: boolean;
+}
+
+export interface ScheduleValidationResult {
+  valid: boolean;
+  weeklyMinutes: number;
+  legalWeeklyMinutes: number;
+  violations: string[];
+  warnings: string[];
+  /** Jornada diaria máxima del horario (para proponer el ajuste H-03). */
+  maxDailyMinutes: number;
+}
+
+/**
+ * Validación H-02 de un horario (arts. 58-61, 63 y 69):
+ * - la semana ordinaria no puede pasar del máximo del año de vigencia,
+ * - debe incluir al menos un día de descanso (no 7 días trabajados),
+ * - avisa (no bloquea) si un día pasa del máximo estándar del turno o si una
+ *   jornada continua no declara descanso.
+ */
+const maxDailyMinutesForShift = (shift: ShiftType | null): number => {
+  if (shift === "NOCTURNA") return 7 * 60;
+  if (shift === "MIXTA") return 7 * 60 + 30;
+  return 8 * 60;
+};
+
+export const validateScheduleLegality = (
+  input: { days: ScheduleValidationDay[]; mealBreakMin: number },
+  year: number = new Date().getUTCFullYear()
+): ScheduleValidationResult => {
+  const violations: string[] = [];
+  const warnings: string[] = [];
+  const legalWeeklyMinutes = weeklyLimitForYear(year);
+
+  let weeklyMinutes = 0;
+  let maxDailyMinutes = 0;
+  let workedDays = 0;
+  for (const day of input.days) {
+    if (day.restDay || !day.startTime || !day.endTime) continue;
+    workedDays += 1;
+    const minutes =
+      minutesBetween(day.startTime, day.endTime) +
+      (day.splitStartTime && day.splitEndTime
+        ? minutesBetween(day.splitStartTime, day.splitEndTime)
+        : 0);
+    const net = Math.max(0, minutes - input.mealBreakMin);
+    weeklyMinutes += net;
+    maxDailyMinutes = Math.max(maxDailyMinutes, net);
+
+    const shift = shiftTypeOf(day);
+    if (net > maxDailyMinutesForShift(shift)) warnings.push(`DIA_MAYOR_ESTANDAR:${day.weekday}`);
+    const continuous = !day.splitStartTime && !day.splitEndTime;
+    if (continuous && net >= 6 * 60 && input.mealBreakMin < 30) {
+      warnings.push(`DESCANSO_NO_DECLARADO:${day.weekday}`);
+    }
+  }
+
+  if (weeklyMinutes > legalWeeklyMinutes) violations.push("SEMANA_MAYOR_LEGAL");
+  if (workedDays === 7) violations.push("SIN_DIA_DE_DESCANSO");
+
+  return {
+    valid: violations.length === 0,
+    weeklyMinutes,
+    legalWeeklyMinutes,
+    violations,
+    warnings,
+    maxDailyMinutes,
   };
 };

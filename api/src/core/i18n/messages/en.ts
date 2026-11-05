@@ -422,6 +422,7 @@ export const en: Messages = {
     HOLIDAY_ALREADY_EXISTS: "That date is already in the holiday catalog",
     HOLIDAY_NOT_FOUND: "Holiday not found",
     INVALID_HOLIDAY_NAME: "The holiday name must be at least 3 characters",
+    SCHEDULE_ILLEGAL: "The schedule does not meet the legal workweek for the year: {{violations}}",
     INVALID_WEEKLY_LIMIT: "The weekly limit must be between {{min}} and {{max}} minutes",
     WEEKLY_LEDGER_NOT_FOUND: "Weekly overtime ledger not found",
     INVALID_RETENTION_MONTHS: "Retention must be between {{min}} and {{max}} months (empty disables archiving)",

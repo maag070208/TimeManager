@@ -14,7 +14,15 @@ import {
 } from "@core/utils/timezone";
 import { TimeClockReportService } from "@modules/time-clock/services/time-clock-report.service";
 import type { AuditLogger } from "@modules/users/services/user.service";
-import { computeWorkday, dateKeyOf, shiftOf, shiftTypeOf, toUtcDate, weekdayOf } from "./workday-rules";
+import {
+  computeWorkday,
+  dateKeyOf,
+  shiftOf,
+  shiftTypeOf,
+  toUtcDate,
+  validateScheduleLegality,
+  weekdayOf,
+} from "./workday-rules";
 import { loadScheduleAssignments, scheduleOn } from "./schedule-assignments";
 import type {
   ScheduleOvertimeDay,
@@ -68,6 +76,18 @@ export class ScheduleService {
     const dup = await this.db.schedule.findFirst({ where: { name: data.name } });
     if (dup) throw new HttpError(409, "SCHEDULE_NAME_TAKEN");
 
+    const legality = validateScheduleLegality({
+      days: data.days.map((day) => this.normalizeDay(day)),
+      mealBreakMin: data.mealBreakMin ?? 0,
+    });
+    if (!legality.valid) {
+      throw new HttpError(400, "SCHEDULE_ILLEGAL", {
+        violations: legality.violations,
+        weeklyMinutes: legality.weeklyMinutes,
+        legalWeeklyMinutes: legality.legalWeeklyMinutes,
+      });
+    }
+
     return this.db.schedule.create({
       data: {
         name: data.name,
@@ -83,8 +103,23 @@ export class ScheduleService {
   }
 
   async update(id: string, data: ScheduleUpdateInput) {
-    const schedule = await this.db.schedule.findUnique({ where: { id } });
+    const schedule = await this.db.schedule.findUnique({
+      where: { id },
+      include: { days: true },
+    });
     if (!schedule) throw new HttpError(404, "SCHEDULE_NOT_FOUND");
+
+    const legality = validateScheduleLegality({
+      days: (data.days ?? schedule.days).map((day) => this.normalizeDay(day)),
+      mealBreakMin: data.mealBreakMin ?? schedule.mealBreakMin,
+    });
+    if (!legality.valid) {
+      throw new HttpError(400, "SCHEDULE_ILLEGAL", {
+        violations: legality.violations,
+        weeklyMinutes: legality.weeklyMinutes,
+        legalWeeklyMinutes: legality.legalWeeklyMinutes,
+      });
+    }
 
     if (data.name && data.name !== schedule.name) {
       const dup = await this.db.schedule.findFirst({ where: { name: data.name } });
@@ -110,6 +145,44 @@ export class ScheduleService {
         include: { days: { orderBy: { weekday: "asc" } } },
       });
     });
+  }
+
+  /**
+   * H-03: horarios activos que dejan de ser legales en `targetYear`, con las
+   * personas asignadas y la semana máxima permitida, para ajustarlos antes del
+   * 1 de enero sin bajar salario (transitorio 7.º).
+   */
+  async legalTransition(targetYear: number) {
+    const schedules = await this.db.schedule.findMany({
+      where: { active: true },
+      include: {
+        days: true,
+        _count: { select: { assignments: { where: { validTo: null } } } },
+      },
+      orderBy: { name: "asc" },
+    });
+    return schedules
+      .map((schedule) => {
+        const legality = validateScheduleLegality(
+          { days: schedule.days, mealBreakMin: schedule.mealBreakMin },
+          targetYear
+        );
+        return {
+          id: schedule.id,
+          name: schedule.name,
+          assigned: schedule._count.assignments,
+          weeklyMinutes: legality.weeklyMinutes,
+          legalWeeklyMinutes: legality.legalWeeklyMinutes,
+          violations: legality.violations,
+          warnings: legality.warnings,
+          maxDailyMinutes: legality.maxDailyMinutes,
+        };
+      })
+      .filter(
+        (row) =>
+          row.violations.includes("SEMANA_MAYOR_LEGAL") ||
+          row.violations.includes("SIN_DIA_DE_DESCANSO")
+      );
   }
 
   async remove(id: string) {

@@ -105,6 +105,10 @@ export const createSchedulesRouter = (controller: ScheduleController): Router =>
   router.get("/", requiresPermission("schedules.view"), asyncHandler(controller.list));
   router.post("/", requiresPermission("schedules.manage"), asyncHandler(controller.create));
 
+  // H-03: horarios que dejan de ser legales en el año indicado (antes de las
+  // rutas `/:id` para no colisionar).
+  router.get("/legal-transition", requiresPermission("schedules.view"), asyncHandler(controller.legalTransition));
+
   router.post("/assignments", requiresPermission("schedules.manage"), asyncHandler(controller.assign));
   router.post("/assignments/remove", requiresPermission("schedules.manage"), asyncHandler(controller.removeAssignments));
   router.post("/assignments/query", requiresPermission("schedules.view"), asyncHandler(controller.assignmentsTable));
