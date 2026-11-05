@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@app/store";
 import { sysConfigApi } from "../api/sysConfigApi";
 
 /**
@@ -66,11 +68,19 @@ export const invalidateWeekStartDay = (): void => {
 
 /** Primer día de la semana como índice JS (`0`…`6`), reactivo al cache. */
 export const useWeekStartDay = (): number => {
+  // El cliente manda: cada administrador configura su semana (art. 58/LFT).
+  const tenantWeekStart = useSelector(
+    (state: RootState) => state.auth.user?.tenant?.weekStartDay
+  );
   const [day, setDay] = useState<number>(
-    cached ?? weekdayIndex(DEFAULT_WEEK_START_DAY)
+    tenantWeekStart ?? cached ?? weekdayIndex(DEFAULT_WEEK_START_DAY)
   );
 
   useEffect(() => {
+    if (typeof tenantWeekStart === "number") {
+      setDay(tenantWeekStart);
+      return;
+    }
     let alive = true;
     void loadWeekStartDay().then((idx) => {
       if (alive) setDay(idx);
@@ -78,7 +88,7 @@ export const useWeekStartDay = (): number => {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [tenantWeekStart]);
 
   return day;
 };

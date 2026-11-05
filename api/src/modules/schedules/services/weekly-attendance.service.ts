@@ -93,7 +93,13 @@ export class WeeklyAttendanceService {
   private async computeReport(params: WeeklyAttendanceParams): Promise<WeeklyAttendanceReport> {
     const dateKey = assertDateKey(params.date, "INVALID_REPORT_DATE");
     const timezone = await resolveTimezoneWithConfig(undefined, this.sysConfig);
-    const weekStart = await resolveWeekStartWithConfig(this.sysConfig);
+    const weekStart = await (async () => {
+        const tenantId = currentTenantId();
+        const tenant = tenantId
+          ? await this.db.tenant.findUnique({ where: { id: tenantId }, select: { weekStartDay: true } })
+          : null;
+        return tenant?.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
+      })();
     const range = resolveReportRange("WEEK", dateKey, timezone, weekStart);
     const firstDay = localDateKey(range.start, timezone);
     const days = Array.from({ length: 7 }, (_, i) => addDays(firstDay, i));

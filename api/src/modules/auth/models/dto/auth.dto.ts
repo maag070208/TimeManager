@@ -24,6 +24,7 @@ export const TenantInfoSchema = z
     slug: z.string(),
     name: z.string(),
     timezone: z.string(),
+    weekStartDay: z.number().int().min(0).max(6),
   })
   .openapi("TenantInfo");
 

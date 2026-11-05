@@ -36,7 +36,7 @@ export const entityToAuthUserDto = (entity: AuthUserEntity): AuthUser => ({
 export const userToAuthMeDto = (
   user: User & {
     department: { id: string; name: string } | null;
-    tenant?: { id: string; slug: string; name: string; timezone: string } | null;
+    tenant?: { id: string; slug: string; name: string; timezone: string; weekStartDay: number } | null;
     extraRoles?: Array<{ role: string }>;
     permissionGrants?: Array<{ permission: string; scope: PermissionScope; expiresAt: Date | null }>;
   },

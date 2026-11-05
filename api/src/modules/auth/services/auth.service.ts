@@ -170,6 +170,7 @@ export class AuthService {
             slug: true,
             name: true,
             timezone: true,
+            weekStartDay: true,
             brandColor: true,
             logoDataUrl: true,
           },

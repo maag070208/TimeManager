@@ -53,6 +53,12 @@ Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Hor
 - El cierre de nómina es la frontera de integración: en SaaS, exportar por cliente (API/webhook) en vez de acoplar a una nómina interna.
 - **Resuelto (F2-05)**: el retardo mal calculado de DEMO-911 venía de la resolución de la asignación (ganaba la vigencia más antigua) y ya usa la más reciente; el cálculo en sí (`computeWorkday`) siempre estuvo bien.
 
+## Semana laboral configurable por cliente
+
+- `Tenant.weekStartDay` (0=domingo … 6=sábado; default 3=miércoles) define el borde de la semana para horarios, pre-nómina, tiempo extra, asistencia y bitácoras.
+- El administrador del cliente lo cambia en **Configuración del cliente** (`/settings/general`), que guarda vía `PUT /nom/config { weekStartDay }` y refresca la sesión.
+- El API resuelve la semana por cliente en `ScheduleService`, `WeeklyAttendanceService`, reporte de reloj y bitácora; el `sys_config.WEEK_START_DAY` queda solo como fallback.
+
 ## Validación legal y transición 2027 (F2)
 
 - **H-02:** `POST /schedules` y `PATCH /schedules/:id` validan la semana contra el tope legal del año (`validateScheduleLegality`): rechazan 400 `SCHEDULE_ILLEGAL` si la semana ordinaria pasa del máximo (48/46/44/42/40 h) o si no hay día de descanso. Devuelven avisos (no bloquean) por jornada diaria arriba del estándar del turno o descanso no declarado.

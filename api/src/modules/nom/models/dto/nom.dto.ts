@@ -20,6 +20,7 @@ export const AdjustmentDecisionDto = z
 
 export const NomSettingsUpdateDto = z
   .object({
+    weekStartDay: z.number().int().min(0).max(6).nullable().optional(),
     workdayLimitMinutes: z.number().int().min(60).max(1440).nullable().optional(),
     weeklyLimitMinutes: z.number().int().min(600).max(10080).nullable().optional(),
     retentionMonths: z.number().int().min(1).max(120).nullable().optional(),

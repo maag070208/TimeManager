@@ -39,6 +39,7 @@ import TenantOnly from "./guards/TenantOnly";
 import TeleworkAdminPage from "@pages/nom/TeleworkAdminPage";
 import RolesPage from "@pages/roles/RolesPage";
 import PlansPage from "@pages/plans/PlansPage";
+import GeneralSettingsPage from "@pages/settings/GeneralSettingsPage";
 
 /** Personal se abre con expediente (`hr.records`) o con cuentas (`users.view`). */
 const PEOPLE_PERMISSIONS = ["hr.records", "users.view"] as const;
@@ -171,6 +172,14 @@ export default function App() {
           }
         />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route
+          path="/settings/general"
+          element={
+            <RequiresPermission permission="time_clock.write">
+              <GeneralSettingsPage />
+            </RequiresPermission>
+          }
+        />
         {/* Reloj checador Hikvision (solo lectura; ver TIME_CLOCK.md). */}
         <Route
           path="/hr/time-clock"

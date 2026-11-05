@@ -20,7 +20,17 @@ import type {
 
 const base = "/nom";
 
+export interface NomConfigDto {
+  workdayLimitMinutes: number;
+  weekStartDay: number;
+  weeklyLimitMinutes: number;
+  retentionMonths: number | null;
+}
+
 export const nomApi = {
+  getConfig: () => api.get<NomConfigDto>(`${base}/config`),
+  updateConfig: (input: { weekStartDay?: number }) =>
+    api.put<NomConfigDto>(`${base}/config`, input),
   myPunches: (params: { from?: string; to?: string; limit?: number } = {}) => {
     const qs = new URLSearchParams();
     if (params.from) qs.set("from", params.from);

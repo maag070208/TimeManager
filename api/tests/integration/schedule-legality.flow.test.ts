@@ -49,6 +49,34 @@ describe("F2 horarios legales y transición 2027", () => {
     expectError(noRest, 400, "SCHEDULE_ILLEGAL", "semana sin día de descanso");
   });
 
+  test("la semana laboral del cliente se configura (jueves → miércoles)", async () => {
+    const tenant = await createTenant();
+    const admin = await clientSession("CLIENT_ADMIN", { tenant });
+
+    const saved = await api("PUT", "/nom/config", {
+      token: admin.token,
+      body: { weekStartDay: 4 },
+    });
+    expectStatus(saved, 200, "semana configurada");
+    assert.equal(saved.body?.weekStartDay, 4);
+
+    const invalid = await api("PUT", "/nom/config", {
+      token: admin.token,
+      body: { weekStartDay: 9 },
+    });
+    expectError(invalid, 400, "VALIDATION_ERROR", "día de inicio inválido");
+
+    const report = await api("POST", "/schedules/weekly-attendance", {
+      token: admin.token,
+      body: { date: "2027-03-10" },
+    });
+    expectStatus(report, 200, "reporte semanal con semana del cliente");
+    assert.ok(
+      String(report.body?.range?.start).startsWith("2027-03-04"),
+      "la semana inicia el jueves 4 de marzo"
+    );
+  });
+
   test("acepta un horario legal y el asistente reporta los que dejan de serlo", async () => {
     const tenant = await createTenant();
     const admin = await clientSession("CLIENT_ADMIN", { tenant });

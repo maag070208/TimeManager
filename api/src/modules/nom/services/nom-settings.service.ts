@@ -141,7 +141,7 @@ export class NomSettingsService {
   async resolve(tenantId: string): Promise<NomConfig> {
     const [settings, tenant] = await Promise.all([
       this.db.nomSettings.findUnique({ where: { tenantId } }),
-      this.db.tenant.findUnique({ where: { id: tenantId }, select: { timezone: true } }),
+      this.db.tenant.findUnique({ where: { id: tenantId }, select: { timezone: true, weekStartDay: true } }),
     ]);
     const timezone = tenant?.timezone ?? "America/Mexico_City";
     const year = Number(localDateKey(new Date(), timezone).slice(0, 4));
@@ -173,6 +173,7 @@ export class NomSettingsService {
 
     return {
       workdayLimitMinutes,
+      weekStartDay: tenant?.weekStartDay ?? 3,
       weeklyLimitMinutes,
       retentionMonths,
       remotePunchEnabled: settings?.remotePunchEnabled ?? true,
@@ -203,6 +204,17 @@ export class NomSettingsService {
     input: NomSettingsUpdateInput
   ): Promise<NomConfig> {
     const previous = await this.resolve(tenantId);
+
+
+    if (input.weekStartDay != null) {
+      if (!Number.isInteger(input.weekStartDay) || input.weekStartDay < 0 || input.weekStartDay > 6) {
+        throw new HttpError(400, "INVALID_WEEK_START_DAY");
+      }
+      await this.db.tenant.update({
+        where: { id: tenantId },
+        data: { weekStartDay: input.weekStartDay },
+      });
+    }
 
     if (
       input.workdayLimitMinutes != null &&
@@ -270,6 +282,7 @@ export class NomSettingsService {
       userName: actor.name ?? undefined,
       previousState: {
         workdayLimitMinutes: previous.workdayLimitMinutes,
+        weekStartDay: previous.weekStartDay,
         weeklyLimitMinutes: previous.weeklyLimitMinutes,
         retentionMonths: previous.retentionMonths,
         remotePunchEnabled: previous.remotePunchEnabled,

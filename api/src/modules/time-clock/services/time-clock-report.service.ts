@@ -193,7 +193,13 @@ export class TimeClockReportService {
       period,
       dateKey,
       timezone,
-      await resolveWeekStartWithConfig(this.sysConfig)
+      await (async () => {
+        const tenantId = currentTenantId();
+        const tenant = tenantId
+          ? await this.db.tenant.findUnique({ where: { id: tenantId }, select: { weekStartDay: true } })
+          : null;
+        return tenant?.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
+      })()
     );
     return { start, end, timezone, period };
   }

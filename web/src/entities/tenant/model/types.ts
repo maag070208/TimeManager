@@ -8,6 +8,8 @@ export interface TenantInfo {
   slug: string;
   name: string;
   timezone: string;
+  /** Primer día de la semana laboral (0=domingo … 6=sábado; 3=miércoles). */
+  weekStartDay?: number;
   /** Branding (F3-05). `null` = marca TimeManager. */
   brandColor?: string | null;
   /** Logo del cliente como data URL. */

@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { requireTenantId } from "@core/tenancy";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { staffRoleKeys } from "@core/permissions";
@@ -257,7 +258,13 @@ export class AccessReportService {
       rawPeriod,
       dateKey,
       timezone,
-      await resolveWeekStartWithConfig(this.sysConfig)
+      await (async () => {
+        const tenant = await this.db.tenant.findUnique({
+          where: { id: requireTenantId() },
+          select: { weekStartDay: true },
+        });
+        return tenant?.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
+      })()
     );
     return { start, end, timezone, period: rawPeriod };
   }

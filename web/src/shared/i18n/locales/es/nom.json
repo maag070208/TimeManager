@@ -133,5 +133,17 @@
     "rejected": "Rechazada",
     "cancelled": "Cancelada",
     "pending": "Pendiente"
+  },
+  "config": {
+    "title": "Configuración del cliente",
+    "description": "Define cómo opera tu empresa: inicio de semana, horarios y retardos.",
+    "weekStartTitle": "Inicio de la semana laboral",
+    "weekStartHint": "Aplica a Horarios, pre-nómina, tiempo extra y reportes de asistencia.",
+    "weekStartLabel": "Primer día",
+    "weekStartSaved": "Semana laboral actualizada.",
+    "save": "Guardar",
+    "schedulesLink": "Configurar horarios y tolerancias de retardo",
+    "retentionTitle": "Recordatorio",
+    "retentionText": "Los horarios se configuran por horario: tolerancia de entrada/salida, comida y mínimo de tiempo extra."
   }
 }

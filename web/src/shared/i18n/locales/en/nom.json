@@ -133,5 +133,17 @@
     "rejected": "Rejected",
     "cancelled": "Cancelled",
     "pending": "Pending"
+  },
+  "config": {
+    "title": "Client settings",
+    "description": "Define how your company operates: week start, schedules and lateness.",
+    "weekStartTitle": "Workweek start",
+    "weekStartHint": "Applies to schedules, payroll, overtime and attendance reports.",
+    "weekStartLabel": "First day",
+    "weekStartSaved": "Workweek updated.",
+    "save": "Save",
+    "schedulesLink": "Configure schedules and lateness tolerances",
+    "retentionTitle": "Reminder",
+    "retentionText": "Schedules configure entry/exit tolerance, meal break and overtime minimum."
   }
 }

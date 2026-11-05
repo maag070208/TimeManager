@@ -6,6 +6,8 @@ export type NomAuditLogger = AuditLogger;
 /** Límites y retención vigentes de un cliente (F2-03 / F2-04). */
 export interface NomConfig {
   workdayLimitMinutes: number;
+  /** Primer día de la semana del cliente (0=domingo … 6=sábado). */
+  weekStartDay: number;
   weeklyLimitMinutes: number;
   /** `null` = retención deshabilitada (no se archiva). */
   retentionMonths: number | null;
@@ -33,6 +35,7 @@ export interface NomConfig {
 }
 
 export interface NomSettingsUpdateInput {
+  weekStartDay?: number | null;
   workdayLimitMinutes?: number | null;
   weeklyLimitMinutes?: number | null;
   retentionMonths?: number | null;

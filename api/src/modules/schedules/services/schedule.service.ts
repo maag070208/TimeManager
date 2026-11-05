@@ -332,12 +332,12 @@ export class ScheduleService {
     const dateKey = assertDateKey(filters.date, "INVALID_REPORT_DATE");
     const explicitTz = typeof filters.tz === "string" && filters.tz !== "" ? filters.tz : undefined;
     const timezone = await resolveTimezoneWithConfig(explicitTz, this.sysConfig);
-    const { start, end } = resolveReportRange(
-      rawPeriod,
-      dateKey,
-      timezone,
-      await resolveWeekStartWithConfig(this.sysConfig)
-    );
+    const tenant = await this.db.tenant.findUnique({
+      where: { id: requireTenantId() },
+      select: { weekStartDay: true },
+    });
+    const weekStart = tenant?.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
+    const { start, end } = resolveReportRange(rawPeriod, dateKey, timezone, weekStart);
     return { start, end, timezone, period: rawPeriod };
   }
 

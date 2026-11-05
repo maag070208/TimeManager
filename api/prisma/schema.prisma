@@ -63,6 +63,8 @@ model Tenant {
   slug          String       @unique
   status        TenantStatus @default(ACTIVE)
   timezone      String       @default("America/Mexico_City")
+  /// Primer día de la semana laboral (0=domingo … 6=sábado; 3=miércoles).
+  weekStartDay  Int          @default(3)
   /// Plan contratado. `null` = sin plan (no aplica límites).
   planId        String?
   plan          Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
