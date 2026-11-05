@@ -148,7 +148,7 @@ export const resources = {
   },
 } as const;
 
-const STORAGE_KEY = "ptnv-language";
+const STORAGE_KEY = "tm-language";
 
 const storedLanguage =
   typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;

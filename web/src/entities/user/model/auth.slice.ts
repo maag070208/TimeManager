@@ -16,7 +16,7 @@ interface State {
   error: string | null;
 }
 
-const STORAGE_KEY = "ptnv_auth_v1";
+const STORAGE_KEY = "tm_auth_v1";
 
 const loadInitial = (): State => {
   if (typeof window === "undefined") return defaultState();

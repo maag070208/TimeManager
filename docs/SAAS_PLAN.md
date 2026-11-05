@@ -179,6 +179,6 @@ Estado de partida (2026-11-04): BD de Railway recién migrada con el baseline, s
 
 1. **D3** — **Resuelta**: `timemanager.mx` (compra del dominio pendiente del usuario).
 2. **D5** — **Pospuesta**: se decide antes de F3-04; considerar Stripe vs Conekta vs facturación manual.
-3. ¿El cliente actual (Puerto Nuevo) migra como tenant #1? — **Resuelta: arrancamos limpios**, sin migrar datos heredados.
+3. ¿El cliente actual migra como tenant #1? — **Resuelta: arrancamos limpios**, sin migrar datos heredados.
 4. ¿La app móvil entra al SaaS desde el inicio? — Sigue abierta (add-on posterior).
 5. **A4** — ¿el API llega a los relojes on-prem por agente propio (conexión saliente) o por VPN por cliente? Define F1B-11.

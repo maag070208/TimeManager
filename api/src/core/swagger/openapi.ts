@@ -14,10 +14,10 @@ export const buildOpenApiDocument = () => {
   return generator.generateDocument({
     openapi: "3.0.0",
     info: {
-      title: "Custody Letters API",
+      title: "TimeManager API",
       version: "1.0.0",
       description:
-        "Puerto Nuevo Custody Letters API. JWT authentication (Bearer). Roles: ADMIN, SUPPORT, CLIENT_ADMIN, HUMAN_RESOURCES, CLIENT_STAFF.",
+        "TimeManager API. JWT authentication (Bearer). Roles: ADMIN, SUPPORT, CLIENT_ADMIN, HUMAN_RESOURCES, CLIENT_STAFF.",
     },
     servers: [
       {

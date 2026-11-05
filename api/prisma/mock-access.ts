@@ -36,7 +36,7 @@ const DAYS_BACK = 14;
 
 const MOCK_DEVICE_PREFIX = "MOCK-SEED-";
 
-// Coordenadas base: zona de Puerto Nuevo, Baja California (litoral).
+// Coordenadas base: zona de Baja California (litoral).
 const BASE_LAT = 32.2415;
 const BASE_LNG = -116.9341;
 

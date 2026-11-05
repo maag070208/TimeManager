@@ -121,7 +121,7 @@ App de **escritorio (Electron)** con nuestro design system
 Es la que se conecta al **reloj Hikvision por la red local** (ISAPI), lee las
 checadas y las envía al API; además ejecuta las órdenes de escritura sobre el
 equipo (alta/baja de personas, tarjetas, huellas) que se piden desde la nube.
-Se inspira en `~/DEV/PTNV/AXZY_PTNV_SERVERS/agente` (Electron + instaladores),
+Se inspira en una app de escritorio de referencia (Electron + instaladores),
 pero este agente **no** instala el stack completo: solo es el brazo local del
 SaaS.
 

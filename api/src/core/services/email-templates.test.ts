@@ -28,12 +28,3 @@ test("bienvenida de empleado: encabezado con el marcador del cliente y botón op
   assert.ok(!welcomeEmail(base).html.includes("<a href"));
 });
 
-test("ningún correo menciona a Puerto Nuevo", () => {
-  for (const language of ["es", "en"] as const) {
-    const html = [
-      tenantWelcomeEmail({ language, company: "X", name: "Y", username: "z" }).html,
-      welcomeEmail({ language, to: "a@b.c", name: "Y", username: "z", tempPassword: "p" }).html,
-    ].join("");
-    assert.ok(!/puerto nuevo|responsiva/i.test(html), language);
-  }
-});

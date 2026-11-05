@@ -1,6 +1,6 @@
 # TimeManager
 
-Sistema de RH y registro de checadas (API + web), recortado del sistema completo de Puerto Nuevo.
+Sistema de RH y registro de checadas (API + web), recortado de un ERP original.
 Base de datos: PostgreSQL en la nube (Railway/Render), vía `DATABASE_URL`.
 
 Alcance y requisitos de la NOM-037 / registro de jornada: [`docs/RH_MODULO_STANDALONE.md`](docs/RH_MODULO_STANDALONE.md).

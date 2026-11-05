@@ -6,7 +6,7 @@ declare global {
   }
 }
 
-// Prioridad: 1) config en runtime (nginx/config.js desde AXZY_PTNV_SERVERS/.env),
+// Prioridad: 1) config en runtime (nginx/config.js generado por render-config.sh),
 //            2) VITE_API_URL (build/dev), 3) por defecto ruta relativa del proxy.
 const BASE_URL =
   window.__APP_CONFIG__?.API_URL ||

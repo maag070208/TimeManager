@@ -82,7 +82,7 @@ export const createApp = () => {
 
   app.get("/", (_req, res) => {
     res.json({
-      name: "ptnv-api",
+      name: "timemanager-api",
       version: "1.0.0",
       docs: "/docs",
     });
