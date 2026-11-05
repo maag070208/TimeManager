@@ -46,7 +46,7 @@
     "weeklyAttendance": "Weekly attendance",
     "payroll": "Payroll",
     "settings": "Settings",
-    "langostin": "Langostin",
+    "tic": "Tic",
     "accountMenu": "{{name}}'s account"
   },
   "files": {
@@ -129,5 +129,10 @@
   "liveSummary": {
     "title": "Summary",
     "progress": "{{done}} of {{total}} sections complete"
+  },
+  "tenant": {
+    "platform": "Platform (no client)",
+    "switchHint": "Client you are operating on",
+    "current": "Company"
   }
 }

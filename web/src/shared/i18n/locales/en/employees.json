@@ -7,7 +7,7 @@
   "detail": {
     "save": "Save changes",
     "guide": {
-      "label": "Langostin, form guide",
+      "label": "Tic, form guide",
       "start": "Review the person's details and fix what is needed. Press Enter to move to the next field.",
       "fix": "Review the fields marked in red before saving.",
       "saving": "Saving…",
@@ -254,7 +254,7 @@
   },
   "credential": {
     "title": "EMPLOYEE BADGE",
-    "subtitle": "Puerto Nuevo Hotel y Villas · Authorized Staff",
+    "subtitle": "{{company}} · Authorized staff",
     "employeeNumber": "Employee number",
     "fullName": "Full name",
     "jobTitle": "Job title",

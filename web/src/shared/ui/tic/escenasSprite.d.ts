@@ -1,7 +1,7 @@
-// Tipos de los escenarios de Langostin (escenasSprite.js, sin dependencias).
+// Tipos de los escenarios de Tic (escenasSprite.js, sin dependencias).
 // Los fondos se dibujan en un canvas de 64x40; la mascota (32x32) se pinta
 // encima, en x=16 y=8.
-export type LangostinScene =
+export type TicScene =
   | "hotel"
   | "isla"
   | "navidad"
@@ -11,7 +11,7 @@ export type LangostinScene =
   | "sistemas"
   | "noche";
 
-export const SCENES: LangostinScene[];
+export const SCENES: TicScene[];
 
 export interface EscenaBuild {
   /** Dibuja la escena; sin `build` se pinta solo el fondo. */

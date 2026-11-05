@@ -3,7 +3,7 @@ import { LuBell, LuCheckCheck } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { NotificationItem, useNotificationsList, type NotificationFilter } from "@features/notification/list";
 import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import { PanelCard } from "@shared/ui/panel-card";
 import { formatLongDate } from "@shared/utils/dates";
 
@@ -61,10 +61,10 @@ export default function NotificationsPage() {
         <FilterPills items={filters} value={fx.filter} onChange={fx.setFilter} />
 
         <PanelCard>
-          {initialLoad && <LangostinState kind="loading" />}
+          {initialLoad && <TicState kind="loading" />}
 
           {empty && (
-            <LangostinState
+            <TicState
               kind={fx.items.length === 0 ? "empty" : "noResults"}
               title={fx.items.length === 0 ? tt("empty") : undefined}
               description={fx.items.length === 0 ? tt("emptyHint") : undefined}

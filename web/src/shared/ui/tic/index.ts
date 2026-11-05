@@ -1,9 +1,9 @@
-export { default as Langostin } from "./Langostin";
-export { default as LangostinAvatar } from "./LangostinAvatar";
+export { default as Tic } from "./Tic";
+export { default as TicAvatar } from "./TicAvatar";
 export { default as Escena } from "./Escena";
-export { ANIMS } from "./langostinSprite";
+export { ANIMS } from "./ticSprite";
 export { SCENES } from "./escenasSprite";
-export type { LangostinAnim } from "./langostinSprite";
-export type { LangostinScene, EscenaBuild } from "./escenasSprite";
-export { default as LangostinState } from "./LangostinState";
-export type { LangostinStateKind } from "./LangostinState";
+export type { TicAnim } from "./ticSprite";
+export type { TicScene, EscenaBuild } from "./escenasSprite";
+export { default as TicState } from "./TicState";
+export type { TicStateKind } from "./TicState";

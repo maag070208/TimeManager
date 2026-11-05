@@ -14,7 +14,7 @@ import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzyd
 import { LuCalendarDays, LuPencil, LuSearch, LuTrash2 } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { scheduleApi, type Schedule, type ScheduleDay } from "@entities/schedule";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import { FilterPills } from "@shared/ui/filter-pills";
 import { RowAction } from "@shared/ui/row-action";
 import { makeClientTableFetch } from "@shared/api/clientTable";
@@ -267,8 +267,8 @@ export default function SchedulesBoard() {
     },
   ];
 
-  if (failed) return <LangostinState kind="error" />;
-  if (!rows) return <LangostinState kind="loading" />;
+  if (failed) return <TicState kind="error" />;
+  if (!rows) return <TicState kind="loading" />;
 
   return (
     <ITStack spacing={4}>

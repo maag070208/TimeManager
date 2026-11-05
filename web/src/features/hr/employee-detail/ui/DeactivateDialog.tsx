@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ITTextarea } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
-import { LangostinConfirm } from "@shared/ui/langostin-confirm";
+import { TicConfirm } from "@shared/ui/tic-confirm";
 
 interface Props {
   isOpen: boolean;
@@ -11,12 +11,12 @@ interface Props {
 }
 
 /**
- * Confirmación M1 de baja con motivo: `LangostinConfirm` (variante `danger`, foco
+ * Confirmación M1 de baja con motivo: `TicConfirm` (variante `danger`, foco
  * en Cancelar) con el campo del motivo como contenido y Confirmar bloqueado hasta
  * tener 3 caracteres. Envía `onConfirm(reason)` con el motivo en texto plano.
  */
 export default function DeactivateDialog({ isOpen, onClose, onConfirm, userName }: Props) {
-  const { t: tt } = useTranslation(["employees", "users", "common", "langostin"]);
+  const { t: tt } = useTranslation(["employees", "users", "common", "tic"]);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,7 +42,7 @@ export default function DeactivateDialog({ isOpen, onClose, onConfirm, userName 
   };
 
   return (
-    <LangostinConfirm
+    <TicConfirm
       isOpen={isOpen}
       onClose={() => !submitting && onClose()}
       onConfirm={handleConfirm}
@@ -65,6 +65,6 @@ export default function DeactivateDialog({ isOpen, onClose, onConfirm, userName 
         error={errorMsg ?? undefined}
         disabled={submitting}
       />
-    </LangostinConfirm>
+    </TicConfirm>
   );
 }

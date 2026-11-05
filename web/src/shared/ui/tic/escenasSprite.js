@@ -1,4 +1,4 @@
-// Escenas 8-bit (64x40 px) para Langostin. Escenas: hotel, isla, navidad, playa, alberca, cuarto, sistemas, noche
+// Escenas 8-bit (64x40 px) para Tic. Escenas: hotel, isla, navidad, playa, alberca, cuarto, sistemas, noche
 var ESC_W=64,ESC_H=40,ESC_MX=16,ESC_MY=8;
 var ESC_PAL={S:'#7FD0EB',T:'#B8E6F5',N:'#14213D',M:'#0F5C80',A:'#2E86AB',Z:'#F2D6A0',Y:'#D9B77A',G:'#5FAE5A',H:'#2F7D3A',B:'#6B3A2E',U:'#C95B3E',D:'#3A2018',R:'#D8343A',Q:'#F2C230',O:'#F28C28',C:'#F6EBD9',E:'#9AA5AD',F:'#5B6670',P:'#F08A6E',V:'#7B4FA0',I:'#FFFFFF',L:'#C69C6D',X:'#7A2E3A',K:'#2B3440',J:'#0B3A5B',g:'#3FAE5A',t:'#CFE8E8',s:'#C9A66B'};
 function esMk(){var G=[],j;for(j=0;j<ESC_H;j++)G.push(new Array(ESC_W).fill(null));
@@ -50,7 +50,7 @@ r(5,33,9,2,'B');r(7,29,5,4,'R');r(8,27+(f&1),3,4,'O');r(9,26+((f>>1)&1),1,3,'Q')
 };
 function buildScene(name,f){var b=esMk(),fr=esMk();(ESC[name]||ESC.hotel)(f,b,fr);return{back:b.G,front:fr.G}}
 function esPaint(ctx,G,ox,oy){for(var j=0;j<G.length;j++)for(var i=0;i<G[j].length;i++)if(G[j][i]){ctx.fillStyle=G[j][i];ctx.fillRect(i+ox,j+oy,1,1)}}
-// m = {build, anim}: build viene de langostinSprite.js. Sin m dibuja solo la escena.
+// m = {build, anim}: build viene de ticSprite.js. Sin m dibuja solo la escena.
 function drawScene(ctx,name,f,m){var s=buildScene(name,f);ctx.clearRect(0,0,ESC_W,ESC_H);esPaint(ctx,s.back,0,0);if(m&&m.build)esPaint(ctx,m.build(m.anim||'idle',f),ESC_MX,ESC_MY);esPaint(ctx,s.front,0,0)}
 function mountScene(cv,name,anim,build){cv.width=ESC_W;cv.height=ESC_H;var ctx=cv.getContext('2d'),f=0,m=build?{build:build,anim:anim}:null;drawScene(ctx,name,0,m);return setInterval(function(){f++;drawScene(ctx,name,f,m)},140)}
 

@@ -1,9 +1,9 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { ITButton, ITCard, ITFlex, ITText } from "@axzydev/axzy_ui_system";
-import { LangostinAvatar } from "@shared/ui/langostin";
+import { TicAvatar } from "@shared/ui/tic";
 
 interface Props {
-  /** Nombre que se muestra en el encabezado (p. ej. «Langostín»). */
+  /** Nombre que se muestra en el encabezado (p. ej. «Tic»). */
   title: string;
   /** Línea de contexto bajo el nombre. */
   subtitle?: string;
@@ -22,12 +22,12 @@ interface Props {
 }
 
 /**
- * Chat con Langostín reutilizable: encabezado con avatar y estado, hilo con
+ * Chat con Tic reutilizable: encabezado con avatar y estado, hilo con
  * scroll propio (`maxHeight`) y pie para las opciones del paso. Solo pinta; la
  * conversación y sus reglas viven en cada pantalla. Las burbujas entran con
  * animación (`agent-pop`), y con `prefers-reduced-motion` se desactiva.
  */
-export default function LangostinChat({
+export default function TicChat({
   title,
   subtitle,
   online,
@@ -55,7 +55,7 @@ export default function LangostinChat({
   return (
     <ITCard contentClassName="!p-0" className={className}>
       <header className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
-        <LangostinAvatar anim="idle" size={26} />
+        <TicAvatar anim="idle" size={26} />
         <ITFlex className="min-w-0 flex-1">
           <ITText className="truncate text-[13px] font-bold text-slate-800">{title}</ITText>
           {subtitle && <ITText className="truncate text-[11px] text-slate-500">{subtitle}</ITText>}
@@ -90,7 +90,7 @@ export default function LangostinChat({
 export function AgentBubble({ text, avatar = false, delay = 0 }: { text: string; avatar?: boolean; delay?: number }) {
   return (
     <ITFlex align="start" gap={2} className="agent-bubble" style={{ animationDelay: `${delay}ms` }}>
-      {avatar ? <LangostinAvatar anim="idle" size={22} /> : <span className="w-9 shrink-0" aria-hidden />}
+      {avatar ? <TicAvatar anim="idle" size={22} /> : <span className="w-9 shrink-0" aria-hidden />}
       <div className="rounded-2xl rounded-bl-sm bg-slate-100 px-3.5 py-2 text-[12.5px] font-medium text-slate-700">
         {text}
       </div>

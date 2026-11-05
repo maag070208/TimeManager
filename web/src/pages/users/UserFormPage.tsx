@@ -9,7 +9,7 @@ import {
 } from "@features/user/user-form";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { FormSection } from "@shared/ui/form-section";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import { LiveSummary, LiveSummaryRow } from "@shared/ui/live-summary";
 import { StickyActions } from "@shared/ui/sticky-actions";
 
@@ -21,7 +21,7 @@ interface AppStep {
   icon?: React.ReactNode;
 }
 
-/** Clave de la guía de Langostin para cada campo (por el `name` del input). */
+/** Clave de la guía de Tic para cada campo (por el `name` del input). */
 
 export default function UserFormPage() {
   const navigate = useNavigate();
@@ -72,7 +72,7 @@ export default function UserFormPage() {
           { label: breadcrumb },
         ]}
       >
-        <LangostinState kind="loading" />
+        <TicState kind="loading" />
       </ITPage>
     );
   }

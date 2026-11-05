@@ -15,7 +15,7 @@ import { UserPermissionsPanel } from "@features/user/user-permissions";
 import { usePermission } from "@entities/user";
 import { formatDate } from "@shared/i18n";
 import { useGoBack } from "@shared/lib/useGoBack";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import { InsightNote, Num } from "@shared/ui/bento-bits";
 import { PanelCard } from "@shared/ui/panel-card";
 import { seriesColor } from "@shared/ui/charts";
@@ -69,7 +69,7 @@ export default function UserHistoryPage() {
           { label: tt("history.breadcrumb") },
         ]}
       >
-        <LangostinState kind="loading" />
+        <TicState kind="loading" />
       </ITPage>
     );
   }
@@ -86,7 +86,7 @@ export default function UserHistoryPage() {
           { label: tt("history.breadcrumb") },
         ]}
       >
-        <LangostinState kind="error" title={tt("history.notFound")} description={tt("history.notFoundHint")} />
+        <TicState kind="error" title={tt("history.notFound")} description={tt("history.notFoundHint")} />
       </ITPage>
     );
   }

@@ -483,5 +483,20 @@
     "role": "CLIENT_STAFF",
     "permission": "attendance.view",
     "scope": "OWN"
+  },
+  {
+    "role": "ADMIN",
+    "permission": "tenants.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "ADMIN",
+    "permission": "tenants.manage",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
+    "permission": "tenants.view",
+    "scope": "ALL"
   }
 ]

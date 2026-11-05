@@ -10,7 +10,7 @@ import { blobatar } from "blobatar";
 const cache = new Map<string, string>();
 
 export const blobatarDataUri = (name: string): string => {
-  const seed = name.trim() || "Puerto Nuevo";
+  const seed = name.trim() || "TimeManager";
   const hit = cache.get(seed);
   if (hit) return hit;
   const uri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(blobatar(seed, { size: 96 }))}`;

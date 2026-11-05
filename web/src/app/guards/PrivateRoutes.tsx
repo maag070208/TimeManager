@@ -13,6 +13,9 @@ import { API_CONSTANTS } from "@shared/api/constants/API_CONSTANTS";
 import { desktop } from "@shared/lib/desktop";
 import { useAblyNotifications, type LiveNotification } from "./useAblyNotifications";
 import ForcePasswordChange from "./ForcePasswordChange";
+import { TenantSwitcher } from "@features/tenant/tenant-switcher";
+import { getSelectedTenant } from "@shared/api/tenant";
+import { setTenantBrandName } from "@shared/lib/tenantBrand";
 import logoUrl from "@shared/assets/brand/timemanager-logo-for-light-bg.svg";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
@@ -20,7 +23,7 @@ const NAV_ICONS: Record<string, ReactNode> = {
   start: <FaHouseUser size={14} />,
   hr: <FaUserTie size={14} />,
   settings: <FaCog size={14} />,
-  langostin: <FaLaptopCode size={14} />,
+  tic: <FaLaptopCode size={14} />,
 };
 
 export default function PrivateRoutes() {
@@ -85,6 +88,11 @@ export default function PrivateRoutes() {
     window.addEventListener("focus", loadRoles);
     return () => window.removeEventListener("focus", loadRoles);
   }, [token]);
+
+  // Membrete de PDFs y credenciales: el cliente de la sesión o el elegido.
+  useEffect(() => {
+    setTenantBrandName(user?.tenant?.name ?? getSelectedTenant()?.name ?? null);
+  }, [user]);
 
   // La interfaz sigue el idioma del sistema que trae la sesión.
   useEffect(() => {
@@ -226,6 +234,7 @@ export default function PrivateRoutes() {
       />
     ),
     logoText: "TimeManager",
+    children: <TenantSwitcher />,
     userMenu: user
       ? {
         userName: user.name ?? "—",
@@ -254,7 +263,6 @@ export default function PrivateRoutes() {
       <ITLayout topBar={topBar} sidebar={sidebar} sidebarFullHeight contentClassName="max-w-screen! m-0! !px-2">
         <Outlet />
       </ITLayout>
-      {/* Langostín de ayuda en todas las pantallas (se oculta donde ya hay chat). */}
       {toast && (
         <ITToast
           message={toast}

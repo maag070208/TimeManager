@@ -6,6 +6,7 @@ import {
 import { authApi } from "../api/userApi";
 import type { AuthMe, AuthUser } from "../model/types";
 import i18n from "@shared/i18n";
+import { setSelectedTenant } from "@shared/api/tenant";
 
 interface State {
   token: string | null;
@@ -46,9 +47,12 @@ const persist = (state: State) => {
 
 export const loginThunk = createAsyncThunk(
   "auth/login",
-  async (creds: { username: string; password: string }, { rejectWithValue }) => {
+  async (
+    creds: { username: string; password: string; tenant?: string | null },
+    { rejectWithValue }
+  ) => {
     try {
-      const data = await authApi.login(creds.username, creds.password);
+      const data = await authApi.login(creds.username, creds.password, creds.tenant);
       return data;
     } catch (e: any) {
       // Reenviamos la causa serializable para que el componente de login
@@ -72,6 +76,7 @@ const slice = createSlice({
   initialState: loadInitial(),
   reducers: {
     logout(state) {
+      setSelectedTenant(null);
       state.token = null;
       state.refreshToken = null;
       state.user = null;
@@ -92,6 +97,7 @@ const slice = createSlice({
         state.error = null;
       })
       .addCase(loginThunk.fulfilled, (state, action) => {
+        setSelectedTenant(null);
         state.loading = false;
         state.token = action.payload.token;
         state.refreshToken = action.payload.refreshToken ?? null;

@@ -46,7 +46,7 @@
     "weeklyAttendance": "Asistencia semanal",
     "payroll": "Pre Nómina",
     "settings": "Configuración",
-    "langostin": "Langostin",
+    "tic": "Tic",
     "accountMenu": "Cuenta de {{name}}"
   },
   "files": {
@@ -129,5 +129,10 @@
   "liveSummary": {
     "title": "Resumen",
     "progress": "{{done}} de {{total}} secciones completas"
+  },
+  "tenant": {
+    "platform": "Plataforma (sin cliente)",
+    "switchHint": "Cliente sobre el que operas",
+    "current": "Empresa"
   }
 }

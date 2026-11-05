@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ITButton, ITFlex, ITInput, ITText } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import type { ScheduleDayInput } from "@entities/schedule";
-import { AgentBubble, LangostinChat, UserBubble } from "@shared/ui/langostin-chat";
+import { AgentBubble, TicChat, UserBubble } from "@shared/ui/tic-chat";
 import OptionChip from "@shared/ui/option-chip/OptionChip";
 import { dyn } from "@shared/i18n/dyn";
 
@@ -46,7 +46,7 @@ const SPLIT_PRESETS: Array<{ start: string; end: string }> = [
 ];
 
 /**
- * Langostín en el alta de horarios: pregunta lo mínimo (nombre, días, horario y
+ * Tic en el alta de horarios: pregunta lo mínimo (nombre, días, horario y
  * jornada partida) y deja el formulario lleno. Al final solo aplica valores; no
  * guarda nada (el guardado sigue siendo el botón del formulario).
  */
@@ -183,7 +183,7 @@ export default function ScheduleChat({ onApply, onDraft }: Props) {
   );
 
   return (
-    <LangostinChat
+    <TicChat
       title={t("agent.botName")}
       subtitle={t("agent.botSubtitle")}
       online={t("agent.online")}
@@ -402,6 +402,6 @@ export default function ScheduleChat({ onApply, onDraft }: Props) {
             )}
           </>
         )}
-    </LangostinChat>
+    </TicChat>
   );
 }

@@ -1,5 +1,5 @@
-// Tipos del sprite de Langostin (langostinSprite.js, sin dependencias).
-export type LangostinAnim =
+// Tipos del sprite de Tic (ticSprite.js, sin dependencias).
+export type TicAnim =
   | "idle"
   | "wave"
   | "work"
@@ -37,7 +37,7 @@ export type LangostinAnim =
   | "key"
   | "bell";
 
-export const ANIMS: LangostinAnim[];
+export const ANIMS: TicAnim[];
 
 export function build(anim: string, frame: number): (string | null)[][];
 export function draw(ctx: CanvasRenderingContext2D, anim: string, frame: number): void;

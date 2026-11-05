@@ -13,6 +13,7 @@ import { createAccessModule } from "./access";
 import { createSchedulesModule } from "./schedules";
 import { createTimeClockModule } from "./time-clock";
 import { createOvertimeModule } from "./overtime";
+import { createTenantsModule } from "./tenants";
 import { EmployeeDocumentService } from "./hr/services/employee-document.service";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { setSysConfigService } from "@core/services/mail";
@@ -198,6 +199,8 @@ apiRouter.use("/dashboard", dashboardRouter);
 apiRouter.use("/hr", personalRouter);
 apiRouter.use("/sys-config", configRouter);
 apiRouter.use("/permissions", permissionsRouter);
+// Clientes de la plataforma (solo personal de plataforma).
+apiRouter.use("/tenants", createTenantsModule(auditPort.createLog).router);
 apiRouter.use("/mail", emailRouter);
 apiRouter.use("/access", accessRouter);
 apiRouter.use("/schedules", schedulesRouter);

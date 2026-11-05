@@ -22,8 +22,8 @@ const storage = new AsyncLocalStorage<TenantContext>();
  * `.then`; si ese primer await ocurre fuera del scope se pierde el tenant).
  * Por eso siempre devuelve Promise: jamás devolver la promesa cruda de `fn`.
  */
-export function runWithTenant<T>(tenantId: string | null, fn: () => T, platform = false): Promise<T> {
-  return storage.run({ tenantId, platform }, async () => fn());
+export function runWithTenant<T>(tenantId: string | null, fn: () => T, platform = false): Promise<Awaited<T>> {
+  return storage.run({ tenantId, platform }, async (): Promise<Awaited<T>> => await fn());
 }
 
 export function currentTenant(): TenantContext | null {

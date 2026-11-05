@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { env as config } from "@core/config/env.config";
+import { corsOrigin } from "@core/config/cors-origin";
 import {
   errorMiddleware,
   notFoundMiddleware,
@@ -16,7 +17,7 @@ export const createApp = () => {
 
   app.use([
     cors({
-      origin: config.WEB_ORIGIN,
+      origin: corsOrigin(config.WEB_ORIGIN),
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     }),
     express.json({ limit: "1mb" }),

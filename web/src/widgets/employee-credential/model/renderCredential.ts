@@ -3,6 +3,7 @@ import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
 import { PDF_COLORS } from "@shared/pdf/theme";
 import { CREDENTIAL_H_PX, CREDENTIAL_W_PX, LAYOUT } from "./cardSpec";
 import { i18n } from "@shared/i18n";
+import { getTenantBrandName } from "@shared/lib/tenantBrand";
 
 export interface CredentialRenderInput {
   profile: PersonalProfile;
@@ -169,7 +170,7 @@ export const drawCredential = async (
   ctx.fillStyle = "#bfe0f0";
   ctx.font = `${LAYOUT.subtitle.size}px ${FONT}`;
   ctx.fillText(
-    i18n.t("employees:credential.subtitle"),
+    i18n.t("employees:credential.subtitle", { company: getTenantBrandName() ?? "TimeManager" }),
     LAYOUT.subtitle.x,
     LAYOUT.subtitle.baseline
   );

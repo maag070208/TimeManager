@@ -1,10 +1,10 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { ITButton, ITDialog, ITText, ITFlex } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
-import { Langostin, type LangostinAnim } from "@shared/ui/langostin";
+import { Tic, type TicAnim } from "@shared/ui/tic";
 import { usePrefersReducedMotion } from "@shared/lib/usePrefersReducedMotion";
 
-export type LangostinConfirmVariant = "danger" | "primary" | "success" | "warning";
+export type TicConfirmVariant = "danger" | "primary" | "success" | "warning";
 
 interface Props {
   isOpen: boolean;
@@ -16,9 +16,9 @@ interface Props {
   message?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
-  variant?: LangostinConfirmVariant;
-  /** Animación de Langostín; por defecto depende de `variant`. */
-  anim?: LangostinAnim;
+  variant?: TicConfirmVariant;
+  /** Animación de Tic; por defecto depende de `variant`. */
+  anim?: TicAnim;
   loading?: boolean;
   /** Contenido extra entre el mensaje y los botones (p. ej. un campo de motivo). */
   children?: ReactNode;
@@ -26,7 +26,7 @@ interface Props {
   confirmDisabled?: boolean;
 }
 
-const ANIM_BY_VARIANT: Record<LangostinConfirmVariant, LangostinAnim> = {
+const ANIM_BY_VARIANT: Record<TicConfirmVariant, TicAnim> = {
   danger: "think",
   warning: "help",
   success: "ok",
@@ -34,11 +34,11 @@ const ANIM_BY_VARIANT: Record<LangostinConfirmVariant, LangostinAnim> = {
 };
 
 /**
- * Confirmación M1: Langostín chico a la izquierda, título en pregunta, mensaje y
+ * Confirmación M1: Tic chico a la izquierda, título en pregunta, mensaje y
  * botones píldora. En acciones destructivas el foco inicial queda en Cancelar.
  * Esc y clic fuera cierran (los resuelve `ITDialog`).
  */
-export default function LangostinConfirm({
+export default function TicConfirm({
   isOpen,
   onClose,
   onConfirm,
@@ -52,7 +52,7 @@ export default function LangostinConfirm({
   children,
   confirmDisabled = false,
 }: Props) {
-  const { t } = useTranslation("langostin");
+  const { t } = useTranslation("tic");
   const reduced = usePrefersReducedMotion();
   const actionsRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +72,7 @@ export default function LangostinConfirm({
     <ITDialog isOpen={isOpen} onClose={onClose} className="max-w-md">
       <div className="flex items-start gap-4" role="alertdialog" aria-label={title ?? t("confirm.title")}>
         <ITFlex className="shrink-0">
-          <Langostin anim={anim ?? ANIM_BY_VARIANT[variant]} size={64} animated={!reduced} label={t("guide.label")} />
+          <Tic anim={anim ?? ANIM_BY_VARIANT[variant]} size={64} animated={!reduced} label={t("guide.label")} />
         </ITFlex>
         <ITFlex className="min-w-0 flex-1">
           <ITText as="h3" className="m-0 text-lg font-bold text-slate-800 dark:text-white">{title ?? t("confirm.title")}</ITText>

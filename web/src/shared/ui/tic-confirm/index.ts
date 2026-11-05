@@ -1,2 +1,2 @@
-export { default as LangostinConfirm } from "./LangostinConfirm";
-export type { LangostinConfirmVariant } from "./LangostinConfirm";
+export { default as TicConfirm } from "./TicConfirm";
+export type { TicConfirmVariant } from "./TicConfirm";

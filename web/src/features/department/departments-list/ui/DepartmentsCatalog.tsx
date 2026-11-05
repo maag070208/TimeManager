@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import type { Department } from "@entities/department";
 import { Num } from "@shared/ui/bento-bits";
 import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import { ListSummaryStrip, type ListSummaryItem } from "@shared/ui/list-summary-strip";
 
 type StatusFilter = "all" | "active" | "inactive" | "staffed";
@@ -166,7 +166,7 @@ export default function DepartmentsCatalog({
 
   if (failed) {
     return (
-      <LangostinState
+      <TicState
         kind="error"
         description={t("common:errors.load")}
         action={
@@ -178,11 +178,11 @@ export default function DepartmentsCatalog({
     );
   }
 
-  if (departments === null) return <LangostinState kind="loading" />;
+  if (departments === null) return <TicState kind="loading" />;
 
   if (rows.length === 0) {
     return (
-      <LangostinState
+      <TicState
         kind="empty"
         title={t("list.emptyTitle")}
         description={t("list.emptyHint")}
@@ -221,7 +221,7 @@ export default function DepartmentsCatalog({
       </ITFlex>
 
       {visible.length === 0 ? (
-        <LangostinState
+        <TicState
           kind="noResults"
           title={t("list.noResultsTitle")}
           description={t("list.noResultsHint")}

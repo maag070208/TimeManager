@@ -6,6 +6,8 @@ export const es = {
     TAX_RATE_NOT_FOUND: "Tasa de IVA no encontrada",
     TAX_RATE_TAKEN: "Ya existe una tasa de IVA con ese nombre o valor",
     TENANT_HEADER_FORBIDDEN: "Solo el personal de plataforma puede elegir cliente con X-Tenant-Id",
+    TENANT_NOT_FOUND: "Cliente no encontrado",
+    TENANT_SLUG_TAKEN: "Ya existe un cliente con el subdominio \"{{slug}}\"",
     TENANT_SUSPENDED: "El cliente está suspendido. Contacta a soporte.",
     DUPLICATE_SUPPLIER_ITEM: "Un artículo viene repetido en los artículos que surte el proveedor",
     INVALID_RFC: "El RFC no tiene un formato válido (p. ej. ABC010101AB1)",
@@ -409,6 +411,10 @@ export const es = {
   // Mensajes de zod: el DTO usa el código como `message` y el middleware de
   // errores lo traduce al responder.
   validation: {
+    EMPTY_UPDATE: "No hay cambios que guardar",
+    INVALID_TIMEZONE: "Zona horaria no válida",
+    RESERVED_TENANT_SLUG: "Ese subdominio está reservado",
+    INVALID_TENANT_SLUG: "El subdominio solo admite minúsculas, números y guiones (máx. 40)",
     CLIENT_EVENT_ID_REQUIRED: "clientEventId es obligatorio",
     CUSTODIAN_OR_DEPARTMENT_REQUIRED: "Indica un responsable o un departamento",
     DATE_FORMAT: "Formato YYYY-MM-DD",

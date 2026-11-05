@@ -4,10 +4,12 @@ import { useTranslation } from "react-i18next";
 import { loginThunk } from "@entities/user";
 import type { AppDispatch } from "@app/store";
 import { i18n } from "@shared/i18n";
+import { tenantSlugFromHost } from "@shared/api/tenant";
 
 export const useLogin = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { t: tt } = useTranslation(["auth"]);
+  const [tenantSlug] = useState(() => tenantSlugFromHost());
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +35,7 @@ export const useLogin = () => {
     if (!validate()) return false;
     setIsSubmitting(true);
     setDeactivatedMsg(null);
-    const action = await dispatch(loginThunk({ username, password }));
+    const action = await dispatch(loginThunk({ username, password, tenant: tenantSlug }));
     if (loginThunk.fulfilled.match(action)) {
       return true;
     }
@@ -46,6 +48,10 @@ export const useLogin = () => {
       "code" in (rejected as Record<string, unknown>)
     ) {
       const code = (rejected as { code?: string }).code;
+      if (code === "TENANT_SUSPENDED") {
+        setDeactivatedMsg(i18n.t("auth:login.tenantSuspended"));
+        return false;
+      }
       if (code === "ACCOUNT_DEACTIVATED") {
         const reason = (rejected as { details?: { reason?: string } }).details?.reason;
         setDeactivatedMsg(
@@ -63,6 +69,7 @@ export const useLogin = () => {
   const canSubmit = !!username && !!password;
 
   return {
+    tenantSlug,
     username,
     password,
     setUsername,

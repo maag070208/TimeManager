@@ -1,7 +1,7 @@
 /**
  * Avisos internos de la app para cosas que pasan fuera de una pantalla.
  *
- * El caso que lo motivó: el alta de ticket vive en el panel de Langostín (un
+ * El caso que lo motivó: el alta de ticket vive en el panel de Tic (un
  * widget montado en el layout), así que la lista de tickets no se entera sola
  * de que hay un ticket nuevo. El bot avisa por aquí y la pantalla recarga y
  * anima la fila recién creada.
@@ -31,7 +31,7 @@ export interface AppEventMap {
   /** El bot levantó un acta: la tabla de Reportes de personal recarga. */
   "disciplinary:created": Record<string, never>;
   /**
-   * Langostín pide a Entradas y salidas aplicar una vista rápida. La unión se
+   * Tic pide a Entradas y salidas aplicar una vista rápida. La unión se
    * repite aquí (y no se importa de `entities/access`) porque `shared` no
    * depende de entidades; debe coincidir con `PeopleAttendanceView`.
    */

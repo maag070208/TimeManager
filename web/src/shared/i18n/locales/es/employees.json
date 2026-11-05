@@ -7,7 +7,7 @@
   "detail": {
     "save": "Guardar cambios",
     "guide": {
-      "label": "Langostin, guía del formulario",
+      "label": "Tic, guía del formulario",
       "start": "Revisa los datos de la persona y corrige lo que haga falta. Con Enter pasas al siguiente campo.",
       "fix": "Revisa los campos marcados en rojo antes de guardar.",
       "saving": "Guardando…",
@@ -254,7 +254,7 @@
   },
   "credential": {
     "title": "CREDENCIAL DE EMPLEADO",
-    "subtitle": "Puerto Nuevo Hotel y Villas · Personal Autorizado",
+    "subtitle": "{{company}} · Personal autorizado",
     "employeeNumber": "Número de empleado",
     "fullName": "Nombre completo",
     "jobTitle": "Puesto",

@@ -1,1 +1,1 @@
-export { default as LangostinChat, AgentBubble, UserBubble } from "./LangostinChat";
+export { default as TicChat, AgentBubble, UserBubble } from "./TicChat";

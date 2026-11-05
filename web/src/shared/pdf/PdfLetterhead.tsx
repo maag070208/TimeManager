@@ -2,6 +2,7 @@ import { Image, Text, View } from "@react-pdf/renderer";
 import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
 import { pdfTheme } from "./theme";
 import { i18n } from "@shared/i18n";
+import { getTenantBrandName } from "@shared/lib/tenantBrand";
 
 interface Props {
   title: string;
@@ -30,7 +31,7 @@ export default function PdfLetterhead({ title, pageIndex, pageCount, generatedAt
             <Image src={LOGO_TIMEMANAGER_BASE64} style={pdfTheme.logoImg} />
           </View>
           <View style={pdfTheme.bandTextWrap}>
-            <Text style={pdfTheme.bandHotel}>TimeManager</Text>
+            <Text style={pdfTheme.bandHotel}>{getTenantBrandName() ?? "TimeManager"}</Text>
             <Text style={pdfTheme.bandDoc}>{title}</Text>
           </View>
         </View>

@@ -12,7 +12,7 @@ import { LuShieldCheck } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { usersApi, type PermissionScope, type UserPermissionView } from "@entities/user";
 import { DialogHeader } from "@shared/ui/dialog-header";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 
 const FOLLOW_ROLE = "__role__";
 
@@ -113,7 +113,7 @@ export default function UserPermissionsPanel({ userId }: Props) {
   };
 
   if (loading) {
-    return <LangostinState kind="loading" size="sm" />;
+    return <TicState kind="loading" size="sm" />;
   }
 
   if (error) {

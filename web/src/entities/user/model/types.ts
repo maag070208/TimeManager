@@ -1,4 +1,5 @@
 import type { AppLanguage } from "@shared/i18n/config";
+import type { TenantInfo } from "@entities/tenant";
 
 /** Clave del rol (dinámico, tabla `roles` de la API). Antes era un union fijo. */
 export type UserRole = string;
@@ -24,6 +25,8 @@ export interface AuthUser {
   permissions?: Partial<Record<Permission, PermissionScope>>;
   /** Idioma del sistema (`GET /auth/me`); opcional por la misma razón. */
   language?: AppLanguage;
+  /** Cliente del usuario (`GET /auth/me`); `null` = personal de plataforma. */
+  tenant?: TenantInfo | null;
 }
 
 /** Alcance efectivo de un permiso (ver ROLES_Y_PERMISOS.md §2). */

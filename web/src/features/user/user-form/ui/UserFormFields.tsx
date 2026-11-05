@@ -21,7 +21,7 @@ import { DialogHeader } from "@shared/ui/dialog-header";
 import type { UserFormValues } from "../model/useUserForm";
 import type { UniqueState, UniqueField } from "../model/useUserForm";
 
-/** Aviso debajo de un dato único: "Disponible" cuando está libre. Mientras verifica, Langostin flota abajo a la derecha. */
+/** Aviso debajo de un dato único: "Disponible" cuando está libre. Mientras verifica, Tic flota abajo a la derecha. */
 function UniqueHint({ state }: { state?: UniqueState }) {
   const { t: tt } = useTranslation("users");
   if (state === "available") {

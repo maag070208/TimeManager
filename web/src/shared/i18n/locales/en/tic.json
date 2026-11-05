@@ -1,34 +1,34 @@
 {
-  "title": "Langostin",
-  "description": "Puerto Nuevo's mascot: every animation and the scenes where it lives.",
+  "title": "Tic",
+  "description": "The TimeManager mascot: all its animations and the scenes where it lives.",
   "state": {
     "empty": {
-      "title": "Nothing here yet",
-      "description": "Records will show up in this spot once there are any."
+      "title": "All quiet here",
+      "description": "There is nothing in this list yet. Anything you add will show up here."
     },
     "noResults": {
-      "title": "No results",
-      "description": "Try another search or remove a filter."
+      "title": "No results found",
+      "description": "Try different filters or another search term."
     },
     "forbidden": {
       "title": "You don't have access",
-      "description": "Ask whoever manages the system for access if you need it."
+      "description": "Your account can't view this section. Ask an administrator for access."
     },
     "error": {
       "title": "Something went wrong",
-      "description": "We couldn't load the data. Please try again in a moment."
+      "description": "We couldn't load the information. Try again in a few seconds."
     },
     "offline": {
-      "title": "You're offline",
-      "description": "Check your network; we'll retry when it's back."
+      "title": "No connection",
+      "description": "Check your internet. Tic will retry as soon as you're back online."
     },
     "loading": {
       "title": "Loading…",
-      "description": "One moment, I'm fetching the data."
+      "description": "Tic is getting your information ready."
     }
   },
   "guide": {
-    "label": "Langostin, form guide",
+    "label": "Tic, the TimeManager mascot",
     "default": "I'll keep you company while you fill in the form.",
     "close": "Close guide",
     "saving": "Saving…",
@@ -255,12 +255,12 @@
     }
   },
   "help": {
-    "name": "Langostín",
+    "name": "Tic",
     "online": "Online",
     "restart": "Start over",
     "close": "Close help",
-    "open": "Open Langostín help",
-    "title": "Langostín help",
+    "open": "Open Tic help",
+    "title": "Tic help",
     "contextLabel": "You are in:",
     "onThisScreen": "On this screen",
     "placeholder": "Tell me what you need…",
@@ -275,7 +275,7 @@
     "pause": "Coffee break ☕",
     "hello": "Hi! How can I help?",
     "back": "Back to help",
-    "ticketTitle": "New ticket with Langostín",
+    "ticketTitle": "New ticket with Tic",
     "createTicket": "Create ticket here",
     "agentTicket": "New ticket",
     "ticketOffer": "I can create the new ticket myself, right here. Shall we?",
@@ -317,5 +317,8 @@
       "name": "New Year",
       "greeting": "Happy New Year! 🎉 Make it a great one."
     }
+  },
+  "avatar": {
+    "label": "Tic"
   }
 }

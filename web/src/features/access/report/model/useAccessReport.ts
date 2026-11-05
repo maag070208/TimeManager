@@ -76,7 +76,7 @@ export const useAccessReport = ({ download, source = ACCESS_SOURCE }: Options) =
   const [includeInactive, setIncludeInactive] = useState(false);
   const [view, setView] = useState<PeopleAttendanceView>("ALL");
 
-  // Langostín: «Muéstrame solo las incidencias», «¿Quién está en sitio?»…
+  // Tic: «Muéstrame solo las incidencias», «¿Quién está en sitio?»…
   // El panel avisa y la tabla se filtra sin que la persona toque las píldoras.
   useEffect(() => onAppEvent("attendance:view", ({ view: next }) => setView(next)), []);
 

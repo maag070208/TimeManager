@@ -25,6 +25,7 @@ export default function LoginPage() {
       >
         <LoginBrandPanel />
         <LoginForm
+          tenantSlug={login.tenantSlug}
           username={login.username}
           password={login.password}
           setUsername={login.setUsername}

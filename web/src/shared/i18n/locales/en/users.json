@@ -202,7 +202,7 @@
       "password": "Initial password. At least 6 characters; the person can change it later.",
       "usernameFree": "That username is free: you can use it."
     },
-    "guideLabel": "Langostin, form guide",
+    "guideLabel": "Tic, form guide",
     "ready": "All set! Review the details and create the user.",
     "validation": {
       "usernameRequired": "Username is required",

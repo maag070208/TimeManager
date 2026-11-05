@@ -1,34 +1,34 @@
 {
-  "title": "Langostin",
-  "description": "La mascota de Puerto Nuevo: todas sus animaciones y los escenarios donde vive.",
+  "title": "Tic",
+  "description": "La mascota de TimeManager: todas sus animaciones y los escenarios donde vive.",
   "state": {
     "empty": {
-      "title": "Aún no hay nada por aquí",
-      "description": "Cuando haya registros, aparecerán en este lugar."
+      "title": "Todo tranquilo por aquí",
+      "description": "Aún no hay nada en esta lista. Cuando agregues algo, aparecerá aquí."
     },
     "noResults": {
-      "title": "Sin resultados",
-      "description": "Prueba con otra búsqueda o quita algún filtro."
+      "title": "No encontré resultados",
+      "description": "Prueba con otros filtros o con otra palabra de búsqueda."
     },
     "forbidden": {
-      "title": "No tienes permiso",
-      "description": "Pide acceso a quien administra el sistema si lo necesitas."
+      "title": "No tienes acceso",
+      "description": "Tu cuenta no tiene permiso para ver esta sección. Pide acceso a un administrador."
     },
     "error": {
       "title": "Algo salió mal",
-      "description": "No pudimos cargar la información. Inténtalo de nuevo en un momento."
+      "description": "No pudimos cargar la información. Intenta de nuevo en unos segundos."
     },
     "offline": {
       "title": "Sin conexión",
-      "description": "Revisa tu red; volveremos a intentarlo cuando regrese."
+      "description": "Revisa tu internet. Tic reintentará en cuanto vuelvas a estar en línea."
     },
     "loading": {
       "title": "Cargando…",
-      "description": "Un momento, estoy buscando la información."
+      "description": "Tic está preparando tu información."
     }
   },
   "guide": {
-    "label": "Langostin, guía del formulario",
+    "label": "Tic, la mascota de TimeManager",
     "default": "Te acompaño mientras llenas el formulario.",
     "close": "Cerrar guía",
     "saving": "Guardando…",
@@ -255,12 +255,12 @@
     }
   },
   "help": {
-    "name": "Langostín",
+    "name": "Tic",
     "online": "En línea",
     "restart": "Empezar de nuevo",
     "close": "Cerrar ayuda",
-    "open": "Abrir la ayuda de Langostín",
-    "title": "Ayuda de Langostín",
+    "open": "Abrir la ayuda de Tic",
+    "title": "Ayuda de Tic",
     "contextLabel": "Estás en:",
     "onThisScreen": "En esta pantalla",
     "placeholder": "Escríbeme qué necesitas…",
@@ -275,7 +275,7 @@
     "pause": "Pausa para un café ☕",
     "hello": "¡Hola! ¿En qué te ayudo?",
     "back": "Volver a la ayuda",
-    "ticketTitle": "Nuevo ticket con Langostín",
+    "ticketTitle": "Nuevo ticket con Tic",
     "createTicket": "Crear ticket aquí",
     "agentTicket": "Nuevo ticket",
     "ticketOffer": "Puedo darte de alta el ticket nuevo yo mismo, sin salir de esta pantalla. ¿Lo hacemos?",
@@ -317,5 +317,8 @@
       "name": "Año Nuevo",
       "greeting": "¡Feliz Año Nuevo! 🎉 A tener un gran año."
     }
+  },
+  "avatar": {
+    "label": "Tic"
   }
 }

@@ -2,14 +2,14 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { dyn } from "@shared/i18n";
 import { usePrefersReducedMotion } from "@shared/lib/usePrefersReducedMotion";
-import Langostin from "./Langostin";
-import type { LangostinAnim } from "./langostinSprite";
+import Tic from "./Tic";
+import type { TicAnim } from "./ticSprite";
 import { ITText } from "@axzydev/axzy_ui_system";
 
-export type LangostinStateKind = "empty" | "noResults" | "forbidden" | "error" | "offline" | "loading";
+export type TicStateKind = "empty" | "noResults" | "forbidden" | "error" | "offline" | "loading";
 
 interface Props {
-  kind: LangostinStateKind;
+  kind: TicStateKind;
   /** Sustituye el título por defecto del caso. */
   title?: string;
   /** Sustituye la descripción por defecto del caso. */
@@ -20,8 +20,8 @@ interface Props {
   className?: string;
 }
 
-/** Animación de Langostín por caso (nivel L4 del plan de rediseño). */
-const ANIM_BY_KIND: Record<LangostinStateKind, LangostinAnim> = {
+/** Animación de Tic por caso. */
+const ANIM_BY_KIND: Record<TicStateKind, TicAnim> = {
   empty: "sleep",
   noResults: "search",
   forbidden: "lock",
@@ -37,8 +37,8 @@ const MASCOT_SIZE = { sm: 72, md: 112 } as const;
  * sin conexión o cargando. Centrado y tranquilo; sin movimiento si el sistema
  * pide menos animación.
  */
-export default function LangostinState({ kind, title, description, action, size = "md", className }: Props) {
-  const { t } = useTranslation("langostin");
+export default function TicState({ kind, title, description, action, size = "md", className }: Props) {
+  const { t } = useTranslation("tic");
   const reduced = usePrefersReducedMotion();
   const tr = dyn(t);
 
@@ -47,7 +47,7 @@ export default function LangostinState({ kind, title, description, action, size 
       role={kind === "error" ? "alert" : "status"}
       className={`flex flex-col items-center justify-center gap-2 text-center ${size === "sm" ? "px-4 py-6" : "px-6 py-12"} ${className ?? ""}`}
     >
-      <Langostin anim={ANIM_BY_KIND[kind]} size={MASCOT_SIZE[size]} animated={!reduced} label={t("guide.label")} />
+      <Tic anim={ANIM_BY_KIND[kind]} size={MASCOT_SIZE[size]} animated={!reduced} label={t("guide.label")} />
       <ITText className={`m-0 font-semibold text-slate-700 dark:text-slate-100 ${size === "sm" ? "text-sm" : "text-base"}`}>
         {title ?? tr(`state.${kind}.title`)}
       </ITText>

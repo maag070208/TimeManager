@@ -52,7 +52,7 @@ function ActionBar({
   saveLabel: string;
   onCancel: () => void;
   onSave: () => void;
-  /** En alta el guardado lo hace Langostín; en edición queda el botón de arriba. */
+  /** En alta el guardado lo hace Tic; en edición queda el botón de arriba. */
   showSave?: boolean;
 }) {
   return (
@@ -219,7 +219,7 @@ export default function ScheduleForm({ id }: { id?: string }) {
         </ITAlert>
       )}
 
-      {/* Chat + resumen: Langostín pregunta a la izquierda y el horario se arma a la derecha */}
+      {/* Chat + resumen: Tic pregunta a la izquierda y el horario se arma a la derecha */}
       <div className="grid gap-4 xl:!grid-cols-[minmax(0,2fr)_minmax(0,1fr)] xl:items-start">
         <ITStack className="min-w-0" spacing={4}>
           <ScheduleChat onApply={applyAgent} onDraft={setDraft} />

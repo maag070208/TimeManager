@@ -43,7 +43,7 @@ export type NavLabelKey =
   | "nav.clocks"
   | "nav.payroll"
   | "nav.roles"
-  | "nav.langostin";
+  | "nav.tic";
 
 export interface AppScreen {
   readonly id: string;
@@ -121,8 +121,8 @@ const ALL_SCREENS: readonly AppScreen[] = [
   {
     // Galería de la mascota: animaciones y escenarios. Solo ADMIN
     // (`system.configure` no lo tiene nadie más).
-    id: "langostin",
-    labelKey: "nav.langostin",
+    id: "tic",
+    labelKey: "nav.tic",
     match: "exact",
     requirement: { anyOf: ["system.configure"] },
     actions: [],

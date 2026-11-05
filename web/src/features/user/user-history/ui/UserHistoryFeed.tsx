@@ -16,7 +16,7 @@ import { useCan } from "@entities/user";
 import { formatDate } from "@shared/i18n";
 import { formatTimeInTZ } from "@shared/utils/dates";
 import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import {
   FAMILY_LABEL_KEY,
   HISTORY_FAMILIES,
@@ -59,7 +59,7 @@ interface Props {
 /**
  * Historial de la cuenta como feed agrupado por día (plantilla P9): píldoras por
  * familia de evento cuando hay más de una, filas con el cuadro del tipo y los
- * estados vacíos de Langostín. Los tickets y los préstamos abren su detalle
+ * estados vacíos de Tic. Los tickets y los préstamos abren su detalle
  * cuando la sesión tiene el permiso de esa pantalla.
  */
 export default function UserHistoryFeed({ history }: Props) {
@@ -119,7 +119,7 @@ export default function UserHistoryFeed({ history }: Props) {
       {filterItems.length > 2 && <FilterPills items={filterItems} value={activeFamily} onChange={setFamily} />}
 
       {groups.length === 0 ? (
-        <LangostinState
+        <TicState
           kind={history.length === 0 ? "empty" : "noResults"}
           size="sm"
           title={history.length === 0 ? t("history.empty") : t("history.noResults")}

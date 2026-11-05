@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { LuArrowLeftRight, LuBoxes, LuClipboardCheck, LuHistory, LuTicket, LuWrench } from "react-icons/lu";
 import { personalApi, type EmployeeOverview } from "@entities/hr";
 import { ITBentoGrid, ITBentoTile, ITEmptyState } from "@axzydev/axzy_ui_system";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import { PanelCard } from "@shared/ui/panel-card";
 import { dyn } from "@shared/i18n";
 import { formatDateTime } from "@shared/utils/dates";
@@ -69,8 +69,8 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
     };
   }, [userId, t]);
 
-  if (error) return <LangostinState kind="error" description={error} />;
-  if (!data) return <LangostinState kind="loading" title={t("detail.activity.loading")} />;
+  if (error) return <TicState kind="error" description={error} />;
+  if (!data) return <TicState kind="loading" title={t("detail.activity.loading")} />;
   const { summary, inventory } = data;
   const openLoans = inventory ? inventory.loans.filter((l) => l.status === "ACTIVE" || l.status === "PARTIAL") : [];
   const label = (key: string) => dyn(t)(`detail.activity.status.${key}`);

@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import "./login.css";
 
 interface LoginFormProps {
+  /** Cliente del subdominio; `null` = acceso de plataforma. */
+  tenantSlug?: string | null;
   username: string;
   password: string;
   setUsername: React.Dispatch<React.SetStateAction<string>>;
@@ -18,6 +20,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({
+  tenantSlug,
   username,
   password,
   setUsername,
@@ -43,6 +46,15 @@ export default function LoginForm({
             {tt("login.title")}
           </ITText>
           <ITText className="login-muted login-rise login-rise-2 mt-2 block text-[13px] leading-relaxed">{tt("login.subtitle")}</ITText>
+          <ITText as="span" className="login-muted mt-3 block text-[12px]">
+            {tenantSlug ? (
+              <>
+                {tt("login.tenant")} <strong className="font-semibold">{tenantSlug}</strong>
+              </>
+            ) : (
+              tt("login.platform")
+            )}
+          </ITText>
 
           {deactivatedMsg && (
             <div className="mt-6">

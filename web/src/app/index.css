@@ -218,7 +218,7 @@ html {
   }
 }
 
-/* Emojis de temporada que caen dentro del panel de ayuda de Langostín. */
+/* Emojis de temporada que caen dentro del panel de ayuda de Tic. */
 @keyframes help-fall {
   to {
     transform: translateY(620px) rotate(220deg);

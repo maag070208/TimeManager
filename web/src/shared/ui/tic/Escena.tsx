@@ -1,11 +1,11 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { drawScene } from "./escenasSprite";
-import { build } from "./langostinSprite";
-import type { LangostinScene } from "./escenasSprite";
+import { build } from "./ticSprite";
+import type { TicScene } from "./escenasSprite";
 
 interface Props {
   /** Escenario: hotel | isla | navidad | playa | alberca | cuarto | sistemas | noche */
-  scene?: LangostinScene;
+  scene?: TicScene;
   /** Animación de la mascota dentro del escenario. */
   anim?: string;
   /** false = solo el fondo, sin la mascota. */
@@ -20,7 +20,7 @@ interface Props {
 }
 
 /**
- * Escenario 8-bit de Langostin (64x40 px): el fondo y la mascota se dibujan
+ * Escenario 8-bit de Tic (64x40 px): el fondo y la mascota se dibujan
  * en el mismo canvas, sin imágenes ni dependencias.
  */
 export default function Escena({

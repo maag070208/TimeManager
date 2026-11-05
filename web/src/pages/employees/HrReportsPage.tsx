@@ -16,8 +16,8 @@ import {
   LuScrollText,
   LuUserX,
 } from "react-icons/lu";
-import { LangostinConfirm } from "@shared/ui/langostin-confirm";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicConfirm } from "@shared/ui/tic-confirm";
+import { TicState } from "@shared/ui/tic";
 import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
 import { onAppEvent } from "@shared/lib/appEvents";
 import { PanelCard } from "@shared/ui/panel-card";
@@ -148,11 +148,11 @@ export default function HrReportsPage() {
 
       {!canManage ? (
         <PanelCard>
-          <LangostinState kind="forbidden" />
+          <TicState kind="forbidden" />
         </PanelCard>
       ) : summary?.total === 0 ? (
         <PanelCard>
-          <LangostinState
+          <TicState
             kind="empty"
             title={tt("empty.title")}
             description={tt("empty.description")}
@@ -227,7 +227,7 @@ export default function HrReportsPage() {
         </ITFlex>
       )}
 
-      <LangostinConfirm
+      <TicConfirm
         isOpen={!!disciplinaryReportToDelete}
         onClose={() => setDisciplinaryReportToDelete(null)}
         onConfirm={() => {

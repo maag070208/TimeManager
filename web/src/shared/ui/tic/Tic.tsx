@@ -1,8 +1,8 @@
 import { useEffect, useRef, type CSSProperties } from "react";
-import { draw, type LangostinAnim } from "./langostinSprite";
+import { draw, type TicAnim } from "./ticSprite";
 
 interface Props {
-  anim?: LangostinAnim;
+  anim?: TicAnim;
   /** Tamaño en px (cuadrado). */
   size?: number;
   /** Milisegundos entre cuadros. */
@@ -15,13 +15,13 @@ interface Props {
 }
 
 // Mascota 8-bit dibujada en canvas 32x32, sin imágenes.
-export default function Langostin({
+export default function Tic({
   anim = "idle",
   size = 128,
   speed = 140,
   className,
   style,
-  label = "Langostin, la mascota de Puerto Nuevo",
+  label = "Tic, la mascota de TimeManager",
   animated = true,
 }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);

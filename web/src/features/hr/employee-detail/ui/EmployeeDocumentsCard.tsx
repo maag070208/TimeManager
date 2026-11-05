@@ -3,7 +3,7 @@ import { ITBentoGrid, ITBentoSegments, ITBentoTile, ITCard, ITDropfile, FileType
 import { LuCircleCheck, LuFileImage, LuFileText, LuFiles, LuHourglass, LuX } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { EmployeeDocument, DocumentType } from "@entities/hr";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 
 interface Props {
   documentTypes: DocumentType[];
@@ -64,7 +64,7 @@ export default function EmployeeDocumentsCard({
       </ITBentoGrid>
 
       {documentTypes.length === 0 && (
-        <LangostinState kind="empty" size="sm" title={tt("detail.noDocumentTypes")} description={tt("detail.noDocumentTypesHint")} />
+        <TicState kind="empty" size="sm" title={tt("detail.noDocumentTypes")} description={tt("detail.noDocumentTypesHint")} />
       )}
 
       <div className="grid grid-cols-1 gap-4 md:!grid-cols-2 xl:!grid-cols-3">

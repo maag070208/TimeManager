@@ -11,7 +11,7 @@ interface Props {
   done?: number;
   /** Filas del resumen en lenguaje humano (`LiveSummaryRow`). */
   children?: ReactNode;
-  /** Espacio al pie (p. ej. la guía de Langostín). */
+  /** Espacio al pie (p. ej. la guía de Tic). */
   footer?: ReactNode;
   className?: string;
 }

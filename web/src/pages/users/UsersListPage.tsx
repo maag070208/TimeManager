@@ -20,7 +20,7 @@ import { UserEditDialog } from "@features/user/user-form";
 import { DeactivateDialog } from "@features/hr/employee-detail";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { DialogHeader } from "@shared/ui/dialog-header";
-import { LangostinConfirm } from "@shared/ui/langostin-confirm";
+import { TicConfirm } from "@shared/ui/tic-confirm";
 
 export default function UsersListPage() {
   const navigate = useNavigate();
@@ -105,7 +105,7 @@ export default function UsersListPage() {
       />
 
       {/* Para usuarios ya inactivos, confirmación de borrado físico */}
-      <LangostinConfirm
+      <TicConfirm
         isOpen={!!fx.userToToggle && !fx.userToToggle.active}
         onClose={() => fx.setUserToToggle(null)}
         onConfirm={() => fx.handleToggleActive(canManageUsers)}
@@ -116,7 +116,7 @@ export default function UsersListPage() {
         variant="danger"
       />
 
-      <LangostinConfirm
+      <TicConfirm
         isOpen={!!fx.userToForceDelete}
         onClose={() => fx.setUserToForceDelete(null)}
         onConfirm={fx.handleForceDelete}
@@ -127,7 +127,7 @@ export default function UsersListPage() {
         variant="danger"
       />
 
-      <LangostinConfirm
+      <TicConfirm
         isOpen={!!fx.userToReactivate}
         onClose={() => fx.setUserToReactivate(null)}
         onConfirm={fx.handleReactivate}

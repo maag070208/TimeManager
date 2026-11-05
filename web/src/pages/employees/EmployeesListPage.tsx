@@ -15,7 +15,7 @@ import {
   type EmployeeStatusFilter,
 } from "@features/user/employees-list";
 import { useGoBack } from "@shared/lib/useGoBack";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 
 import { PanelCard } from "@shared/ui/panel-card";
 
@@ -82,7 +82,7 @@ export default function EmployeesListPage() {
 
         {list.stats?.total === 0 ? (
           <PanelCard>
-            <LangostinState
+            <TicState
               kind="empty"
               title={tt("empty.title")}
               description={tt("empty.description")}

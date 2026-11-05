@@ -17,17 +17,14 @@ import subareasEn from "./locales/en/subareas.json";
 import deviceTypesEn from "./locales/en/device-types.json";
 import deviceEn from "./locales/en/device.json";
 import employeesEn from "./locales/en/employees.json";
-import homeEn from "./locales/en/home.json";
 import dashboardEn from "./locales/en/dashboard.json";
-import inventoryEn from "./locales/en/inventory.json";
 import notificationsEn from "./locales/en/notifications.json";
 import reportsEn from "./locales/en/reports.json";
 import materialOutputsEn from "./locales/en/material-outputs.json";
-import ticketsEn from "./locales/en/tickets.json";
 import usersEn from "./locales/en/users.json";
 import catalogEn from "./locales/en/catalog.json";
 import rolesEn from "./locales/en/roles.json";
-import langostinEn from "./locales/en/langostin.json";
+import ticEn from "./locales/en/tic.json";
 
 import accessEs from "./locales/es/access.json";
 import accessReportEs from "./locales/es/access-report.json";
@@ -45,17 +42,14 @@ import subareasEs from "./locales/es/subareas.json";
 import deviceTypesEs from "./locales/es/device-types.json";
 import deviceEs from "./locales/es/device.json";
 import employeesEs from "./locales/es/employees.json";
-import homeEs from "./locales/es/home.json";
 import dashboardEs from "./locales/es/dashboard.json";
-import inventoryEs from "./locales/es/inventory.json";
 import notificationsEs from "./locales/es/notifications.json";
 import reportsEs from "./locales/es/reports.json";
 import materialOutputsEs from "./locales/es/material-outputs.json";
-import ticketsEs from "./locales/es/tickets.json";
 import usersEs from "./locales/es/users.json";
 import catalogEs from "./locales/es/catalog.json";
 import rolesEs from "./locales/es/roles.json";
-import langostinEs from "./locales/es/langostin.json";
+import ticEs from "./locales/es/tic.json";
 
 export const defaultNS = "common" as const;
 
@@ -67,15 +61,12 @@ export const NS_LIST = [
   "device",
   "device-types",
   "auth",
-  "home",
   "dashboard",
   "custody-letters",
-  "tickets",
   "users",
   "employees",
   "departments",
   "subareas",
-  "inventory",
   "reports",
   "material-outputs",
   "notifications",
@@ -89,7 +80,7 @@ export const NS_LIST = [
   "schedules",
   "overtime",
   "weekly-attendance",
-  "langostin",
+  "tic",
 ] as const;
 
 export const resources = {
@@ -98,16 +89,13 @@ export const resources = {
     device: deviceEn,
     "device-types": deviceTypesEn,
     auth: authEn,
-    home: homeEn,
     dashboard: dashboardEn,
     "custody-letters": custodyLettersEn,
     "disciplinary-reports": disciplinaryReportsEn,
-    tickets: ticketsEn,
     users: usersEn,
     employees: employeesEn,
     departments: departmentsEn,
     subareas: subareasEn,
-    inventory: inventoryEn,
     reports: reportsEn,
     "material-outputs": materialOutputsEn,
     notifications: notificationsEn,
@@ -120,23 +108,20 @@ export const resources = {
     schedules: schedulesEn,
     overtime: overtimeEn,
     "weekly-attendance": weeklyAttendanceEn,
-    langostin: langostinEn,
+    tic: ticEn,
   },
   es: {
     common: commonEs,
     device: deviceEs,
     "device-types": deviceTypesEs,
     auth: authEs,
-    home: homeEs,
     dashboard: dashboardEs,
     "custody-letters": custodyLettersEs,
     "disciplinary-reports": disciplinaryReportsEs,
-    tickets: ticketsEs,
     users: usersEs,
     employees: employeesEs,
     departments: departmentsEs,
     subareas: subareasEs,
-    inventory: inventoryEs,
     reports: reportsEs,
     "material-outputs": materialOutputsEs,
     notifications: notificationsEs,
@@ -149,7 +134,7 @@ export const resources = {
     schedules: schedulesEs,
     overtime: overtimeEs,
     "weekly-attendance": weeklyAttendanceEs,
-    langostin: langostinEs,
+    tic: ticEs,
   },
 } as const;
 

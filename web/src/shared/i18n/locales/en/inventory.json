@@ -517,7 +517,7 @@
     "summaryDevice": "Device",
     "summaryPieces": "Pieces",
     "agent": {
-      "botName": "Langostín",
+      "botName": "Tic",
       "botSubtitle": "Builds the custody letter step by step",
       "online": "Online",
       "restart": "Start over",
@@ -555,7 +555,7 @@
       "confirm": "Register letter",
       "back": "← Back",
       "useForm": "I'd rather fill in the form",
-      "useChat": "I'd rather have Langostín guide me"
+      "useChat": "I'd rather have Tic guide me"
     }
   },
   "loanReturn": {

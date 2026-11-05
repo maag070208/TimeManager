@@ -202,7 +202,7 @@
       "password": "Contraseña inicial. Mínimo 6 caracteres; la persona la puede cambiar después.",
       "usernameFree": "Ese usuario está libre: puedes usarlo."
     },
-    "guideLabel": "Langostin, guía del formulario",
+    "guideLabel": "Tic, guía del formulario",
     "ready": "¡Todo listo! Revisa los datos y crea el usuario.",
     "validation": {
       "usernameRequired": "El usuario es obligatorio",

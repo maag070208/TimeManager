@@ -20,7 +20,7 @@ import {
 } from "@features/department/departments-list";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { DialogHeader } from "@shared/ui/dialog-header";
-import { LangostinConfirm } from "@shared/ui/langostin-confirm";
+import { TicConfirm } from "@shared/ui/tic-confirm";
 
 export default function DepartmentsPage() {
   const navigate = useNavigate();
@@ -155,7 +155,7 @@ export default function DepartmentsPage() {
         </ITFlex>
       </ITDialog>
 
-      <LangostinConfirm
+      <TicConfirm
         isOpen={!!crud.deptToDelete}
         onClose={() => crud.setDeptToDelete(null)}
         onConfirm={confirmDelete}

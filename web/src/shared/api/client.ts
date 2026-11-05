@@ -12,6 +12,7 @@ import {
   updateSessionTokens,
 } from "./session";
 import i18n from "@shared/i18n/config";
+import { getSelectedTenant, setSelectedTenant } from "./tenant";
 
 class ApiError extends Error {
   public readonly code?: string;
@@ -47,6 +48,9 @@ axiosInstance.interceptors.request.use(
     }
     // Los mensajes de la API vienen en el idioma de la interfaz.
     config.headers["Accept-Language"] = i18n.language;
+    // Personal de plataforma operando sobre un cliente elegido.
+    const tenant = getSelectedTenant();
+    if (tenant) config.headers["X-Tenant-Id"] = tenant.id;
     return config;
   },
   (error: AxiosError) => {
@@ -91,6 +95,16 @@ axiosInstance.interceptors.response.use(
     const status = error.response?.status;
     const code = (error.response?.data as { code?: string } | undefined)?.code;
     const original = error.config as RetriableConfig | undefined;
+
+    // Cliente elegido que ya no es válido (suspendido, borrado) o sesión que
+    // no puede elegir cliente: se olvida la elección y se recarga sin él.
+    if (code === "INVALID_TENANT_HEADER" || code === "TENANT_HEADER_FORBIDDEN") {
+      if (getSelectedTenant()) {
+        setSelectedTenant(null);
+        window.location.assign("/");
+      }
+      return Promise.reject(error);
+    }
 
     // Un access token vencido se renueva una sola vez por petición.
     if (

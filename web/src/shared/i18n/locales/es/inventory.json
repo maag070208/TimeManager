@@ -517,7 +517,7 @@
     "summaryDevice": "Dispositivo",
     "summaryPieces": "Piezas",
     "agent": {
-      "botName": "Langostín",
+      "botName": "Tic",
       "botSubtitle": "Te arma la carta responsiva paso a paso",
       "online": "En línea",
       "restart": "Empezar de nuevo",
@@ -555,7 +555,7 @@
       "confirm": "Registrar carta",
       "back": "← Atrás",
       "useForm": "Prefiero llenar el formulario",
-      "useChat": "Prefiero que Langostín me guíe"
+      "useChat": "Prefiero que Tic me guíe"
     }
   },
   "loanReturn": {

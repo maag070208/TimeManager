@@ -11,7 +11,7 @@ import {
 } from "@entities/time-clock";
 import { formatDateTime } from "@shared/utils/dates";
 import { DialogHeader } from "@shared/ui/dialog-header";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 
 /**
  * Timeline de sincronización de un reloj: cada intento con su hora, si conectó,
@@ -112,11 +112,11 @@ export default function ClockHistoryDialog({
         )}
 
         {cargando && !historial ? (
-          <LangostinState kind="loading" size="sm" />
+          <TicState kind="loading" size="sm" />
         ) : error ? (
-          <LangostinState kind="error" size="sm" description={t("history.loadError")} />
+          <TicState kind="error" size="sm" description={t("history.loadError")} />
         ) : historial && historial.events.length === 0 ? (
-          <LangostinState kind="empty" size="sm" description={t("history.empty")} />
+          <TicState kind="empty" size="sm" description={t("history.empty")} />
         ) : (
           <div className="max-h-80 overflow-y-auto rounded-2xl bg-[color-mix(in_srgb,currentColor_5%,transparent)]">
             {historial?.events.map((evento, indice) => (

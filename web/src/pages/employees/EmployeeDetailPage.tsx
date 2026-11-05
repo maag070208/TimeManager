@@ -21,7 +21,7 @@ import { EmployeeCredentialDialog } from "@widgets/employee-credential";
 import { useCan } from "@entities/user";
 import { EmployeeClockSection } from "@widgets/employee-clock";
 import { useGoBack } from "@shared/lib/useGoBack";
-import { LangostinState } from "@shared/ui/langostin";
+import { TicState } from "@shared/ui/tic";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 
 type Section = "activity" | "documents" | "clock" | "info";
@@ -59,7 +59,7 @@ export default function EmployeeDetailPage() {
             {detail.error}
           </ITAlert>
         ) : (
-          <LangostinState kind="loading" />
+          <TicState kind="loading" />
         )}
       </ITPage>
     );

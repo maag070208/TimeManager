@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useCan } from "@entities/user";
 import { usePrefersReducedMotion } from "@shared/lib/usePrefersReducedMotion";
 import { DialogHeader } from "@shared/ui/dialog-header";
-import { Langostin, type LangostinAnim } from "@shared/ui/langostin";
+import { Tic, type TicAnim } from "@shared/ui/tic";
 import { useUserForm, UserFormFields } from "..";
 
 interface Props {
@@ -49,9 +49,9 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
     onSaved?.();
   };
 
-  // Langostín reacciona al estado del guardado (nivel L3).
+  // Tic reacciona al estado del guardado (nivel L3).
   const hasErrors = Object.keys(userForm.errors).length > 0;
-  const anim: LangostinAnim = userForm.saving ? "work" : userForm.error || hasErrors ? "err" : saved ? "ok" : "help";
+  const anim: TicAnim = userForm.saving ? "work" : userForm.error || hasErrors ? "err" : saved ? "ok" : "help";
 
   return (
     <ITDialog
@@ -157,7 +157,7 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
 
       {/* Pie fijo: no se mueve al hacer scroll en el cuerpo. */}
       <div className="mt-5 flex items-center justify-between gap-3">
-        <Langostin anim={anim} size={44} animated={!reduced} label={tt("form.guideLabel")} />
+        <Tic anim={anim} size={44} animated={!reduced} label={tt("form.guideLabel")} />
         <ITFlex gap={2}>
           <ITButton variant="outlined" color="gray" className="!rounded-full" onClick={onClose}>
             <ITText className="!text-[12px] font-bold">{tt("common:actions.cancel")}</ITText>

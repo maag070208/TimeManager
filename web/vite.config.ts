@@ -9,6 +9,8 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   plugins: [tailwindcss(), react()],
+  // Cada cliente entra por su subdominio: acme.localhost:5006 en local.
+  server: { allowedHosts: [".localhost"] },
   build: {
     modulePreload: false,
     target: "esnext",

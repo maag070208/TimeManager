@@ -384,5 +384,29 @@
     ],
     "sensitive": true,
     "sortOrder": 4
+  },
+  {
+    "key": "tenants.view",
+    "module": "Plataforma",
+    "name": "Ver clientes",
+    "description": "Lista de clientes de la plataforma, estado y uso",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "tenants.manage",
+    "module": "Plataforma",
+    "name": "Administrar clientes",
+    "description": "Alta de clientes, suspensión y datos del plan",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 2
   }
 ]

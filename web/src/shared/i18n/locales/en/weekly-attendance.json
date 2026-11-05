@@ -124,8 +124,7 @@
   "exportExcel": "Excel",
   "exporting": "Generating…",
   "pdf": {
-    "title": "Puerto Nuevo · Weekly payroll",
-    "company": "Puerto Nuevo Baja Hotel y Villas",
+    "title": "Weekly payroll",
     "department": "Department",
     "week": "Week",
     "view": "View",

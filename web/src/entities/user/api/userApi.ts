@@ -13,8 +13,9 @@ import type {
 } from "../model/types";
 
 export const authApi = {
-  login: (username: string, password: string) =>
-    api.post<LoginResponse>(`/auth/login`, { username, password }),
+  /** `tenant` = slug del subdominio; sin él, login de plataforma. */
+  login: (username: string, password: string, tenant?: string | null) =>
+    api.post<LoginResponse>(`/auth/login`, { username, password, ...(tenant ? { tenant } : {}) }),
   me: () => api.get<AuthMe>(`/auth/me`),
   /** Cambio de la propia contraseña (obligatorio si es provisional). */
   changePassword: (currentPassword: string, newPassword: string) =>
