@@ -339,7 +339,7 @@ export default function UserAccessExplorer({
                   {access.user.department && <> · {access.user.department}</>}
                 </ITText>
               </div>
-              <ITButton variant="outlined" color="primary" size="sm" onClick={() => navigate(`/users/${access.user.id}/edit`)}>
+              <ITButton variant="outlined" color="primary" size="sm" onClick={() => navigate(`/employees/${access.user.id}/account`)}>
                 <ITText as="span" className="flex items-center gap-1 text-[11px] font-bold">
                   <FaExternalLinkAlt size={8} /> {t("explorer.openProfile")}
                 </ITText>

@@ -6,6 +6,7 @@ export const es = {
     TAX_RATE_NOT_FOUND: "Tasa de IVA no encontrada",
     TAX_RATE_TAKEN: "Ya existe una tasa de IVA con ese nombre o valor",
     TENANT_HEADER_FORBIDDEN: "Solo el personal de plataforma puede elegir cliente con X-Tenant-Id",
+    ROLE_NOT_FOR_CLIENT: "El rol {{role}} es del equipo de TimeManager: no se puede dar a personal de un cliente",
     TENANT_NOT_FOUND: "Cliente no encontrado",
     TENANT_SLUG_TAKEN: "Ya existe un cliente con el subdominio \"{{slug}}\"",
     TENANT_SUSPENDED: "El cliente está suspendido. Contacta a soporte.",

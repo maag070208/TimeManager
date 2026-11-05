@@ -31,7 +31,7 @@ export default function UserHistoryPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const goBack = useGoBack();
-  const { t: tt } = useTranslation(["users", "common"]);
+  const { t: tt } = useTranslation(["users", "common", "employees"]);
   const canManagePermissions = usePermission("users.permissions") !== "NONE";
 
   const { user, history, loading } = useUserHistory(id);
@@ -62,10 +62,10 @@ export default function UserHistoryPage() {
       <ITPage className="m-0! p-0! px-8! min-w-full! pb-12!"
         noPadding
         title={tt("history.historyTitle")}
-        backAction={() => goBack("/users")}
+        backAction={() => goBack("/employees")}
         icon={<LuHistory size={20} />}
         breadcrumbs={[
-          { label: tt("list.breadcrumb"), onClick: () => navigate("/users") },
+          { label: tt("employees:breadcrumb"), onClick: () => navigate("/employees") },
           { label: tt("history.breadcrumb") },
         ]}
         loading
@@ -80,10 +80,10 @@ export default function UserHistoryPage() {
       <ITPage className="m-0! p-0! px-8! min-w-full! pb-12!"
         noPadding
         title={tt("history.historyTitle")}
-        backAction={() => goBack("/users")}
+        backAction={() => goBack("/employees")}
         icon={<LuHistory size={20} />}
         breadcrumbs={[
-          { label: tt("list.breadcrumb"), onClick: () => navigate("/users") },
+          { label: tt("employees:breadcrumb"), onClick: () => navigate("/employees") },
           { label: tt("history.breadcrumb") },
         ]}
       >
@@ -97,10 +97,10 @@ export default function UserHistoryPage() {
       noPadding
       title={tt("history.historyTitle")}
       description={user.name}
-      backAction={() => goBack("/users")}
+      backAction={() => goBack("/employees")}
       icon={<LuHistory size={20} />}
       breadcrumbs={[
-        { label: tt("list.breadcrumb"), onClick: () => navigate("/users") },
+        { label: tt("employees:breadcrumb"), onClick: () => navigate("/employees") },
         { label: user.name },
       ]}
     >

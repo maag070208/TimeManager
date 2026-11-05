@@ -114,6 +114,14 @@ export const staffRoleKeys = (): string[] => {
   return roles.filter((r) => r.active && r.staff).map((r) => r.key);
 };
 
+/**
+ * Los usuarios de un cliente solo pueden tener roles de cliente (`staff`).
+ * ADMIN/SUPPORT son de plataforma: dárselos a alguien de un cliente le abriría
+ * la matriz de roles y la configuración, que son de todos los clientes.
+ */
+export const isRoleAllowedFor = (roleKey: string, tenantId: string | null | undefined): boolean =>
+  !tenantId || staffRoleKeys().includes(roleKey);
+
 /** Lee `roles` y deja la cache cargada. */
 export const loadRolesFromDb = async (db: PrismaClient): Promise<void> => {
   const rows = await db.role.findMany({

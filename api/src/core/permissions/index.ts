@@ -32,6 +32,7 @@ export {
   roleKeys,
   definitionOfRole,
   staffRoleKeys,
+  isRoleAllowedFor,
   DEFAULT_ROLE_KEY,
   DEFAULT_STAFF_ROLE_KEYS,
   type RoleDefinition,

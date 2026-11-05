@@ -53,7 +53,9 @@
       "all": "Accounts",
       "active": "Active",
       "inactive": "Deactivated"
-    }
+    },
+    "accountBtn": "Account: username, role and email",
+    "moreActions": "More actions for {{name}}"
   },
   "form": {
     "titleNew": "New user",

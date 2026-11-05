@@ -230,7 +230,7 @@ export default function PrivateRoutes() {
             : blobatarDataUri(user.name ?? user.username),
           label: tt("nav.accountMenu"),
           // La tarjeta lleva a la cuenta de la persona (si puede editarla).
-          onClick: (permissions?.["users.edit"] ?? "NONE") !== "NONE" ? () => navigate(`/users/${user.id}/edit`) : undefined,
+          onClick: (permissions?.["users.edit"] ?? "NONE") !== "NONE" ? () => navigate(`/employees/${user.id}/account`) : undefined,
         }
       : undefined,
   };

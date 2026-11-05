@@ -53,7 +53,9 @@
       "all": "Cuentas",
       "active": "Activas",
       "inactive": "Dadas de baja"
-    }
+    },
+    "accountBtn": "Cuenta: usuario, rol y correo",
+    "moreActions": "Más acciones de {{name}}"
   },
   "form": {
     "titleNew": "Nuevo usuario",

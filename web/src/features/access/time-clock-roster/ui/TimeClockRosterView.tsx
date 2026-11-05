@@ -166,7 +166,7 @@ export default function TimeClockRosterView() {
                     })}
                   </ITText>
                 </ITFlex>
-                <ITButton variant="outlined" color="secondary" size="sm" onClick={() => navigate(`/users/${r.userId}/history`)}>
+                <ITButton variant="outlined" color="secondary" size="sm" onClick={() => navigate(`/employees/${r.userId}/history`)}>
                   {t("roster.row.viewUser")}
                 </ITButton>
               </Row>

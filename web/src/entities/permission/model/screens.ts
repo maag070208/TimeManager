@@ -80,7 +80,7 @@ const ALL_SCREENS: readonly AppScreen[] = [
     id: "hr",
     labelKey: "nav.hr",
     children: [
-      { id: "employees", labelKey: "nav.employees", path: "/employees", excludes: ["/employees/disciplinary-reports", "/employees/records"], requirement: { anyOf: ["hr.records"] }, actions: ["users.create"] },
+      { id: "employees", labelKey: "nav.employees", path: "/employees", excludes: ["/employees/disciplinary-reports", "/employees/records"], requirement: { anyOf: ["hr.records", "users.view"] }, actions: ["users.create", "users.edit", "users.delete"] },
       { id: "employeeRecords", labelKey: "nav.employeeRecords", path: "/employees/records", requirement: { anyOf: ["hr.records"] }, actions: [] },
       { id: "hrReports", labelKey: "nav.hrReports", path: "/employees/disciplinary-reports", requirement: { anyOf: ["hr.records"] }, actions: ["hr.disciplinary_reports"] },
       {
@@ -106,7 +106,6 @@ const ALL_SCREENS: readonly AppScreen[] = [
     id: "settings",
     labelKey: "nav.settings",
     children: [
-      { id: "users", labelKey: "nav.users", path: "/users", requirement: { anyOf: ["users.view"] } },
       // Todo lo del checador, junto y con su título.
       {
         id: "timeClock",

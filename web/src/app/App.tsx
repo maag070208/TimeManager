@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import LoginPage from "@pages/auth/LoginPage";
 import HomePage from "@pages/home/HomePage";
 import PrivateRoutes from "./guards/PrivateRoutes";
@@ -27,12 +27,19 @@ import EmployeeProfileEditPage from "@pages/employees/EmployeeProfileEditPage";
 import HrReportsPage from "@pages/employees/HrReportsPage";
 import DisciplinaryReportDetailPage from "@pages/employees/DisciplinaryReportDetailPage";
 import DocumentCatalogPage from "@pages/employees/DocumentCatalogPage";
-import UsersListPage from "@pages/users/UsersListPage";
 import UserFormPage from "@pages/users/UserFormPage";
 import UserHistoryPage from "@pages/users/UserHistoryPage";
 import UserImportPage from "@pages/users/UserImportPage";
 import NotificationsPage from "@pages/notifications/NotificationsPage";
 import RolesPage from "@pages/roles/RolesPage";
+
+/** Personal se abre con expediente (`hr.records`) o con cuentas (`users.view`). */
+const PEOPLE_PERMISSIONS = ["hr.records", "users.view"] as const;
+
+function LegacyUserRedirect({ to }: { to: "account" | "history" }) {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/employees/${id}/${to}`} replace />;
+}
 
 export default function App() {
   return (
@@ -46,14 +53,26 @@ export default function App() {
         <Route path="/departments" element={<DepartmentsPage />} />
         <Route path="/departments/:id" element={<DepartmentDetailPage />} />
         <Route path="/subareas" element={<SubareasPage />} />
+        {/* Personal = cuentas + expedientes: una sola pantalla. */}
         <Route
           path="/employees"
           element={
-            <RequiresPermission permission="hr.records">
+            <RequiresPermission permission={PEOPLE_PERMISSIONS}>
               <EmployeesListPage />
             </RequiresPermission>
           }
         />
+        <Route
+          path="/employees/:id/account"
+          element={
+            <RequiresPermission permission={PEOPLE_PERMISSIONS}>
+              <EmployeesListPage />
+            </RequiresPermission>
+          }
+        />
+        <Route path="/employees/new" element={<RequiresPermission permission="users.create"><UserFormPage /></RequiresPermission>} />
+        <Route path="/employees/import" element={<RequiresPermission permission="users.create"><UserImportPage /></RequiresPermission>} />
+        <Route path="/employees/:id/history" element={<RequiresPermission permission={PEOPLE_PERMISSIONS}><UserHistoryPage /></RequiresPermission>} />
         <Route
           path="/employees/records"
           element={
@@ -102,13 +121,12 @@ export default function App() {
             </RequiresPermission>
           }
         />
-                <Route path="/users" element={<UsersListPage />} />
-        <Route path="/users/new" element={<UserFormPage />} />
-        {/* La edición es un diálogo sobre la lista; la ruta se conserva para que
-            los enlaces directos (y el atajo del expediente) sigan abriéndolo. */}
-        <Route path="/users/:id/edit" element={<UsersListPage />} />
-        <Route path="/users/:id/history" element={<UserHistoryPage />} />
-        <Route path="/users/import" element={<UserImportPage />} />
+        {/* Usuarios se fundió en Personal: los enlaces viejos siguen funcionando. */}
+        <Route path="/users" element={<Navigate to="/employees" replace />} />
+        <Route path="/users/new" element={<Navigate to="/employees/new" replace />} />
+        <Route path="/users/import" element={<Navigate to="/employees/import" replace />} />
+        <Route path="/users/:id/edit" element={<LegacyUserRedirect to="account" />} />
+        <Route path="/users/:id/history" element={<LegacyUserRedirect to="history" />} />
                 <Route
           path="/roles"
           element={

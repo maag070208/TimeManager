@@ -15,8 +15,8 @@ import {
   EmployeeDocumentsCard,
   EmployeeActivity,
   EmployeeInfoCards,
-  DeactivateDialog,
 } from "@features/hr/employee-detail";
+import { DeactivateDialog } from "@features/user/account-actions";
 import { EmployeeCredentialDialog } from "@widgets/employee-credential";
 import { useCan } from "@entities/user";
 import { EmployeeClockSection } from "@widgets/employee-clock";
@@ -113,7 +113,7 @@ export default function EmployeeDetailPage() {
           {/* El expediente edita a la persona; la cuenta (usuario, contraseña,
               roles) se edita en Usuarios. El enlace evita tener que buscarla. */}
           {canEditUser && (
-            <ITButton variant="outlined" color="secondary" size="lg" onClick={() => navigate(`/users/${id}/edit`)}>
+            <ITButton variant="outlined" color="secondary" size="lg" onClick={() => navigate(`/employees/${id}/account`)}>
               <ITFlex align="center" gap={1}>
                 <LuUserCog size={13} />
                 <ITText className="font-bold text-[12px]">{tt("detail.editAccount")}</ITText>

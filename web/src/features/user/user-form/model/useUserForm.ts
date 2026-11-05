@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { dyn, i18n } from "@shared/i18n";
 import { useParams } from "react-router-dom";
 import { isStaffRole, useCan, useRolesCatalog, usersApi, type User, type UserRole } from "@entities/user";
@@ -10,6 +10,8 @@ import { validateEmail } from "@shared/validation";
 import { describeClockSync, timeClockApi } from "@entities/time-clock";
 import { showToast } from "@app/toast/toast.slice";
 import type { AppDispatch } from "@app/store";
+import { getSelectedTenant } from "@shared/api/tenant";
+import type { RootState } from "@app/store";
 
 export const ROLE_GUIDANCE: Record<
   UserRole,
@@ -120,8 +122,8 @@ const splitStoredName = (full: string): Pick<UserFormValues, "name" | "middleNam
 export type SubmitResult = { ok: true } | { ok: false; step: number | null; field?: keyof UserFormValues };
 
 /**
- * Formulario de cuenta. Sin argumentos toma el id de la ruta (`/users/:id/edit`,
- * `/users/new`); el diálogo de edición le pasa el id explícito porque vive en la
+ * Formulario de cuenta. Sin argumentos toma el id de la ruta (`/employees/:id/account`,
+ * `/employees/new`); el diálogo de edición le pasa el id explícito porque vive en la
  * lista, fuera de esa ruta.
  */
 export const useUserForm = (userId?: string) => {
@@ -131,7 +133,11 @@ export const useUserForm = (userId?: string) => {
   const { t: tt } = useTranslation(["users", "common"]);
   const dispatch = useDispatch<AppDispatch>();
   const canWriteClock = useCan("time_clock.write");
-  const rolesCatalog = useRolesCatalog();
+  // Dentro de un cliente solo se ofrecen roles de cliente (`staff`); ADMIN y
+  // SUPPORT son del equipo TimeManager (el API también lo rechaza).
+  const sessionUser = useSelector((s: RootState) => s.auth.user);
+  const inClient = !!sessionUser?.tenant || !!getSelectedTenant();
+  const rolesCatalog = useRolesCatalog().filter((role) => !inClient || role.staff);
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [form, setForm] = useState<UserFormValues>({

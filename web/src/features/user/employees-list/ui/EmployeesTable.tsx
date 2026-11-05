@@ -11,6 +11,7 @@ import type {
   ITDataTableResponse,
 } from "@axzydev/axzy_ui_system";
 import { LuPencil, LuUserRound } from "react-icons/lu";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Department } from "@entities/department";
 import type { PersonalProfile } from "@entities/hr";
@@ -45,6 +46,8 @@ interface Props {
   onEdit: (u: PersonalProfile) => void;
   /** Tras una asignación en lote: la lista vuelve a pedir sus datos. */
   onChanged: () => void;
+  /** Acciones de cuenta de la fila (contraseña, baja, reactivar…). */
+  rowActions?: (u: PersonalProfile) => ReactNode;
 }
 
 export default function EmployeesTable({
@@ -55,6 +58,7 @@ export default function EmployeesTable({
   externalFilters,
   onView,
   onEdit,
+  rowActions,
 }: Props) {
   const { t: tt } = useTranslation(["users"]);
   // Todos los departamentos y subáreas: también hay personal en los inactivos.
@@ -176,7 +180,7 @@ export default function EmployeesTable({
       key: "actions",
       label: "",
       type: "string" as const,
-      width: 120,
+      width: rowActions ? 160 : 120,
       sortable: false,
       render: (u: PersonalProfile) => (
         <ITFlex align="center" gap={2}>
@@ -198,6 +202,7 @@ export default function EmployeesTable({
               <LuPencil size={15} />
             </ITButton>
           )}
+          {rowActions?.(u)}
         </ITFlex>
       ),
     },

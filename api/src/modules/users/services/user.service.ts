@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { hashPassword } from "@core/utils/security";
 import { HttpError } from "@core/middlewares/error.middleware";
-import { DEFAULT_ROLE_KEY, isAdminRole, isRole, roleKeys, staffRoleKeys } from "@core/permissions";
+import { DEFAULT_ROLE_KEY, isAdminRole, isRole, isRoleAllowedFor, roleKeys, staffRoleKeys } from "@core/permissions";
 import { formatDateTime, systemLanguage, t } from "@core/i18n";
 import { paginatedQuery } from "@core/db/table";
 import {
@@ -188,6 +188,9 @@ export class UserService {
         throw new HttpError(400, "INVALID_ROLE", { role: extra });
       }
     }
+    for (const key of [role, ...extraRoles]) {
+      if (!isRoleAllowedFor(key, currentTenantId())) throw new HttpError(403, "ROLE_NOT_FOR_CLIENT", { role: key });
+    }
 
     const created = await this.db.$transaction(async (tx) => {
       const row = await tx.user.create({
@@ -314,6 +317,14 @@ export class UserService {
         if (!isRole(extra)) {
           throw new HttpError(400, "INVALID_ROLE", { role: extra });
         }
+      }
+    }
+    if (data.role !== undefined || data.roles !== undefined) {
+      // El cliente del usuario editado manda (no el de quien edita): plataforma
+      // sin cliente elegido tampoco puede volver ADMIN a alguien de un cliente.
+      const target = await this.db.user.findFirst({ where: { id }, select: { tenantId: true } });
+      for (const key of [...(data.role ? [data.role] : []), ...(data.roles ?? [])]) {
+        if (!isRoleAllowedFor(key, target?.tenantId)) throw new HttpError(403, "ROLE_NOT_FOR_CLIENT", { role: key });
       }
     }
     if (data.employeeNumber) {

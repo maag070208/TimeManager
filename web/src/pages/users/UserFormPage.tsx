@@ -25,7 +25,7 @@ interface AppStep {
 export default function UserFormPage() {
   const navigate = useNavigate();
   const goBack = useGoBack();
-  const { t: tt } = useTranslation(["users", "common"]);
+  const { t: tt } = useTranslation(["users", "common", "employees"]);
 
   const userForm = useUserForm();
   const { isEdit } = userForm;
@@ -43,7 +43,7 @@ export default function UserFormPage() {
   const handleFinish = () => {
     userForm.handleSubmit().then((result) => {
       if (result.ok) {
-        goBack("/users");
+        goBack("/employees");
         return;
       }
       const input = result.field ? INPUT_NAME[result.field] : undefined;
@@ -64,10 +64,10 @@ export default function UserFormPage() {
         title={title}
         description={description}
         loading
-        backAction={() => goBack("/users")}
+        backAction={() => goBack("/employees")}
         icon={<LuUserPlus size={20} />}
         breadcrumbs={[
-          { label: tt("list.breadcrumb"), onClick: () => navigate("/users") },
+          { label: tt("employees:breadcrumb"), onClick: () => navigate("/employees") },
           { label: breadcrumb },
         ]}
       >
@@ -156,10 +156,10 @@ export default function UserFormPage() {
       noPadding
       title={title}
       description={description}
-      backAction={() => goBack("/users")}
+      backAction={() => goBack("/employees")}
       icon={<LuUserPlus size={20} />}
       breadcrumbs={[
-        { label: tt("list.breadcrumb"), onClick: () => navigate("/users") },
+        { label: tt("employees:breadcrumb"), onClick: () => navigate("/employees") },
         { label: breadcrumb },
       ]}
     >
@@ -200,7 +200,7 @@ export default function UserFormPage() {
       </div>
 
       <StickyActions>
-        <ITButton variant="outlined" color="gray" className="!rounded-full" onClick={() => goBack("/users")} disabled={userForm.saving}>
+        <ITButton variant="outlined" color="gray" className="!rounded-full" onClick={() => goBack("/employees")} disabled={userForm.saving}>
           {tt("form.cancel")}
         </ITButton>
         <ITButton variant="rounded" color="primary" onClick={handleFinish} disabled={userForm.saving}>

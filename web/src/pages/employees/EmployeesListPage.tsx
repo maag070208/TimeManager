@@ -5,8 +5,8 @@ import {
   ITFlex,
   ITPage,
   ITText, ITStack } from "@axzydev/axzy_ui_system";
-import { LuPlus, LuUsersRound } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { LuFileSpreadsheet, LuPlus, LuUsersRound } from "react-icons/lu";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCan } from "@entities/user";
 import {
@@ -18,9 +18,11 @@ import { useGoBack } from "@shared/lib/useGoBack";
 import { TicState } from "@shared/ui/tic";
 
 import { PanelCard } from "@shared/ui/panel-card";
+import { AccountActionDialogs, AccountRowActions, useAccountActions } from "@features/user/account-actions";
+import { UserEditDialog } from "@features/user/user-form";
 
 export default function EmployeesListPage() {
-  const { t: tt } = useTranslation(["employees", "common"]);
+  const { t: tt } = useTranslation(["employees", "common", "users"]);
   const navigate = useNavigate();
   const goBack = useGoBack();
   const canEditEmployees = useCan("hr.records");
@@ -28,6 +30,13 @@ export default function EmployeesListPage() {
   const canCreateEmployees = useCan("users.create");
 
   const list = useEmployeesList();
+  const account = useAccountActions(list.reload);
+  // `/employees/:id/account` abre la cuenta (usuario, rol, correo) sobre la lista.
+  const { id: accountId } = useParams<{ id: string }>();
+  const canEditAccounts = useCan("users.edit");
+  const openAccount = (u: { id: string }) => navigate(`/employees/${u.id}/account`);
+  // Sin expediente (p. ej. SUPPORT) "ver" abre la cuenta.
+  const view = (u: { id: string }) => (list.canRecords ? navigate(`/employees/${u.id}`) : openAccount(u));
 
   // Totales reales de `GET /hr/stats`, en el mosaico relleno del sistema.
   const stats = list.stats;
@@ -51,16 +60,24 @@ export default function EmployeesListPage() {
       ]}
       actions={
         canCreateEmployees ? (
+          <ITFlex gap={2}>
+          <ITButton variant="outlined" color="secondary" onClick={() => navigate("/employees/import")}>
+            <ITFlex align="center" gap={1}>
+              <LuFileSpreadsheet size={14} />
+              <ITText className="font-bold text-[12px]">{tt("users:list.importExcel")}</ITText>
+            </ITFlex>
+          </ITButton>
           <ITButton
             variant="filled"
             color="primary"
-            onClick={() => navigate("/users/new")}
+            onClick={() => navigate("/employees/new")}
           >
             <ITFlex align="center" gap={1}>
               <LuPlus size={14} />
               <ITText className="font-bold text-[12px]">{tt("newEmployee")}</ITText>
             </ITFlex>
           </ITButton>
+          </ITFlex>
         ) : undefined
       }
       icon={<LuUsersRound size={20} />}
@@ -88,7 +105,7 @@ export default function EmployeesListPage() {
               description={tt("empty.description")}
               action={
                 canCreateEmployees ? (
-                  <ITButton variant="filled" color="primary" onClick={() => navigate("/users/new")}>
+                  <ITButton variant="filled" color="primary" onClick={() => navigate("/employees/new")}>
                     {tt("newEmployee")}
                   </ITButton>
                 ) : undefined
@@ -98,16 +115,20 @@ export default function EmployeesListPage() {
         ) : (
           <EmployeesTable
             departments={list.departments}
-            canEdit={canEditEmployees}
+            canEdit={canEditEmployees && list.canRecords}
             fetchData={list.fetchTableData}
             reloadKey={list.reloadKey}
             externalFilters={list.externalFilters}
-            onView={(u) => navigate(`/employees/${u.id}`)}
+            onView={view}
             onEdit={(u) => navigate(`/employees/${u.id}/edit`)}
             onChanged={list.reload}
+            rowActions={(u) => <AccountRowActions fx={account} person={u} onAccount={canEditAccounts ? openAccount : undefined} />}
           />
         )}
       </ITStack>
+
+      <UserEditDialog userId={accountId ?? null} onClose={() => goBack("/employees")} onSaved={list.reload} />
+      <AccountActionDialogs fx={account} />
     </ITPage>
   );
 }

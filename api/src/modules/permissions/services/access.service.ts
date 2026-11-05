@@ -4,6 +4,7 @@ import { HttpError } from "@core/middlewares/error.middleware";
 import {
   definitionOf,
   definitionOfRole,
+  isRoleAllowedFor,
   getCatalog,
   getMatrix,
   isPermission,
@@ -229,9 +230,10 @@ export class AccessService {
 
     const user = await this.db.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, role: true, extraRoles: { select: { role: true } } },
+      select: { id: true, name: true, role: true, tenantId: true, extraRoles: { select: { role: true } } },
     });
     if (!user) throw new HttpError(404, "USER_NOT_FOUND");
+    if (!isRoleAllowedFor(roleKey, user.tenantId)) throw new HttpError(403, "ROLE_NOT_FOR_CLIENT", { role: roleKey });
     if (user.role === roleKey || user.extraRoles.some((r) => r.role === roleKey)) {
       throw new HttpError(409, "ROLE_ALREADY_ASSIGNED", { name: user.name, key: roleKey });
     }

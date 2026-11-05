@@ -59,7 +59,7 @@ export const useClientOverview = () => {
   const onboarding =
     people && setup && scheduleCount != null && (can.createUsers || can.manageSchedules)
       ? [
-          { id: "staff", done: people.active > 1, to: "/users/new", hintCount: 0 },
+          { id: "staff", done: people.active > 1, to: "/employees/new", hintCount: 0 },
           { id: "schedules", done: scheduleCount > 0, to: "/schedules/new", hintCount: 0 },
           { id: "assign", done: people.active > 1 && setup.personalWithoutSchedule === 0, to: "/schedules/assign", hintCount: setup.personalWithoutSchedule },
           { id: "clock", done: people.active > 1 && setup.personalWithoutClock === 0, to: "/hr/time-clock/employees", hintCount: setup.personalWithoutClock },

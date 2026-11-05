@@ -8,6 +8,7 @@ export const en: Messages = {
     TAX_RATE_NOT_FOUND: "VAT rate not found",
     TAX_RATE_TAKEN: "A VAT rate with that name or value already exists",
     TENANT_HEADER_FORBIDDEN: "Only platform staff can pick a tenant with X-Tenant-Id",
+    ROLE_NOT_FOR_CLIENT: "The {{role}} role belongs to the TimeManager team: it cannot be given to a client's staff",
     TENANT_NOT_FOUND: "Client not found",
     TENANT_SLUG_TAKEN: "A client with the subdomain \"{{slug}}\" already exists",
     TENANT_SUSPENDED: "This client account is suspended. Contact support.",

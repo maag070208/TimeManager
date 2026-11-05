@@ -12,7 +12,7 @@ import { useGoBack } from "@shared/lib/useGoBack";
 export default function UserImportPage() {
   const navigate = useNavigate();
   const goBack = useGoBack();
-  const { t: tt } = useTranslation("users");
+  const { t: tt } = useTranslation(["users", "common", "employees"]);
 
   const fx = useUserImport();
 
@@ -21,9 +21,9 @@ export default function UserImportPage() {
       noPadding
       title={tt("import.title")}
       description={tt("import.description")}
-      backAction={() => goBack("/users")}
+      backAction={() => goBack("/employees")}
       breadcrumbs={[
-        { label: tt("list.breadcrumb"), onClick: () => navigate("/users", { replace: true }) },
+        { label: tt("employees:breadcrumb"), onClick: () => navigate("/employees", { replace: true }) },
         { label: tt("import.breadcrumb") },
       ]}
       icon={<FaUserShield size={20} />}
@@ -35,7 +35,7 @@ export default function UserImportPage() {
       )}
 
       <ImportPanel fx={fx} />
-      <ImportResultCard fx={fx} onGoToList={() => goBack("/users")} />
+      <ImportResultCard fx={fx} onGoToList={() => goBack("/employees")} />
     </ITPage>
   );
 }
