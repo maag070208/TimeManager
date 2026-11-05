@@ -353,7 +353,6 @@ model Notification {
   type      String
   title     String
   detail    String?
-  ticketId  String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -372,8 +371,6 @@ model AuditLog {
   entityId      String
   userId        String?
   userName      String?
-  deviceId      String?
-  deviceCode    String?
   previousState Json?
   newState      Json?
   metadata      Json?
@@ -383,7 +380,6 @@ model AuditLog {
   @@index([action])
   @@index([entityType, entityId])
   @@index([userId])
-  @@index([deviceId])
   @@index([createdAt])
   @@map("audit_logs")
 }

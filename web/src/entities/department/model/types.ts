@@ -11,16 +11,6 @@ export interface DepartmentPersonRef {
   name: string;
 }
 
-export interface DepartmentTicket {
-  id: string;
-  title: string;
-  status: "OPEN" | "IN_PROGRESS" | "CLOSED";
-  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
-  category: string;
-  createdAt: string;
-  assignedTo?: DepartmentPersonRef | null;
-}
-
 export interface DepartmentCustodyLetter {
   id: string;
   consecutive: string;
@@ -36,8 +26,6 @@ export interface Department {
   name: string;
   active: boolean;
   subareas: Subarea[];
-  tickets?: DepartmentTicket[];
-  ticketsTotal?: number;
   custodyLetters?: DepartmentCustodyLetter[];
   custodyLettersTotal?: number;
   _count?: { users: number };

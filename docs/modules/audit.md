@@ -4,7 +4,7 @@ Consulta de la bitácora (`AuditLog`): quién hizo qué, cuándo y sobre qué re
 
 ## Endpoints
 
-`GET /` (lista con filtros: `action`, `entityType`, `entityId`, `userId`, `deviceId`, `start`, `end`, paginado), `GET /:id` (detalle). El filtro `entityId` permite pedir el historial completo de un registro concreto (p. ej. `?entityType=TimeClockPunch&entityId=<punchId>`).
+`GET /` (lista con filtros: `action`, `entityType`, `entityId`, `userId`, `start`, `end`, paginado), `GET /:id` (detalle). El filtro `entityId` permite pedir el historial completo de un registro concreto (p. ej. `?entityType=TimeClockPunch&entityId=<punchId>`).
 
 ## Modelos
 

@@ -2,10 +2,11 @@ import type { PrismaClient } from "@prisma/client";
 import { loadPoliciesFromDb } from "./engine";
 
 /**
- * Políticas base sembradas (insert-missing por `key`). Reproducen las reglas que
- * antes vivían en código: la excepción del ADMIN (ALLOW), la segregación de
- * funciones (DENY) y un límite de monto de ejemplo (inactivo). Se pueden editar o
- * desactivar desde la web.
+ * Políticas ABAC base que se siembran al arrancar (insert-missing por `key`).
+ *
+ * El producto no trae reglas de fábrica: las que había eran de compras y
+ * facturas del ERP origen y se retiraron en L-03. El catálogo de acciones sigue
+ * disponible para que la consola de roles cree las que el cliente necesite.
  */
 interface SeedCondition {
   field: string;
@@ -25,86 +26,7 @@ interface SeedPolicy {
   conditions: SeedCondition[];
 }
 
-export const DEFAULT_POLICIES: readonly SeedPolicy[] = [
-  {
-    key: "po-approve-admin-override",
-    name: "ADMIN puede aprobar lo que creó",
-    description: "Excepción de segregación de funciones para el rol ADMIN.",
-    action: "purchase_orders.approve",
-    effect: "ALLOW",
-    priority: 10,
-    active: true,
-    roles: ["ADMIN"],
-    conditions: [],
-  },
-  {
-    key: "po-approve-sod",
-    name: "SoD: el creador no aprueba su orden",
-    description: "Segregación de funciones en la aprobación de órdenes de compra.",
-    action: "purchase_orders.approve",
-    effect: "DENY",
-    priority: 20,
-    active: true,
-    roles: [],
-    conditions: [{ field: "createdById", operator: "eq", value: "@user.id" }],
-  },
-  {
-    key: "po-approve-limit",
-    name: "Límite de monto para aprobar",
-    description:
-      "Ejemplo (inactivo): niega aprobar órdenes por encima del monto. Actívalo y ajusta el valor a tu política.",
-    action: "purchase_orders.approve",
-    effect: "DENY",
-    priority: 30,
-    active: false,
-    roles: [],
-    conditions: [{ field: "total", operator: "gt", value: "10000" }],
-  },
-  {
-    key: "po-receive-admin-override",
-    name: "ADMIN puede recibir lo que aprobó",
-    description: "Excepción de segregación de funciones para el rol ADMIN.",
-    action: "purchase_orders.receive",
-    effect: "ALLOW",
-    priority: 10,
-    active: true,
-    roles: ["ADMIN"],
-    conditions: [],
-  },
-  {
-    key: "po-receive-sod",
-    name: "SoD: quien aprobó no recibe la orden",
-    description: "Segregación de funciones en la recepción de órdenes de compra.",
-    action: "purchase_orders.receive",
-    effect: "DENY",
-    priority: 20,
-    active: true,
-    roles: [],
-    conditions: [{ field: "approvedById", operator: "eq", value: "@user.id" }],
-  },
-  {
-    key: "invoice-register-admin-override",
-    name: "ADMIN puede facturar lo que aprobó",
-    description: "Excepción de segregación de funciones para el rol ADMIN.",
-    action: "invoices.register",
-    effect: "ALLOW",
-    priority: 10,
-    active: true,
-    roles: ["ADMIN"],
-    conditions: [],
-  },
-  {
-    key: "invoice-register-sod",
-    name: "SoD: quien aprobó no registra la factura",
-    description: "Segregación de funciones en el registro de facturas de proveedor.",
-    action: "invoices.register",
-    effect: "DENY",
-    priority: 20,
-    active: true,
-    roles: [],
-    conditions: [{ field: "approvedById", operator: "eq", value: "@user.id" }],
-  },
-];
+export const DEFAULT_POLICIES: readonly SeedPolicy[] = [];
 
 /**
  * Siembra las políticas base (insert-missing) y deja la cache cargada. Idempotente.

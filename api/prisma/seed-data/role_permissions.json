@@ -276,11 +276,6 @@
   },
   {
     "role": "CLIENT_ADMIN",
-    "permission": "catalogs.manage",
-    "scope": "ALL"
-  },
-  {
-    "role": "CLIENT_ADMIN",
     "permission": "access.scan",
     "scope": "ALL"
   },

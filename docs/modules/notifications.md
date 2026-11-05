@@ -31,6 +31,10 @@ El API publica en `user:<id>` el evento `NOTIFICATION` (`api/src/core/services/a
 - Volumen medio; índice por `(tenantId, userId, read)`.
 - Ably es opcional: con polling funciona igual, lo que simplifica self-hosting para clientes que lo pidan.
 
-## Pendientes
+## Limpieza heredada
 
-- `Notification.ticketId` es residuo del ERP de tickets (L-10): se conserva en el modelo/DTO hasta que se decida si se migra un caso de uso. Los publicadores muertos (`broadcastTicketEvent`, `broadcastDashboardEvent`) y el canal `dashboard` ya se eliminaron de `api/src/core/services/ably.ts`.
+- `Notification.ticketId` era residuo del ERP de tickets y se eliminó en L-10
+  (migración `20261110000000_legacy_cleanup`): ya no está en el modelo, DTO,
+  entity ni en los tipos web. Los publicadores muertos (`broadcastTicketEvent`,
+  `broadcastDashboardEvent`) y el canal `dashboard` ya se habían eliminado de
+  `api/src/core/services/ably.ts` (F1C-02).

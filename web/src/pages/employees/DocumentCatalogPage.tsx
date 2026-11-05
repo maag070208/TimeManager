@@ -18,11 +18,14 @@ import { TicConfirm } from "@shared/ui/tic-confirm";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { personalApi, type DocumentType } from "@entities/hr";
 import { useGoBack } from "@shared/lib/useGoBack";
+import { useCan } from "@entities/user";
 
 export default function DocumentCatalogPage() {
   const { t: tt } = useTranslation(["employees", "common"]);
   const navigate = useNavigate();
   const goBack = useGoBack();
+  // Catalogs are platform-managed (L-07): without `catalogs.manage` the page is read-only.
+  const canManage = useCan("catalogs.manage");
   const [reloadKey, setReloadKey] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<DocumentType | null>(null);
@@ -147,26 +150,32 @@ export default function DocumentCatalogPage() {
           { id: "false", name: tt("catalog.requiredNo") },
         ],
       },
-      render: (type: DocumentType) => (
-        <ITButton
-          variant="text"
-          size="lg"
-          color={type.required ? "danger" : "gray"}
-          onClick={() => toggleRequired(type)}
-          title={type.required ? tt("catalog.markOptional") : tt("catalog.markRequired")}
-        >
+      render: (type: DocumentType) =>
+        canManage ? (
+          <ITButton
+            variant="text"
+            size="lg"
+            color={type.required ? "danger" : "gray"}
+            onClick={() => toggleRequired(type)}
+            title={type.required ? tt("catalog.markOptional") : tt("catalog.markRequired")}
+          >
+            <ITBadget color={type.required ? "danger" : "gray"} size="lg">
+              {type.required ? tt("catalog.requiredYes") : tt("catalog.requiredNo")}
+            </ITBadget>
+          </ITButton>
+        ) : (
           <ITBadget color={type.required ? "danger" : "gray"} size="lg">
             {type.required ? tt("catalog.requiredYes") : tt("catalog.requiredNo")}
           </ITBadget>
-        </ITButton>
-      ),
+        ),
     },
     {
       type: "string",
       key: "action",
       label: "",
       width: 140,
-      render: (type: DocumentType) => (
+      render: (type: DocumentType) =>
+        canManage ? (
         <ITFlex align="center" gap={2}>
           <ITButton variant="outlined" color="primary" size="lg" onClick={() => openEdit(type)}>
             <FaEdit size={12} />
@@ -192,7 +201,7 @@ export default function DocumentCatalogPage() {
             </ITButton>
           )}
         </ITFlex>
-      ),
+        ) : null,
     },
   ];
 
@@ -209,12 +218,14 @@ export default function DocumentCatalogPage() {
         { label: tt("catalog.title") },
       ]}
       actions={
-        <ITButton variant="filled" color="primary" onClick={openNew}>
-          <ITFlex align="center" gap={1}>
-            <FaPlus size={12} />
-            <ITText className="font-bold text-[11px]">{tt("catalog.new")}</ITText>
-          </ITFlex>
-        </ITButton>
+        canManage ? (
+          <ITButton variant="filled" color="primary" onClick={openNew}>
+            <ITFlex align="center" gap={1}>
+              <FaPlus size={12} />
+              <ITText className="font-bold text-[11px]">{tt("catalog.new")}</ITText>
+            </ITFlex>
+          </ITButton>
+        ) : undefined
       }
     >
       {error && (
@@ -223,7 +234,7 @@ export default function DocumentCatalogPage() {
         </ITAlert>
       )}
 
-      {showForm && (
+      {canManage && showForm && (
         <ITCard contentClassName="flex flex-col gap-3 mb-4">
           <ITText className="text-sm font-bold text-slate-800">
             {editing ? tt("catalog.edit") : tt("catalog.new")}

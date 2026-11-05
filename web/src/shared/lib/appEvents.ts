@@ -1,21 +1,9 @@
 /**
  * Avisos internos de la app para cosas que pasan fuera de una pantalla.
- *
- * El caso que lo motivó: el alta de ticket vive en el panel de Tic (un
- * widget montado en el layout), así que la lista de tickets no se entera sola
- * de que hay un ticket nuevo. El bot avisa por aquí y la pantalla recarga y
- * anima la fila recién creada.
- *
  * Es deliberadamente mínimo (sin estado global): quien escucha no depende de
  * quién avisa, y el aviso viaja aunque la pantalla esté montada desde antes.
  */
 export interface AppEventMap {
-  "ticket:created": { id?: string };
-  "task:created": { ticketId?: string };
-  /** Pide al panel que arme una tarea para ese ticket (lo lanza el detalle). */
-  "task:new": { ticketId: string; ticketTitle?: string };
-  /** Pide al tablero que muestre la animación de cómo mover una tarjeta. */
-  "kanban:guide": Record<string, never>;
   /** El bot de Personal llena un campo del formulario en pantalla. */
   "employee:fill": { field: string; value: string };
   /** El bot terminó de llenar (para enfocar el primer campo o avisar). */

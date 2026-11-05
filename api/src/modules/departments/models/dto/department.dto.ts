@@ -16,18 +16,6 @@ export type Subarea = z.infer<typeof SubareaSchema>;
 
 const PersonRefSchema = z.object({ id: z.string(), name: z.string() });
 
-export const DepartmentTicketSchema = z
-  .object({
-    id: z.string(),
-    title: z.string(),
-    status: z.string(),
-    priority: z.string(),
-    category: z.string().nullable(),
-    createdAt: z.string(),
-    assignedTo: PersonRefSchema.nullable().optional(),
-  })
-  .openapi("DepartmentTicketSummary");
-
 export const DepartmentCustodyLetterSchema = z
   .object({
     id: z.string(),
@@ -48,8 +36,6 @@ export const DepartmentSchema = z
     createdAt: z.string(),
     updatedAt: z.string(),
     subareas: z.array(SubareaSchema).optional(),
-    tickets: z.array(DepartmentTicketSchema).optional(),
-    ticketsTotal: z.number().optional(),
     custodyLetters: z.array(DepartmentCustodyLetterSchema).optional(),
     custodyLettersTotal: z.number().optional(),
     _count: z.object({ users: z.number() }).optional(),
@@ -104,6 +90,5 @@ registry.register("DepartmentUpdateInput", DepartmentUpdateDto);
 registry.register("Subarea", SubareaSchema);
 registry.register("SubareaCreateInput", SubareaCreateDto);
 registry.register("SubareaUpdateInput", SubareaUpdateDto);
-registry.register("DepartmentTicketSummary", DepartmentTicketSchema);
 registry.register("DepartmentCustodyLetterSummary", DepartmentCustodyLetterSchema);
 registry.register("DeleteResponse", DeleteResponseSchema);

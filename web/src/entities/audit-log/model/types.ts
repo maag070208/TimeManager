@@ -5,8 +5,6 @@ export interface AuditLog {
   entityId: string;
   userId?: string | null;
   userName?: string | null;
-  deviceId?: string | null;
-  deviceCode?: string | null;
   previousState?: Record<string, any> | null;
   newState?: Record<string, any> | null;
   metadata?: Record<string, any> | null;

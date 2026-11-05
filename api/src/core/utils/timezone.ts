@@ -110,17 +110,23 @@ export const resolveTimezone = (explicit?: string | null): string => {
 export type TimezoneConfigReader = (key: string) => Promise<string | null>;
 
 /**
- * Resuelve la zona horaria aplicando la precedencia COMPLETA del módulo de
- * acceso, idéntica para bitácora y reporte:
- * `explicit` → `sys_config.ACCESS_REPORT_TIMEZONE` (si hay lector) →
+ * Resuelve la zona horaria aplicando la precedencia COMPLETA:
+ * `explicit` → **zona del cliente (`Tenant.timezone`, F1B-04)** →
+ * `sys_config.ACCESS_REPORT_TIMEZONE` (si hay lector) →
  * env `ACCESS_REPORT_TIMEZONE` → env `TZ` → `America/Mexico_City`.
  * Un `explicit` inválido es un error de cliente (400), no un fallback silencioso.
+ *
+ * La zona del cliente manda sobre la del servidor: "hoy", cortes de día,
+ * retardos y tiempo extra se calculan con la hora local de SU cliente.
  */
 export const resolveTimezoneWithConfig = async (
   explicit: string | null | undefined,
   reader?: TimezoneConfigReader
 ): Promise<string> => {
   if (explicit != null && explicit !== "") return resolveTimezone(explicit);
+  const { tenantTimezone } = await import("./tenant-timezone");
+  const fromTenant = await tenantTimezone();
+  if (fromTenant) return fromTenant;
   const fromConfig = reader ? await reader(TIMEZONE_CONFIG_KEY) : null;
   return resolveTimezone(fromConfig ?? undefined);
 };

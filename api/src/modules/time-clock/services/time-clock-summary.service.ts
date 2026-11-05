@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { resolveTimezone, startOfLocalDay, localDateKey } from "@core/utils/timezone";
+import { tenantTimezone } from "@core/utils/tenant-timezone";
 import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
 import { IsapiAuthError, IsapiClient } from "./isapi.client";
 import {
@@ -123,7 +124,8 @@ export class TimeClockSummaryService {
   /** Resumen completo: global (padrón) y por reloj. */
   async summary() {
     const now = this.now();
-    const tz = resolveTimezone(null);
+    // "Hoy" del cliente (F1B-04), no la zona del servidor.
+    const tz = (await tenantTimezone()) ?? resolveTimezone(null);
     const dayStart = startOfLocalDay(localDateKey(now, tz), tz);
     const clocks = await this.db.timeClock.findMany({
       where: { url: { not: null } },

@@ -3,7 +3,6 @@ export interface CreateNotificationInput {
   type: string;
   title: string;
   detail?: string;
-  ticketId?: string;
 }
 
 export interface NotifyUserCreatedInput {

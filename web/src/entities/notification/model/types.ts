@@ -4,7 +4,6 @@ export interface Notification {
   type: string;
   title: string;
   detail?: string | null;
-  ticketId?: string | null;
   read: boolean;
   createdAt: string;
 }

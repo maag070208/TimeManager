@@ -6,7 +6,6 @@ export const auditApi = {
     action?: string;
     entityType?: string;
     userId?: string;
-    deviceId?: string;
     start?: string;
     end?: string;
     page?: number;
@@ -16,7 +15,6 @@ export const auditApi = {
     if (params?.action) searchParams.set("action", params.action);
     if (params?.entityType) searchParams.set("entityType", params.entityType);
     if (params?.userId) searchParams.set("userId", params.userId);
-    if (params?.deviceId) searchParams.set("deviceId", params.deviceId);
     if (params?.start) searchParams.set("start", params.start);
     if (params?.end) searchParams.set("end", params.end);
     if (params?.page) searchParams.set("page", String(params.page));

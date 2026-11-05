@@ -3,7 +3,7 @@ import { store } from "@app/store";
 import { prependNotification, type Notification } from "@entities/notification";
 
 /** Lo que publica la API en `user:<id>` (las creadas en lote no traen `id`). */
-export type LiveNotification = Partial<Pick<Notification, "id" | "type" | "detail" | "ticketId">> & {
+export type LiveNotification = Partial<Pick<Notification, "id" | "type" | "detail">> & {
   title?: string;
 };
 

@@ -246,8 +246,6 @@ export class AccessService {
               entityId: created.id,
               userId: actor.id,
               userName: created.guard?.name ?? actor.name,
-              deviceId: input.deviceId ?? undefined,
-              deviceCode: input.deviceCode ?? undefined,
               newState: {
                 type: created.type,
                 employeeId,
@@ -258,6 +256,8 @@ export class AccessService {
                 siteId: site.id,
                 latitude: input.latitude ?? null,
                 longitude: input.longitude ?? null,
+                deviceId: input.deviceId ?? null,
+                deviceCode: input.deviceCode ?? null,
               },
             },
             tx

@@ -10,7 +10,6 @@ export const NotificationSchema = registry.register(
       type: z.string(),
       title: z.string(),
       detail: z.string().nullable(),
-      ticketId: z.string().nullable(),
       read: z.boolean(),
       createdAt: z.string(),
     })

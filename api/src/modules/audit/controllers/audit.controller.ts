@@ -10,7 +10,6 @@ export class AuditController {
       entityType: typeof req.query.entityType === "string" ? req.query.entityType : undefined,
       entityId: typeof req.query.entityId === "string" ? req.query.entityId : undefined,
       userId: typeof req.query.userId === "string" ? req.query.userId : undefined,
-      deviceId: typeof req.query.deviceId === "string" ? req.query.deviceId : undefined,
       start: typeof req.query.start === "string" ? req.query.start : undefined,
       end: typeof req.query.end === "string" ? req.query.end : undefined,
       page: req.query.page && !Number.isNaN(Number(req.query.page)) ? Number(req.query.page) : undefined,

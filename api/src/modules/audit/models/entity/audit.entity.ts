@@ -6,8 +6,6 @@ export interface AuditLogInput {
   entityId: string;
   userId?: string;
   userName?: string;
-  deviceId?: string;
-  deviceCode?: string;
   previousState?: Record<string, any>;
   newState?: Record<string, any>;
   metadata?: Record<string, any>;
@@ -18,7 +16,6 @@ export interface ListAuditLogsParams {
   entityType?: string;
   entityId?: string;
   userId?: string;
-  deviceId?: string;
   start?: string;
   end?: string;
   page?: number;

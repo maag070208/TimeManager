@@ -25,8 +25,6 @@ export class AuditService {
         entityId: input.entityId,
         userId: input.userId ?? null,
         userName: input.userName ?? null,
-        deviceId: input.deviceId ?? null,
-        deviceCode: input.deviceCode ?? null,
         previousState: toJson(input.previousState),
         newState: toJson(input.newState),
         metadata: toJson(input.metadata),
@@ -41,7 +39,6 @@ export class AuditService {
     if (params.entityType) where.entityType = params.entityType;
     if (params.entityId) where.entityId = params.entityId;
     if (params.userId) where.userId = params.userId;
-    if (params.deviceId) where.deviceId = params.deviceId;
 
     if (params.start || params.end) {
       where.createdAt = {};

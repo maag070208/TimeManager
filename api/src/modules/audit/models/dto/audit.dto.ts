@@ -10,8 +10,6 @@ export const AuditLogSchema = registry.register(
     entityId: z.string(),
     userId: z.string().nullable(),
     userName: z.string().nullable(),
-    deviceId: z.string().nullable(),
-    deviceCode: z.string().nullable(),
     previousState: z.record(z.string(), z.unknown()).nullable().optional(),
     newState: z.record(z.string(), z.unknown()).nullable().optional(),
     metadata: z.record(z.string(), z.unknown()).nullable().optional(),

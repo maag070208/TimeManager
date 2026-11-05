@@ -27,9 +27,6 @@ export const createDashboardRouter = (controller: DashboardController): Router =
     { path: "attendance-today", permission: "attendance.view", summary: "Today's attendance (present, late, not arrived, on site) within the permission scope" },
     { path: "overtime-week", permission: "overtime.view", summary: "Overtime of the current week: calculated vs approved vs not approved" },
     { path: "setup-gaps", permission: "time_clock.link", summary: "Unlinked time clock numbers and staff without clock link or schedule" },
-    { path: "tickets", permission: "tickets.view", summary: "Tickets within the permission scope: by status, unassigned, stale, open per assignee" },
-    { path: "tasks", permission: "tasks.view", summary: "Tasks within the permission scope (own / team / all): by status, overdue, pending per person" },
-    { path: "my-equipment", permission: "(session)", summary: "Equipment on the user's active custody letters" },
     { path: "access-today", permission: "access.scan", summary: "Today's access log: entries, exits, people on site, latest events" },
     { path: "system-health", permission: "system.configure", summary: "Inventory audit, time clock sync and email queue status" },
   ];
