@@ -4,7 +4,7 @@ import { FaMoneyCheckAlt } from "react-icons/fa";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { PayrollHistoryPanel, useWeeklyAttendance, WeeklyAttendancePanel } from "@features/schedule";
+import { PayrollHistoryPanel, useWeeklyAttendance, WeeklyAttendanceReport } from "@features/schedule";
 import { downloadPayrollClosurePdf, downloadWeeklyAttendancePdf } from "@widgets/reports";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { dateLocale } from "@shared/i18n";
@@ -108,7 +108,7 @@ export default function PayrollPage() {
       backAction={() => goBack("/employees")}
     >
       <div className="mb-4">{tabSwitcher}</div>
-      {tab === "week" ? <WeeklyAttendancePanel fx={fx} /> : <PayrollHistoryPanel t={t} downloadPdf={downloadPayrollClosurePdf} />}
+      {tab === "week" ? <WeeklyAttendanceReport fx={fx} /> : <PayrollHistoryPanel t={t} downloadPdf={downloadPayrollClosurePdf} />}
     </ITPage>
   );
 }

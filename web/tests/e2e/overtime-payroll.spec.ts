@@ -80,16 +80,15 @@ test.describe("pre nómina (acme.admin)", () => {
     await gotoRoute(page, "/schedules/payroll");
     expect((await initialReport).ok()).toBe(true);
 
-    await expect(page.getByText(/^Semana \d+ – \d+/).first()).toBeVisible();
-    await expect(page.getByText("Personas con checadas", { exact: true })).toBeVisible();
+    await expect(page.getByText(/^Semana \S+ \d+ – \S+ \d+/).first()).toBeVisible();
+    await expect(page.getByText("Personas", { exact: true })).toBeVisible();
     await expect(page.getByText("Horas trabajadas", { exact: true })).toBeVisible();
-    await expect(page.getByText("Faltas sin justificar", { exact: true })).toBeVisible();
-    // Departamentos sembrados, sin horas en la semana.
-    const table = page.getByRole("table", { name: "Departamento" });
+    await expect(page.getByText("Faltas", { exact: true })).toBeVisible();
+    // Reporte semanal: una fila por persona del seed.
+    const table = page.getByRole("table").first();
     await expect(table).toBeVisible();
-    await expect(table.getByRole("cell", { name: "Recursos Humanos" })).toBeVisible();
-    await expect(table.getByRole("cell", { name: "Operaciones" })).toBeVisible();
-    await expect(table.getByRole("cell", { name: "Por revisar" }).first()).toBeVisible();
+    await expect(table.getByRole("cell", { name: /Ana Administradora/ })).toBeVisible();
+    await expect(table.getByRole("cell", { name: /Rita Recursos/ })).toBeVisible();
 
     // Historial de cierres: sin semanas cerradas en el seed.
     await page.getByRole("tab", { name: "Historial de cierres" }).click();
@@ -101,6 +100,6 @@ test.describe("pre nómina (acme.admin)", () => {
     await page.getByRole("button", { name: "Semana anterior" }).click();
     expect((await previousWeek).ok()).toBe(true);
     await expect(page.getByText("No se pudo cargar el reporte")).toHaveCount(0);
-    await expect(page.getByRole("table", { name: "Departamento" })).toBeVisible();
+    await expect(page.getByRole("table").first()).toBeVisible();
   });
 });
