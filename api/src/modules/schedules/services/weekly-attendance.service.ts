@@ -157,7 +157,8 @@ export class WeeklyAttendanceService {
 
     const rows: WeeklyAttendanceRow[] = people.map((person) => {
       const clockNumbers = person.timeClockEmployees.map((t) => t.employeeNumber);
-      const linked = clockNumbers.length > 0;
+      // RJ-02: con checadas web/app la persona también tiene registro ese día.
+      const linked = clockNumbers.length > 0 || withSessions.includes(person.id);
       const totals = emptyTotals();
       let scheduleName: string | null = null;
 

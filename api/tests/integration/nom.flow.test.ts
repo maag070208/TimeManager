@@ -511,7 +511,7 @@ describe("Export formal y autoservicio de configuración", () => {
       { token: hr.token }
     );
     expectStatus(jsonExport, 200, "export JSON");
-    assert.equal(jsonExport.body?.schemaVersion, "stps-registro-jornada-v1");
+    assert.equal(jsonExport.body?.schemaVersion, "stps-registro-jornada-v2");
     assert.match(String(jsonExport.body?.sha256), /^[0-9a-f]{64}$/);
     assert.ok(Array.isArray(jsonExport.body?.rows));
     assert.equal(jsonExport.body?.tenant?.id, tenant.id);

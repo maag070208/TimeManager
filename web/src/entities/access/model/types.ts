@@ -82,6 +82,7 @@ export type AccessReportPeriod = "DAY" | "WEEK" | "FORTNIGHT" | "MONTH";
  */
 export type AccessIncidentCode =
   | "ENTRY_WITHOUT_EXIT"
+  | "REMOTE_CONFLICT"
   | "EXIT_WITHOUT_ENTRY"
   | "OPEN_ENTRY";
 

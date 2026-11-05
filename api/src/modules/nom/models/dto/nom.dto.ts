@@ -29,6 +29,7 @@ export const NomSettingsUpdateDto = z
     weeklyLimitMinutes: z.number().int().min(600).max(10080).nullable().optional(),
     retentionMonths: z.number().int().min(1).max(120).nullable().optional(),
     remotePunchEnabled: z.boolean().optional(),
+    remoteCountsForWorkday: z.boolean().optional(),
   })
   .strict();
 

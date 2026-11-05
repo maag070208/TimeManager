@@ -29,6 +29,7 @@ export interface NomConfigDto {
   weeklyLimitMinutes: number;
   retentionMonths: number | null;
   remotePunchEnabled: boolean;
+  remoteCountsForWorkday: boolean;
   legal?: {
     year: number;
     weeklyLimitMinutes: number;
@@ -55,6 +56,7 @@ export const nomApi = {
     weeklyLimitMinutes?: number;
     retentionMonths?: number | null;
     remotePunchEnabled?: boolean;
+    remoteCountsForWorkday?: boolean;
   }) =>
     api.put<NomConfigDto>(`${base}/config`, input),
   myPunches: (params: { from?: string; to?: string; limit?: number } = {}) => {

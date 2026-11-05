@@ -20,6 +20,7 @@ import type {
   AccessReportSummary,
 } from "@modules/access/models/entity/access.entity";
 import { filterSessionRows } from "@modules/access/services/session-row-filters";
+import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/adjusted-punches";
 import type {
   TimeClockReportResult,
   TimeClockReportSessionRow,
@@ -117,6 +118,14 @@ export class TimeClockReportService {
     const { filters } = params;
     const range = await this.resolveRange(filters);
     const includeInactive = filters.includeInactive === true || filters.includeInactive === "true";
+    const tenantId = currentTenantId();
+    const nomSettings = tenantId
+      ? await this.db.nomSettings.findUnique({
+          where: { tenantId },
+          select: { remoteCountsForWorkday: true },
+        })
+      : null;
+    const remoteCountsForWorkday = nomSettings?.remoteCountsForWorkday ?? true;
     const fromAttendance = await this.onlyAttendanceClocks();
     const people = this.filter(await this.universe(range, includeInactive, fromAttendance), filters);
 
@@ -137,14 +146,37 @@ export class TimeClockReportService {
               },
             },
             orderBy: [{ occurredAt: "asc" }, { serialNo: "asc" }],
-            select: { employeeNumber: true, occurredAt: true },
+            select: { id: true, employeeNumber: true, occurredAt: true },
           });
 
+    // RJ-03: la jornada usa el valor VIGENTE de cada checada (original + ajustes aprobados).
+    const adjustments = await loadApprovedAdjustments(
+      this.db,
+      punches.map((punch) => punch.id)
+    );
+
+    const effectivePunches = applyApprovedAdjustments(punches, adjustments);
     const byNumber = new Map<string, Date[]>();
-    for (const c of punches) {
+    for (const c of effectivePunches) {
       const list = byNumber.get(c.employeeNumber);
       if (list) list.push(c.occurredAt);
       else byNumber.set(c.employeeNumber, [c.occurredAt]);
+    }
+
+    // RJ-02: checadas web/app por persona (solo cuentan si ese día no hay reloj).
+    const remotePunches = await this.db.remotePunch.findMany({
+      where: {
+        userId: { in: people.map((person) => person.id).filter((id) => !id.startsWith("reloj:")) },
+        occurredAt: { gte: range.start, lt: range.end },
+      },
+      orderBy: { occurredAt: "asc" },
+      select: { userId: true, type: true, occurredAt: true },
+    });
+    const remoteByUser = new Map<string, Array<{ type: string; occurredAt: Date }>>();
+    for (const punch of remotePunches) {
+      const list = remoteByUser.get(punch.userId) ?? [];
+      list.push({ type: punch.type, occurredAt: punch.occurredAt });
+      remoteByUser.set(punch.userId, list);
     }
 
     const rows: TimeClockReportSessionRow[] = [];
@@ -153,9 +185,19 @@ export class TimeClockReportService {
       const instants = person.clockNumbers
         .flatMap((n) => byNumber.get(n) ?? [])
         .sort((a, b) => a.getTime() - b.getTime());
-      const sessions = this.match(person.id, withoutDuplicates(instants), range).filter((s) =>
+      const clockSessions = this.match(person.id, withoutDuplicates(instants), range).filter((s) =>
         this.inWindow(s, range)
       );
+      const personRemote = remoteByUser.get(person.id) ?? [];
+      const remoteSessions =
+        remoteCountsForWorkday && clockSessions.length === 0 && personRemote.length > 0
+          ? this.remoteSessions(person.id, personRemote, range)
+          : [];
+      if (clockSessions.length > 0 && personRemote.length > 0 && remoteCountsForWorkday) {
+        const first = clockSessions[0];
+        if (!first.incident) first.incident = "REMOTE_CONFLICT";
+      }
+      const sessions = clockSessions.length > 0 ? clockSessions : remoteSessions;
 
       sessions.forEach((s, i) => rows.push(this.row(person, s, i, range)));
       const incidents = new Set(sessions.map((s) => s.incident).filter((i): i is AccessIncidentCode => i !== null));
@@ -238,6 +280,17 @@ export class TimeClockReportService {
       }),
     ]);
     const punched = new Set(inPeriod.map((c) => c.employeeNumber));
+    const remoteUsers = await this.db.remotePunch.groupBy({
+      by: ["userId"],
+      where: { occurredAt: { gte: range.start, lt: range.end } },
+    });
+    const remotePeople =
+      remoteUsers.length > 0
+        ? await this.db.user.findMany({
+            where: { id: { in: remoteUsers.map((row) => row.userId) }, active: includeInactive ? undefined : true },
+            select: universeSelect,
+          })
+        : [];
 
     const byUser = new Map<string, Person>();
     for (const { employeeNumber, user } of links) {
@@ -253,6 +306,19 @@ export class TimeClockReportService {
       };
       person.clockNumbers.push(employeeNumber);
       byUser.set(user.id, person);
+    }
+    for (const user of remotePeople) {
+      if (byUser.has(user.id)) continue;
+      byUser.set(user.id, {
+        id: user.id,
+        name: user.name,
+        employeeNumber: user.employeeNumber,
+        jobTitle: user.jobTitle,
+        department: user.department,
+        active: user.active,
+        linked: true,
+        clockNumbers: [],
+      });
     }
     const linkedCount = [...byUser.values()].filter(
       (p) => p.active || includeInactive || p.clockNumbers.some((n) => punched.has(n))
@@ -316,6 +382,40 @@ export class TimeClockReportService {
    * si ya pasó el tope, `ENTRY_WITHOUT_EXIT`. No hay `EXIT_WITHOUT_ENTRY`: sin
    * tipo, la primera checada siempre es entrada.
    */
+  /**
+   * Sesiones a partir de checadas web/app respetando la secuencia de comida:
+   * ENTRY/LUNCH_END abren un tramo; LUNCH_START/EXIT lo cierran. Así la comida
+   * no se cuenta como tiempo trabajado.
+   */
+  private remoteSessions(
+    id: string,
+    punches: Array<{ type: string; occurredAt: Date }>,
+    range: ReportRange
+  ): AccessReportSession[] {
+    const sessions: AccessReportSession[] = [];
+    let entry: Date | null = null;
+    for (const punch of punches) {
+      if (punch.type === "ENTRY" || punch.type === "LUNCH_END") {
+        if (entry) {
+          sessions.push(this.session(id, entry, null, "ENTRY_WITHOUT_EXIT", range.timezone));
+        }
+        entry = punch.occurredAt;
+      } else if (punch.type === "LUNCH_START" || punch.type === "EXIT") {
+        if (entry) {
+          sessions.push(this.session(id, entry, punch.occurredAt, null, range.timezone));
+          entry = null;
+        } else {
+          sessions.push(this.session(id, null, punch.occurredAt, "EXIT_WITHOUT_ENTRY", range.timezone));
+        }
+      }
+    }
+    if (entry) {
+      const inSite = Date.now() < entry.getTime() + MAX_WORKDAY_MS;
+      sessions.push(this.session(id, entry, null, inSite ? "OPEN_ENTRY" : "ENTRY_WITHOUT_EXIT", range.timezone));
+    }
+    return sessions.filter((session) => this.inWindow(session, range));
+  }
+
   private match(id: string, instants: Date[], range: ReportRange): AccessReportSession[] {
     const sessions: AccessReportSession[] = [];
     for (let i = 0; i < instants.length; ) {

@@ -8,6 +8,7 @@ export const AccessReportPeriodSchema = z.enum(REPORT_PERIODS);
 /** Incidencias derivadas del emparejamiento ENTRY/EXIT. */
 export const AccessIncidentCodeSchema = z.enum([
   "ENTRY_WITHOUT_EXIT",
+  "REMOTE_CONFLICT",
   "EXIT_WITHOUT_ENTRY",
   "OPEN_ENTRY",
 ]);

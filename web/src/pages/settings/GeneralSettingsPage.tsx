@@ -30,6 +30,7 @@ export default function GeneralSettingsPage() {
     weeklyLimitMinutes: 2880,
     retentionMonths: "",
     remotePunchEnabled: true,
+    remoteCountsForWorkday: true,
   });
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function GeneralSettingsPage() {
           weeklyLimitMinutes: next.weeklyLimitMinutes ?? 2880,
           retentionMonths: next.retentionMonths ? String(next.retentionMonths) : "",
           remotePunchEnabled: next.remotePunchEnabled ?? true,
+          remoteCountsForWorkday: next.remoteCountsForWorkday ?? true,
         });
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."))
@@ -70,6 +72,7 @@ export default function GeneralSettingsPage() {
         weeklyLimitMinutes: form.weeklyLimitMinutes,
         retentionMonths: form.retentionMonths ? Number(form.retentionMonths) : null,
         remotePunchEnabled: form.remotePunchEnabled,
+        remoteCountsForWorkday: form.remoteCountsForWorkday,
       });
       await dispatch(meThunk()).unwrap().catch(() => undefined);
       setToast("Configuración guardada.");
@@ -147,6 +150,13 @@ export default function GeneralSettingsPage() {
               value={form.remotePunchEnabled ? "true" : "false"}
               onChange={(event) => set("remotePunchEnabled", event.target.value === "true")}
               options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]}
+            />
+            <ITSelect
+              name="remoteCountsForWorkday"
+              label="Checada web cuenta para la jornada"
+              value={form.remoteCountsForWorkday ? "true" : "false"}
+              onChange={(event) => set("remoteCountsForWorkday", event.target.value === "true")}
+              options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]}
             />
           </div>
         </ITCard>

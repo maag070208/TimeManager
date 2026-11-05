@@ -115,7 +115,8 @@
     "ENTRY_WITHOUT_EXIT": "Entrada sin salida",
     "EXIT_WITHOUT_ENTRY": "Salida sin entrada",
     "OPEN_ENTRY": "En sitio",
-    "NONE": "Sin incidencia"
+    "NONE": "Sin incidencia",
+    "REMOTE_CONFLICT": "Checada web y reloj el mismo día (se usa el reloj)"
   },
   "noDepartment": "Sin departamento",
   "unlinked": "Sin vincular",

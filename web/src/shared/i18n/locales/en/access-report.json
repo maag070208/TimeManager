@@ -115,7 +115,8 @@
     "ENTRY_WITHOUT_EXIT": "Entry without exit",
     "EXIT_WITHOUT_ENTRY": "Exit without entry",
     "OPEN_ENTRY": "On site",
-    "NONE": "No incident"
+    "NONE": "No incident",
+    "REMOTE_CONFLICT": "Web and clock punches the same day (clock wins)"
   },
   "noDepartment": "No department",
   "unlinked": "Not linked",

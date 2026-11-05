@@ -1519,6 +1519,8 @@ model NomSettings {
   defaultMinOvertimeMin    Int?
   /// ¿Se permite el marcaje remoto (app/web) para este cliente? (F2-07)
   remotePunchEnabled   Boolean   @default(true)
+  /// ¿Las checadas web/app cuentan para la jornada cuando no hay reloj? (RJ-02)
+  remoteCountsForWorkday Boolean @default(true)
   /// Política de teletrabajo editable por cliente (NOM-037 / F2-08).
   teleworkPolicy       String?
   /// Política de desconexión digital (NOM-037 / F2-08).

@@ -63,7 +63,11 @@ export interface AccessActor {
  * - `EXIT_WITHOUT_ENTRY`: salida sin entrada previa. Es una anomalía.
  * - `OPEN_ENTRY`: entrada abierta de un periodo en curso ("En sitio"). No es error.
  */
-export type AccessIncidentCode = "ENTRY_WITHOUT_EXIT" | "EXIT_WITHOUT_ENTRY" | "OPEN_ENTRY";
+export type AccessIncidentCode =
+  | "ENTRY_WITHOUT_EXIT"
+  | "EXIT_WITHOUT_ENTRY"
+  | "OPEN_ENTRY"
+  | "REMOTE_CONFLICT";
 
 /** Sesión emparejada (una entrada y su salida). Interna al cálculo. */
 export interface AccessReportSession {

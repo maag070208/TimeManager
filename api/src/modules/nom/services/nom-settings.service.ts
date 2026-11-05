@@ -183,6 +183,7 @@ export class NomSettingsService {
       weeklyLimitMinutes,
       retentionMonths,
       remotePunchEnabled: settings?.remotePunchEnabled ?? true,
+      remoteCountsForWorkday: settings?.remoteCountsForWorkday ?? true,
       policy,
       source: {
         workdayLimit: settings?.workdayLimitMinutes != null ? "tenant" : sysWorkday != null ? "sys_config" : "legal_default",
@@ -292,6 +293,9 @@ export class NomSettingsService {
         ...(input.remotePunchEnabled !== undefined
           ? { remotePunchEnabled: input.remotePunchEnabled }
           : {}),
+        ...(input.remoteCountsForWorkday !== undefined
+          ? { remoteCountsForWorkday: input.remoteCountsForWorkday }
+          : {}),
         updatedById: actor.id,
       },
     });
@@ -308,6 +312,7 @@ export class NomSettingsService {
         weeklyLimitMinutes: previous.weeklyLimitMinutes,
         retentionMonths: previous.retentionMonths,
         remotePunchEnabled: previous.remotePunchEnabled,
+        remoteCountsForWorkday: previous.remoteCountsForWorkday,
       },
       newState: { ...input },
     });

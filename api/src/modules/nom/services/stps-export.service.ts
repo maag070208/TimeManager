@@ -3,6 +3,7 @@ import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { assertDateKey, isReportPeriod, localDateKey } from "@core/utils/timezone";
+import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/adjusted-punches";
 import type {
   StpsExportParams,
   StpsExportResult,
@@ -11,7 +12,7 @@ import type {
 import type { WorkdayCalculator } from "./workday-alerts.service";
 import type { WeeklyOvertimeService } from "./weekly-overtime.service";
 
-const SCHEMA_VERSION = "stps-registro-jornada-v1";
+const SCHEMA_VERSION = "stps-registro-jornada-v2";
 
 const csvCell = (value: string | number | boolean | null): string => {
   if (value === null) return "";
@@ -68,6 +69,7 @@ export class StpsExportService {
       violations: string[];
     };
     const buckets = new Map<string, LedgerDay>();
+    const minorByDay = new Map<string, boolean>();
     if (this.weekly) {
       const ledgers = await this.db.weeklyOvertimeLedger.findMany({
         where: {
@@ -77,17 +79,21 @@ export class StpsExportService {
             lt: range.end,
           },
         },
-        select: { userId: true, days: true },
+        select: { userId: true, days: true, minor: true },
       });
       for (const ledger of ledgers) {
         for (const day of ledger.days as unknown as LedgerDay[]) {
           buckets.set(`${ledger.userId}|${day.date}`, day);
+          minorByDay.set(`${ledger.userId}|${day.date}`, ledger.minor);
         }
       }
     }
 
     const rows = days
       .map((day) => ({
+        userId: day.userId,
+        firstEntryAt: null as string | null,
+        origin: null as "RELOJ" | "REMOTO" | "MIXTO" | null,
         date: day.date,
         employeeNumber: day.employeeNumber,
         name: day.employeeName,
@@ -204,9 +210,104 @@ export class StpsExportService {
         workMode: row.workMode,
       })),
     };
-    const sha256 = createHash("sha256")
-      .update(JSON.stringify({ rows, remotePunches: remoteRows, archived }))
-      .digest("hex");
+    // Detalle de marcajes (RJ-06): reloj vigente (con ajustes aprobados) + remoto + archivo.
+    const clockPunches = await this.db.timeClockPunch.findMany({
+      where: { occurredAt: { gte: range.start, lt: range.end } },
+      orderBy: [{ occurredAt: "asc" }, { serialNo: "asc" }],
+      select: { id: true, employeeNumber: true, name: true, method: true, occurredAt: true },
+    });
+    const clockAdjustments = await loadApprovedAdjustments(
+      this.db,
+      clockPunches.map((punch) => punch.id)
+    );
+    const effectiveClock = applyApprovedAdjustments(clockPunches, clockAdjustments);
+    const links = await this.db.timeClockEmployee.findMany({
+      select: { employeeNumber: true, userId: true },
+    });
+    const userByNumber = new Map(links.map((link) => [link.employeeNumber, link.userId]));
+    type DetailPunch = {
+      occurredAt: string;
+      date: string;
+      employeeNumber: string | null;
+      name: string | null;
+      type: string;
+      method: string;
+      source: "RELOJ" | "REMOTO" | "ARCHIVO";
+      userId: string | null;
+    };
+    const detail: DetailPunch[] = [
+      ...effectiveClock.map((punch) => ({
+        occurredAt: punch.occurredAt.toISOString(),
+        date: localDateKey(punch.occurredAt, range.timezone),
+        employeeNumber: punch.employeeNumber,
+        name: punch.name,
+        type: "MARCA",
+        method: punch.method,
+        source: "RELOJ" as const,
+        userId: userByNumber.get(punch.employeeNumber) ?? null,
+      })),
+      ...remoteRows.map((row) => ({
+        occurredAt: row.occurredAt,
+        date: row.date,
+        employeeNumber: row.employeeNumber ?? null,
+        name: row.name ?? null,
+        type: row.type,
+        method: row.workMode,
+        source: "REMOTO" as const,
+        userId: null,
+      })),
+      ...archived.punches.map((row) => ({
+        occurredAt: row.occurredAt,
+        date: localDateKey(new Date(row.occurredAt), range.timezone),
+        employeeNumber: row.employeeNumber ?? null,
+        name: row.name ?? null,
+        type: "MARCA",
+        method: row.method ?? "",
+        source: "ARCHIVO" as const,
+        userId: null,
+      })),
+      ...archived.remotePunches.map((row) => ({
+        occurredAt: row.occurredAt,
+        date: localDateKey(new Date(row.occurredAt), range.timezone),
+        employeeNumber: row.employeeNumber ?? null,
+        name: row.name ?? null,
+        type: row.type,
+        method: row.workMode,
+        source: "ARCHIVO" as const,
+        userId: null,
+      })),
+    ].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+
+    // Primer/último marcaje por persona/día y origen de la jornada.
+    const dayAgg = new Map<string, { first: string; last: string; sources: Set<string> }>();
+    for (const punch of detail) {
+      const key = `${punch.userId ?? punch.employeeNumber ?? punch.name}|${punch.date}`;
+      const current = dayAgg.get(key);
+      if (!current) {
+        dayAgg.set(key, { first: punch.occurredAt, last: punch.occurredAt, sources: new Set([punch.source]) });
+      } else {
+        if (punch.occurredAt < current.first) current.first = punch.occurredAt;
+        if (punch.occurredAt > current.last) current.last = punch.occurredAt;
+        current.sources.add(punch.source);
+      }
+    }
+    for (const row of rows) {
+      const agg = dayAgg.get(`${row.userId}|${row.date}`) ?? dayAgg.get(`${row.employeeNumber ?? row.name}|${row.date}`);
+      row.firstEntryAt = agg?.first ?? null;
+      row.lastExitAt = agg?.last ?? row.lastExitAt;
+      const live = [...(agg?.sources ?? [])].filter((source) => source !== "ARCHIVO");
+      row.origin =
+        live.length === 0
+          ? null
+          : live.includes("RELOJ") && live.includes("REMOTO")
+            ? "MIXTO"
+            : live.includes("RELOJ")
+              ? "RELOJ"
+              : "REMOTO";
+      row.minor = minorByDay.get(`${row.userId}|${row.date}`) ?? row.minor;
+    }
+
+    const body = { rows, punches: detail, remotePunches: remoteRows, archived };
     const from = localDateKey(range.start, range.timezone);
     const to = localDateKey(new Date(range.end.getTime() - 1), range.timezone);
     const totals = {
@@ -236,16 +337,19 @@ export class StpsExportService {
       to,
       timezone: range.timezone,
       totals,
-      sha256,
     };
 
     if (params.format === "json") {
+      // El hash cubre el documento SIN la línea sha256, para que el receptor
+      // pueda recalcularlo sobre el archivo que recibió.
+      const unsigned = JSON.stringify({ ...header, ...body }, null, 2);
+      const digest = createHash("sha256").update(unsigned).digest("hex");
       return {
         contentType: "application/json; charset=utf-8",
         filename,
-        body: JSON.stringify({ ...header, rows, remotePunches: remoteRows, archived }, null, 2),
-        sha256,
-        rowCount: rows.length + remoteRows.length + archived.punches.length + archived.remotePunches.length,
+        body: JSON.stringify({ ...header, sha256: digest, ...body }, null, 2),
+        sha256: digest,
+        rowCount: rows.length + detail.length,
       };
     }
 
@@ -256,8 +360,7 @@ export class StpsExportService {
       `# periodo: ${params.period} ${from}..${to} (${range.timezone})`,
       `# generado: ${generatedAt}`,
       `# filas: ${rows.length} · personas: ${totals.people} · minutos trabajados: ${totals.workedMinutes} · marcajes remotos: ${remoteRows.length}`,
-      `# sha256: ${sha256}`,
-      "fecha,numeroEmpleado,nombre,departamento,horario,turno,minutosTrabajados,minutosProgramados,minutosExtra,extraDoble,extraTriple,excedenteIlegal,descansoLaborado,festivoLaborado,domingo,menor,infracciones,descanso,sinHorario,ultimaSalida",
+      "fecha,numeroEmpleado,nombre,departamento,horario,turno,minutosTrabajados,minutosProgramados,minutosExtra,extraDoble,extraTriple,excedenteIlegal,descansoLaborado,festivoLaborado,domingo,menor,infracciones,descanso,sinHorario,primeraEntrada,ultimaSalida,origen",
       ...rows.map((row) =>
         [
           row.date,
@@ -279,7 +382,9 @@ export class StpsExportService {
           row.violations.join("|"),
           row.restDay ? "si" : "no",
           row.withoutSchedule ? "si" : "no",
+          row.firstEntryAt,
           row.lastExitAt,
+          row.origin,
         ]
           .map(csvCell)
           .join(",")
@@ -304,6 +409,14 @@ export class StpsExportService {
             ),
           ]
         : []),
+      "",
+      "# marcajes (detalle: fecha, hora, tipo, método, fuente)",
+      "fecha,hora,tipo,metodo,fuente,numeroEmpleado,nombre",
+      ...detail.map((punch) =>
+        [punch.date, punch.occurredAt, punch.type, punch.method, punch.source, punch.employeeNumber, punch.name]
+          .map(csvCell)
+          .join(",")
+      ),
       ...(archived.punches.length
         ? [
             "",
@@ -343,12 +456,16 @@ export class StpsExportService {
         : []),
     ];
 
+    // Hash sobre el texto final (sin la propia línea sha256, para que el
+    // receptor pueda recalcularlo sobre el archivo entregado).
+    const csvDigest = createHash("sha256").update(lines.join("\n")).digest("hex");
+    lines.splice(6, 0, `# sha256: ${csvDigest}`);
     return {
       contentType: "text/csv; charset=utf-8",
       filename,
       body: `${lines.join("\n")}\n`,
-      sha256,
-      rowCount: rows.length + remoteRows.length,
+      sha256: csvDigest,
+      rowCount: rows.length + detail.length,
     };
   }
 }

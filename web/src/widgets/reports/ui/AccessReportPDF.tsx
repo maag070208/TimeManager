@@ -24,6 +24,7 @@ const INCIDENT_COLOR: Record<AccessIncidentCode, BadgeKind> = {
   OPEN_ENTRY: "info",
   ENTRY_WITHOUT_EXIT: "warning",
   EXIT_WITHOUT_ENTRY: "danger",
+  REMOTE_CONFLICT: "info",
 };
 
 const styles = StyleSheet.create({
