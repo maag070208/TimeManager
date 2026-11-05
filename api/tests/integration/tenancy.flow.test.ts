@@ -14,6 +14,7 @@ import {
   createUser,
   expectError,
   expectStatus,
+  login,
   platformSession,
   setupSuite,
   stopSuite,
@@ -79,6 +80,53 @@ before(async () => {
 
 after(async () => {
   await stopSuite();
+});
+
+
+describe("mismo username en clientes distintos", () => {
+  const passA = "Clave-Acme-2027!";
+  const passB = "Clave-Ithub-2027!";
+  let username: string;
+
+  before(async () => {
+    username = unique("martin.amaro");
+    await createUser({ tenantId: tenantA.id, role: "CLIENT_STAFF", username, password: passA });
+    await createUser({ tenantId: tenantB.id, role: "CLIENT_STAFF", username, password: passB });
+  });
+
+  test("cada cliente entra con su contraseña y cae en su propio espacio", async () => {
+    const sessionA = await login({ username, password: passA, tenant: tenantA.slug });
+    const meA = await api("GET", "/auth/me", { token: sessionA.token });
+    expectStatus(meA, 200, "sesión del usuario homónimo de A");
+    assert.equal((meA.body as { tenant?: { id: string } })?.tenant?.id, tenantA.id);
+
+    const sessionB = await login({ username, password: passB, tenant: tenantB.slug });
+    const meB = await api("GET", "/auth/me", { token: sessionB.token });
+    expectStatus(meB, 200, "sesión del usuario homónimo de B");
+    assert.equal((meB.body as { tenant?: { id: string } })?.tenant?.id, tenantB.id);
+
+    assert.notEqual(sessionA.token, sessionB.token, "cada cliente recibe su propio token");
+  });
+
+  test("la contraseña de un cliente no abre el usuario de otro", async () => {
+    const wrongA = await api("POST", "/auth/login", {
+      body: { username, password: passB, tenant: tenantA.slug },
+    });
+    expectError(wrongA, 401, "INVALID_CREDENTIALS", "contraseña de B contra A");
+
+    const wrongB = await api("POST", "/auth/login", {
+      body: { username, password: passA, tenant: tenantB.slug },
+    });
+    expectError(wrongB, 401, "INVALID_CREDENTIALS", "contraseña de A contra B");
+  });
+
+  test("el mismo username no se puede repetir dentro del mismo cliente", async () => {
+    const response = await api("POST", "/users", {
+      token: adminA.token,
+      body: { username, password: "OtraClave-2027!", name: "Homónimo duplicado", role: "CLIENT_STAFF" },
+    });
+    expectError(response, 409, "USERNAME_TAKEN", "username repetido en el mismo cliente");
+  });
 });
 
 describe("aislamiento CRUD entre clientes", () => {
