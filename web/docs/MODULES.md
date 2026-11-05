@@ -201,3 +201,7 @@ producto en `public/landing/*.jpg`.
   `node scripts/e2e-run.mjs <spec-de-captura> --project=chromium`.
 - E2E: `tests/e2e/landing.spec.ts` (tema, FAQ, planes, login) y
   `tests/e2e/landing.mobile.spec.ts` (sin desbordes en móvil).
+- Animación: revelado por scroll con `IntersectionObserver` (`[data-reveal]`),
+  tarjetas flotantes en el hero, hover de tarjetas/capturas y aurora sutil;
+  todo se desactiva con `prefers-reduced-motion`. Las capturas se recortan en
+  móvil (`lp-shot`) para que se lean y la página no desborde (`overflow-x: clip`).

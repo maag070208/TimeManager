@@ -2,6 +2,7 @@
    Los colores viven en variables para que el toggle sea instantáneo. */
 
 .tm-landing {
+  overflow-x: clip;
   --lp-bg: #f3f5fa;
   --lp-bg-soft: #e9edf6;
   --lp-surface: #ffffff;
@@ -186,4 +187,156 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tm-landing * { transition: none !important; }
+}
+
+/* ── Animaciones y pulido ──────────────────────────────────────────────── */
+
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+@keyframes lp-float-soft {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-5px) rotate(1deg); }
+}
+@keyframes lp-aurora {
+  0%, 100% { transform: translate3d(-4%, 0, 0) scale(1); opacity: 0.55; }
+  50% { transform: translate3d(4%, -3%, 0) scale(1.08); opacity: 0.8; }
+}
+@keyframes lp-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.lp-float { animation: lp-float 7s ease-in-out infinite; }
+.lp-float-soft { animation: lp-float-soft 9s ease-in-out infinite; }
+
+.lp-aurora {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 70%;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(46% 60% at 30% 30%, var(--lp-glow), transparent 70%),
+    radial-gradient(40% 55% at 75% 20%, rgba(56, 104, 255, 0.1), transparent 70%);
+  filter: blur(12px);
+  animation: lp-aurora 16s ease-in-out infinite;
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 0.7, 0.24, 1);
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.lp-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+article.lp-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 32px 70px -34px rgba(15, 23, 42, 0.45);
+}
+.tm-landing[data-theme="dark"] article.lp-card:hover {
+  box-shadow: 0 32px 70px -30px rgba(0, 0, 0, 0.9);
+}
+
+.lp-browser img {
+  transition: transform 0.6s cubic-bezier(0.22, 0.7, 0.24, 1);
+}
+.lp-browser:hover img {
+  transform: scale(1.012);
+}
+
+.lp-btn-primary svg,
+.lp-btn-ghost svg {
+  transition: transform 0.2s ease;
+}
+.lp-btn-primary:hover svg { transform: translateX(3px); }
+
+.lp-nav-link {
+  position: relative;
+  padding-block: 4px;
+}
+.lp-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--lp-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s ease;
+}
+.lp-nav-link:hover::after { transform: scaleX(1); }
+
+.lp-faq[open] > p { animation: lp-fade-in 0.28s ease both; }
+.lp-faq:hover { border-color: var(--lp-line-strong); }
+
+/* Tarjetas sobre navy: texto claro fijo en ambos temas. */
+.lp-brand-card {
+  background: linear-gradient(150deg, #243149 0%, #1d2636 55%, #121822 100%) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #f4f6fa !important;
+}
+.lp-brand-card .lp-chip {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f4f6fa;
+}
+.lp-brand-card .lp-muted { color: #c5d0e2 !important; }
+.lp-brand-card .lp-accent { color: var(--lp-accent) !important; }
+.lp-brand-card .lp-btn-ghost {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #f4f6fa;
+}
+.lp-brand-card .lp-btn-ghost:hover { background: rgba(255, 255, 255, 0.08); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .lp-float, .lp-float-soft, .lp-aurora { animation: none; }
+}
+
+/* CTA del navegador: en móvil se recorta a una franja legible. */
+@media (max-width: 767px) {
+  .lp-shot img {
+    max-height: 190px;
+    object-fit: cover;
+    object-position: left top;
+  }
+}
+
+/* CTA de marca: aurora + marca de agua del reloj. */
+.lp-cta-glow {
+  position: absolute;
+  right: -18%;
+  bottom: -55%;
+  width: 60%;
+  height: 140%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(242, 169, 59, 0.34), transparent 72%);
+  filter: blur(26px);
+}
+.lp-cta-mark {
+  position: absolute;
+  right: -26px;
+  top: -34px;
+  width: 240px;
+  height: 240px;
+  opacity: 0.12;
+  transform: rotate(-10deg);
+  pointer-events: none;
+}
+
+/* CTA de inicio de sesión en la barra: en móvil se esconde (queda en el menú). */
+.lp-nav-cta { display: none; }
+@media (min-width: 640px) {
+  .lp-nav-cta { display: inline-flex; }
 }

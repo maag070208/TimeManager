@@ -151,7 +151,7 @@ const SectionTitle = ({
   text?: string;
   id?: string;
 }) => (
-  <div id={id} className="mx-auto max-w-2xl scroll-mt-24 text-center">
+  <div id={id} className="mx-auto max-w-2xl scroll-mt-24 text-center" data-reveal>
     <span
       className="lp-chip"
       style={{ borderColor: "var(--lp-line)", color: "var(--lp-accent-ink)" }}
@@ -180,6 +180,31 @@ export default function LandingPage() {
     window.localStorage.setItem("tm-landing-theme", theme);
   }, [theme]);
 
+  // Aparición suave de secciones y tarjetas al hacer scroll.
+  useEffect(() => {
+    const nodes = root.current?.querySelectorAll<HTMLElement>("[data-reveal]");
+    if (!nodes?.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      nodes.forEach((node) => node.classList.add("is-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    nodes.forEach((node, index) => {
+      node.style.transitionDelay = `${Math.min(index % 5, 4) * 55}ms`;
+      observer.observe(node);
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 
   return (
@@ -204,7 +229,7 @@ export default function LandingPage() {
 
             <nav className="hidden items-center gap-7 text-[13px] font-semibold md:flex" style={{ color: "var(--lp-muted)" }}>
               {NAV.map((item) => (
-                <a key={item.id} href={`#${item.id}`} className="transition-colors hover:opacity-100">
+                <a key={item.id} href={`#${item.id}`} className="lp-nav-link transition-colors hover:opacity-100">
                   {item.label}
                 </a>
               ))}
@@ -212,7 +237,7 @@ export default function LandingPage() {
 
             <div className="flex items-center gap-2">
               <ThemeToggle theme={theme} onToggle={toggleTheme} />
-              <Link to="/login" className="lp-btn-primary hidden !px-4 !py-2.5 text-[13px] sm:inline-flex">
+              <Link to="/login" className="lp-btn-primary lp-nav-cta !px-4 !py-2.5 text-[13px]">
                 Iniciar sesión
               </Link>
               <button
@@ -244,8 +269,9 @@ export default function LandingPage() {
         </header>
 
         {/* ── Hero ────────────────────────────────────────────── */}
-        <section id="top" className="mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:pb-24 lg:pt-20">
-          <div>
+        <section id="top" className="relative isolate mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-16 sm:px-6 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
+          <div className="lp-aurora" aria-hidden="true" />
+          <div className="relative z-10" data-reveal>
             <span className="lp-chip" style={{ color: "var(--lp-accent-ink)" }}>
               <LuBadgeCheck size={14} />
               Registro electrónico LFT 2027 · NOM-037
@@ -274,9 +300,9 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative z-10" data-reveal>
             <BrowserFrame src="/landing/home.jpg" alt="Inicio del cliente con asistencia y personal" url="acme.timemanager.mx" />
-            <div className="lp-card absolute -bottom-6 -left-2 hidden max-w-[220px] p-4 sm:block">
+            <div className="lp-card lp-float absolute -bottom-6 -left-2 hidden max-w-[220px] p-4 sm:block">
               <div className="flex items-center gap-2">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full" style={{ background: "var(--lp-glow)", color: "var(--lp-accent-ink)" }}>
                   <LuCheck size={15} />
@@ -287,7 +313,7 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div className="lp-card absolute -right-2 -top-5 hidden items-center gap-2 !rounded-full px-4 py-2 font-bold sm:flex">
+            <div className="lp-card lp-float-soft absolute -right-2 -top-5 hidden items-center gap-2 !rounded-full px-4 py-2 font-bold sm:flex">
               <span className="h-2 w-2 rounded-full" style={{ background: "#22c55e" }} />
               <span className="text-[12px]">Reloj conectado</span>
             </div>
@@ -296,7 +322,7 @@ export default function LandingPage() {
 
         {/* ── Trust strip ─────────────────────────────────────── */}
         <section className="border-y" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-surface-2)" }}>
-          <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+          <div className="mx-auto grid max-w-6xl gap-5 px-4 py-8 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
             {TRUST.map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2.5">
                 <Icon size={16} style={{ color: "var(--lp-accent-ink)" }} />
@@ -309,7 +335,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── Bento producto ──────────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
+        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
           <SectionTitle
             id="producto"
             eyebrow="Un solo sistema"
@@ -317,9 +343,9 @@ export default function LandingPage() {
             text="Diseñado para RH y administración: la persona, su horario, sus checadas y su expediente conectados."
           />
 
-          <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-12">
             {/* Asistencia */}
-            <article className="lp-card overflow-hidden lg:col-span-7">
+            <article data-reveal className="lp-card overflow-hidden lg:col-span-7">
               <div className="flex items-start justify-between gap-4 p-6 pb-0 sm:p-7">
                 <div>
                   <span className="lp-chip"><LuClock size={13} /> Asistencia</span>
@@ -330,12 +356,12 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="mt-5 px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame src="/landing/attendance.jpg" alt="Pantalla de entradas y salidas" url="acme.timemanager.mx/#/hr/time-clock/entries-exits" />
+                <BrowserFrame className="lp-shot" src="/landing/attendance.jpg" alt="Pantalla de entradas y salidas" url="acme.timemanager.mx/#/hr/time-clock/entries-exits" />
               </div>
             </article>
 
             {/* Personal */}
-            <article className="lp-card flex flex-col overflow-hidden lg:col-span-5">
+            <article data-reveal className="lp-card flex flex-col overflow-hidden lg:col-span-5">
               <div className="p-6 sm:p-7">
                 <span className="lp-chip"><LuUsers size={13} /> Personal</span>
                 <h3 className="mt-3 text-xl font-extrabold tracking-tight">Una persona, una cuenta</h3>
@@ -344,12 +370,12 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-auto px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame src="/landing/personal.jpg" alt="Listado de personal" url="acme.timemanager.mx/#/employees" />
+                <BrowserFrame className="lp-shot" src="/landing/personal.jpg" alt="Listado de personal" url="acme.timemanager.mx/#/employees" />
               </div>
             </article>
 
             {/* Horarios y pre-nómina */}
-            <article className="lp-card overflow-hidden lg:col-span-5">
+            <article data-reveal className="lp-card overflow-hidden lg:col-span-5">
               <div className="p-6 sm:p-7">
                 <span className="lp-chip"><LuCalendarCheck size={13} /> Horarios y nómina</span>
                 <h3 className="mt-3 text-xl font-extrabold tracking-tight">Turnos, tolerancias y pre-nómina</h3>
@@ -358,12 +384,12 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-4 px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame src="/landing/schedules.jpg" alt="Pantalla de horarios" url="acme.timemanager.mx/#/schedules" />
+                <BrowserFrame className="lp-shot" src="/landing/schedules.jpg" alt="Pantalla de horarios" url="acme.timemanager.mx/#/schedules" />
               </div>
             </article>
 
             {/* Portal del trabajador */}
-            <article className="lp-card overflow-hidden lg:col-span-7">
+            <article data-reveal className="lp-card overflow-hidden lg:col-span-7">
               <div className="grid gap-6 p-6 sm:grid-cols-[1fr_260px] sm:p-7">
                 <div>
                   <span className="lp-chip"><LuSmartphone size={13} /> Portal del trabajador</span>
@@ -390,33 +416,33 @@ export default function LandingPage() {
             </article>
 
             {/* Reloj + agente */}
-            <article className="lp-card overflow-hidden lg:col-span-6" style={{ background: "var(--lp-navy-soft)" }}>
+            <article data-reveal className="lp-card lp-brand-card overflow-hidden lg:col-span-6">
               <div className="p-6 sm:p-7">
-                <span className="lp-chip" style={{ background: "transparent", borderColor: "var(--lp-line-strong)", color: "var(--lp-fg)" }}>
+                <span className="lp-chip">
                   <LuFingerprint size={13} /> Reloj y agente local
                 </span>
-                <h3 className="mt-3 text-xl font-extrabold tracking-tight" style={{ color: "var(--lp-fg)" }}>
+                <h3 className="mt-3 text-xl font-extrabold tracking-tight">
                   Tu reloj Hikvision, sin abrir la red
                 </h3>
-                <p className="mt-2 max-w-md text-[13.5px] leading-relaxed" style={{ color: "var(--lp-muted)" }}>
+                <p className="mt-2 max-w-md text-[13.5px] leading-relaxed">
                   El TimeManagerAgent se instala en una PC del cliente, se conecta al reloj por LAN y envía las
                   checadas al sistema en bloques configurables. Cola local si se cae el internet.
                 </p>
                 <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] font-bold">
-                  <span className="lp-chip" style={{ background: "transparent", color: "var(--lp-fg)" }}>Reloj</span>
-                  <LuArrowRight size={14} style={{ color: "var(--lp-muted)" }} />
-                  <span className="lp-chip" style={{ background: "transparent", color: "var(--lp-fg)" }}>Agente</span>
-                  <LuArrowRight size={14} style={{ color: "var(--lp-muted)" }} />
-                  <span className="lp-chip" style={{ background: "transparent", color: "var(--lp-fg)" }}>API TimeManager</span>
+                  <span className="lp-chip">Reloj</span>
+                  <LuArrowRight size={14} className="lp-muted" />
+                  <span className="lp-chip">Agente</span>
+                  <LuArrowRight size={14} className="lp-muted" />
+                  <span className="lp-chip">API TimeManager</span>
                 </div>
               </div>
               <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.timemanager.mx/#/time-clocks" />
+                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.timemanager.mx/#/time-clocks" />
               </div>
             </article>
 
             {/* Multi-cliente y planes */}
-            <article className="lp-card overflow-hidden lg:col-span-6">
+            <article data-reveal className="lp-card overflow-hidden lg:col-span-6">
               <div className="p-6 sm:p-7">
                 <span className="lp-chip"><LuLayers size={13} /> Multi-cliente</span>
                 <h3 className="mt-3 text-xl font-extrabold tracking-tight">Cada cliente, su espacio</h3>
@@ -426,7 +452,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame src="/landing/platform.jpg" alt="Consola de clientes de plataforma" url="timemanager.mx" />
+                <BrowserFrame className="lp-shot" src="/landing/platform.jpg" alt="Consola de clientes de plataforma" url="timemanager.mx" />
               </div>
             </article>
 
@@ -464,24 +490,30 @@ export default function LandingPage() {
 
         {/* ── Galería ─────────────────────────────────────────── */}
         <section className="border-y" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-surface-2)" }}>
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-24">
             <SectionTitle eyebrow="Así se ve" title="Capturas reales del sistema" text="Sin mockups: pantallas del producto con datos de prueba." />
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              <BrowserFrame src="/landing/clock-dashboard.jpg" alt="Dashboard del reloj" url="acme.timemanager.mx/#/time-clocks/dashboard" />
-              <BrowserFrame src="/landing/notifications.jpg" alt="Centro de avisos" url="acme.timemanager.mx/#/notifications" />
-              <BrowserFrame src="/landing/plans.jpg" alt="Consola de planes" url="timemanager.mx/#/plans" />
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              <div data-reveal>
+                <BrowserFrame className="lp-shot" src="/landing/clock-dashboard.jpg" alt="Dashboard del reloj" url="acme.timemanager.mx/#/time-clocks/dashboard" />
+              </div>
+              <div data-reveal>
+                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.timemanager.mx/#/time-clocks" />
+              </div>
+              <div data-reveal>
+                <BrowserFrame className="lp-shot" src="/landing/portal.jpg" alt="Portal del trabajador" url="acme.timemanager.mx/#/mi-jornada" />
+              </div>
             </div>
           </div>
         </section>
 
         {/* ── Agente ──────────────────────────────────────────── */}
-        <section id="reloj" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6 lg:py-24">
+        <section id="reloj" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6 lg:py-28">
           <SectionTitle
             eyebrow="TimeManagerAgent"
             title="El brazo de TimeManager en la red del cliente"
             text="Una app de escritorio con nuestra interfaz: conecta el reloj, sincroniza las checadas y ejecuta las altas del padrón."
           />
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
             {[
               {
                 icon: LuLaptop,
@@ -502,7 +534,7 @@ export default function LandingPage() {
                 text: "Sube las checadas cada 15–30 segundos (configurable), de forma idempotente, y ejecuta las altas/bajas que se piden desde la consola.",
               },
             ].map(({ icon: Icon, step, title, text }) => (
-              <article key={step} className="lp-card p-6">
+              <article key={step} data-reveal className="lp-card p-6">
                 <div className="flex items-center justify-between">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "var(--lp-glow)", color: "var(--lp-accent-ink)" }}>
                     <Icon size={18} />
@@ -518,17 +550,18 @@ export default function LandingPage() {
 
         {/* ── Planes ──────────────────────────────────────────── */}
         <section id="planes" className="scroll-mt-24 border-y" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-surface-2)" }}>
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
             <SectionTitle
               eyebrow="Planes"
               title="Precios simples por tamaño de empresa"
               text="Elige por número de personas activas y relojes. Los límites se aplican solos y puedes cambiar de plan sin perder datos."
             />
-            <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            <div className="mt-12 grid gap-5 lg:grid-cols-3">
               {PLANS.map((plan) => (
                 <article
                   key={plan.name}
-                  className={`lp-card relative flex flex-col p-6 ${plan.highlight ? "ring-2" : ""}`}
+                  data-reveal
+                  className={`lp-card relative flex flex-col p-7 ${plan.highlight ? "ring-2 pt-9" : ""}`}
                   style={plan.highlight ? { boxShadow: "var(--lp-shadow)", borderColor: "var(--lp-accent)" } : undefined}
                 >
                   {plan.highlight && (
@@ -563,11 +596,11 @@ export default function LandingPage() {
         </section>
 
         {/* ── FAQ ─────────────────────────────────────────────── */}
-        <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-4 py-16 sm:px-6 lg:py-24">
+        <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-4 py-20 sm:px-6 lg:py-28">
           <SectionTitle eyebrow="Preguntas frecuentes" title="Lo que suelen preguntarnos" />
-          <div className="mt-8 space-y-3">
+          <div className="mt-10 space-y-3">
             {FAQ.map((item) => (
-              <details key={item.q} className="lp-card group p-5">
+              <details key={item.q} data-reveal className="lp-card group p-5">
                 <summary className="flex items-center justify-between gap-4 text-[14px] font-bold">
                   {item.q}
                   <LuChevronDown size={16} className="shrink-0" style={{ color: "var(--lp-muted)" }} />
@@ -579,15 +612,23 @@ export default function LandingPage() {
         </section>
 
         {/* ── CTA final ───────────────────────────────────────── */}
-        <section className="px-4 pb-16 sm:px-6">
-          <div className="lp-card mx-auto max-w-5xl overflow-hidden p-8 text-center sm:p-12" style={{ background: "var(--lp-navy-soft)" }}>
-            <span className="lp-chip" style={{ background: "transparent", borderColor: "var(--lp-line-strong)", color: "var(--lp-fg)" }}>
+        <section className="px-4 pb-20 sm:px-6">
+          <div className="lp-card lp-brand-card relative isolate mx-auto max-w-5xl overflow-hidden p-8 text-center sm:p-14" data-reveal>
+            <div className="lp-cta-glow" aria-hidden="true" />
+            <svg viewBox="16 16 88 88" className="lp-cta-mark" aria-hidden="true">
+              <path d="M75.96 29.98 A34 34 0 1 1 44.04 29.98" fill="none" stroke="#F4F6FA" strokeWidth="8" strokeLinecap="round" />
+              <path d="M38 30 H82" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
+              <path d="M60 30 V60" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
+              <path d="M60 60 L77 70" stroke="#F4F6FA" strokeWidth="6" strokeLinecap="round" />
+              <circle cx="60" cy="60" r="5" fill="#F2A93B" />
+            </svg>
+            <span className="lp-chip">
               <LuSparkles size={13} /> Empieza hoy
             </span>
-            <h2 className="mx-auto mt-4 max-w-2xl text-balance text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: "var(--lp-fg)" }}>
+            <h2 className="mx-auto mt-4 max-w-2xl text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">
               Llega a 2027 con el registro de jornada listo
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-[14px] leading-relaxed" style={{ color: "var(--lp-muted)" }}>
+            <p className="mx-auto mt-3 max-w-xl text-[14px] leading-relaxed">
               Te mostramos el sistema con tus pantallas y tus planes. Instalamos el reloj, el agente y dejamos a tu
               personal operando en días, no meses.
             </p>
@@ -596,7 +637,7 @@ export default function LandingPage() {
                 Solicitar demo
                 <LuArrowRight size={16} />
               </a>
-              <Link to="/login" className="lp-btn-ghost" style={{ borderColor: "var(--lp-line-strong)", color: "var(--lp-fg)" }}>
+              <Link to="/login" className="lp-btn-ghost">
                 Iniciar sesión
               </Link>
             </div>
@@ -605,7 +646,7 @@ export default function LandingPage() {
 
         {/* ── Footer ──────────────────────────────────────────── */}
         <footer className="border-t" style={{ borderColor: "var(--lp-line)" }}>
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: "var(--lp-navy)" }}>
                 <LuClock size={16} style={{ color: "var(--lp-accent)" }} />
