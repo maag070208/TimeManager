@@ -15,6 +15,27 @@ const TimezoneSchema = z.string().trim().refine(isValidTimezone, "INVALID_TIMEZO
 
 export const TenantStatusSchema = z.enum(["ACTIVE", "SUSPENDED"]);
 
+/** Color de acento del cliente (`#RRGGBB`). */
+export const BrandColorSchema = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-fA-F]{6}$/, "INVALID_BRAND_COLOR");
+
+/** Logo del cliente como data URL (PNG/JPEG/WebP, máx. ~512 KB decodificados). */
+export const TenantLogoSchema = z
+  .string()
+  .trim()
+  .max(700_000, "LOGO_TOO_LARGE")
+  .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/, "INVALID_LOGO");
+
+/** Remitente propio del cliente; Resend valida el dominio al enviar. */
+export const EmailFromSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(320)
+  .regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/, "INVALID_EMAIL");
+
 /** Plan contratado, tal como lo resume la ficha del cliente. */
 export const TenantPlanSchema = z
   .object({
@@ -40,6 +61,10 @@ export const TenantSchema = z
     employeeLimit: z.number().int().nullable(),
     /** Límites efectivos (plan + override del cliente). */
     limits: z.object({ people: z.number().int().nullable(), clocks: z.number().int().nullable() }),
+    /** Branding (F3-05): color de acento, logo (data URL) y remitente propio. */
+    brandColor: z.string().nullable(),
+    logoDataUrl: z.string().nullable(),
+    emailFrom: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
     usage: z.object({ activeUsers: z.number().int(), clocks: z.number().int() }),
@@ -74,6 +99,10 @@ export const TenantUpdateDto = z
     timezone: TimezoneSchema.optional(),
     planId: z.string().trim().min(1).nullish(),
     employeeLimit: z.number().int().positive().nullish(),
+    // Branding por cliente (F3-05). `null` = quitar y volver a la marca TimeManager.
+    brandColor: BrandColorSchema.nullish(),
+    logoDataUrl: TenantLogoSchema.nullish(),
+    emailFrom: EmailFromSchema.nullish(),
   })
   .refine((v) => Object.keys(v).length > 0, "EMPTY_UPDATE")
   .openapi("TenantUpdate");

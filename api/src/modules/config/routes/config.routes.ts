@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, requiresPermission } from "@core/middlewares/auth.middleware";
+import { authenticate, requiresPermission, requiresPlatform } from "@core/middlewares/auth.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import type { SysConfigController } from "../controllers/sys-config.controller";
@@ -90,10 +90,25 @@ export const createConfigRoutes = (controller: SysConfigController): Router => {
   });
 
   router.use(authenticate);
-  router.get("/", requiresPermission("system.configure"), asyncHandler(controller.list));
+  router.get(
+    "/",
+    requiresPlatform,
+    requiresPermission("system.configure"),
+    asyncHandler(controller.list)
+  );
   router.get("/:key", asyncHandler(controller.getOne));
-  router.put("/:key", requiresPermission("system.configure"), asyncHandler(controller.upsert));
-  router.delete("/:key", requiresPermission("system.configure"), asyncHandler(controller.remove));
+  router.put(
+    "/:key",
+    requiresPlatform,
+    requiresPermission("system.configure"),
+    asyncHandler(controller.upsert)
+  );
+  router.delete(
+    "/:key",
+    requiresPlatform,
+    requiresPermission("system.configure"),
+    asyncHandler(controller.remove)
+  );
 
   return router;
 };

@@ -31,9 +31,20 @@ export const useTenantSwitcher = () => {
     };
   }, [canSwitch]);
 
-  const select = (id: string) => {
+  /**
+   * Cambia el cliente vigente. Entrar a un cliente deja antes el evento de
+   * auditoría (`TENANT_IMPERSONATED`); volver a plataforma no audita.
+   */
+  const select = async (id: string) => {
     const next = tenants?.find((t) => t.id === id) ?? null;
     if ((next?.id ?? null) === (selected?.id ?? null)) return;
+    if (next) {
+      try {
+        await tenantApi.impersonate(next.id);
+      } catch {
+        return;
+      }
+    }
     setSelectedTenant(next ? { id: next.id, name: next.name, slug: next.slug } : null);
     window.location.assign("/");
   };

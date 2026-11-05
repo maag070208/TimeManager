@@ -28,4 +28,8 @@ export class TenantController {
     const input = TenantUpdateDto.parse(req.body);
     res.json(await this.tenants.update(req.params.id, input, actorOf(req)));
   };
+
+  impersonate = async (req: Request, res: Response) => {
+    res.json(await this.tenants.impersonate(req.params.id, actorOf(req)));
+  };
 }

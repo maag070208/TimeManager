@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, requiresPermission } from "@core/middlewares/auth.middleware";
+import { authenticate, requiresPermission, requiresPlatform } from "@core/middlewares/auth.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import {
@@ -329,6 +329,11 @@ export const createPermissionsRoutes = (controller: PermissionController): Route
   // nombres y armar los selectores.
   router.get("/roles", asyncHandler(controller.roles));
   router.get("/catalog", asyncHandler(controller.catalog));
+
+  // Consola de roles/plataforma: además de `roles.manage`, exige usuario de
+  // plataforma (defensa en profundidad; una excepción de permiso a un usuario
+  // de cliente no debe abrir la consola).
+  router.use(requiresPlatform);
 
   router.post("/roles", requiresPermission("roles.manage"), asyncHandler(controller.createRole));
   router.patch("/roles/:key", requiresPermission("roles.manage"), asyncHandler(controller.updateRole));

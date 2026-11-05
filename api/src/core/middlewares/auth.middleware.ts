@@ -180,6 +180,18 @@ const recordDeniedAccess = (req: Request, permission: string): void => {
     .catch(() => undefined);
 };
 
+/**
+ * Exige usuario de plataforma (sin cliente) ADEMÁS del permiso. El permiso no
+ * basta: una excepción de permiso a un usuario de cliente no debe abrir las
+ * consolas de plataforma (roles, políticas, catálogos globales, configuración).
+ * Se combina con `requiresPermission`/`requiresAnyPermission` en las rutas.
+ */
+export const requiresPlatform = (req: Request, _res: Response, next: NextFunction): void => {
+  if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
+  if (req.user.tenantId) throw new HttpError(403, "INSUFFICIENT_PERMISSIONS");
+  next();
+};
+
 export const requiresPermission = (permission: string) => {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");

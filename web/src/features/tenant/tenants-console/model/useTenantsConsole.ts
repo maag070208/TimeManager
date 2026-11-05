@@ -52,10 +52,18 @@ export const useTenantsConsole = () => {
     );
   }, [tenants, filter, search]);
 
-  /** Operar como el cliente: la elección viaja como `X-Tenant-Id`. */
-  const enter = (t: Tenant) => {
-    setSelectedTenant({ id: t.id, name: t.name, slug: t.slug });
-    window.location.assign("/");
+  /**
+   * Operar como el cliente: la API deja el evento de auditoría
+   * (`TENANT_IMPERSONATED`) y la elección viaja como `X-Tenant-Id`.
+   */
+  const enter = async (t: Tenant) => {
+    try {
+      await tenantApi.impersonate(t.id);
+      setSelectedTenant({ id: t.id, name: t.name, slug: t.slug });
+      window.location.assign("/");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
   };
 
   const confirmStatus = async () => {

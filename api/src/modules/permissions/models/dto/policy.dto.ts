@@ -2,7 +2,6 @@ import { HttpError } from "@core/middlewares/error.middleware";
 import { isRole } from "@core/permissions";
 import {
   OPERATORS_WITHOUT_VALUE,
-  POLICY_ACTIONS,
   POLICY_OPERATORS,
   policyAction,
   type PolicyOperator,
@@ -163,7 +162,8 @@ const conditionSchema = z.object({
 });
 
 const effectSchema = z.enum(["ALLOW", "DENY"]);
-const actionSchema = z.enum(POLICY_ACTIONS.map((a) => a.key) as unknown as [string, ...string[]]);
+// Sin acciones de fábrica el enum de Swagger quedaría vacío (z.enum([]) revienta).
+const actionSchema = z.string();
 
 export const PolicySchema = registry.register(
   "Policy",

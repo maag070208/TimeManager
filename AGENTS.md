@@ -19,7 +19,7 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 - **Stack**: Express 4, Prisma 5 (`prisma/schema.prisma`, 37 modelos, baseline `20261104000000_baseline_rh`), zod, JWT, Winston, Swagger, Ably, AWS S3, xlsx.
 - **Estructura**: `src/core` (config, db, middlewares, permissions, policies, services, utils) y `src/modules/<modulo>/{controllers,routes,services,models,index.ts}`. Router central: `src/modules/api.router.ts`.
 - **Alias TS**: `@src/*`, `@core/*`, `@modules/*` (baseUrl `./`; compilar con `tsc && tsc-alias`).
-- **Módulos (15)**: `time-clock`, `access`, `hr`, `schedules`, `overtime` (núcleo RH), `auth`, `users`, `departments`, `permissions`, `audit`, `notifications`, `dashboard`, `config`, `email` (soporte) y `tenants` (clientes de la plataforma). Las carpetas vacías `inventory`, `kitchen`, `tickets`, `hotel-store`, `material-outputs`, `reports`, `suppliers` son residuo del ERP — pendiente borrarlas.
+- **Módulos (18)**: `time-clock`, `access`, `hr`, `schedules`, `overtime` (núcleo RH), `auth`, `users`, `departments`, `permissions`, `audit`, `notifications`, `dashboard`, `config`, `email` (soporte), `tenants` (clientes), `plans` (catálogo de planes), `agent` (agentes on-prem) y `nom` (registro de jornada, ajustes, teletrabajo y export STPS).
 - **Ficha de cada módulo**: `docs/modules/<modulo>.md`.
 - **Comandos**:
   - Dev: `pnpm dev` (nodemon)
@@ -59,10 +59,9 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 - Correos: plantillas en `api/src/core/services/email-templates.ts`, siempre por la cola (`enqueueEmail`/`enqueueNotificationEmail`), nunca `sendEmail` desde un request. Detalle en `docs/modules/email.md`.
 - Relojes: la URL de cada reloj vive en la BD (alta desde la web); el `.env` solo trae `TIME_CLOCK_USER/PASS` y la estación de huellas. `CHECADOR_URL` ya no se usa.
 - Sensibilidad de datos: marcajes, geolocalización y biometría son datos personales sensibles — cifrado, acceso por rol, consentimiento (ver sección 5 de `docs/RH_MODULO_STANDALONE.md`).
-- Git: rama `main`, un solo repo (`maag070208/TimeManager`). `api/.github` y `web/.github` son workflows heredados de Puerto Nuevo (publican `axzydev/axzy_ptnv_*`): GitHub no los ejecuta ahí; **no moverlos a la raíz** sin cambiar la imagen destino.
+- Git: rama `main`, un solo repo (`maag070208/TimeManager`). CI propio en `.github/workflows/ci.yml` (quality, integración, imágenes y E2E manual); los workflows heredados de Puerto Nuevo ya se eliminaron.
 
 ## Pendientes conocidos
 
-- Inmutabilidad de checadas y pista de auditoría de correcciones (principal hueco NOM).
-- Bug de retardo: caso Alberto Navarro (DEMO-911) muestra "Retardo 5:59 h" incorrecto — revisar asignación de horario antes de vender el reporte de retardos.
-- Requisitos STPS (formato, retención, integridad) aún no publicados — validar con asesor legal antes de vender como "cumple NOM".
+- Requisitos STPS (formato, retención, integridad) aún no publicados — validar con asesor legal antes de vender como "cumple NOM" (ver `docs/NOM_CUMPLIMIENTO.md`).
+- Acciones del usuario: rotar la app key de Ably (L-20), cerrar el bucket S3 en AWS, precios definitivos de los 3 planes y dominio de producción.

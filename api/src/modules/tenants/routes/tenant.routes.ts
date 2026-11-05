@@ -1,6 +1,9 @@
-import { Router, type NextFunction, type Request, type Response } from "express";
-import { authenticate, requiresPermission } from "@core/middlewares/auth.middleware";
-import { HttpError } from "@core/middlewares/error.middleware";
+import { Router } from "express";
+import {
+  authenticate,
+  requiresPermission,
+  requiresPlatform,
+} from "@core/middlewares/auth.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import {
@@ -13,15 +16,6 @@ import type { TenantController } from "../controllers/tenant.controller";
 
 const bearer = [{ bearerAuth: [] }];
 const idParam = [{ in: "path" as const, name: "id", required: true, schema: { type: "string" as const } }];
-
-/**
- * Solo personal de plataforma (usuario sin cliente). El permiso no basta: una
- * excepción de permiso a un usuario de cliente no debe abrirle la lista de clientes.
- */
-const requiresPlatform = (req: Request, _res: Response, next: NextFunction): void => {
-  if (req.user?.tenantId) throw new HttpError(403, "INSUFFICIENT_PERMISSIONS");
-  next();
-};
 
 export const createTenantRouter = (controller: TenantController): Router => {
   const router = Router();
@@ -76,11 +70,32 @@ export const createTenantRouter = (controller: TenantController): Router => {
     },
   });
 
+  registerPath({
+    method: "post",
+    path: "/tenants/{id}/impersonate",
+    tags: ["Tenants"],
+    summary: "Support enters as a client (F3-03); records TENANT_IMPERSONATED",
+    description:
+      "Registra en la bitácora de plataforma quién entró como el cliente. El personal de soporte sigue operando con `X-Tenant-Id`; este endpoint solo deja el evento de auditoría.",
+    security: bearer,
+    parameters: idParam,
+    responses: {
+      200: { description: "Client to operate as", content: { "application/json": { schema: TenantSchema } } },
+      400: { description: "Client not active" },
+      404: { description: "Not found" },
+    },
+  });
+
   router.use(authenticate, requiresPlatform);
   router.get("/", requiresPermission("tenants.view"), asyncHandler(controller.list));
   router.get("/:id", requiresPermission("tenants.view"), asyncHandler(controller.getOne));
   router.post("/", requiresPermission("tenants.manage"), asyncHandler(controller.create));
   router.patch("/:id", requiresPermission("tenants.manage"), asyncHandler(controller.update));
+  router.post(
+    "/:id/impersonate",
+    requiresPermission("tenants.view"),
+    asyncHandler(controller.impersonate)
+  );
 
   return router;
 };

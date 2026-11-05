@@ -46,6 +46,9 @@ const toView = (t: TenantWithPlan, usage: TenantUsage): TenantView => ({
       }
     : null,
   employeeLimit: t.employeeLimit,
+  brandColor: t.brandColor,
+  logoDataUrl: t.logoDataUrl,
+  emailFrom: t.emailFrom,
   limits: limitsOf(t),
   createdAt: t.createdAt.toISOString(),
   updatedAt: t.updatedAt.toISOString(),
@@ -219,6 +222,9 @@ export class TenantService {
           status: input.status,
           timezone: input.timezone,
           employeeLimit: input.employeeLimit,
+          ...(input.brandColor !== undefined ? { brandColor: input.brandColor } : {}),
+          ...(input.logoDataUrl !== undefined ? { logoDataUrl: input.logoDataUrl } : {}),
+          ...(input.emailFrom !== undefined ? { emailFrom: input.emailFrom } : {}),
           ...(plan !== undefined ? { planId: plan?.id ?? null } : {}),
         },
         include: { plan: true },
@@ -238,6 +244,9 @@ export class TenantService {
           timezone: previous.timezone,
           planId: previous.planId,
           employeeLimit: previous.employeeLimit,
+          brandColor: previous.brandColor,
+          logoDataUrl: previous.logoDataUrl,
+          emailFrom: previous.emailFrom,
         },
         newState: {
           name: updated.name,
@@ -245,9 +254,35 @@ export class TenantService {
           timezone: updated.timezone,
           planId: updated.planId,
           employeeLimit: updated.employeeLimit,
+          brandColor: updated.brandColor,
+          logoDataUrl: updated.logoDataUrl,
+          emailFrom: updated.emailFrom,
         },
       });
       return toView(updated, await tenantUsage(id, this.db));
+    }, true);
+  }
+
+  /**
+   * "Entrar como cliente" (F3-03): no cambia el token ni la sesión — el personal
+   * de plataforma sigue operando con `X-Tenant-Id` — pero deja el evento de
+   * auditoría de quién entró y a qué cliente. Un cliente suspendido no se
+   * registra porque tampoco se podría operar como él (el header lo rechaza).
+   */
+  impersonate(id: string, actor: Actor): Promise<TenantView> {
+    return runWithTenant(null, async () => {
+      const tenant = await this.db.tenant.findUnique({ where: { id }, include: { plan: true } });
+      if (!tenant) throw new HttpError(404, "TENANT_NOT_FOUND");
+      if (tenant.status !== "ACTIVE") throw new HttpError(400, "INVALID_TENANT_HEADER");
+      await this.audit?.({
+        action: "TENANT_IMPERSONATED",
+        entityType: "Tenant",
+        entityId: tenant.id,
+        userId: actor.id,
+        userName: actor.username,
+        metadata: { tenantId: tenant.id, slug: tenant.slug, name: tenant.name },
+      });
+      return toView(tenant, await tenantUsage(id, this.db));
     }, true);
   }
 }
