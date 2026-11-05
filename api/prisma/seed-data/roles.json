@@ -1,132 +1,52 @@
 [
   {
     "key": "ADMIN",
-    "name": "ADMIN",
-    "description": "Administración completa del sistema.",
-    "module": "Sistema",
+    "name": "ADMINISTRADOR",
+    "description": "Equipo TimeManager: administración total de la plataforma.",
+    "module": "Plataforma",
     "staff": false,
     "system": true,
     "active": true,
     "sortOrder": 1
   },
   {
-    "key": "MANAGER",
-    "name": "GERENTE",
-    "description": "Operación y supervisión general.",
-    "module": "Operación",
-    "staff": true,
+    "key": "SUPPORT",
+    "name": "SOPORTE",
+    "description": "Equipo TimeManager: soporte a clientes (usuarios, relojes y consulta de asistencia).",
+    "module": "Plataforma",
+    "staff": false,
     "system": true,
     "active": true,
     "sortOrder": 2
   },
   {
-    "key": "AREA_HEAD",
-    "name": "JEFE DE ÁREA",
-    "description": "Responsable de un departamento.",
-    "module": "Operación",
+    "key": "CLIENT_ADMIN",
+    "name": "ADMINISTRADOR DEL CLIENTE",
+    "description": "Administra la operación de su empresa: usuarios, horarios, relojes, asistencia y nómina.",
+    "module": "Cliente",
     "staff": true,
     "system": true,
     "active": true,
     "sortOrder": 3
   },
   {
-    "key": "EMPLOYEE",
-    "name": "EMPLEADO",
-    "description": "Personal operativo.",
-    "module": "Operación",
+    "key": "HUMAN_RESOURCES",
+    "name": "RECURSOS HUMANOS",
+    "description": "Recursos Humanos del cliente: expedientes, asistencia, horarios y nómina.",
+    "module": "Cliente",
     "staff": true,
     "system": true,
     "active": true,
     "sortOrder": 4
   },
   {
-    "key": "HUMAN_RESOURCES",
-    "name": "RECURSOS HUMANOS",
-    "description": "Recursos Humanos: expedientes, asistencia y nómina.",
-    "module": "RH",
-    "staff": false,
+    "key": "CLIENT_STAFF",
+    "name": "PERSONAL",
+    "description": "Personal del cliente: checa y consulta su propia asistencia.",
+    "module": "Cliente",
+    "staff": true,
     "system": true,
     "active": true,
     "sortOrder": 5
-  },
-  {
-    "key": "GUARD",
-    "name": "GUARDIA",
-    "description": "Opera la portería: escanea credenciales y registra entradas/salidas.",
-    "module": "Operación",
-    "staff": false,
-    "system": true,
-    "active": true,
-    "sortOrder": 6
-  },
-  {
-    "key": "CHEF",
-    "name": "CHEF",
-    "description": "Almacén de cocina y tickets de su área.",
-    "module": "Operación",
-    "staff": false,
-    "system": true,
-    "active": true,
-    "sortOrder": 7
-  },
-  {
-    "key": "GERENCIA",
-    "name": "GERENCIA",
-    "description": "Gerencia del hotel: configura, aprueba y ve todo.",
-    "module": "Hotel",
-    "staff": true,
-    "system": false,
-    "active": true,
-    "sortOrder": 10
-  },
-  {
-    "key": "HOTEL_STORE",
-    "name": "ALMACÉN DEL HOTEL",
-    "description": "Almacenista del hotel: productos, almacenes, movimientos y OC.",
-    "module": "Hotel",
-    "staff": true,
-    "system": false,
-    "active": true,
-    "sortOrder": 11
-  },
-  {
-    "key": "HOUSEKEEPING_SUPERVISOR",
-    "name": "AMA DE LLAVES",
-    "description": "Supervisora de limpieza: tareas de sus zonas, inspección y reportes.",
-    "module": "Hotel",
-    "staff": true,
-    "system": false,
-    "active": true,
-    "sortOrder": 12
-  },
-  {
-    "key": "HOUSEKEEPING",
-    "name": "CAMARISTA",
-    "description": "Personal de limpieza: sus tareas, iniciar y terminar.",
-    "module": "Hotel",
-    "staff": true,
-    "system": false,
-    "active": true,
-    "sortOrder": 13
-  },
-  {
-    "key": "RECEPCION",
-    "name": "RECEPCIÓN",
-    "description": "Recepción: check-in, check-out y disponibilidad.",
-    "module": "Hotel",
-    "staff": true,
-    "system": false,
-    "active": true,
-    "sortOrder": 14
-  },
-  {
-    "key": "HOTEL_LAUNDRY",
-    "name": "LAVANDERÍA",
-    "description": "Lavandería: traslados internos de textil.",
-    "module": "Hotel",
-    "staff": true,
-    "system": false,
-    "active": true,
-    "sortOrder": 15
   }
 ]

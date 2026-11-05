@@ -1,19 +1,15 @@
-/* Login: superficies con soporte de modo oscuro (la app alterna la clase `.dark` en <html>). */
+/* Login con la paleta de marca (tokens `--tm-*` en app/index.css). */
 
 .login-canvas {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 12%, #ffffff) 0%,
-    #f0f9ff 45%,
-    #ffffff 100%
-  );
+  background:
+    radial-gradient(60rem 40rem at 100% 0%, color-mix(in srgb, var(--tm-amber) 14%, transparent), transparent 60%),
+    radial-gradient(50rem 40rem at 0% 100%, color-mix(in srgb, var(--tm-navy) 10%, transparent), transparent 60%),
+    var(--tm-paper);
 }
 .dark .login-canvas {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 25%, #020617) 0%,
-    #020617 60%
-  );
+  background:
+    radial-gradient(60rem 40rem at 100% 0%, color-mix(in srgb, var(--tm-amber) 10%, transparent), transparent 60%),
+    #0b0f16;
 }
 
 .login-card {
@@ -21,57 +17,62 @@
   width: 100%;
   max-width: 980px !important;
   background: #ffffff;
-  box-shadow: 0 30px 80px -20px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  box-shadow: 0 30px 80px -24px color-mix(in srgb, var(--tm-navy) 40%, transparent);
+}
+.login-card {
+  min-height: 100dvh;
+}
+@media (min-width: 640px) {
+  .login-card {
+    min-height: 0;
+  }
 }
 .dark .login-card {
-  background: #0f172a;
-}
-.dark .login-card {
+  background: var(--tm-navy-deep);
   box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.6);
 }
 
-/* Panel de marca: azul profundo derivado del primario del tema. */
+/* Panel de marca: azul marino con un halo ámbar, como el ícono. */
 .login-brand {
-  background: linear-gradient(
-    160deg,
-    var(--color-primary) 0%,
-    color-mix(in srgb, var(--color-primary) 72%, #000000) 100%
-  );
+  background:
+    radial-gradient(26rem 22rem at 110% -10%, color-mix(in srgb, var(--tm-amber) 22%, transparent), transparent 70%),
+    linear-gradient(160deg, var(--tm-navy) 0%, var(--tm-navy-deep) 100%);
 }
 
-/* Texto y superficies sobre el panel de marca. Selectores con `.login-brand`
-   para ganarle al CSS sin capa del kit (pinta `h2` y los bordes). */
+/* Selectores con `.login-brand` para ganarle al CSS sin capa del kit. */
 .login-brand .login-on-brand {
-  color: #ffffff;
+  color: var(--tm-paper);
 }
 .login-brand .login-on-brand-muted {
-  color: rgb(255 255 255 / 0.72);
+  color: rgb(244 246 250 / 0.7);
+}
+.login-brand .login-accent {
+  color: var(--tm-amber);
 }
 .login-brand .login-glass {
-  background: rgb(255 255 255 / 0.08);
-  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(244 246 250 / 0.06);
+  border: 1px solid rgb(244 246 250 / 0.09);
 }
 .login-brand .login-chip {
-  background: rgb(255 255 255 / 0.14);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--tm-amber) 16%, transparent);
+  color: var(--tm-amber);
 }
-.login-brand .login-orb {
-  background: rgb(255 255 255 / 0.07);
+.login-brand .login-ring {
+  border: 2px solid rgb(244 246 250 / 0.06);
 }
-.login-brand .login-orb--faint {
-  background: rgb(255 255 255 / 0.04);
-}
-.login-brand .login-logo-tile {
-  background: #ffffff;
-  box-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.45);
+.login-brand .login-ring--accent {
+  border-color: color-mix(in srgb, var(--tm-amber) 18%, transparent);
 }
 .login-brand .login-avatar {
-  border: 3px solid color-mix(in srgb, var(--color-primary) 80%, #000000);
-  background: #ffffff;
+  border: 3px solid var(--tm-navy);
+  background: var(--tm-paper);
 }
 
 .login-form-panel {
   background: #ffffff;
+}
+.dark .login-form-panel {
+  background: var(--tm-navy-deep);
 }
 /* Campos más altos que la densidad global (0.85): el login respira. */
 .login-form-panel input {
@@ -80,34 +81,31 @@
   font-size: 14px !important;
   padding-inline: 14px;
 }
-/* Etiquetas de campo un punto más grandes en el login. */
 .login-form-panel label {
   font-size: 12.5px !important;
 }
-.dark .login-form-panel {
-  background: #0f172a;
-}
 
 .login-heading {
-  color: #0f172a;
+  color: var(--tm-navy);
 }
 .dark .login-heading {
-  color: #f1f5f9;
+  color: var(--tm-paper);
 }
 
 .login-muted {
-  color: #64748b;
+  color: #5b6474;
 }
 .dark .login-muted {
-  color: #94a3b8;
+  color: #9aa3b2;
 }
 
 .login-badge {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  background: color-mix(in srgb, var(--tm-amber) 16%, #ffffff);
+  color: var(--tm-amber-text);
 }
 .dark .login-badge {
-  color: #e0f2fe;
+  background: color-mix(in srgb, var(--tm-amber) 16%, transparent);
+  color: var(--tm-amber);
 }
 
 /* Misma silueta de píldora que los campos del kit. */
@@ -115,28 +113,42 @@
   border-radius: 9999px;
   min-height: 44px !important;
   font-size: 13.5px !important;
+  background: var(--tm-navy) !important;
+  color: var(--tm-paper) !important;
+}
+.login-submit:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--tm-navy) 88%, #ffffff) !important;
+}
+.login-submit:focus-visible {
+  outline: 2px solid var(--tm-amber) !important;
+  outline-offset: 2px;
+}
+.login-submit .login-submit-icon {
+  color: var(--tm-amber);
+}
+.dark .login-submit {
+  background: var(--tm-amber) !important;
+  color: var(--tm-navy) !important;
+}
+.dark .login-submit .login-submit-icon {
+  color: var(--tm-navy);
 }
 
-/* Punto de "operación en tiempo real": pulso solo si el usuario no pide menos movimiento. */
+/* Punto "en vivo": pulso solo si el usuario no pide menos movimiento. */
 .login-pulse {
-  background: #4ade80;
+  background: var(--tm-amber);
   animation: login-pulse 1.8s ease-out infinite;
 }
 @keyframes login-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgb(74 222 128 / 0.6);
+    box-shadow: 0 0 0 0 rgb(242 169 59 / 0.6);
   }
   100% {
-    box-shadow: 0 0 0 8px rgb(74 222 128 / 0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .login-pulse {
-    animation: none;
+    box-shadow: 0 0 0 8px rgb(242 169 59 / 0);
   }
 }
 
-/* Entrada escalonada del panel de marca (respeta `prefers-reduced-motion`). */
+/* Entrada escalonada del panel de marca. */
 .login-rise {
   animation: login-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
@@ -151,6 +163,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .login-pulse,
   .login-rise,
   .bento-stagger > * {
     animation: none !important;

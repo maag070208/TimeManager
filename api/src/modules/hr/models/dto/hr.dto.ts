@@ -90,7 +90,7 @@ export const PersonalStatsSchema = z
     total: z.number(),
     active: z.number(),
     inactive: z.number(),
-    roles: z.object({ MANAGER: z.number(), AREA_HEAD: z.number(), EMPLOYEE: z.number() }),
+    roles: z.record(z.string(), z.number()),
   })
   .openapi("PersonalStats");
 

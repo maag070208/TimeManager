@@ -13,7 +13,7 @@ import type {
   NotificationPort,
 } from "../models/entity/notification.entity";
 
-const ADMIN_HR_ROLES = ["ADMIN", "HUMAN_RESOURCES"] as const;
+const ADMIN_HR_ROLES = ["CLIENT_ADMIN", "HUMAN_RESOURCES"] as const;
 
 export class NotificationService implements NotificationPort {
   constructor(private readonly db = prismaClient) {}

@@ -124,66 +124,48 @@
         ]
       },
       "ADMIN": {
-        "title": "System Administrator",
-        "summary": "Full control of catalogs, users, devices, tickets and reports.",
+        "title": "Platform administrator",
+        "summary": "TimeManager team with full control of the platform and every client.",
         "actions": [
-          "Configures permissions and users",
-          "Manages all departments",
-          "Can complete and close tasks"
+          "Configures roles, permissions and system",
+          "Manages users of any client",
+          "Access to every module"
         ]
       },
-      "MANAGER": {
-        "title": "Manager",
-        "summary": "Oversees tickets and tasks in their department.",
+      "SUPPORT": {
+        "title": "Support",
+        "summary": "TimeManager team that assists clients.",
         "actions": [
-          "Creates and manages tickets",
-          "Assigns owners and tasks",
-          "Can complete tasks and close tickets"
+          "Views users, time clocks and attendance",
+          "Edits users and links time clocks",
+          "Cannot see personnel records or payroll"
         ]
       },
-      "AREA_HEAD": {
-        "title": "Area head",
-        "summary": "Provides operational follow-up on their department's tickets.",
+      "CLIENT_ADMIN": {
+        "title": "Client administrator",
+        "summary": "Runs their company's operation.",
         "actions": [
-          "Creates tickets",
-          "Can generate tasks from their tickets",
-          "Moves assigned tasks to review"
-        ]
-      },
-      "EMPLOYEE": {
-        "title": "Employee",
-        "summary": "Carries out assigned tasks and reports progress.",
-        "actions": [
-          "Creates tickets to report issues",
-          "Only sees tickets with assigned tasks",
-          "Moves their tasks to review"
+          "Creates users, departments and schedules",
+          "Manages time clocks, punches and overtime",
+          "Cannot change platform roles or settings"
         ]
       },
       "HUMAN_RESOURCES": {
         "title": "Human Resources",
-        "summary": "Manages the full personnel record (medical, official, contact data and documents).",
+        "summary": "Keeps the personnel records and attendance of their company.",
         "actions": [
-          "Views and edits the Personnel record",
-          "Uploads and manages personnel documents",
-          "Does not manage tickets, inventory or users"
+          "Views and edits records and documents",
+          "Manages schedules, punches and payroll",
+          "Creates and edits staff"
         ]
       },
-      "CHEF": {
-        "title": "Chef",
-        "summary": "Manages the kitchen store: items, lots, stock in, consumption and waste.",
+      "CLIENT_STAFF": {
+        "title": "Staff",
+        "summary": "Client employee who records their attendance.",
         "actions": [
-          "Manages the kitchen store (minimums, maximums and expiry)",
-          "Records stock in, consumption and waste",
-          "Views the tickets of their area"
-        ]
-      },
-      "GUARD": {
-        "title": "Guard",
-        "summary": "Runs the gatehouse from the app: scans staff credentials and records their entry or exit.",
-        "actions": [
-          "Scans credentials and records entries/exits in the app",
-          "Sees their own records for the day",
-          "Does not see personnel records, inventory or users"
+          "Clocks in and out",
+          "Views their own attendance",
+          "Cannot see other people's data"
         ]
       }
     },

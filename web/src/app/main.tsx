@@ -14,27 +14,28 @@ if (!localStorage.getItem("it-theme-dark-mode")) {
   localStorage.setItem("it-theme-dark-mode", "light");
 }
 
+/** Paleta de marca TimeManager (brand/TimeManager-brand-package). Espejo en `--tm-*` de index.css. */
 const customTheme: ITThemePalette = {
-  primary: "#0D5777",
-  secondary: "#1A7499",
-  ternary: "#F0F4F7",
-  alert: "#F9C74F",
-  warning: "#F9C74F",
+  primary: "#1D2636",
+  secondary: "#4A5568",
+  ternary: "#F4F6FA",
+  alert: "#E8920F",
+  warning: "#F2A93B",
   danger: "#BA1A1A",
-  info: "#512bbb",
-  success: "#4ADE80",
+  info: "#2F6FDB",
+  success: "#22A06B",
   layout: {
     sidebarBg: "#ffffff",
-    sidebarText: "#54634d",
-    navbarBg: "#0D5777",
-    navbarText: "#ffffff",
+    sidebarText: "#1D2636",
+    navbarBg: "#1D2636",
+    navbarText: "#F4F6FA",
   },
   table: {
-    headerBg: "#8ab1cf9d",
-    headerText: "#0D5777",
+    headerBg: "#EEF0F5",
+    headerText: "#1D2636",
     rowBg: "#ffffff",
-    rowText: "#1B1B1F",
-    rowHover: "#0d5777c4",
+    rowText: "#1D2636",
+    rowHover: "#1D2636",
   },
 };
 

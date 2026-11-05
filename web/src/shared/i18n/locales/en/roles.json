@@ -22,13 +22,11 @@
     "ALL": "Everything"
   },
   "role": {
-    "ADMIN": "ADMIN",
-    "MANAGER": "MANAGER",
-    "AREA_HEAD": "AREA LEAD",
-    "EMPLOYEE": "EMPLOYEE",
+    "ADMIN": "ADMINISTRATOR",
+    "SUPPORT": "SUPPORT",
+    "CLIENT_ADMIN": "CLIENT ADMINISTRATOR",
     "HUMAN_RESOURCES": "HUMAN RESOURCES",
-    "CHEF": "CHEF",
-    "GUARD": "GUARD"
+    "CLIENT_STAFF": "STAFF"
   },
   "matrix": {
     "permission": "Permission",

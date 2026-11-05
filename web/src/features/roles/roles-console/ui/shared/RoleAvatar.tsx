@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FaIdBadge, FaUser, FaUserCog, FaUsers, FaUserShield, FaUserTie, FaUtensils } from "react-icons/fa";
+import { FaHeadset, FaUser, FaUsers, FaUserShield, FaUserTie } from "react-icons/fa";
 import { roleLabel } from "@entities/user";
 import { ROLE_TONES, roleTone } from "./tokens";
 import { ITText } from "@axzydev/axzy_ui_system";
@@ -7,12 +7,10 @@ import { ITText } from "@axzydev/axzy_ui_system";
 /** Íconos de los roles base; los creados en `/roles` muestran sus iniciales. */
 const BASE_ICONS: Record<string, (size: number) => ReactNode> = {
   ADMIN: (s) => <FaUserShield size={s} />,
-  MANAGER: (s) => <FaUserTie size={s} />,
-  AREA_HEAD: (s) => <FaUserCog size={s} />,
-  EMPLOYEE: (s) => <FaUser size={s} />,
+  SUPPORT: (s) => <FaHeadset size={s} />,
+  CLIENT_ADMIN: (s) => <FaUserTie size={s} />,
   HUMAN_RESOURCES: (s) => <FaUsers size={s} />,
-  CHEF: (s) => <FaUtensils size={s} />,
-  GUARD: (s) => <FaIdBadge size={s} />,
+  CLIENT_STAFF: (s) => <FaUser size={s} />,
 };
 
 /** Iniciales de un rol creado a mano (INVENTARIO → IN, AUX_ALMACEN → AA). */

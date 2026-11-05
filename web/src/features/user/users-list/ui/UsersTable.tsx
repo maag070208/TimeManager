@@ -23,21 +23,17 @@ interface Props {
   onEdit: (u: User) => void;
 }
 
+const ROLE_BADGE: Record<string, "danger" | "info" | "warning" | "success" | "gray"> = {
+  ADMIN: "danger",
+  SUPPORT: "info",
+  CLIENT_ADMIN: "warning",
+  HUMAN_RESOURCES: "info",
+  CLIENT_STAFF: "success",
+};
+
 const roleBadge = (role: string) => (
   <ITBadget
-    color={
-      role === "ADMIN"
-        ? "danger"
-        : role === "MANAGER"
-          ? "info"
-          : role === "AREA_HEAD"
-            ? "warning"
-            : role === "GUARD"
-              ? "gray"
-              : role === "EMPLOYEE"
-                ? "success"
-                : "gray"
-    }
+    color={ROLE_BADGE[role] ?? "gray"}
     size="lg"
   >
     {roleLabel(role)}

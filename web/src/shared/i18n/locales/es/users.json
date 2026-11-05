@@ -124,66 +124,48 @@
         ]
       },
       "ADMIN": {
-        "title": "Administrador del sistema",
-        "summary": "Control total de catálogos, usuarios, dispositivos, tickets y reportes.",
+        "title": "Administrador de la plataforma",
+        "summary": "Equipo TimeManager con control total de la plataforma y de todos los clientes.",
         "actions": [
-          "Configura permisos y usuarios",
-          "Administra todos los departamentos",
-          "Puede completar y cerrar tareas"
+          "Configura roles, permisos y sistema",
+          "Administra usuarios de cualquier cliente",
+          "Acceso a todos los módulos"
         ]
       },
-      "MANAGER": {
-        "title": "Gerente",
-        "summary": "Supervisa tickets y tareas de su departamento.",
+      "SUPPORT": {
+        "title": "Soporte",
+        "summary": "Equipo TimeManager que atiende a los clientes.",
         "actions": [
-          "Crea y administra tickets",
-          "Asigna responsables y tareas",
-          "Puede completar tareas y cerrar tickets"
+          "Consulta usuarios, relojes y asistencia",
+          "Edita usuarios y vincula relojes",
+          "No ve expedientes ni nómina"
         ]
       },
-      "AREA_HEAD": {
-        "title": "Jefe de área",
-        "summary": "Da seguimiento operativo a los tickets de su departamento.",
+      "CLIENT_ADMIN": {
+        "title": "Administrador del cliente",
+        "summary": "Administra la operación de su empresa.",
         "actions": [
-          "Crea tickets",
-          "Puede generar tareas de sus tickets",
-          "Mueve tareas asignadas hasta revisión"
-        ]
-      },
-      "EMPLOYEE": {
-        "title": "Empleado",
-        "summary": "Ejecuta tareas asignadas y reporta avances.",
-        "actions": [
-          "Crea tickets para reportar problemas",
-          "Solo ve tickets con tareas asignadas",
-          "Mueve sus tareas hasta revisión"
+          "Da de alta usuarios, departamentos y horarios",
+          "Administra relojes, checadas y horas extra",
+          "No cambia roles ni configuración de la plataforma"
         ]
       },
       "HUMAN_RESOURCES": {
         "title": "Recursos Humanos",
-        "summary": "Administra el expediente completo del personal (datos médicos, oficiales, contacto y documentos).",
+        "summary": "Lleva el expediente y la asistencia del personal de su empresa.",
         "actions": [
-          "Ve y edita el expediente de Personal",
-          "Sube y gestiona documentos del personal",
-          "No administra tickets, inventario ni usuarios"
+          "Ve y edita expedientes y documentos",
+          "Gestiona horarios, checadas y nómina",
+          "Da de alta y edita al personal"
         ]
       },
-      "CHEF": {
-        "title": "Chef",
-        "summary": "Administra el almacén de cocina: artículos, lotes, entradas, consumos y mermas.",
+      "CLIENT_STAFF": {
+        "title": "Personal",
+        "summary": "Empleado del cliente que registra su asistencia.",
         "actions": [
-          "Administra el almacén de cocina (mínimos, máximos y caducidad)",
-          "Registra entradas, consumos y mermas",
-          "Ve los tickets de su área"
-        ]
-      },
-      "GUARD": {
-        "title": "Guardia",
-        "summary": "Opera la portería desde la app: escanea la credencial del personal y registra su entrada o salida.",
-        "actions": [
-          "Escanea credenciales y registra entradas/salidas en la app",
-          "Ve sus registros del día",
-          "No ve expedientes, inventario ni usuarios"
+          "Checa entrada y salida",
+          "Consulta su propia asistencia",
+          "No ve datos de otras personas"
         ]
       }
     },

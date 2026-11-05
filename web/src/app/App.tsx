@@ -2,8 +2,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "@pages/auth/LoginPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
-import AccessPage from "@pages/access/AccessPage";
-import AccessReportPage from "@pages/access/AccessReportPage";
 import TimeClockPage from "@pages/access/TimeClockPage";
 import TimeClockReportPage from "@pages/access/TimeClockReportPage";
 import TimeClockEmployeesPage from "@pages/access/TimeClockEmployeesPage";
@@ -121,22 +119,6 @@ export default function App() {
         <Route path="/notifications" element={<NotificationsPage />} />
         {/* Galería de la mascota (animaciones y escenarios): solo ADMIN. */}
         
-        <Route
-          path="/access"
-          element={
-            <RequiresPermission permission="access.log">
-              <AccessPage />
-            </RequiresPermission>
-          }
-        />
-        <Route
-          path="/access/report"
-          element={
-            <RequiresPermission permission="access.log">
-              <AccessReportPage />
-            </RequiresPermission>
-          }
-        />
         {/* Reloj checador Hikvision (solo lectura; ver TIME_CLOCK.md). */}
         <Route
           path="/hr/time-clock"

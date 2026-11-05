@@ -38,7 +38,7 @@ No hay package.json raíz: cada carpeta es un proyecto independiente con pnpm.
 - **Stack**: React 19, Vite 6, TS 5.7, Redux Toolkit, React Router 7, Tailwind 4, design system `@axzydev/axzy_ui_system`, i18next (es/en), Ably, `@react-pdf/renderer`, yup, axios. También app de escritorio con Electron (`pnpm desktop`).
 - **Arquitectura**: Feature-Sliced Design — `src/app` (bootstrap, router, guards), `entities` (API + modelos + slices), `features` (casos de uso: `model/use*.ts` + `ui/`), `widgets` (composición, PDFs), `pages` (rutas), `shared` (api, ui, lib, i18n).
 - **Alias**: `@app`, `@entities`, `@features`, `@pages`, `@widgets`, `@shared`.
-- **Roles**: ADMIN, MANAGER (`isAdmin = ADMIN || MANAGER`), AREA_HEAD (`canManage`), HUMAN_RESOURCES (`canManageHR = ADMIN || HUMAN_RESOURCES`), EMPLOYEE. Derivados en `app/guards/PrivateRoutes.tsx`.
+- **Roles** (claves en inglés, nombres en español): `ADMIN` y `SUPPORT` (equipo TimeManager), `CLIENT_ADMIN`, `HUMAN_RESOURCES` y `CLIENT_STAFF` (cliente). Viven en la tabla `roles`; catálogo y matriz en `api/prisma/seed-data/{roles,role_permissions}.json`. La UI se gobierna por permisos (`useCan`), no por clave de rol.
 - **Mapa detallado de módulos frontend**: `web/docs/MODULES.md`.
 - **Comandos**:
   - Dev: `pnpm dev` (puerto 5006, strictPort)

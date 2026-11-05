@@ -17,17 +17,15 @@ import type { PersonalProfile } from "@entities/hr";
 import { roleLabel, useRolesCatalog } from "@entities/user";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 
+const ROLE_BADGE: Record<string, "warning" | "info" | "success" | "gray"> = {
+  CLIENT_ADMIN: "warning",
+  HUMAN_RESOURCES: "info",
+  CLIENT_STAFF: "success",
+};
+
 const roleBadge = (role: string, label: string) => (
   <ITBadget
-    color={
-      role === "MANAGER"
-        ? "danger"
-        : role === "AREA_HEAD"
-          ? "warning"
-          : role === "EMPLOYEE"
-            ? "success"
-            : "gray"
-    }
+    color={ROLE_BADGE[role] ?? "gray"}
     size="lg"
   >
     {label}

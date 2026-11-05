@@ -25,39 +25,25 @@ export const ROLE_GUIDANCE: Record<
     summary: "form.roles.ADMIN.summary",
     actions: ["form.roles.ADMIN.actions.0", "form.roles.ADMIN.actions.1", "form.roles.ADMIN.actions.2"],
   },
-  MANAGER: {
-    title: "form.roles.MANAGER.title",
-    summary: "form.roles.MANAGER.summary",
-    actions: ["form.roles.MANAGER.actions.0", "form.roles.MANAGER.actions.1", "form.roles.MANAGER.actions.2"],
+  SUPPORT: {
+    title: "form.roles.SUPPORT.title",
+    summary: "form.roles.SUPPORT.summary",
+    actions: ["form.roles.SUPPORT.actions.0", "form.roles.SUPPORT.actions.1", "form.roles.SUPPORT.actions.2"],
   },
-  AREA_HEAD: {
-    title: "form.roles.AREA_HEAD.title",
-    summary: "form.roles.AREA_HEAD.summary",
-    actions: ["form.roles.AREA_HEAD.actions.0", "form.roles.AREA_HEAD.actions.1", "form.roles.AREA_HEAD.actions.2"],
-  },
-  EMPLOYEE: {
-    title: "form.roles.EMPLOYEE.title",
-    summary: "form.roles.EMPLOYEE.summary",
-    actions: ["form.roles.EMPLOYEE.actions.0", "form.roles.EMPLOYEE.actions.1", "form.roles.EMPLOYEE.actions.2"],
+  CLIENT_ADMIN: {
+    title: "form.roles.CLIENT_ADMIN.title",
+    summary: "form.roles.CLIENT_ADMIN.summary",
+    actions: ["form.roles.CLIENT_ADMIN.actions.0", "form.roles.CLIENT_ADMIN.actions.1", "form.roles.CLIENT_ADMIN.actions.2"],
   },
   HUMAN_RESOURCES: {
     title: "form.roles.HUMAN_RESOURCES.title",
     summary: "form.roles.HUMAN_RESOURCES.summary",
-    actions: [
-      "form.roles.HUMAN_RESOURCES.actions.0",
-      "form.roles.HUMAN_RESOURCES.actions.1",
-      "form.roles.HUMAN_RESOURCES.actions.2",
-    ],
+    actions: ["form.roles.HUMAN_RESOURCES.actions.0", "form.roles.HUMAN_RESOURCES.actions.1", "form.roles.HUMAN_RESOURCES.actions.2"],
   },
-  GUARD: {
-    title: "form.roles.GUARD.title",
-    summary: "form.roles.GUARD.summary",
-    actions: ["form.roles.GUARD.actions.0", "form.roles.GUARD.actions.1", "form.roles.GUARD.actions.2"],
-  },
-  CHEF: {
-    title: "form.roles.CHEF.title",
-    summary: "form.roles.CHEF.summary",
-    actions: ["form.roles.CHEF.actions.0", "form.roles.CHEF.actions.1", "form.roles.CHEF.actions.2"],
+  CLIENT_STAFF: {
+    title: "form.roles.CLIENT_STAFF.title",
+    summary: "form.roles.CLIENT_STAFF.summary",
+    actions: ["form.roles.CLIENT_STAFF.actions.0", "form.roles.CLIENT_STAFF.actions.1", "form.roles.CLIENT_STAFF.actions.2"],
   },
 };
 
@@ -156,7 +142,7 @@ export const useUserForm = (userId?: string) => {
     middleName: "",
     paternalSurname: "",
     maternalSurname: "",
-    role: "EMPLOYEE",
+    role: "CLIENT_STAFF",
     roles: [],
     employeeNumber: "",
     jobTitle: "",

@@ -14,7 +14,7 @@ export const personLabel = (u: { name: string; employeeNumber?: string | null })
 /**
  * Opciones de los filtros de persona (Responsable, Empleado, Asignado a,
  * Guardia…): todas las personas, incluidas las dadas de baja, que siguen
- * teniendo registros. `roles` acota (p. ej. solo GUARD).
+ * teniendo registros. `roles` acota a ciertos roles.
  */
 export const usePeopleOptions = (roles?: UserRole[]) => {
   const [options, setOptions] = useState<PersonOption[]>([]);

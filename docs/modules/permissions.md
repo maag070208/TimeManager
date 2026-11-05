@@ -27,6 +27,6 @@ Sistema de autorización: catálogo de permisos, roles con matriz de permisos, r
 
 ## Notas multi-tenant
 
-- Diseño de dos capas: **catálogo de permisos global** (lo define el producto) y **roles por tenant** (cada cliente crea los suyos). Los roles base del sistema (ADMIN, EMPLOYEE…) se clonan como plantilla al crear el tenant.
+- Diseño de dos capas: **catálogo de permisos global** (lo define el producto) y **roles por tenant** (cada cliente crea los suyos). Roles base: `ADMIN` y `SUPPORT` son de plataforma (equipo TimeManager, cruzan tenants); `CLIENT_ADMIN`, `HUMAN_RESOURCES` y `CLIENT_STAFF` se clonan como plantilla al crear el tenant.
 - Las políticas con condiciones son el lugar natural para límites por plan (p. ej. máximo de relojes o de empleados).
 - `roles.manage` pasa a ser permiso del admin del tenant, no del operador del SaaS.

@@ -21,6 +21,8 @@ export {
   type RolePermissionFixtureRow,
 } from "./fixtures";
 export {
+  ADMIN_ROLE_KEYS,
+  isAdminRole,
   getRoles,
   setRoles,
   resetRoles,

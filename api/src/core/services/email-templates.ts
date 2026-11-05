@@ -9,6 +9,7 @@
  */
 
 import { formatDateTime, t, type Language } from "@core/i18n";
+import { DEFAULT_ROLE_KEY } from "@core/permissions/roles";
 
 const escapeHtml = (value: string): string =>
   value
@@ -218,7 +219,7 @@ export const welcomeEmail = (input: WelcomeEmailInput): EmailContent => {
         ${fieldTable([
           fieldRow(f("name"), name, { strong: true, first: true }),
           fieldRow(f("username"), username),
-          fieldRow(f("role"), input.role ?? "EMPLOYEE"),
+          fieldRow(f("role"), input.role ?? DEFAULT_ROLE_KEY),
           fieldRow(f("department"), input.departmentName ?? t("labels.unassigned", {}, lng)),
           fieldRow(f("email"), input.email ?? t("emails.welcomeAdmin.noEmail", {}, lng)),
           fieldRow(f("registrationDate"), input.registrationDate ?? formatDateTime(new Date(), lng)),

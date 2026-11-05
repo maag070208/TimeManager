@@ -2,6 +2,7 @@ import { t } from "@core/i18n";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { hashPassword } from "@core/utils/security";
+import { DEFAULT_ROLE_KEY } from "@core/permissions";
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -59,7 +60,7 @@ export class UserImportService {
           username,
           password: await hashPassword(row.password.trim()),
           name: row.name.trim(),
-          role: "EMPLOYEE",
+          role: DEFAULT_ROLE_KEY,
         },
       });
       result.created += 1;

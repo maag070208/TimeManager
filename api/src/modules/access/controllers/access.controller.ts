@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { isAdminRole } from "@core/permissions";
 import { parseTableParams, paginatedTable } from "@core/utils/table";
 import { AccessService } from "../services/access.service";
 import { AccessReportService } from "../services/access-report.service";
@@ -83,7 +84,7 @@ export class AccessController {
 
   sites = async (req: Request, res: Response): Promise<void> => {
     const includeInactive =
-      req.query.includeInactive === "true" && req.user?.role === "ADMIN";
+      req.query.includeInactive === "true" && isAdminRole(req.user?.role);
     res.json(await this.service.sites(includeInactive));
   };
 

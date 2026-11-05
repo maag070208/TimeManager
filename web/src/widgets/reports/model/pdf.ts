@@ -14,18 +14,6 @@ import OvertimePDF from "../ui/OvertimePDF";
 import WeeklyAttendancePdf from "../ui/WeeklyAttendancePdf";
 import PayrollClosurePdf from "../ui/PayrollClosurePdf";
 
-export const downloadAccessReportPDF = async (
-  rows: AccessReportSessionRow[],
-  summary: AccessReportSummary,
-  meta: AccessReportPdfMeta
-): Promise<void> => {
-  const blob = await pdf(
-    createElement(AccessReportPDF, { rows, summary, meta }) as any
-  ).toBlob();
-  const stamp = meta.date;
-  saveAs(blob, `${fileName("accessReport")}_${meta.period}_${stamp}.pdf`);
-};
-
 /** Entradas/salidas del reloj checador: mismo PDF que el de accesos, con su título. */
 export const downloadTimeClockReportPdf = async (
   rows: AccessReportSessionRow[],

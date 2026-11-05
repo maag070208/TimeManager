@@ -33,7 +33,7 @@ export default function LoginForm({
   const { t: tt } = useTranslation(["auth"]);
   return (
     <>
-      <section className="login-form-panel flex flex-1 items-center justify-center px-6 py-9 sm:px-8 lg:px-10 lg:py-10">
+      <section className="login-form-panel flex flex-1 items-center justify-center px-[24px] py-[40px] sm:px-[32px] lg:px-[40px] lg:py-[44px]">
         <div className="w-full max-w-[22rem]">
           <ITText as="span" className="login-badge login-rise inline-block rounded-full px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em]">
             {tt("login.badge")}
@@ -96,7 +96,7 @@ export default function LoginForm({
               className="login-submit w-full flex items-center justify-center gap-2 py-3"
             >
               <ITText as="span" className="flex items-center justify-center gap-2 text-sm font-bold">
-                <LuLogIn aria-hidden size={16} />
+                <LuLogIn aria-hidden size={16} className="login-submit-icon" />
                 {isSubmitting ? tt("login.submitting") : tt("login.submit")}
               </ITText>
             </ITButton>

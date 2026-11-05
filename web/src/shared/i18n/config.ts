@@ -27,7 +27,6 @@ import ticketsEn from "./locales/en/tickets.json";
 import usersEn from "./locales/en/users.json";
 import catalogEn from "./locales/en/catalog.json";
 import rolesEn from "./locales/en/roles.json";
-import kitchenEn from "./locales/en/kitchen.json";
 import langostinEn from "./locales/en/langostin.json";
 
 import accessEs from "./locales/es/access.json";
@@ -56,7 +55,6 @@ import ticketsEs from "./locales/es/tickets.json";
 import usersEs from "./locales/es/users.json";
 import catalogEs from "./locales/es/catalog.json";
 import rolesEs from "./locales/es/roles.json";
-import kitchenEs from "./locales/es/kitchen.json";
 import langostinEs from "./locales/es/langostin.json";
 
 export const defaultNS = "common" as const;
@@ -91,7 +89,6 @@ export const NS_LIST = [
   "schedules",
   "overtime",
   "weekly-attendance",
-  "kitchen",
   "langostin",
 ] as const;
 
@@ -123,7 +120,6 @@ export const resources = {
     schedules: schedulesEn,
     overtime: overtimeEn,
     "weekly-attendance": weeklyAttendanceEn,
-    kitchen: kitchenEn,
     langostin: langostinEn,
   },
   es: {
@@ -153,7 +149,6 @@ export const resources = {
     schedules: schedulesEs,
     overtime: overtimeEs,
     "weekly-attendance": weeklyAttendanceEs,
-    kitchen: kitchenEs,
     langostin: langostinEs,
   },
 } as const;

@@ -14,7 +14,7 @@ import type { PersonalProfile } from "@entities/hr";
 import { roleLabel } from "@entities/user";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 
-const ROLE_COLOR: Record<string, string> = { MANAGER: "purple", AREA_HEAD: "info", EMPLOYEE: "gray" };
+const ROLE_COLOR: Record<string, string> = { CLIENT_ADMIN: "purple", HUMAN_RESOURCES: "info", CLIENT_STAFF: "gray" };
 
 /** Fechas guardadas como "YYYY-MM-DD": formatear sin pasar por Date/huso horario. */
 const formatDateOnly = (iso?: string | null): string => {

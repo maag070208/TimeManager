@@ -6,7 +6,15 @@
 @source "../node_modules/@axzydev/axzy_ui_system/src/**/*.{ts,tsx}";
 
 :root {
-  --layout-bg: #f1f5f9;
+  --layout-bg: #f4f6fa;
+
+  /* Marca TimeManager: azul marino, blanco y ámbar (#E8920F para texto/íconos sobre claro). */
+  --tm-navy: #1d2636;
+  --tm-navy-deep: #121822;
+  --tm-paper: #f4f6fa;
+  --tm-amber: #f2a93b;
+  --tm-amber-ink: #e8920f;
+  --tm-amber-text: #8a5300;
 }
 
 /* Forzar que el modal sea más ancho para que quepan las 2 columnas */
@@ -408,7 +416,7 @@ aside > div[class*="rounded-[26px]"] [role="button"]:focus {
 }
 
 aside > div[class*="rounded-[26px]"] [role="button"]:focus-visible {
-  outline: 2px solid var(--color-primary, #0d5777);
+  outline: 2px solid var(--color-primary, #1d2636);
   outline-offset: -2px;
 }
 

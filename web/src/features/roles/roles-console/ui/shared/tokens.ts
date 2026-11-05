@@ -34,12 +34,10 @@ export const ROLE_VARS: Record<RoleTone, string> = {
 /** Tonos fijos de los roles base; los creados en `/roles` toman uno estable por su clave. */
 const BASE_TONES: Record<string, RoleTone> = {
   ADMIN: "indigo",
-  MANAGER: "sky",
-  AREA_HEAD: "amber",
-  EMPLOYEE: "slate",
+  SUPPORT: "sky",
+  CLIENT_ADMIN: "amber",
   HUMAN_RESOURCES: "emerald",
-  CHEF: "fuchsia",
-  GUARD: "rose",
+  CLIENT_STAFF: "slate",
 };
 
 const CUSTOM_TONES: readonly RoleTone[] = ["violet", "teal", "sky", "amber", "emerald", "rose", "fuchsia", "indigo"];

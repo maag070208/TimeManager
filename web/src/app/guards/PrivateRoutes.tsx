@@ -1,14 +1,6 @@
 import { ITLayout, ITSidebarProps, ITToast, type ITNavigationItem } from "@axzydev/axzy_ui_system";
 import { useEffect, useState, useCallback, type ReactNode } from "react";
-import {
-  FaBoxes,
-  FaHouseUser,
-  FaTicketAlt,
-  FaUserTie,
-  FaCog,
-  FaUtensils,
-  FaLaptopCode,
-} from "react-icons/fa";
+import { FaHouseUser, FaUserTie, FaCog, FaLaptopCode } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -21,14 +13,11 @@ import { API_CONSTANTS } from "@shared/api/constants/API_CONSTANTS";
 import { desktop } from "@shared/lib/desktop";
 import { useAblyNotifications, type LiveNotification } from "./useAblyNotifications";
 import ForcePasswordChange from "./ForcePasswordChange";
-import logoUrl from "@shared/assets/brand/timemanager-logo-for-dark-bg.svg";
+import logoUrl from "@shared/assets/brand/timemanager-logo-for-light-bg.svg";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {
   start: <FaHouseUser size={14} />,
-  tasks: <FaTicketAlt size={14} />,
-  inventory: <FaBoxes size={14} />,
-  kitchen: <FaUtensils size={14} />,
   hr: <FaUserTie size={14} />,
   settings: <FaCog size={14} />,
   langostin: <FaLaptopCode size={14} />,

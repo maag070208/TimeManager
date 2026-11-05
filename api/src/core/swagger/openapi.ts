@@ -17,7 +17,7 @@ export const buildOpenApiDocument = () => {
       title: "Custody Letters API",
       version: "1.0.0",
       description:
-        "Puerto Nuevo Custody Letters API. JWT authentication (Bearer). Roles: ADMIN, MANAGER, AREA_HEAD, EMPLOYEE, HUMAN_RESOURCES, GUARD, CHEF.",
+        "Puerto Nuevo Custody Letters API. JWT authentication (Bearer). Roles: ADMIN, SUPPORT, CLIENT_ADMIN, HUMAN_RESOURCES, CLIENT_STAFF.",
     },
     servers: [
       {

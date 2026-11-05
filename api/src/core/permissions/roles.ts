@@ -8,7 +8,7 @@ import type { PrismaClient } from "@prisma/client";
  * roles cargados no hay rol válido y todo queda cerrado (fail-closed).
  *
  * `staff` marca los roles con expediente de personal (RH: checador, nómina,
- * horas extra); reemplaza la lista fija MANAGER/AREA_HEAD/EMPLOYEE. `system`
+ * horas extra). `system`
  * protege los roles base de borrado.
  */
 export interface RoleDefinition {
@@ -39,13 +39,19 @@ export interface RoleRow {
  * cargada (arranque temprano o pruebas unitarias). En runtime manda `staff`.
  */
 export const DEFAULT_STAFF_ROLE_KEYS: readonly string[] = [
-  "MANAGER",
-  "AREA_HEAD",
-  "EMPLOYEE",
+  "CLIENT_ADMIN",
+  "HUMAN_RESOURCES",
+  "CLIENT_STAFF",
 ];
 
 /** Rol por defecto al crear una cuenta (debe existir en el catálogo). */
-export const DEFAULT_ROLE_KEY = "EMPLOYEE";
+export const DEFAULT_ROLE_KEY = "CLIENT_STAFF";
+
+/** Roles que administran cuentas: plataforma (ADMIN, SUPPORT) y el administrador del cliente. */
+export const ADMIN_ROLE_KEYS: readonly string[] = ["ADMIN", "SUPPORT", "CLIENT_ADMIN"];
+
+export const isAdminRole = (key: string | null | undefined): boolean =>
+  !!key && ADMIN_ROLE_KEYS.includes(key);
 
 /** Normaliza filas a `RoleDefinition`. **Puro.** Descarta filas inválidas. */
 export const rolesFromRows = (rows: ReadonlyArray<RoleRow>): RoleDefinition[] => {

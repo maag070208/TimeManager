@@ -37,20 +37,19 @@ src/
 
 ## Roles y permisos
 
-| Rol | Descripción |
-|-----|-------------|
-| `ADMIN` | Acceso total |
-| `MANAGER` | Admin dashboard, tickets/admin tareas, inventario NO |
-| `AREA_HEAD` | `canManage` (tickets/gestión) sin expediente RRHH completo |
-| `HUMAN_RESOURCES` | Expediente completo de personal (`canManageHR`) |
-| `EMPLOYEE` | Solo tickets (mis tareas), notificaciones |
+| Rol | Quién | Alcance |
+|-----|-------|---------|
+| `ADMIN` | Equipo TimeManager (super admin) | Todos los permisos, incluidos `roles.manage` y `system.configure` |
+| `SUPPORT` | Equipo TimeManager (soporte) | Usuarios (ver/editar), relojes, horarios, asistencia, auditoría; sin expedientes ni nómina |
+| `CLIENT_ADMIN` | Administrador del cliente | Todo lo operativo de su empresa; sin `roles.manage` ni `system.configure` |
+| `HUMAN_RESOURCES` | RH del cliente | Expedientes, altas de personal, checadas, horarios, horas extra, nómina y reportes |
+| `CLIENT_STAFF` | Personal del cliente | Solo su propia asistencia (`attendance.view: OWN`) |
 
-Derivados en `app/guards/PrivateRoutes.tsx`:
-- `isAdmin = ADMIN || MANAGER`
-- `canManage = isAdmin || AREA_HEAD`
-- `canManageHR = ADMIN || HUMAN_RESOURCES` (expediente médico/documentos NO para MANAGER)
+Los roles viven en BD (tabla `roles`) y la UI se gobierna por permisos (`useCan`, `RequiresPermission`); la matriz base está en `api/prisma/seed-data/role_permissions.json`.
 
 ## Módulos
+
+El producto es solo el servicio de checadas. Tickets, inventario, cocina y las pantallas del guardia (bitácora y entradas/salidas) se quitaron de la web; el guardia opera desde su app móvil contra el módulo `access` del API.
 
 ### 1. Auth
 - Rutas: `/login`
@@ -60,26 +59,9 @@ Derivados en `app/guards/PrivateRoutes.tsx`:
 ### 2. Inicio / Dashboard
 - Rutas: `/`
 - `pages/home/HomePage`, `features/home/admin-dashboard`
-- Home vacío para empleados. Dashboard admin (ADMIN+MANAGER): resumen, stats, donut chart, feed de actividad reciente con links a ticket/préstamo/dispositivo (`activityLinks.ts`).
+- Home vacío para empleados. Dashboard admin (ADMIN+MANAGER): resumen, stats, donut chart, feed de actividad reciente.
 
-### 3. Inventario (solo ADMIN)
-- Rutas: `/inventory`, `/inventory/devices`, `/inventory/device-types`, `/inventory/movements`, `/inventory/loans`, `/inventory/returns`
-- Dashboard: KPIs de inventario (`/inventory/dashboard`).
-- Dispositivos: CRUD, tipos, existencias, unidades físicas (serie/MAC/IP/equipo), kardex, detalle.
-- Movimientos: alta, filtros por tipo/dispositivo, revertir.
-- Préstamos: crear, editar, cancelar, detalle (cartas responsivas).
-- Devoluciones: registrar con condición por ítem.
-- Endpoints: `/inventory/device-types`, `/inventory/devices`, `/inventory/units`, `/inventory/movements`, `/inventory/loans`, `/inventory/returns`, `/inventory/dashboard`.
-
-### 4. Tareas / Tickets (todos)
-- Rutas: `/tickets`, `/tickets/kanban`, `/tickets/my-tasks`, `/tickets/tasks`, `/tickets/new`, `/tickets/:id`, `/tickets/:id/edit`
-- Lista, crear, editar, detalle.
-- Kanban board.
-- Mis tareas (EMPLOYEE), Admin tareas (ADMIN/MANAGER).
-- Detalle: comentarios, asignaciones con comentarios/adjuntos, historial, grafo de tareas, panel manager, PDF.
-- Endpoints: `/tickets`, `/tickets/kanban`, `/tickets/:id/attachments`, `/tickets/:id/assignments`, `/tickets/:id/comments`.
-
-### 5. Recursos Humanos / Empleados (ADMIN + HUMAN_RESOURCES)
+### 3. Recursos Humanos / Empleados (`hr.records`)
 - Rutas: `/employees`, `/employees/:id`, `/employees/:id/edit`, `/employees/disciplinary-reports`, `/employees/disciplinary-reports/:id`, `/employees/catalogs/documents`
 - Lista de empleados, detalle, edición de perfil (foto, datos).
 - Documentos por empleado + catálogo de tipos de documento.
@@ -87,30 +69,24 @@ Derivados en `app/guards/PrivateRoutes.tsx`:
 - Reportes de personal.
 - Endpoints: `/hr/stats`, `/hr/:id`, `/hr/:id/profile`, `/hr/:id/photo`, `/hr/:id/documents`, `/hr/catalogs/*`, `/hr/disciplinary-reports/*`.
 
-### 6. Departamentos
+### 4. Departamentos
 - Rutas: `/departments`, `/departments/:id`
 - `pages/departments`, `features/department`
 - CRUD, soft-delete, detalle con info + aside.
 - Endpoints: `/departments`.
 
-### 7. Subáreas
+### 5. Subáreas
 - Rutas: `/subareas`
 - `pages/subareas`, `features/subarea`
 - CRUD, soft-delete.
 - Endpoints: `/subareas`.
 
-### 8. Reportes (solo ADMIN)
-- Rutas: `/reports`
-- `pages/reports/ReportesPage`, `features/report/*`
-- Tabs: Asignados, Dispositivos, Salidas. Cada uno con export PDF (`widgets/reports`).
-- Endpoints: `/reports`, `/reports/assigned-devices`, `/reports/devices`.
-
-### 9. Usuarios (solo ADMIN)
+### 6. Usuarios (solo ADMIN)
 - Rutas: `/users`, `/users/new`, `/users/:id/edit`, `/users/:id/history`, `/users/import`
 - Lista, crear/editar, cambio password, activar/desactivar, historial (timeline + audit-log), importación (panel + resultado).
 - Endpoints: `/users`, `/users/:id/password`, `/users/:id/deactivate`, `/users/:id/reactivate`, `/users/employees`, `/auth/login`, `/auth/me`.
 
-### 10. Catálogos (solo ADMIN)
+### 7. Catálogos (solo ADMIN)
 - Rutas: `/catalogs`
 - `pages/catalog/CatalogPage`, `widgets/catalog/tabs`
 - Tabs:
@@ -122,15 +98,11 @@ Derivados en `app/guards/PrivateRoutes.tsx`:
   - Tipos de sangre
   - Notificaciones (sys-config)
 
-### 11. Notificaciones (todos)
+### 8. Notificaciones (todos)
 - Rutas: `/notifications`
 - `pages/notifications`, `features/notification/list`
 - Lista, no leídas, marcar leída/todas, borrar. Realtime vía Ably (`useAblyNotifications`) + toast.
 - Endpoints: `/notifications`, `/notifications/unread-count`, `/notifications/:id/read`, `/notifications/read-all`.
-
-### 12. Salidas (sin página propia)
-- Entidad `entities/salida` con CRUD completo (`/material-outputs`, `/material-outputs/batch`, `/material-outputs/suggestions`).
-- Se consume desde Reportes; no tiene ruta dedicada.
 
 ## Widgets PDF / render (`widgets/`)
 

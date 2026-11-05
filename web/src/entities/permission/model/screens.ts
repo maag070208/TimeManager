@@ -1,5 +1,4 @@
 import type { Permission, PermissionScope, UserRole } from "@entities/user";
-import { FEATURES } from "@shared/config/features";
 
 /**
  * Catálogo de pantallas de la app, en el mismo orden que el menú lateral.
@@ -24,36 +23,6 @@ export type ScreenRequirement =
 /** Claves del menú en el namespace `common` (para tipar la i18n). */
 export type NavLabelKey =
   | "nav.home"
-  | "nav.tasks"
-  | "nav.tickets"
-  | "nav.adminTasks"
-  | "nav.myTasks"
-  | "nav.inventory"
-  | "nav.inventoryOverview"
-  | "nav.devices"
-  | "nav.movements"
-  | "nav.loans"
-  | "nav.returns"
-  | "nav.reports"
-  | "nav.kitchen"
-  | "nav.kitchenOverview"
-  | "nav.kitchenItems"
-  | "nav.kitchenLots"
-  | "nav.kitchenMovements"
-  | "nav.kitchenStockIn"
-  | "nav.kitchenStockOut"
-  | "nav.kitchenLedger"
-  | "nav.kitchenCount"
-  | "nav.kitchenPurchases"
-  | "nav.kitchenRestock"
-  | "nav.kitchenPurchaseOrders"
-  | "nav.kitchenInvoices"
-  | "nav.kitchenSuppliers"
-  | "nav.kitchenCostCenters"
-  | "nav.kitchenCatalog"
-  | "nav.access"
-  | "nav.accessLog"
-  | "nav.accessReport"
   | "nav.accessTimeClock"
   | "nav.accessTimeClockReport"
   | "nav.accessTimeClockEmployees"
@@ -78,7 +47,7 @@ export type NavLabelKey =
 
 export interface AppScreen {
   readonly id: string;
-  /** Clave i18n en el namespace `common` (p. ej. `nav.tickets`). */
+  /** Clave i18n en el namespace `common` (p. ej. `nav.employees`). */
   readonly labelKey: NavLabelKey;
   /** Ruta a la que navega el ítem del menú. */
   readonly path?: string;
@@ -108,55 +77,17 @@ const ALL_SCREENS: readonly AppScreen[] = [
     match: "exact",
   },
   {
-    id: "tasks",
-    labelKey: "nav.tasks",
-    children: [
-    ],
-  },
-  {
-    id: "inventory",
-    labelKey: "nav.inventory",
-    children: [
-    ],
-  },
-  {
-    id: "kitchen",
-    labelKey: "nav.kitchen",
-    requirement: { anyOf: ["kitchen.view"] },
-    children: [
-      // Entradas, salidas/mermas y conteo se abren desde Artículos (botones), no desde el menú.
-      {
-        id: "kitchenPurchases",
-        labelKey: "nav.kitchenPurchases",
-        children: [
-        ],
-      },
-    ],
-  },
-  {
     id: "hr",
     labelKey: "nav.hr",
     children: [
       { id: "employees", labelKey: "nav.employees", path: "/employees", excludes: ["/employees/disciplinary-reports", "/employees/records"], requirement: { anyOf: ["hr.records"] }, actions: ["users.create"] },
       { id: "employeeRecords", labelKey: "nav.employeeRecords", path: "/employees/records", requirement: { anyOf: ["hr.records"] }, actions: [] },
       { id: "hrReports", labelKey: "nav.hrReports", path: "/employees/disciplinary-reports", requirement: { anyOf: ["hr.records"] }, actions: ["hr.disciplinary_reports"] },
-      // Asistencias es del RELOJ (las checadas del personal); la bitácora y el
-      // reporte de entradas/salidas son del GUARDIA (las puertas). Van en
-      // secciones aparte a propósito: con un solo título "Asistencia" no se
-      // sabía cuál era cuál.
       {
         id: "clockAttendance",
         labelKey: "nav.clockAttendance",
         children: [
           { id: "accessTimeClockReport", labelKey: "nav.accessTimeClockReport", path: "/hr/time-clock/entries-exits", requirement: { anyOf: ["time_clock.view"] }, actions: [] },
-        ],
-      },
-      {
-        id: "access",
-        labelKey: "nav.access",
-        children: [
-          { id: "accessLog", labelKey: "nav.accessLog", path: "/access", excludes: ["/access/report"], requirement: { anyOf: ["access.log"] }, actions: ["access.void"] },
-          { id: "accessReport", labelKey: "nav.accessReport", path: "/access/report", requirement: { anyOf: ["access.log"] }, actions: [] },
         ],
       },
       {
@@ -198,14 +129,8 @@ const ALL_SCREENS: readonly AppScreen[] = [
   },
 ];
 
-/**
- * Menú y resúmenes de pantallas. Un módulo apagado en `FEATURES` desaparece de
- * aquí (menú, resumen por rol y consola de roles); sus rutas también se apagan
- * en `App.tsx`.
- */
-export const APP_SCREENS: readonly AppScreen[] = FEATURES.kitchen
-  ? ALL_SCREENS
-  : ALL_SCREENS.filter((screen) => screen.id !== "kitchen");
+/** Menú y resúmenes de pantallas (menú, resumen por rol y consola de roles). */
+export const APP_SCREENS: readonly AppScreen[] = ALL_SCREENS;
 
 /** Mapa clave → alcance tal como lo entrega `/auth/me` (solo los ≠ NONE). */
 export type PermissionMap = Partial<Record<Permission, PermissionScope>>;

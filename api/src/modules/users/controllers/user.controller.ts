@@ -42,7 +42,7 @@ export class UserController {
 
   table = async (req: Request, res: Response) => {
     const params = parseTableParams(req.body);
-    const { data, total } = await this.users.table(params, req.user?.role, req.user?.departmentId);
+    const { data, total } = await this.users.table(params, req.user?.role);
     res.json(paginatedTable(params, data, total));
   };
 

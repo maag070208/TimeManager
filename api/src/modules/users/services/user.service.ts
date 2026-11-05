@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { hashPassword } from "@core/utils/security";
 import { HttpError } from "@core/middlewares/error.middleware";
-import { DEFAULT_ROLE_KEY, isRole, roleKeys } from "@core/permissions";
+import { DEFAULT_ROLE_KEY, isAdminRole, isRole, roleKeys, staffRoleKeys } from "@core/permissions";
 import { formatDateTime, systemLanguage, t } from "@core/i18n";
 import { paginatedQuery } from "@core/db/table";
 import {
@@ -82,15 +82,13 @@ export class UserService {
 
   async table(
     params: ITDataTableFetchParams,
-    callerRole?: string,
-    callerDepartmentId?: string | null
+    callerRole?: string
   ): Promise<ITDataTableResponse<any>> {
     const { filters } = params;
-    // Seguridad: un no-ADMIN solo puede consultar EMPLEADOS, y el JEFE_DE_AREA
-    // solo los de su departamento. Va en AND: los filtros solo acotan.
+    // Seguridad: fuera de los administradores solo se consulta personal con
+    // expediente (nunca cuentas de plataforma). Va en AND: los filtros solo acotan.
     const scope: Prisma.UserWhereInput[] = [];
-    if (callerRole !== "ADMIN") scope.push({ role: "EMPLOYEE" });
-    if (callerRole === "AREA_HEAD" && callerDepartmentId) scope.push({ departmentId: callerDepartmentId });
+    if (!isAdminRole(callerRole)) scope.push({ role: { in: staffRoleKeys() } });
 
     // `name` solo guarda el primer nombre: la búsqueda por nombre cubre los 4 campos.
     const nameFilter = filterText(filters, "name");

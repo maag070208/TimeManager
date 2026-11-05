@@ -130,83 +130,248 @@
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "reports.view",
+    "role": "ADMIN",
+    "permission": "roles.manage",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "reports.export",
+    "role": "ADMIN",
+    "permission": "payroll.view",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "hr.records",
+    "role": "ADMIN",
+    "permission": "payroll.review",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "hr.disciplinary_reports",
+    "role": "ADMIN",
+    "permission": "payroll.close",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "users.permissions",
-    "scope": "AREA"
-  },
-  {
-    "role": "MANAGER",
-    "permission": "catalogs.manage",
+    "role": "ADMIN",
+    "permission": "attendance.view",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "access.scan",
+    "role": "ADMIN",
+    "permission": "time_clock.write",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "access.log",
+    "role": "SUPPORT",
+    "permission": "users.view",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "access.void",
+    "role": "SUPPORT",
+    "permission": "users.edit",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
-    "permission": "access.sites",
-    "scope": "ALL"
-  },
-  {
-    "role": "MANAGER",
+    "role": "SUPPORT",
     "permission": "time_clock.view",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
+    "role": "SUPPORT",
     "permission": "time_clock.sync",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
+    "role": "SUPPORT",
+    "permission": "time_clock.link",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
+    "permission": "time_clocks.manage",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
     "permission": "schedules.view",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
+    "role": "SUPPORT",
     "permission": "overtime.view",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
+    "role": "SUPPORT",
+    "permission": "dashboard.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
+    "permission": "audit.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
+    "permission": "attendance.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
+    "permission": "access.log",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
+    "permission": "reports.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "reports.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "reports.export",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "hr.records",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "hr.disciplinary_reports",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "users.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "users.create",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "users.edit",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "users.delete",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "users.permissions",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "departments.manage",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "catalogs.manage",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "access.scan",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "access.log",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "access.void",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "access.sites",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "time_clock.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "time_clock.sync",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "time_clock.link",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "time_clocks.manage",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "schedules.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "schedules.manage",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "overtime.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
     "permission": "overtime.approve",
     "scope": "ALL"
   },
   {
-    "role": "MANAGER",
+    "role": "CLIENT_ADMIN",
     "permission": "dashboard.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "audit.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "payroll.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "payroll.review",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "payroll.close",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "attendance.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_ADMIN",
+    "permission": "time_clock.write",
     "scope": "ALL"
   },
   {
@@ -217,6 +382,21 @@
   {
     "role": "HUMAN_RESOURCES",
     "permission": "hr.disciplinary_reports",
+    "scope": "ALL"
+  },
+  {
+    "role": "HUMAN_RESOURCES",
+    "permission": "users.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "HUMAN_RESOURCES",
+    "permission": "users.create",
+    "scope": "ALL"
+  },
+  {
+    "role": "HUMAN_RESOURCES",
+    "permission": "users.edit",
     "scope": "ALL"
   },
   {
@@ -246,6 +426,11 @@
   },
   {
     "role": "HUMAN_RESOURCES",
+    "permission": "time_clock.write",
+    "scope": "ALL"
+  },
+  {
+    "role": "HUMAN_RESOURCES",
     "permission": "schedules.view",
     "scope": "ALL"
   },
@@ -260,28 +445,8 @@
     "scope": "ALL"
   },
   {
-    "role": "GUARD",
-    "permission": "access.scan",
-    "scope": "ALL"
-  },
-  {
-    "role": "ADMIN",
-    "permission": "roles.manage",
-    "scope": "ALL"
-  },
-  {
-    "role": "ADMIN",
-    "permission": "payroll.view",
-    "scope": "ALL"
-  },
-  {
     "role": "HUMAN_RESOURCES",
     "permission": "payroll.view",
-    "scope": "ALL"
-  },
-  {
-    "role": "ADMIN",
-    "permission": "payroll.review",
     "scope": "ALL"
   },
   {
@@ -290,53 +455,33 @@
     "scope": "ALL"
   },
   {
-    "role": "ADMIN",
-    "permission": "payroll.close",
-    "scope": "ALL"
-  },
-  {
     "role": "HUMAN_RESOURCES",
     "permission": "payroll.close",
     "scope": "ALL"
   },
   {
-    "role": "ADMIN",
-    "permission": "attendance.view",
-    "scope": "ALL"
-  },
-  {
-    "role": "MANAGER",
-    "permission": "attendance.view",
-    "scope": "ALL"
-  },
-  {
     "role": "HUMAN_RESOURCES",
     "permission": "attendance.view",
     "scope": "ALL"
   },
   {
-    "role": "AREA_HEAD",
-    "permission": "attendance.view",
-    "scope": "AREA"
-  },
-  {
-    "role": "EMPLOYEE",
-    "permission": "attendance.view",
-    "scope": "OWN"
-  },
-  {
-    "role": "CHEF",
-    "permission": "attendance.view",
-    "scope": "OWN"
-  },
-  {
-    "role": "ADMIN",
-    "permission": "time_clock.write",
+    "role": "HUMAN_RESOURCES",
+    "permission": "reports.view",
     "scope": "ALL"
   },
   {
     "role": "HUMAN_RESOURCES",
-    "permission": "time_clock.write",
+    "permission": "reports.export",
     "scope": "ALL"
+  },
+  {
+    "role": "HUMAN_RESOURCES",
+    "permission": "dashboard.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "CLIENT_STAFF",
+    "permission": "attendance.view",
+    "scope": "OWN"
   }
 ]
