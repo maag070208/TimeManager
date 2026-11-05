@@ -1,6 +1,7 @@
 import { PunchMethod, type TimeClock, type Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
-import { forEachActiveTenant } from "@core/tenancy";
+import { currentTenantId, forEachActiveTenant } from "@core/tenancy";
+import { assertCanAddClock } from "@core/plans";
 import { paginatedQuery } from "@core/db/table";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { encryptSecret } from "@core/utils/crypto";
@@ -305,7 +306,9 @@ export class TimeClockService {
     const previous = await this.db.timeClock.findUnique({
       where: { serialNumber: info.serialNumber },
     });
-    if (previous?.url) throw this.duplicate(previous);
+    // Mismo equipo en una dirección nueva: se re-apunta (upsert de abajo) en
+    // vez de rechazarlo como duplicado. La URL repetida sí se rechaza arriba.
+    if (!previous) await assertCanAddClock(currentTenantId());
 
     const name = input.name?.trim() || info.deviceName || info.serialNumber;
     const countsAttendance = input.countsAttendance ?? true;

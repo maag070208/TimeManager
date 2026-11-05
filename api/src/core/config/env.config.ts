@@ -11,6 +11,9 @@ for (const key of required) {
   }
 }
 
+const intOrUndefined = (value: string | undefined): number | undefined =>
+  value === undefined || value.trim() === "" ? undefined : parseInt(value, 10);
+
 export const env = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
   PORT: parseInt(process.env.PORT ?? "4001", 10),
@@ -80,4 +83,46 @@ export const env = {
   TIME_CLOCK_USER: process.env.TIME_CLOCK_USER ?? process.env.CHECADOR_USER ?? "",
   TIME_CLOCK_PASS: process.env.TIME_CLOCK_PASS ?? process.env.CHECADOR_PASS ?? "",
   TIME_CLOCK_SYNC_INTERVAL_MS: parseInt(process.env.TIME_CLOCK_SYNC_INTERVAL_MS ?? "300000", 10),
+
+  // ── Infraestructura y escala (F1B-01/02/07, F1C-03, F4-03) ───────────────
+
+  /**
+   * RLS (Postgres) como red de seguridad: cada operación de un modelo de
+   * cliente fija `app.tenant_id` en su transacción. Requiere que `DATABASE_URL`
+   * use un rol SIN BYPASSRLS (`tm_app`, ver `prisma/rls/roles.sql`). Apagado
+   * por defecto para desarrollo/E2E (el superusuario de pruebas se salta RLS).
+   */
+  RLS_ENABLED: process.env.RLS_ENABLED === "true",
+  /** Límite de conexiones del pool de Prisma (`?connection_limit=`). */
+  DATABASE_CONNECTION_LIMIT: intOrUndefined(process.env.DATABASE_CONNECTION_LIMIT),
+  /** Espera máxima por una conexión libre del pool (ms). */
+  DATABASE_POOL_TIMEOUT: intOrUndefined(process.env.DATABASE_POOL_TIMEOUT),
+  /** PgBouncer en modo transacción: Prisma desactiva prepared statements. */
+  DATABASE_PGBOUNCER: process.env.DATABASE_PGBOUNCER === "true",
+  /**
+   * URL del proceso de workers: rol con BYPASSRLS (`tm_worker`) para iterar
+   * clientes y drenar colas globales. Si falta se usa `DATABASE_URL`.
+   */
+  WORKER_DATABASE_URL: process.env.WORKER_DATABASE_URL,
+  /** Workers periódicos dentro del proceso API (solo desarrollo/local). */
+  RUN_WORKERS_IN_API: process.env.RUN_WORKERS_IN_API === "true",
+  /** Cola pg-boss (workers). Apagada en API; el entrypoint de workers la usa. */
+  QUEUE_ENABLED: process.env.QUEUE_ENABLED !== "false",
+  /** Vida del lock de líder (ms) antes de que otro worker pueda tomarlo. */
+  LEADER_LOCK_TTL_MS: parseInt(process.env.LEADER_LOCK_TTL_MS ?? "30000", 10),
+  /** Cada cuánto reintenta el lock un worker que no es líder (ms). */
+  LEADER_LOCK_RETRY_MS: parseInt(process.env.LEADER_LOCK_RETRY_MS ?? "10000", 10),
+  /** `app.set("trust proxy")`: número de saltos (Railway/load balancer) o IPs. */
+  TRUST_PROXY: process.env.TRUST_PROXY ?? "",
+  /** Límite del body JSON (p. ej. "1mb"). */
+  BODY_LIMIT: process.env.BODY_LIMIT ?? "1mb",
+  /** Token para `GET /metrics` (si falta, solo ADMIN/SUPPORT con JWT). */
+  METRICS_TOKEN: process.env.METRICS_TOKEN ?? "",
+  /** Rate limits (por ventana de 15 min salvo indique otra cosa). */
+  RATE_LIMIT_DISABLED: process.env.RATE_LIMIT_DISABLED === "true",
+  RATE_LIMIT_LOGIN_MAX: parseInt(process.env.RATE_LIMIT_LOGIN_MAX ?? "20", 10),
+  RATE_LIMIT_QUERY_MAX: parseInt(process.env.RATE_LIMIT_QUERY_MAX ?? "600", 10),
+  RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? "900000", 10),
+  /** Logs estructurados (JSON) con request-id/tenant/user cuando true. */
+  LOG_JSON: process.env.LOG_JSON ?? (process.env.NODE_ENV === "production" ? "true" : "false"),
 };

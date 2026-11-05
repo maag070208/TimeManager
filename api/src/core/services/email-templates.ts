@@ -569,6 +569,56 @@ export const rosterAlertEmail = (input: RosterAlertEmailInput): EmailContent => 
 };
 
 
+export interface WorkdayLimitEmailInput {
+  language: Language;
+  employeeName: string;
+  /** Día local `YYYY-MM-DD` (o primer día de la semana para el tope semanal). */
+  date: string;
+  workedMinutes: number;
+  limitMinutes: number;
+  scope: "day" | "week";
+}
+
+/** Aviso a RH: una persona superó el límite legal de jornada (F2-03). */
+export const workdayLimitEmail = (input: WorkdayLimitEmailInput): EmailContent => {
+  const { language: lng } = input;
+  const f = (key: keyof typeof FIELD_KEYS) => t(FIELD_KEYS[key], {}, lng);
+  const hours = (minutes: number) => (minutes / 60).toFixed(1).replace(/\.0$/, "");
+  const scope = t(input.scope === "day" ? "emails.workdayLimit.scopeDay" : "emails.workdayLimit.scopeWeek", {}, lng);
+  const body = card({
+    title: t("emails.workdayLimit.cardTitle", {}, lng),
+    content: `
+      ${paragraph(t("emails.workdayLimit.body", {
+        name: strong(input.employeeName),
+        scope: escapeHtml(scope),
+      }, lng))}
+      ${fieldTable([
+        fieldRow(f("employee"), input.employeeName, { first: true, strong: true }),
+        fieldRow(f("date"), input.date),
+        fieldRow(t("emails.workdayLimit.worked", {}, lng), `${hours(input.workedMinutes)} h`),
+        fieldRow(t("emails.workdayLimit.limit", {}, lng), `${hours(input.limitMinutes)} h`),
+      ])}
+      ${hint(t("emails.workdayLimit.hint", {}, lng), "12px 0 0 0")}
+    `,
+  });
+  return {
+    subject: t("emails.workdayLimit.subject", {
+      name: input.employeeName,
+      date: input.date,
+    }, lng),
+    html: layoutEmail({
+      language: lng,
+      title: t("emails.workdayLimit.title", {}, lng),
+      preview: t("emails.workdayLimit.preview", {
+        name: input.employeeName,
+        worked: hours(input.workedMinutes),
+        limit: hours(input.limitMinutes),
+      }, lng),
+      content: body,
+    }),
+  };
+};
+
 export interface TenantWelcomeEmailInput {
   language: Language;
   company: string;

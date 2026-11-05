@@ -57,5 +57,5 @@ Cada reloj se conecta con **su propio** usuario y contraseña, no con un par glo
 
 - **Serial del reloj**: hoy es la llave natural; en SaaS cada reloj pertenece a un cliente → `tenantId` en `TimeClock` y unicidad por tenant.
 - **Las checadas son la tabla de mayor volumen**: candidata #1 a índices por `(tenantId, userId, fecha)` y a particionado por fecha.
-- **Inmutabilidad NOM**: las correcciones no deben sobrescribir el punch; crear registro de ajuste ligado (`originalPunchId`, motivo, autor). Es el hueco principal para la NOM.
+- **Inmutabilidad NOM (F2-01, implementado)**: `time_clock_punches` es append-only por trigger de BD: el punch no se edita ni se borra; las correcciones son `PunchAdjustment` ligados (motivo, valor anterior/nuevo, solicitante y aprobador), con historial auditable en `GET /nom/punches/:id/history`. Ver [nom](nom.md). El único DELETE permitido es la purga controlada del archivado por retención (F2-04).
 - Biometría y fotos son datos sensibles: cifrado en reposo, consentimiento y paths de storage prefijados por tenant.

@@ -22,9 +22,9 @@ Flujo de aprobación/rechazo del tiempo extra calculado por `schedules`. Es deli
 ## Dependencias
 
 - `schedules`: origen de las horas extra calculadas que se aprueban aquí.
-- `audit`: las aprobaciones deben quedar en pista de auditoría (quién, cuándo, qué cambió) — requisito NOM, verificar cobertura actual.
+- `audit`: cada decisión escribe `OVERTIME_APPROVAL_DECISION` con `previousState`/`newState` (estado anterior y nuevo, minutos, nota) y `entityId` = persona + día; además del resumen del lote (`OVERTIME_APPROVAL`). Es la pista de auditoría que exige la NOM (F2-02).
 
 ## Notas multi-tenant
 
 - Bajo volumen y 100% por cliente: basta `tenantId` + índice.
-- Los límites que disparan alertas (tope diario/semanal) dependen de las reglas por tenant definidas en `schedules`.
+- Los límites que disparan alertas (tope diario/semanal) se configuran por cliente en el módulo [nom](nom.md) (F2-03), que reutiliza el cálculo de `schedules`.

@@ -3,6 +3,7 @@
 export * from "./model/types";
 export * from "./model/auth.slice";
 export * from "./model/usePermission";
+export * from "./model/useTenantDate";
 export * from "./model/usePeopleOptions";
 export * from "./model/roles-catalog";
 export { default } from "./model/auth.slice";

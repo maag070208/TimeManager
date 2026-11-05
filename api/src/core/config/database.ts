@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { env } from "@core/config/env.config";
 // Directo del archivo (no del barrel): iterate.ts importa este módulo y un
 // import circular database ↔ barrel rompería la carga.
 import { tenancyExtension } from "@core/tenancy/extension";
@@ -60,8 +61,31 @@ const firstNameOf = (user: {
   return value || user.name;
 };
 
+/**
+ * `connection_limit`/`pool_timeout` en la URL (F1B-07): Railway/PgBouncer
+ * imponen un máximo de conexiones; N réplicas × pool no debe pasar del 70%.
+ * Se respeta un valor ya presente en `DATABASE_URL`.
+ */
+const withPoolParams = (url: string): string => {
+  if (!env.DATABASE_CONNECTION_LIMIT && !env.DATABASE_POOL_TIMEOUT && !env.DATABASE_PGBOUNCER) return url;
+  const [base, query] = url.split("?");
+  const params = new URLSearchParams(query ?? "");
+  if (env.DATABASE_CONNECTION_LIMIT && !params.has("connection_limit")) {
+    params.set("connection_limit", String(env.DATABASE_CONNECTION_LIMIT));
+  }
+  if (env.DATABASE_POOL_TIMEOUT && !params.has("pool_timeout")) {
+    params.set("pool_timeout", String(env.DATABASE_POOL_TIMEOUT));
+  }
+  if (env.DATABASE_PGBOUNCER && !params.has("pgbouncer")) params.set("pgbouncer", "true");
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+};
+
 const base = new PrismaClient({
   log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+  ...(env.DATABASE_CONNECTION_LIMIT || env.DATABASE_POOL_TIMEOUT || env.DATABASE_PGBOUNCER
+    ? { datasources: { db: { url: withPoolParams(env.DATABASE_URL) } } }
+    : {}),
 });
 
 const extended = base.$extends({
@@ -84,5 +108,25 @@ const extended = base.$extends({
 } as never);
 
 export const prismaClient = (extended as unknown as PrismaClient).$extends(
-  tenancyExtension() as never
+  tenancyExtension({
+    rls: {
+      client: {
+        $transaction: (ops) => (base as unknown as { $transaction: (o: unknown[]) => Promise<unknown[]> }).$transaction(ops),
+        $executeRawUnsafe: (sql, ...values) =>
+          (base as unknown as { $executeRawUnsafe: (s: string, ...v: unknown[]) => Promise<number> }).$executeRawUnsafe(sql, ...values),
+      },
+    },
+  }) as never
 ) as unknown as PrismaClient;
+
+/**
+ * Cliente para procesos de workers/plataforma con rol BYPASSRLS
+ * (`WORKER_DATABASE_URL`). Comparte la misma extensión de tenancy (filtra por
+ * contexto) pero puede iterar clientes sin `app.tenant_id`.
+ */
+export const workerPrismaClient = env.WORKER_DATABASE_URL
+  ? ((new PrismaClient({
+      datasources: { db: { url: env.WORKER_DATABASE_URL } },
+      log: ["error"],
+    }) as unknown as { $extends: (ext: unknown) => PrismaClient }).$extends(tenancyExtension() as never) as unknown as PrismaClient)
+  : prismaClient;

@@ -16,6 +16,7 @@ export interface AuditLogInput {
 export interface ListAuditLogsParams {
   action?: string;
   entityType?: string;
+  entityId?: string;
   userId?: string;
   deviceId?: string;
   start?: string;

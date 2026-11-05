@@ -4,12 +4,12 @@ import { useTranslation } from "react-i18next";
 import { loginThunk } from "@entities/user";
 import type { AppDispatch } from "@app/store";
 import { i18n } from "@shared/i18n";
-import { tenantSlugFromHost } from "@shared/api/tenant";
+import { tenantSlugFromLocation } from "@shared/api/tenant";
 
 export const useLogin = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { t: tt } = useTranslation(["auth"]);
-  const [tenantSlug] = useState(() => tenantSlugFromHost());
+  const [tenantSlug] = useState(() => tenantSlugFromLocation());
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

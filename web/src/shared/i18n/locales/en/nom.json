@@ -1,0 +1,106 @@
+{
+  "title": "My workday",
+  "description": "Clock in and out, review your records and report discrepancies.",
+  "refresh": "Refresh",
+  "cancel": "Cancel",
+  "punch": {
+    "title": "Today's punch",
+    "hint": "Punch without a physical clock for home office or field work. The server records the time.",
+    "note": "Note (optional)",
+    "shareLocation": "Share location for this punch only",
+    "entry": "Clock in",
+    "exit": "Clock out",
+    "open": "Workday open",
+    "privacy": "Location is optional and stored only with this punch; there is no continuous tracking.",
+    "mode": "Punch mode"
+  },
+  "punches": {
+    "title": "My records",
+    "from": "From",
+    "to": "To",
+    "empty": "No records in the period.",
+    "entry": "Entry",
+    "exit": "Exit",
+    "noType": "Record",
+    "report": "Report discrepancy"
+  },
+  "sourceClock": "Clock",
+  "sourceAccess": "Access",
+  "sourceRemote": "Remote",
+  "discrepancy": {
+    "reason": "Discrepancy reason",
+    "send": "Send to HR"
+  },
+  "telework": {
+    "title": "My telework",
+    "notRegistered": "You are not registered as a teleworker. HR can register you.",
+    "mode": {
+      "REMOTO": "Telework",
+      "HIBRIDO": "Hybrid",
+      "CAMPO": "Field",
+      "PRESENCIAL": "On-site"
+    },
+    "registration": "Telework address",
+    "policyTitle": "Telework policy",
+    "disconnectTitle": "Digital disconnection",
+    "privacyTitle": "Privacy notice",
+    "noPolicy": "No text captured by the client yet.",
+    "consentPending": "You must accept the current policy and notice.",
+    "accept": "Accept",
+    "checklistTitle": "Telework workplace checklist",
+    "checklistHint": "Initial at onboarding and periodic (every 12 months). Answer every item.",
+    "lastChecklist": "Last checklist"
+  },
+  "checklist": {
+    "yes": "Yes",
+    "no": "No",
+    "submit": "Submit checklist",
+    "items": {
+      "space_adequate": "The workspace is adequate and exclusive",
+      "ergonomics": "Chair, desk and screen meet ergonomic conditions",
+      "electrical_safety": "Electrical installation is safe and risk-free",
+      "connectivity": "There is a stable internet connection",
+      "ventilation_lighting": "Sufficient ventilation and lighting",
+      "emergency_plan": "Emergency plan and contacts are known",
+      "equipment_inventory": "Assigned equipment is inventoried and in good condition",
+      "no_risk_conditions": "There are no risk conditions at the workplace"
+    },
+    "kind": {
+      "INITIAL": "Initial",
+      "PERIODIC": "Periodic"
+    }
+  },
+  "admin": {
+    "title": "Telework (NOM-037)",
+    "description": "Policy, privacy notice, teleworkers, checklists and out-of-hours communications.",
+    "policyTitle": "Policy, disconnection and privacy notice",
+    "policyHint": "Current versions: policy {{policy}}, notice {{privacy}}. Changing a text bumps its version and the worker must accept it again. Legal validation is out of scope.",
+    "savePolicy": "Save texts",
+    "registrationsTitle": "Teleworkers",
+    "person": "Person",
+    "mode": "Mode",
+    "homeAddress": "Address (optional)",
+    "register": "Register",
+    "emptyRegistrations": "No teleworkers registered yet.",
+    "status": {
+      "ACTIVE": "Active",
+      "ENDED": "Ended"
+    },
+    "consentOk": "Consent accepted",
+    "consentPending": "Consent pending",
+    "end": "End",
+    "checklistsTitle": "Workplace checklists",
+    "emptyChecklists": "No checklists received.",
+    "contactsTitle": "Out-of-hours communications",
+    "contactsHint": "Log the contact and the worker gets an in-app notice (right to disconnect).",
+    "channel": "Channel",
+    "reason": "Reason",
+    "registerContact": "Log contact",
+    "channels": {
+      "CALL": "Call",
+      "MESSAGE": "Message",
+      "EMAIL": "Email",
+      "OTHER": "Other"
+    }
+  }
+}

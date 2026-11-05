@@ -1,10 +1,11 @@
 import { randomBytes } from "node:crypto";
-import { Prisma, type PrismaClient, type Tenant } from "@prisma/client";
+import { Prisma, type Plan, type PrismaClient, type Tenant } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { hashPassword } from "@core/utils/security";
 import { DEFAULT_TIMEZONE } from "@core/utils/timezone";
-import { forgetTenantBrand, runWithTenant, seedTenantTemplateCatalogs } from "@core/tenancy";
+import { forgetTenantBrand, runWithTenant, seedTenantTemplateCatalogs, tenantTransaction } from "@core/tenancy";
+import { assertPeopleCapacity, limitsOf, tenantUsage, type TenantUsage } from "@core/plans";
 import { webLoginUrl } from "@core/config/web-url";
 import { systemLanguage } from "@core/i18n";
 import { enqueueEmail } from "@core/services/email-queue";
@@ -24,17 +25,31 @@ interface Actor {
   username: string;
 }
 
-const toView = (t: Tenant, activeUsers: number): TenantView => ({
+type TenantWithPlan = Tenant & { plan: Plan | null };
+
+const toView = (t: TenantWithPlan, usage: TenantUsage): TenantView => ({
   id: t.id,
   name: t.name,
   slug: t.slug,
   status: t.status,
   timezone: t.timezone,
-  plan: t.plan,
+  planId: t.planId,
+  plan: t.plan
+    ? {
+        id: t.plan.id,
+        key: t.plan.key,
+        name: t.plan.name,
+        employeeLimit: t.plan.employeeLimit,
+        clockLimit: t.plan.clockLimit,
+        monthlyPrice: t.plan.monthlyPrice?.toFixed(2) ?? null,
+        active: t.plan.active,
+      }
+    : null,
   employeeLimit: t.employeeLimit,
+  limits: limitsOf(t),
   createdAt: t.createdAt.toISOString(),
   updatedAt: t.updatedAt.toISOString(),
-  usage: { activeUsers },
+  usage,
 });
 
 /** Contraseña provisional legible (sin caracteres ambiguos); se cambia al entrar. */
@@ -56,26 +71,42 @@ export class TenantService {
 
   list(): Promise<TenantView[]> {
     return runWithTenant(null, async () => {
-      const [tenants, counts] = await Promise.all([
-        this.db.tenant.findMany({ orderBy: { name: "asc" } }),
+      const [tenants, userCounts, clockCounts] = await Promise.all([
+        this.db.tenant.findMany({ include: { plan: true }, orderBy: { name: "asc" } }),
         this.db.user.groupBy({
           by: ["tenantId"],
           where: { active: true, tenantId: { not: null } },
           _count: { _all: true },
         }),
+        this.db.timeClock.groupBy({
+          by: ["tenantId"],
+          where: { url: { not: null } },
+          _count: { _all: true },
+        }),
       ]);
-      const byTenant = new Map(counts.map((c) => [c.tenantId, c._count._all]));
-      return tenants.map((t) => toView(t, byTenant.get(t.id) ?? 0));
+      const activeUsers = new Map(userCounts.map((c) => [c.tenantId, c._count._all]));
+      const clocks = new Map(clockCounts.map((c) => [c.tenantId, c._count._all]));
+      return tenants.map((t) =>
+        toView(t, { activeUsers: activeUsers.get(t.id) ?? 0, clocks: clocks.get(t.id) ?? 0 })
+      );
     }, true);
   }
 
   getById(id: string): Promise<TenantView> {
     return runWithTenant(null, async () => {
-      const tenant = await this.db.tenant.findUnique({ where: { id } });
+      const tenant = await this.db.tenant.findUnique({ where: { id }, include: { plan: true } });
       if (!tenant) throw new HttpError(404, "TENANT_NOT_FOUND");
-      const activeUsers = await this.db.user.count({ where: { tenantId: id, active: true } });
-      return toView(tenant, activeUsers);
+      return toView(tenant, await tenantUsage(id, this.db));
     }, true);
+  }
+
+  /** Resuelve el plan a contratar; un plan dado de baja no se asigna. */
+  private async planOf(planId: string | null | undefined): Promise<Plan | null> {
+    if (!planId) return null;
+    const plan = await this.db.plan.findUnique({ where: { id: planId } });
+    if (!plan) throw new HttpError(404, "PLAN_NOT_FOUND");
+    if (!plan.active) throw new HttpError(409, "PLAN_INACTIVE", { key: plan.key });
+    return plan;
   }
 
   /** Alta de cliente: tenant + su CLIENT_ADMIN (contraseña provisional) + catálogos plantilla. */
@@ -84,14 +115,19 @@ export class TenantService {
     const password = await hashPassword(input.admin.password ?? generated!);
 
     const { tenant, admin } = await runWithTenant(null, async () => {
+      const plan = await this.planOf(input.planId);
+      assertPeopleCapacity(
+        limitsOf({ employeeLimit: input.employeeLimit ?? null, plan }).people,
+        0
+      );
       try {
-        return await this.db.$transaction(async (tx) => {
+        return await tenantTransaction(this.db, async (tx) => {
           const tenant = await tx.tenant.create({
             data: {
               name: input.name,
               slug: input.slug,
               timezone: input.timezone ?? DEFAULT_TIMEZONE,
-              plan: input.plan ?? null,
+              planId: plan?.id ?? null,
               employeeLimit: input.employeeLimit ?? null,
             },
           });
@@ -114,7 +150,13 @@ export class TenantService {
               entityId: tenant.id,
               userId: actor.id,
               userName: actor.username,
-              newState: { name: tenant.name, slug: tenant.slug, status: tenant.status, adminId: admin.id },
+              newState: {
+                name: tenant.name,
+                slug: tenant.slug,
+                status: tenant.status,
+                planId: tenant.planId,
+                adminId: admin.id,
+              },
             },
             tx
           );
@@ -128,10 +170,14 @@ export class TenantService {
       }
     }, true);
 
+    const created = await this.db.tenant.findUniqueOrThrow({
+      where: { id: tenant.id },
+      include: { plan: true },
+    });
     const catalogs = await seedTenantTemplateCatalogs(tenant.id, this.db);
     const welcomeSent = await this.sendWelcome(tenant, input, generated);
     return {
-      tenant: toView(tenant, 1),
+      tenant: toView(created, { activeUsers: 1, clocks: 0 }),
       admin,
       welcomeEmail: welcomeSent ? input.admin.email! : null,
       ...(generated ? { temporaryPassword: generated } : {}),
@@ -162,17 +208,20 @@ export class TenantService {
 
   async update(id: string, input: TenantUpdateInput, actor: Actor): Promise<TenantView> {
     return runWithTenant(null, async () => {
-      const previous = await this.db.tenant.findUnique({ where: { id } });
+      const previous = await this.db.tenant.findUnique({ where: { id }, include: { plan: true } });
       if (!previous) throw new HttpError(404, "TENANT_NOT_FOUND");
+
+      const plan = input.planId !== undefined ? await this.planOf(input.planId) : undefined;
       const updated = await this.db.tenant.update({
         where: { id },
         data: {
           name: input.name,
           status: input.status,
           timezone: input.timezone,
-          plan: input.plan,
           employeeLimit: input.employeeLimit,
+          ...(plan !== undefined ? { planId: plan?.id ?? null } : {}),
         },
+        include: { plan: true },
       });
       forgetTenantBrand(id);
       await this.audit?.({
@@ -187,19 +236,18 @@ export class TenantService {
           name: previous.name,
           status: previous.status,
           timezone: previous.timezone,
-          plan: previous.plan,
+          planId: previous.planId,
           employeeLimit: previous.employeeLimit,
         },
         newState: {
           name: updated.name,
           status: updated.status,
           timezone: updated.timezone,
-          plan: updated.plan,
+          planId: updated.planId,
           employeeLimit: updated.employeeLimit,
         },
       });
-      const activeUsers = await this.db.user.count({ where: { tenantId: id, active: true } });
-      return toView(updated, activeUsers);
+      return toView(updated, await tenantUsage(id, this.db));
     }, true);
   }
 }

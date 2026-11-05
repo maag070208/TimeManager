@@ -1,5 +1,5 @@
 import { ITButton, ITCard, ITFlex, ITText } from "@axzydev/axzy_ui_system";
-import { FaFileExcel, FaUpload } from "react-icons/fa";
+import { FaDownload, FaFileExcel, FaUpload } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { UseUserImport } from "../model/useUserImport";
 
@@ -30,6 +30,20 @@ export default function ImportPanel({ fx }: Props) {
               <ITFlex align="center" gap={1}>
                 <FaFileExcel size={12} />
                 <ITText className="text-[11px] font-bold">{tt("import.browse")}</ITText>
+              </ITFlex>
+            </ITButton>
+            <ITButton
+              variant="text"
+              color="primary"
+              size="sm"
+              disabled={fx.downloadingTemplate}
+              onClick={() => void fx.handleDownloadTemplate()}
+            >
+              <ITFlex align="center" gap={1}>
+                <FaDownload size={11} />
+                <ITText className="text-[11px] font-bold">
+                  {fx.downloadingTemplate ? tt("import.downloading") : tt("import.download")}
+                </ITText>
               </ITFlex>
             </ITButton>
             <ITText className="text-[11px] font-bold text-slate-500">

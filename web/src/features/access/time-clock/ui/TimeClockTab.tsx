@@ -68,6 +68,9 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
     setError,
     toast,
     setToast,
+    todayKey: clientTodayKey,
+    yesterdayKey: clientYesterdayKey,
+    tenantToday,
   } = fx;
 
   const [from, to] = dateRange;
@@ -91,7 +94,7 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
         type: "date",
         width: 190,
         filter: "date-range",
-        dateFilterOptions: { maxDate: new Date() },
+        dateFilterOptions: { maxDate: tenantToday },
         sortable: false,
         render: (c) => (
           <ITText className="text-[11px] font-bold text-slate-700 whitespace-nowrap">
@@ -161,7 +164,7 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
         ),
       },
     ],
-    [t, singleDay, status?.devices, fx.employeeOptions]
+    [t, singleDay, status?.devices, fx.employeeOptions, tenantToday]
   );
 
   /** "Hoy, miércoles 07 oct" para un día; "01 oct – 07 oct" para un rango. */
@@ -171,16 +174,13 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
       formatDate(d, { weekday: "long", day: "2-digit", month: "short" }).replace(",", "");
     const corto = (d: Date): string => formatDate(d, { day: "2-digit", month: "short" });
     if (!to || dayKey(from) === dayKey(to)) {
-      const hoy = new Date();
-      const ayer = new Date(hoy);
-      ayer.setDate(ayer.getDate() - 1);
       const key = dayKey(from);
-      if (key === dayKey(hoy)) return `${t("table.today")}, ${largo(from)}`;
-      if (key === dayKey(ayer)) return `${t("table.yesterday")}, ${largo(from)}`;
+      if (key === clientTodayKey) return `${t("table.today")}, ${largo(from)}`;
+      if (key === clientYesterdayKey) return `${t("table.yesterday")}, ${largo(from)}`;
       return largo(from);
     }
     return t("table.range", { from: corto(from), to: corto(to) });
-  }, [from, to, t]);
+  }, [from, to, t, clientTodayKey, clientYesterdayKey]);
 
   const tableTitle =
     tableTotal == null ? rangeLabel : `${rangeLabel} · ${t("table.punches", { count: tableTotal })}`;

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { planApi, type Plan } from "@entities/plan";
 import { tenantApi, type TenantCreated } from "@entities/tenant";
 import { isValidSlug, MX_TIMEZONES, slugify } from "./slug";
 
@@ -6,7 +7,7 @@ interface Form {
   name: string;
   slug: string;
   timezone: string;
-  plan: string;
+  planId: string;
   employeeLimit: string;
   adminName: string;
   adminUsername: string;
@@ -17,7 +18,7 @@ const EMPTY: Form = {
   name: "",
   slug: "",
   timezone: MX_TIMEZONES[0],
-  plan: "",
+  planId: "",
   employeeLimit: "",
   adminName: "",
   adminUsername: "admin",
@@ -34,6 +35,18 @@ export const useCreateTenant = (onCreated: () => void) => {
   const [saving, setSaving] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [created, setCreated] = useState<TenantCreated | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    planApi
+      .list()
+      .then((rows) => alive && setPlans(rows))
+      .catch(() => alive && setPlans([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const set = (key: keyof Form, value: string) =>
     setForm((f) => {
@@ -69,7 +82,7 @@ export const useCreateTenant = (onCreated: () => void) => {
         name: form.name.trim(),
         slug: form.slug,
         timezone: form.timezone,
-        plan: form.plan.trim() || null,
+        planId: form.planId || null,
         employeeLimit: form.employeeLimit ? Number.parseInt(form.employeeLimit, 10) : null,
         admin: {
           name: form.adminName.trim(),
@@ -94,5 +107,5 @@ export const useCreateTenant = (onCreated: () => void) => {
     setCreated(null);
   };
 
-  return { form, set, setSlug, errors, saving, apiError, created, submit, reset };
+  return { form, set, setSlug, errors, saving, apiError, created, plans, submit, reset };
 };

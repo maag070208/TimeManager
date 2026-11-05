@@ -23,6 +23,8 @@ export type ScreenRequirement =
 /** Claves del menú en el namespace `common` (para tipar la i18n). */
 export type NavLabelKey =
   | "nav.home"
+  | "nav.myWorkday"
+  | "nav.telework"
   | "nav.accessTimeClock"
   | "nav.accessTimeClockReport"
   | "nav.accessTimeClockEmployees"
@@ -42,7 +44,8 @@ export type NavLabelKey =
   | "nav.users"
   | "nav.clocks"
   | "nav.payroll"
-  | "nav.roles";
+  | "nav.roles"
+  | "nav.plans";
 
 export interface AppScreen {
   readonly id: string;
@@ -77,12 +80,20 @@ const ALL_SCREENS: readonly AppScreen[] = [
     match: "exact",
   },
   {
+    // Portal del trabajador: visible para cualquier sesión (marcar, marcajes,
+    // teletrabajo propio). No requiere permisos administrativos.
+    id: "myWorkday",
+    labelKey: "nav.myWorkday",
+    path: "/mi-jornada",
+  },
+  {
     id: "hr",
     labelKey: "nav.hr",
     children: [
       { id: "employees", labelKey: "nav.employees", path: "/employees", excludes: ["/employees/disciplinary-reports", "/employees/records"], requirement: { anyOf: ["hr.records", "users.view"] }, actions: ["users.create", "users.edit", "users.delete"] },
       { id: "employeeRecords", labelKey: "nav.employeeRecords", path: "/employees/records", requirement: { anyOf: ["hr.records"] }, actions: [] },
       { id: "hrReports", labelKey: "nav.hrReports", path: "/employees/disciplinary-reports", requirement: { anyOf: ["hr.records"] }, actions: ["hr.disciplinary_reports"] },
+      { id: "telework", labelKey: "nav.telework", path: "/teletrabajo", requirement: { anyOf: ["time_clock.view"] } },
       {
         id: "clockAttendance",
         labelKey: "nav.clockAttendance",
@@ -115,6 +126,7 @@ const ALL_SCREENS: readonly AppScreen[] = [
         ],
       },
       { id: "roles", labelKey: "nav.roles", path: "/roles", requirement: { anyOf: ["roles.manage"] } },
+      { id: "plans", labelKey: "nav.plans", path: "/plans", requirement: { anyOf: ["plans.view"] }, actions: ["plans.manage"] },
     ],
   },
 ];

@@ -6,8 +6,8 @@ import ToastProvider from "@app/toast/ToastProvider";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { HashRouter } from "react-router-dom";
 import App from "./App";
+import TenantHashRouter from "./TenantHashRouter";
 import "@app/index.css";
 
 if (!localStorage.getItem("it-theme-dark-mode")) {
@@ -44,9 +44,9 @@ createRoot(document.getElementById("root")!).render(
     <Provider store={store}>
       <ITThemeProvider theme={customTheme} showFab={false} density={0.80} appearance="bento">
         <ToastProvider>
-          <HashRouter>
+          <TenantHashRouter>
             <App />
-          </HashRouter>
+          </TenantHashRouter>
         </ToastProvider>
       </ITThemeProvider>
     </Provider>

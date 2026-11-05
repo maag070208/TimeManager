@@ -17,7 +17,9 @@
     "test:unit": "node --require ts-node/register/transpile-only --require tsconfig-paths/register --test \"src/**/*.test.ts\"",
     "db:test:up": "bash scripts/integration-db.sh",
     "test:integration": "bash scripts/test-integration.sh",
-    "tenancy-check": "ts-node -r tsconfig-paths/register scripts/tenancy-check.ts"
+    "tenancy-check": "ts-node -r tsconfig-paths/register scripts/tenancy-check.ts",
+    "workers": "ts-node -r tsconfig-paths/register src/workers/index.ts",
+    "workers:prod": "node dist/src/workers/index.js"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
@@ -40,7 +42,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.3.0",
     "nodemailer": "^10.0.10",
-    "pg-boss": "^12.38.0",
+    "pg-boss": "9.0.3",
     "prom-client": "^15.1.3",
     "resend": "^4.5.1",
     "swagger-ui-express": "^5.0.1",
@@ -50,6 +52,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.5",

@@ -14,6 +14,8 @@ import {
 } from "@entities/schedule";
 import { applyClientTableParams } from "@shared/api/clientTable";
 import { fileName } from "@shared/i18n";
+import { dateAtNoonFromKey } from "@shared/utils/dates";
+import { useTenantTodayKey } from "@entities/user";
 import { useDepartmentOptions } from "@entities/department";
 import { useWeekStartDay } from "@entities/sys-config";
 import { useDebouncedValue } from "@shared/lib/useDebouncedValue";
@@ -36,7 +38,11 @@ const shiftDays = (date: Date, days: number) => {
  */
 export const useWeeklyAttendance = ({ downloadPdf }: { downloadPdf: DownloadWeeklyAttendancePdf }) => {
   const { t } = useTranslation(["weekly-attendance", "common"]);
-  const [weekDate, setWeekDate] = useState(() => new Date());
+  // Semana por defecto: la que contiene el HOY del cliente (zona del tenant),
+  // no la del navegador.
+  const tenantTodayKey = useTenantTodayKey();
+  const tenantToday = useMemo(() => dateAtNoonFromKey(tenantTodayKey), [tenantTodayKey]);
+  const [weekDate, setWeekDate] = useState(() => dateAtNoonFromKey(tenantTodayKey));
   const [departmentId, setDepartmentId] = useState("");
   const [search, setSearch] = useState("");
   const q = useDebouncedValue(search.trim(), 350);
@@ -159,7 +165,7 @@ export const useWeeklyAttendance = ({ downloadPdf }: { downloadPdf: DownloadWeek
     rangeValue,
     previousWeek: () => setWeekDate((d) => shiftDays(d, -7)),
     nextWeek: () => setWeekDate((d) => shiftDays(d, 7)),
-    thisWeek: () => setWeekDate(new Date()),
+    thisWeek: () => setWeekDate(new Date(tenantToday)),
     departmentId,
     setDepartmentId,
     departments,

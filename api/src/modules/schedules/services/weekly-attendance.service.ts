@@ -1,6 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { staffRoleKeys } from "@core/permissions";
+import { currentTenantId } from "@core/tenancy";
+import { TABLE_MAX_LIMIT } from "@core/utils/table";
 import {
   assertDateKey,
   localDateKey,
@@ -73,7 +75,22 @@ export class WeeklyAttendanceService {
     private readonly sysConfig?: SysConfigReader
   ) {}
 
+  /** Caché corta por tenant (el dashboard pide el mismo reporte 2 veces). */
+  private readonly cache = new Map<string, { at: number; report: WeeklyAttendanceReport }>();
+
   async report(params: WeeklyAttendanceParams): Promise<WeeklyAttendanceReport> {
+    const cacheKey = `${currentTenantId() ?? "platform"}|${params.date}|${params.departmentId ?? ""}|${params.q ?? ""}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.at < 30_000) return cached.report;
+    const report = await this.computeReport(params);
+    this.cache.set(cacheKey, { at: Date.now(), report });
+    if (this.cache.size > 200) {
+      for (const [key, entry] of this.cache) if (Date.now() - entry.at >= 30_000) this.cache.delete(key);
+    }
+    return report;
+  }
+
+  private async computeReport(params: WeeklyAttendanceParams): Promise<WeeklyAttendanceReport> {
     const dateKey = assertDateKey(params.date, "INVALID_REPORT_DATE");
     const timezone = await resolveTimezoneWithConfig(undefined, this.sysConfig);
     const weekStart = await resolveWeekStartWithConfig(this.sysConfig);
@@ -83,10 +100,12 @@ export class WeeklyAttendanceService {
     const today = localDateKey(new Date(), timezone);
 
     // Sesiones del reloj de la semana (una fila por sesión), por persona y día.
+    // `reportExport` ya trae el periodo completo (el cálculo no pagina): se pide
+    // el tope de tabla, no un `limit: 100000` decorativo (F1C-05).
     const sessions = (
       await this.timeClockReport.reportExport({
         page: 1,
-        limit: 100000,
+        limit: TABLE_MAX_LIMIT,
         filters: {
           period: "WEEK",
           date: dateKey,

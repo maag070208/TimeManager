@@ -13,6 +13,7 @@ import {
 import { FaLock, FaPlus } from "react-icons/fa";
 import type { TimeClockDevice } from "@entities/time-clock";
 import type { UseTimeClocks } from "../model/useTimeClocks";
+import AgentJobsPanel from "./AgentJobsPanel";
 import ClockCard from "./ClockCard";
 import ClockDetail from "./ClockDetail";
 
@@ -140,6 +141,8 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
               ))}
             </div>
           )}
+
+          {clocks.length > 0 && <AgentJobsPanel clocks={clocks} />}
         </>
       )}
 

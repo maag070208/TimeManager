@@ -26,7 +26,8 @@
       "people": "Personas",
       "plan": "Plan",
       "since": "Alta",
-      "actions": "Acciones"
+      "actions": "Acciones",
+      "clocks": "Relojes"
     },
     "status": {
       "active": "Activo",
@@ -35,7 +36,9 @@
     "actions": {
       "enter": "Entrar",
       "suspend": "Suspender",
-      "reactivate": "Reactivar"
+      "reactivate": "Reactivar",
+      "plan": "Plan",
+      "agent": "Agente"
     },
     "confirm": {
       "suspendTitle": "¿Suspender a {{name}}?",
@@ -57,8 +60,8 @@
       "slug": "Subdominio",
       "slugHint": "Su personal entrará por {{host}}",
       "timezone": "Zona horaria",
-      "employeeLimit": "Límite de personas (opcional)",
-      "plan": "Plan (opcional)",
+      "employeeLimit": "Límite de personas (override opcional)",
+      "plan": "Plan",
       "admin": "Administrador del cliente",
       "adminName": "Nombre",
       "adminUsername": "Usuario",
@@ -85,7 +88,49 @@
         "close": "Listo",
         "emailed": "También le enviamos estos datos a {{email}}.",
         "notEmailed": "No tiene correo: compártele estos datos tú."
-      }
+      },
+      "planNone": "Sin plan (sin límites)"
+    },
+    "plan": {
+      "title": "Plan de {{name}}",
+      "subtitle": "El plan define cuántas personas y relojes incluye el cliente.",
+      "select": "Plan contratado",
+      "none": "Sin plan",
+      "usage": "Uso actual",
+      "people": "{{usage}} de {{limit}} personas",
+      "clocks": "{{usage}} de {{limit}} relojes",
+      "unlimited": "Sin límite",
+      "overLimit": "El uso actual supera el límite del plan: no se puede dar de alta más hasta liberar lugar o cambiar de plan.",
+      "save": "Guardar plan",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "empty": "No hay planes activos: créalos en la consola de planes.",
+      "limitSummary": "{{people}} personas · {{clocks}} relojes"
+    },
+    "agents": {
+      "title": "Agente local · {{name}}",
+      "subtitle": "Credencial de dispositivo para TimeManagerAgent, la app que sincroniza los relojes desde la red del cliente.",
+      "nameLabel": "Nombre del equipo",
+      "namePlaceholder": "PC recepción",
+      "create": "Crear agente",
+      "creating": "Creando…",
+      "loading": "Cargando agentes…",
+      "empty": "Este cliente todavía no tiene agentes.",
+      "tokenOnce": "Token nuevo (se muestra una sola vez; cópialo ahora):",
+      "tokenHint": "Pégalo en TimeManagerAgent → Conexión con el API. En la base solo queda su hash; si se pierde, hay que rotarlo.",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "active": "Activo",
+      "revoked": "Revocado",
+      "version": "Versión",
+      "lastSeen": "Último contacto",
+      "rotate": "Rotar token",
+      "revoke": "Revocar",
+      "reactivate": "Reactivar",
+      "created": "Agente creado. Guarda el token: no se vuelve a mostrar.",
+      "rotated": "Token rotado: el anterior ya no funciona.",
+      "revokedToast": "Agente revocado: su token deja de servir.",
+      "reactivatedToast": "Agente reactivado."
     }
   },
   "client": {

@@ -3,7 +3,8 @@ import { verifyToken, isRefreshToken, type JwtPayload } from "@core/utils/securi
 import { HttpError } from "./error.middleware";
 import { prismaClient } from "@core/config/database";
 import { scopeOf, isPermission } from "@core/permissions";
-import { runWithTenant } from "@core/tenancy";
+import { runWithRlsBypass, runWithTenant } from "@core/tenancy";
+import { setRequestPrincipal } from "@core/observability/request-context";
 import { logger } from "@core/utils/logger";
 
 declare global {
@@ -49,7 +50,9 @@ export const authenticate = (
   }
 
   void (async () => {
-    const user = await prismaClient.user.findUnique({
+    // Pre-contexto: el usuario se revalida antes de saber el cliente.
+    const user = await runWithRlsBypass(() =>
+      prismaClient.user.findUnique({
       where: { id: payload.id },
       select: {
         id: true,
@@ -59,12 +62,13 @@ export const authenticate = (
         departmentId: true,
         tenant: { select: { id: true, status: true } },
         extraRoles: { select: { role: true } },
-        permissionGrants: {
-          where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
-          select: { permission: true, scope: true, expiresAt: true },
+          permissionGrants: {
+            where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
+            select: { permission: true, scope: true, expiresAt: true },
+          },
         },
-      },
-    });
+      })
+    );
     if (!user || !user.active) {
       next(new HttpError(401, "INVALID_SESSION"));
       return;
@@ -118,6 +122,8 @@ export const authenticate = (
       }
       tenantId = target.id;
     }
+    // Correlación de logs/métricas: quién y qué cliente atiende la petición.
+    setRequestPrincipal({ userId: user.id, tenantId });
     // Todo lo que sigue corre dentro del contexto elegido: la extensión de
     // Prisma filtra/inyecta tenantId solo en este ámbito.
     runWithTenant(tenantId, () => next(), platform).catch((err) => next(err));
@@ -137,9 +143,29 @@ const warnedPermissions = new Set<string>();
 /**
  * Auditoría de intentos denegados (checklist de la guía). Se escribe en
  * segundo plano: un fallo al registrar nunca cambia la respuesta (que ya es 403).
+ *
+ * F1C-03: sin freno, un cliente en bucle escribiría un `audit_log` por cada
+ * 403. Se registra como máximo uno por usuario+permiso+ruta cada ventana
+ * (`AUDIT_DENY_WINDOW_MS`, 60 s) y el mapa se poda solo.
  */
+const DENY_AUDIT_WINDOW_MS = 60_000;
+const MAX_DENY_TRACKED = 5_000;
+const recentDenials = new Map<string, number>();
+
 const recordDeniedAccess = (req: Request, permission: string): void => {
   const user = req.user;
+  const route = `${req.method} ${req.baseUrl}${req.route?.path ?? req.path}`;
+  const key = `${user?.id ?? "anon"}:${permission}:${route}`;
+  const now = Date.now();
+  const last = recentDenials.get(key);
+  if (last !== undefined && now - last < DENY_AUDIT_WINDOW_MS) return;
+  if (recentDenials.size >= MAX_DENY_TRACKED) {
+    for (const [tracked, at] of recentDenials) {
+      if (now - at >= DENY_AUDIT_WINDOW_MS) recentDenials.delete(tracked);
+    }
+    if (recentDenials.size >= MAX_DENY_TRACKED) recentDenials.clear();
+  }
+  recentDenials.set(key, now);
   void prismaClient.auditLog
     .create({
       data: {
@@ -148,7 +174,7 @@ const recordDeniedAccess = (req: Request, permission: string): void => {
         entityId: permission,
         userId: user?.id ?? null,
         userName: user?.username ?? null,
-        metadata: { path: req.originalUrl, method: req.method },
+        metadata: { path: req.originalUrl, method: req.method, route },
       },
     })
     .catch(() => undefined);

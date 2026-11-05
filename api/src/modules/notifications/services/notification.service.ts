@@ -3,10 +3,11 @@ import { env } from "@core/config/env.config";
 import { broadcastToUser } from "@core/services/ably";
 import { systemLanguage, t } from "@core/i18n";
 import { enqueueEmail } from "@core/services/email-queue";
-import { rosterAlertEmail } from "@core/services/email-templates";
+import { rosterAlertEmail, workdayLimitEmail } from "@core/services/email-templates";
 import { createNotificationTokenRequest } from "./ably-token.service";
 import type {
   CreateNotificationInput,
+  NotifyWorkdayLimitInput,
   NotifyDocumentUploadedInput,
   NotifyRecipientSummary,
   NotifyRosterAlertInput,
@@ -200,6 +201,49 @@ export class NotificationService implements NotificationPort {
         html,
         action: "time_clock.roster",
         entityType: "TimeClockRosterRun",
+      });
+    }
+    return { count: recipients.length, recipientIds: recipients.map((r) => r.id) };
+  }
+
+  /**
+   * Aviso a RH de límite de jornada excedido (F2-03): campanita + correo por
+   * la cola. Se ejecuta dentro del tenant del empleado (el worker lo hace con
+   * `runWithTenant`), así que los destinatarios son los ADMIN/HR de ese cliente.
+   */
+  async notifyWorkdayLimit(input: NotifyWorkdayLimitInput): Promise<NotifyRecipientSummary> {
+    const recipients = await this.resolveAdminHrRecipients("");
+    if (recipients.length === 0) return { count: 0, recipientIds: [] };
+
+    const lng = await systemLanguage();
+    const hours = (minutes: number) => (minutes / 60).toFixed(1).replace(/\.0$/, "");
+    const vars = {
+      name: input.employeeName,
+      date: input.date,
+      worked: hours(input.workedMinutes),
+      limit: hours(input.limitMinutes),
+      scope: t(input.scope === "day" ? "emails.workdayLimit.scopeDay" : "emails.workdayLimit.scopeWeek", {}, lng),
+    };
+    const title = t("notifications.workdayLimit", vars, lng);
+    const detail = t("notifications.workdayLimitDetail", vars, lng);
+
+    await this.createManyNotifications(
+      recipients.map((r) => ({ userId: r.id, type: "WORKDAY_LIMIT", title, detail }))
+    );
+    for (const r of recipients) {
+      broadcastToUser(r.id, {
+        type: "WORKDAY_LIMIT",
+        title,
+        detail,
+        createdAt: new Date().toISOString(),
+      }).catch(() => {});
+      const { subject, html } = workdayLimitEmail({ language: lng, ...input });
+      void enqueueEmail({
+        to: r.email,
+        subject,
+        html,
+        action: "nom.workday_limit",
+        entityType: "WorkdayLimitAlert",
       });
     }
     return { count: recipients.length, recipientIds: recipients.map((r) => r.id) };

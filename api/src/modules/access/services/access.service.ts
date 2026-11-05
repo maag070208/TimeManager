@@ -9,6 +9,7 @@ import { prismaClient } from "@core/config/database";
 import { signedPhotoPath } from "@core/utils/security";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import { tenantTransaction } from "@core/tenancy";
 import {
   ci,
   filterDateRange,
@@ -211,7 +212,7 @@ export class AccessService {
     }
 
     try {
-      const event = await this.db.$transaction(async (tx) => {
+      const event = await tenantTransaction(this.db, async (tx) => {
         const created = await tx.accessEvent.create({
           data: {
             type: input.type,
@@ -419,7 +420,7 @@ export class AccessService {
       return { event: full as unknown as Record<string, unknown>, alreadyVoided: true };
     }
 
-    const updated = await this.db.$transaction(async (tx) => {
+    const updated = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.accessEvent.update({
         where: { id },
         data: { voidedAt: new Date(), voidedById: actor.id, voidReason: reason },
@@ -474,7 +475,7 @@ export class AccessService {
   }
 
   async createSite(input: SiteCreateInput, actor: AccessActor) {
-    const site = await this.db.$transaction(async (tx) => {
+    const site = await tenantTransaction(this.db, async (tx) => {
       const created = await tx.site.create({
         data: {
           name: input.name,
@@ -510,7 +511,7 @@ export class AccessService {
     const previous = await this.db.site.findUnique({ where: { id } });
     if (!previous) throw new HttpError(404, "SITE_NOT_FOUND");
 
-    const updated = await this.db.$transaction(async (tx) => {
+    const updated = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.site.update({
         where: { id },
         data: {

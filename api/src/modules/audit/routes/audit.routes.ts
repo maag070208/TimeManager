@@ -19,6 +19,7 @@ export const createAuditRouter = (controller: AuditController): Router => {
     parameters: [
       { in: "query", name: "action", required: false, schema: { type: "string" } },
       { in: "query", name: "entityType", required: false, schema: { type: "string" } },
+      { in: "query", name: "entityId", required: false, schema: { type: "string" } },
       { in: "query", name: "userId", required: false, schema: { type: "string" } },
       { in: "query", name: "deviceId", required: false, schema: { type: "string" } },
       { in: "query", name: "start", required: false, schema: { type: "string", format: "date" } },

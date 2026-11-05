@@ -80,9 +80,9 @@ test.describe("pre nómina (acme.admin)", () => {
     expect((await initialReport).ok()).toBe(true);
 
     await expect(page.getByText(/^Semana \d+ – \d+/).first()).toBeVisible();
-    await expect(page.getByText("Personas con checadas")).toBeVisible();
-    await expect(page.getByText("Horas trabajadas")).toBeVisible();
-    await expect(page.getByText("Faltas sin justificar")).toBeVisible();
+    await expect(page.getByText("Personas con checadas", { exact: true })).toBeVisible();
+    await expect(page.getByText("Horas trabajadas", { exact: true })).toBeVisible();
+    await expect(page.getByText("Faltas sin justificar", { exact: true })).toBeVisible();
     // Departamentos sembrados, sin horas en la semana.
     const table = page.getByRole("table", { name: "Departamento" });
     await expect(table).toBeVisible();

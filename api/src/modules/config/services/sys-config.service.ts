@@ -7,6 +7,7 @@ import type { AuditLogger } from "@modules/users/services/user.service";
 import { assertSysConfigKey } from "../models/dto/sys-config.dto";
 import type { SysConfigRecord } from "../models/entity/sys-config.entity";
 
+import { tenantTransaction } from "@core/tenancy";
 const CACHE_TTL_MS = 60_000;
 
 const sysConfigSelect = {
@@ -119,7 +120,7 @@ export class SysConfigService {
       select: { value: true, description: true },
     });
 
-    const updated = await this.db.$transaction(async (tx) => {
+    const updated = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.sysConfig.upsert({
         where: { key },
         create: {
@@ -194,7 +195,7 @@ export class SysConfigService {
 
   async remove(key: string, actorId: string): Promise<void> {
     assertSysConfigKey(key);
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       const previous = await tx.sysConfig.findUnique({
         where: { key },
         select: { value: true, description: true },

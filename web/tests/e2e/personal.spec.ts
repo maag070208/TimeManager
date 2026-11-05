@@ -11,6 +11,10 @@ import { ACME, E2E_PASSWORD, loginAs } from "./helpers";
  * orden dentro del archivo.
  */
 
+// Otros ingenieros editan web/src mientras corre la suite: una recarga de HMR a
+// media prueba tira el formulario. Un reintento evita falsos negativos.
+test.describe.configure({ retries: 1 });
+
 const EMPLOYEES = `${ACME.base}/#/employees`;
 const PERSONAL = { level: 1 as const, name: "Personal" };
 
@@ -22,22 +26,37 @@ interface NewEmployee {
   employeeNumber: string;
   jobTitle: string;
   password: string;
+  /** Nombre completo con el que lo muestra la app (compone nombre + apellidos). */
+  fullName: string;
 }
 
 let seq = 0;
 
+/**
+ * Datos únicos por alta. No se derivan de un contador global a secas: Playwright
+ * reinicia el worker (y el módulo) tras una falla o un reintento, y volver a
+ * "Empleado1" chocaría con lo ya creado. El sello de tiempo + secuencia garantiza
+ * unicidad dentro de la corrida y entre reintentos.
+ */
+const uniqueToken = (): string => {
+  seq += 1;
+  return `${Date.now().toString(36).slice(-5)}${seq}`.toUpperCase();
+};
+
 /** Datos únicos por corrida para el empleado que crea cada test. */
 const nextEmployee = (): NewEmployee => {
-  seq += 1;
-  const n = seq;
+  const token = uniqueToken();
+  const name = `Empleado${token}`;
+  const paternalSurname = `E2E${token}`;
   return {
-    name: `Empleado${n}`,
-    paternalSurname: `E2E${n}`,
-    username: `empleado.e2e${n}`,
-    email: `empleado${n}.e2e@timemanager.test`,
-    employeeNumber: `81${String(n).padStart(2, "0")}`,
-    jobTitle: `Puesto E2E${n}`,
+    name,
+    paternalSurname,
+    username: `empleado.${token.toLowerCase()}`,
+    email: `empleado.${token.toLowerCase()}@timemanager.test`,
+    employeeNumber: `E${token}`,
+    jobTitle: `Puesto ${token}`,
     password: E2E_PASSWORD,
+    fullName: `${name} ${paternalSurname}`,
   };
 };
 
@@ -56,9 +75,20 @@ async function expectList(page: Page): Promise<void> {
   await expect(page.locator("tbody tr").first()).toBeVisible();
 }
 
-/** Abre `/employees` ya autenticado. */
+/** Abre `/employees` ya autenticado (reintenta si el login aún resuelve a "/"). */
 async function openEmployees(page: Page): Promise<void> {
-  await page.goto(EMPLOYEES);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.goto(EMPLOYEES);
+    const visible = await page
+      .getByRole("heading", PERSONAL)
+      .waitFor({ state: "visible", timeout: 8_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (visible) {
+      await expectList(page);
+      return;
+    }
+  }
   await expectList(page);
 }
 
@@ -81,7 +111,31 @@ async function createEmployee(page: Page, data: NewEmployee): Promise<void> {
 
   await page.getByRole("button", { name: "Crear usuario", exact: true }).click();
   // Alta correcta: vuelve a la lista y el empleado ya está en la tabla.
-  await expect(page).toHaveURL(/#\/employees$/, { timeout: 30_000 });
+  try {
+    await expect(page).toHaveURL(/#\/employees$/, { timeout: 30_000 });
+  } catch (error) {
+    // Diagnóstico para distinguir un fallo de API de una recarga de HMR.
+    const alerts = await page.locator('[role="alert"]').allInnerTexts().catch(() => []);
+    const saving = await page.getByRole("button", { name: /Guardando/ }).count();
+    const fieldErrors = await page
+      .locator('[aria-invalid="true"], .text-danger-500, [class*="text-red"]')
+      .allInnerTexts()
+      .catch(() => []);
+    const values = await page
+      .evaluate(() =>
+        Object.fromEntries(
+          [...document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input[name],select[name]")].map(
+            (el) => [el.name, el.value]
+          )
+        )
+      )
+      .catch(() => ({}));
+    console.error(
+      "ALTA FALLÓ",
+      JSON.stringify({ alerts, saving, fieldErrors, values, url: page.url() })
+    );
+    throw error;
+  }
   await expect(page.getByRole("heading", PERSONAL)).toBeVisible();
   await expect(rowWith(page, data.employeeNumber)).toBeVisible();
 }
@@ -231,11 +285,11 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     // Baja con motivo (la pide el diálogo de confirmación).
     await rowMenuTrigger(row).click();
     await page.getByRole("menuitem", { name: "Desactivar" }).click();
-    const deactivate = page.getByRole("alertdialog");
-    await expect(deactivate).toBeVisible();
-    await expect(deactivate).toContainText(`¿Dar de baja a ${data.name}?`);
-    await deactivate.locator('textarea[name="deactivate_reason"]').fill("Baja de prueba E2E");
-    await deactivate.getByRole("button", { name: "Dar de baja" }).click();
+    // El rol `alertdialog` envuelve el encabezado; el motivo y los botones viven en el mismo ITDialog.
+    await expect(page.getByRole("alertdialog")).toContainText(`¿Dar de baja a ${data.fullName}?`);
+    const deactivateDialog = page.locator('[data-it-dialog="true"]');
+    await deactivateDialog.locator('textarea[name="deactivate_reason"]').fill("Baja de prueba E2E");
+    await deactivateDialog.getByRole("button", { name: "Dar de baja" }).click();
 
     await expect(row.getByText("Inactivo", { exact: true })).toBeVisible();
     await expect(page.getByText(/Usuario desactivado/)).toBeVisible();
@@ -243,9 +297,11 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     // Reactivación desde el mismo menú.
     await rowMenuTrigger(row).click();
     await page.getByRole("menuitem", { name: "Reactivar" }).click();
-    const reactivate = page.getByRole("alertdialog");
-    await expect(reactivate).toContainText(`¿Reactivar a ${data.name}?`);
-    await reactivate.getByRole("button", { name: "Reactivar" }).click();
+    await expect(page.getByRole("alertdialog")).toContainText(`¿Reactivar a ${data.username}?`);
+    await page
+      .locator('[data-it-dialog="true"]')
+      .getByRole("button", { name: "Reactivar" })
+      .click();
 
     await expect(row.getByText("Activo", { exact: true })).toBeVisible();
     await expect(page.getByText(/Usuario reactivado/)).toBeVisible();
@@ -312,23 +368,28 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     // Solo se puede eliminar una cuenta inactiva.
     await rowMenuTrigger(row).click();
     await page.getByRole("menuitem", { name: "Desactivar" }).click();
-    const deactivate = page.getByRole("alertdialog");
-    await deactivate.locator('textarea[name="deactivate_reason"]').fill("Baja para eliminar E2E");
-    await deactivate.getByRole("button", { name: "Dar de baja" }).click();
+    const deactivateDialog = page.locator('[data-it-dialog="true"]');
+    await deactivateDialog.locator('textarea[name="deactivate_reason"]').fill("Baja para eliminar E2E");
+    await deactivateDialog.getByRole("button", { name: "Dar de baja" }).click();
     await expect(row.getByText("Inactivo", { exact: true })).toBeVisible();
 
     await rowMenuTrigger(row).click();
     await page.getByRole("menuitem", { name: "Eliminar" }).click();
-    const confirm = page.getByRole("alertdialog");
-    await expect(confirm).toContainText(`Eliminar a ${data.username}`);
-    await confirm.getByRole("button", { name: "Eliminar" }).click();
+    await expect(page.getByRole("alertdialog")).toContainText(`Eliminar a ${data.username}`);
+    await page
+      .locator('[data-it-dialog="true"]')
+      .getByRole("button", { name: "Eliminar" })
+      .click();
 
     // Si la cuenta tiene historial ligado, el API pide forzar la eliminación.
     const forceDialog = page.getByRole("alertdialog").filter({ hasText: "Forzar la eliminación" });
     const deletedToast = page.getByText(/Usuario eliminado definitivamente/);
     await expect(forceDialog.or(deletedToast)).toBeVisible();
     if (await forceDialog.isVisible().catch(() => false)) {
-      await forceDialog.getByRole("button", { name: "Forzar eliminación" }).click();
+      await page
+        .locator('[data-it-dialog="true"]')
+        .getByRole("button", { name: "Forzar eliminación" })
+        .click();
     }
     await expect(deletedToast).toBeVisible();
     await expect(rowWith(page, data.employeeNumber)).toHaveCount(0);
@@ -341,8 +402,12 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Cargar usuarios desde Excel" })
     ).toBeVisible();
-    await expect(page.getByText("Selecciona o arrastra un archivo Excel")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Descargar plantilla/ })).toBeVisible();
+    await expect(page.getByText(/El archivo debe traer columnas/)).toBeVisible();
+    await expect(page.getByText("Ningún archivo seleccionado", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Examinar" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Importar usuarios" })).toBeDisabled();
+    // Acepta solo Excel y el archivo se elige desde el input oculto.
+    await expect(page.locator('input[type="file"][accept*=".xlsx"]')).toHaveCount(1);
   });
 });
 
@@ -393,14 +458,17 @@ test.describe("Personal — HUMAN_RESOURCES", () => {
 
     await rowMenuTrigger(row).click();
     await page.getByRole("menuitem", { name: "Desactivar" }).click();
-    const deactivate = page.getByRole("alertdialog");
-    await deactivate.locator('textarea[name="deactivate_reason"]').fill("Baja RH E2E");
-    await deactivate.getByRole("button", { name: "Dar de baja" }).click();
+    const deactivateDialog = page.locator('[data-it-dialog="true"]');
+    await deactivateDialog.locator('textarea[name="deactivate_reason"]').fill("Baja RH E2E");
+    await deactivateDialog.getByRole("button", { name: "Dar de baja" }).click();
     await expect(row.getByText("Inactivo", { exact: true })).toBeVisible();
 
     await rowMenuTrigger(row).click();
     await page.getByRole("menuitem", { name: "Reactivar" }).click();
-    await page.getByRole("alertdialog").getByRole("button", { name: "Reactivar" }).click();
+    await page
+      .locator('[data-it-dialog="true"]')
+      .getByRole("button", { name: "Reactivar" })
+      .click();
     await expect(row.getByText("Activo", { exact: true })).toBeVisible();
   });
 });

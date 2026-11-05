@@ -52,7 +52,7 @@ export const createTenantRouter = (controller: TenantController): Router => {
     method: "post",
     path: "/tenants",
     tags: ["Tenants"],
-    summary: "Create client with its CLIENT_ADMIN and template catalogs (ADMIN)",
+    summary: "Create client with its CLIENT_ADMIN, plan and template catalogs (ADMIN)",
     description:
       "Without admin.password the API generates a provisional one and returns it once in `temporaryPassword`.",
     security: bearer,
@@ -66,7 +66,7 @@ export const createTenantRouter = (controller: TenantController): Router => {
     method: "patch",
     path: "/tenants/{id}",
     tags: ["Tenants"],
-    summary: "Update client: status (ACTIVE/SUSPENDED), name, timezone, plan (ADMIN)",
+    summary: "Update client: status (ACTIVE/SUSPENDED), name, timezone, planId (ADMIN)",
     security: bearer,
     parameters: idParam,
     request: { body: { required: true, content: { "application/json": { schema: TenantUpdateDto } } } },

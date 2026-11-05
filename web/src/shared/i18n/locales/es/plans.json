@@ -1,0 +1,58 @@
+{
+  "title": "Planes",
+  "description": "Catálogo de planes del SaaS: personas y relojes incluidos y precio mensual de lista.",
+  "new": "Nuevo plan",
+  "kpis": {
+    "all": "Planes",
+    "active": "Activos",
+    "inactive": "Dados de baja"
+  },
+  "listTitle": "Catálogo de planes",
+  "listDescription": "Los clientes conservan su plan aunque se dé de baja el catálogo; el cobro se registra por fuera.",
+  "empty": "Aún no hay planes: crea el primero.",
+  "table": {
+    "plan": "Plan",
+    "people": "Personas",
+    "clocks": "Relojes",
+    "price": "Precio mensual",
+    "status": "Estado",
+    "actions": "Acciones",
+    "noPrice": "Por definir"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Dado de baja"
+  },
+  "actions": {
+    "edit": "Editar",
+    "deactivate": "Dar de baja",
+    "activate": "Reactivar"
+  },
+  "confirm": {
+    "deactivateTitle": "¿Dar de baja el plan {{name}}?",
+    "deactivateMessage": "Dejará de ofrecerse para nuevos clientes. Los que ya lo tienen lo conservan y no se borra nada.",
+    "activateTitle": "¿Reactivar el plan {{name}}?",
+    "activateMessage": "Volverá a ofrecerse al asignar planes a clientes.",
+    "deactivate": "Dar de baja",
+    "activate": "Reactivar"
+  },
+  "form": {
+    "createTitle": "Nuevo plan",
+    "createSubtitle": "Define cuántas personas y relojes incluye y su precio de lista.",
+    "editTitle": "Editar plan",
+    "editSubtitle": "Los cambios aplican a los clientes que lo tengan contratado.",
+    "name": "Nombre del plan",
+    "employeeLimit": "Personas incluidas",
+    "clockLimit": "Relojes incluidos",
+    "monthlyPrice": "Precio mensual (MXN)",
+    "priceHint": "El cobro todavía es manual: este precio solo se muestra en la consola.",
+    "cancel": "Cancelar",
+    "submit": "Guardar plan",
+    "saving": "Guardando…",
+    "errors": {
+      "required": "Obligatorio",
+      "positive": "Debe ser un número mayor a 0",
+      "price": "Precio no válido"
+    }
+  }
+}

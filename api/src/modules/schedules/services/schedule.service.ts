@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
-import { requireTenantId } from "@core/tenancy";
+import { requireTenantId, tenantTransaction } from "@core/tenancy";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { ci, orderByOf, type ITDataTableFetchParams, type TableFilters, type ITDataTableResponse } from "@core/utils/table";
 import {
@@ -91,7 +91,7 @@ export class ScheduleService {
       if (dup && dup.id !== id) throw new HttpError(409, "SCHEDULE_NAME_TAKEN");
     }
 
-    return this.db.$transaction(async (tx) => {
+    return tenantTransaction(this.db, async (tx) => {
       if (data.days) {
         await tx.scheduleDay.deleteMany({ where: { scheduleId: id } });
       }
@@ -140,7 +140,7 @@ export class ScheduleService {
     const from = toUtcDate(data.from);
     const dayBefore = new Date(from.getTime() - 24 * 60 * MS_PER_MINUTE);
 
-    const assigned = await this.db.$transaction(async (tx) => {
+    const assigned = await tenantTransaction(this.db, async (tx) => {
       // Cierra las asignaciones que cubren la fecha `desde`.
       await tx.scheduleAssignment.updateMany({
         where: {

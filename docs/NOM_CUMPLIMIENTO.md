@@ -15,16 +15,35 @@ técnico, no una certificación legal. Validar con asesor cuando se publiquen.
 
 | # | Requisito | Estado | Evidencia / pendiente |
 |---|---|---|---|
-| 1 | Registro electrónico de inicio y fin para **todos** (presencial, híbrido, remoto) | **Parcial** | Reloj Hikvision (ISAPI) y módulo access cubren presencial/oficina. Falta **marcaje por app/web para home office y campo** (con o sin GPS) — diseñar API de marcaje y pantalla del empleado. |
-| 2 | Trazabilidad de cada marcaje | **En curso (F2-01)** | Se implementa inmutabilidad + registro de ajustes (quién, cuándo, por qué, valor anterior/nuevo) y auditoría. Hasta que aterrice: no cumplido. |
-| 3 | Acceso del trabajador a sus registros y flujo de revisión/aprobación | **Parcial** | El empleado ya ve su asistencia (inicio del cliente); falta consulta de marcajes puntuales con reporte de discrepancia y flujo de aprobación. |
-| 4 | Reportes listos para la STPS (por periodo/persona, registros, incidencias, horas extra) | **Parcial** | Existen reportes de asistencia, retardos y horas extra; falta un **export formal “STPS”** con formato/periodo/firma y descarga para auditoría. |
-| 5 | Límites de jornada y horas extra configurables + alertas | **Parcial** | `computeWorkday` calcula retardos/OT con tolerancias por horario. Faltan **límites legales configurables**: 12 h/día (ordinaria + extra), topes semanales por año (46 h en 2027 → 40 h en 2030) y **alertas** al acercarse (F2-03). |
-| 6 | Desconexión y horarios (NOM-037 teletrabajo) | **Pendiente** | Falta **registro de teletrabajadores**, política de teletrabajo/desconexión documentada por cliente, horarios definidos por colaborador y control de comunicaciones fuera de jornada. |
+| 1 | Registro electrónico de inicio y fin para **todos** (presencial, híbrido, remoto) | **Implementado** | Reloj Hikvision (presencial) + **marcaje remoto por web** (`POST /nom/me/punch`, home office/campo, idempotente, geolocalización opcional solo al marcar, `RemotePunch` append-only) y pantalla `/mi-jornada`. GPS opcional; el rastreo continuo no aplica por diseño. |
+| 2 | Trazabilidad de cada marcaje | **Implementado (técnico)** | Checadas append-only por trigger de BD; correcciones como `PunchAdjustment` (quién, cuándo, por qué, valor anterior/nuevo, aprobador; sin autoaprobación). Historial por checada (`GET /nom/punches/:id/history`) + `audit_logs`. Regresión: `nom.flow.test.ts`. |
+| 3 | Acceso del trabajador a sus registros y flujo de revisión/aprobación | **Implementado** | Portal web `/mi-jornada`: marcajes propios (reloj, accesos y remotos), marcaje de entrada/salida y reporte de discrepancia (`POST /nom/me/discrepancies`, entra al flujo de aprobación de ajustes). |
+| 4 | Reportes listos para la STPS (por periodo/persona, registros, incidencias, horas extra) | **Implementado (layout versionado)** | `GET /nom/export/stps?period=…&date=…&format=csv\|json`: por persona/día con trabajados, programados, extra, descanso/sin horario, última salida; metadatos + SHA-256 de integridad. Layout `stps-registro-jornada-v0`: **se ajustará al formato oficial cuando se publique**. |
+| 5 | Límites de jornada y horas extra configurables + alertas | **Implementado (técnico)** | `nom_settings` por cliente: 12 h/día (720 min) y tope semanal por año (`weeklyLimitForYear`: 48 h antes de 2027, 46 h 2027-2029, 40 h 2030+), override por `sys_config`/cliente. Barrido horario + `WorkdayLimitAlert` + aviso a RH (campanita y correo). `POST /nom/alerts/scan` para corrida manual. |
+| 6 | Desconexión y horarios (NOM-037 teletrabajo) | **Implementado (técnico)** | Registro de teletrabajadores por cliente, política de teletrabajo/desconexión y aviso de privacidad editables con versiones y consentimiento, checklist inicial/periódico del lugar (8 puntos) y registro de comunicaciones fuera de jornada con aviso in-app (`/nom/telework/*`, pantalla `/teletrabajo`). Falta validación legal del contenido y horarios por colaborador (schedules ya los soporta). |
 | 7 | Conexión directa con nómina | **Parcial** | Hay pre-nómina/cierres y export; falta que OT/retardos/incidencias **aprobadas** viajen al periodo de nómina sin captura manual. |
-| 8 | Protección de datos personales (LFPDPPP 20/03/2025) | **Parcial** | Roles por permiso, foto/archivos ahora privados (token/presignado), Ably por token. Faltan: aviso de privacidad por cliente, cifrado de datos sensibles en BD más allá de credenciales de reloj, y límites de geolocalización (solo al momento del marcaje) para la app de home office. |
+| 8 | Protección de datos personales (LFPDPPP 20/03/2025) | **Parcial** | Roles por permiso, foto/archivos privados (token/presignado), Ably por token, credenciales de reloj cifradas, **aviso de privacidad editable por cliente con consentimiento versionado**, geolocalización limitada al instante del marcaje y marcajes remotos en export sin coordenadas. Faltan: cifrado de datos sensibles en BD, retención legal validada y aviso validado por legal/cliente. |
 | 9 | Checklist y condiciones del lugar de teletrabajo | **Pendiente** | Lista de verificación inicial/periódica de seguridad y salud del lugar de teletrabajo (NOM-037), y registro de lugares. |
 | 10 | Equipo y violencia familiar (política de retorno a presencial) | **Pendiente** | Documentos/plantillas por cliente (no bloquea el registro de jornada). |
+
+## Implementación F2-01..04 (registro electrónico de jornada)
+
+| Requisito | Estado | Evidencia | Pendiente |
+|---|---|---|---|
+| Inmutabilidad de checadas | ✅ Implementado | Trigger append-only en `time_clock_punches`/`access_events` (migración `20261107000000_nom_immutability`) | — |
+| Ajustes con quién/cuándo/por qué y aprobador | ✅ Implementado | `PunchAdjustment`, `/nom/punches/:id/adjustments|history`, aprobación por segundo usuario | Pantalla web de historial |
+| Auditoría de correcciones y OT | ✅ Implementado | `audit_logs` + `GET /audit?entityId=…`; `OVERTIME_APPROVAL_DECISION` por decisión | — |
+| Límites 12 h/día y tope semanal por año | ✅ Implementado | `nom_settings` + `weeklyLimitForYear` + barrido `WorkdayLimitAlert` | Validar tope legal/año con asesor |
+| Alertas a RH | ✅ Implementado | Notificación in-app + correo por cola (`email_logs`) | — |
+| Retención configurable + archivado | ✅ Implementado (técnico) | `nom_settings.retentionMonths`, tablas `nom_archived_*`, `POST /nom/retention/archive`, `scripts/nom-archive.ts` | Plazo legal definitivo |
+| Export formal STPS | ✅ Implementado (layout v0) | `GET /nom/export/stps` CSV/JSON + SHA-256 | Formato oficial de la disposición STPS |
+| Portal del trabajador | ✅ Implementado | `/mi-jornada`: marcajes, marcaje remoto, discrepancia y teletrabajo | — |
+| Marcaje remoto (home office/campo) | ✅ Implementado | `POST /nom/me/punch` + `RemotePunch` append-only + `/mi-jornada` | Validar política de uso con cliente |
+| NOM-037 teletrabajo | ✅ Implementado (técnico) | Registro, política/desconexión, checklist 8 puntos, desconexión (contactos) y aviso de privacidad versionado | Validación legal del texto/política |
+| Sello encadenado por lote | 🟡 Parcial | Hash del export + inmutabilidad DB | Encadenado/firma por lote |
+| Aviso de privacidad / consentimientos | 🟡 Modelo+texto editable | `nom_settings.privacyNotice` versionado y aceptación del trabajador | Validación legal del texto por cliente |
+
+Módulo técnico: [modules/nom.md](modules/nom.md). Regresión: `api/tests/integration/nom.flow.test.ts` (8 casos) + unit `api/src/modules/nom/services/nom.logic.test.ts` (4 casos).
 
 ## Fuera del sistema (acción del usuario/legal)
 

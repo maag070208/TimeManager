@@ -408,5 +408,29 @@
     ],
     "sensitive": true,
     "sortOrder": 2
+  },
+  {
+    "key": "plans.view",
+    "module": "Plataforma",
+    "name": "Ver planes",
+    "description": "Catálogo de planes: límites de personal y relojes, precio de lista y estado",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 3
+  },
+  {
+    "key": "plans.manage",
+    "module": "Plataforma",
+    "name": "Administrar planes",
+    "description": "Alta, edición y baja de planes del catálogo",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 4
   }
 ]

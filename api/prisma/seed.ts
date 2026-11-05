@@ -10,6 +10,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "@core/utils/security";
 import { seedPermissionsFromFixtures } from "@core/permissions";
+import { seedPlansFromFixtures } from "@core/plans";
 
 const prisma = new PrismaClient();
 
@@ -20,6 +21,7 @@ async function main(): Promise<void> {
     throw new Error("Define INITIAL_ADMIN_USERNAME e INITIAL_ADMIN_PASSWORD (mínimo 8 caracteres).");
   }
   await seedPermissionsFromFixtures(prisma);
+  await seedPlansFromFixtures(prisma);
   const existing = await prisma.user.findFirst({ where: { username } });
   if (existing) {
     console.log(`Usuario ${username} ya existe; no se modifica.`);

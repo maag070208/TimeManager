@@ -24,8 +24,10 @@ import materialOutputsEn from "./locales/en/material-outputs.json";
 import usersEn from "./locales/en/users.json";
 import catalogEn from "./locales/en/catalog.json";
 import rolesEn from "./locales/en/roles.json";
+import plansEn from "./locales/en/plans.json";
 import ticEn from "./locales/en/tic.json";
 import homeEn from "./locales/en/home.json";
+import nomEn from "./locales/en/nom.json";
 
 import accessEs from "./locales/es/access.json";
 import accessReportEs from "./locales/es/access-report.json";
@@ -50,8 +52,10 @@ import materialOutputsEs from "./locales/es/material-outputs.json";
 import usersEs from "./locales/es/users.json";
 import catalogEs from "./locales/es/catalog.json";
 import rolesEs from "./locales/es/roles.json";
+import plansEs from "./locales/es/plans.json";
 import ticEs from "./locales/es/tic.json";
 import homeEs from "./locales/es/home.json";
+import nomEs from "./locales/es/nom.json";
 
 export const defaultNS = "common" as const;
 
@@ -75,6 +79,7 @@ export const NS_LIST = [
   "audit",
   "catalog",
   "roles",
+  "plans",
   "disciplinary-reports",
   "access",
   "access-report",
@@ -84,6 +89,7 @@ export const NS_LIST = [
   "weekly-attendance",
   "tic",
   "home",
+  "nom",
 ] as const;
 
 export const resources = {
@@ -105,6 +111,7 @@ export const resources = {
     audit: auditEn,
     catalog: catalogEn,
     roles: rolesEn,
+    plans: plansEn,
     access: accessEn,
     "access-report": accessReportEn,
     "time-clock": timeClockEn,
@@ -113,6 +120,7 @@ export const resources = {
     "weekly-attendance": weeklyAttendanceEn,
     tic: ticEn,
     home: homeEn,
+    nom: nomEn,
   },
   es: {
     common: commonEs,
@@ -132,6 +140,7 @@ export const resources = {
     audit: auditEs,
     catalog: catalogEs,
     roles: rolesEs,
+    plans: plansEs,
     access: accessEs,
     "access-report": accessReportEs,
     "time-clock": timeClockEs,
@@ -140,6 +149,7 @@ export const resources = {
     "weekly-attendance": weeklyAttendanceEs,
     tic: ticEs,
     home: homeEs,
+    nom: nomEs,
   },
 } as const;
 

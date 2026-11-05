@@ -3,7 +3,7 @@ import type { RootState } from "@app/store";
 import { getSelectedTenant } from "@shared/api/tenant";
 
 /** Pantallas que el personal de plataforma usa sin elegir cliente. */
-export const PLATFORM_PATHS = ["/", "/notifications", "/roles"] as const;
+export const PLATFORM_PATHS = ["/", "/notifications", "/roles", "/plans"] as const;
 
 /**
  * Cliente sobre el que opera la sesión. Personal de cliente: el suyo.

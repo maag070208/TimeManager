@@ -1,0 +1,106 @@
+{
+  "title": "Mi jornada",
+  "description": "Marca tu entrada y salida, consulta tus marcajes y reporta discrepancias.",
+  "refresh": "Actualizar",
+  "cancel": "Cancelar",
+  "punch": {
+    "title": "Marcaje de hoy",
+    "hint": "Marca sin reloj físico para home office o campo. La hora la registra el servidor.",
+    "note": "Nota (opcional)",
+    "shareLocation": "Compartir ubicación solo en este marcaje",
+    "entry": "Registrar entrada",
+    "exit": "Registrar salida",
+    "open": "Jornada abierta",
+    "privacy": "La ubicación es opcional y se guarda únicamente en este marcaje; no hay rastreo continuo.",
+    "mode": "Modalidad del marcaje"
+  },
+  "punches": {
+    "title": "Mis marcajes",
+    "from": "Desde",
+    "to": "Hasta",
+    "empty": "No hay marcajes en el periodo.",
+    "entry": "Entrada",
+    "exit": "Salida",
+    "noType": "Registro",
+    "report": "Reportar discrepancia"
+  },
+  "sourceClock": "Reloj",
+  "sourceAccess": "Acceso",
+  "sourceRemote": "Remoto",
+  "discrepancy": {
+    "reason": "Motivo de la discrepancia",
+    "send": "Enviar a RH"
+  },
+  "telework": {
+    "title": "Mi teletrabajo",
+    "notRegistered": "No estás registrado como teletrabajador. RH puede darte de alta.",
+    "mode": {
+      "REMOTO": "Teletrabajo",
+      "HIBRIDO": "Híbrido",
+      "CAMPO": "Campo",
+      "PRESENCIAL": "Presencial"
+    },
+    "registration": "Domicilio de teletrabajo",
+    "policyTitle": "Política de teletrabajo",
+    "disconnectTitle": "Desconexión digital",
+    "privacyTitle": "Aviso de privacidad",
+    "noPolicy": "Sin texto capturado por el cliente.",
+    "consentPending": "Debes aceptar la política y el aviso vigentes.",
+    "accept": "Aceptar",
+    "checklistTitle": "Checklist del lugar de teletrabajo",
+    "checklistHint": "Inicial al alta y periódico (cada 12 meses). Responde todos los puntos.",
+    "lastChecklist": "Último checklist"
+  },
+  "checklist": {
+    "yes": "Sí",
+    "no": "No",
+    "submit": "Enviar checklist",
+    "items": {
+      "space_adequate": "El espacio de trabajo es adecuado y exclusivo",
+      "ergonomics": "Silla, mesa y pantalla en condiciones ergonómicas",
+      "electrical_safety": "Instalación eléctrica segura y sin riesgos",
+      "connectivity": "Cuenta con conexión a internet estable",
+      "ventilation_lighting": "Ventilación e iluminación suficientes",
+      "emergency_plan": "Conoce el plan de emergencia y contactos",
+      "equipment_inventory": "El equipo asignado está inventariado y en buen estado",
+      "no_risk_conditions": "No hay condiciones de riesgo en el lugar"
+    },
+    "kind": {
+      "INITIAL": "Inicial",
+      "PERIODIC": "Periódico"
+    }
+  },
+  "admin": {
+    "title": "Teletrabajo (NOM-037)",
+    "description": "Política, aviso de privacidad, teletrabajadores, checklists y comunicaciones fuera de jornada.",
+    "policyTitle": "Política, desconexión y aviso de privacidad",
+    "policyHint": "Versiones vigentes: política {{policy}}, aviso {{privacy}}. Al cambiar un texto sube su versión y el trabajador debe aceptarla de nuevo. La validación legal queda fuera del sistema.",
+    "savePolicy": "Guardar textos",
+    "registrationsTitle": "Teletrabajadores",
+    "person": "Persona",
+    "mode": "Modalidad",
+    "homeAddress": "Domicilio (opcional)",
+    "register": "Registrar",
+    "emptyRegistrations": "Aún no hay teletrabajadores registrados.",
+    "status": {
+      "ACTIVE": "Activo",
+      "ENDED": "Terminado"
+    },
+    "consentOk": "Consentimiento aceptado",
+    "consentPending": "Consentimiento pendiente",
+    "end": "Terminar",
+    "checklistsTitle": "Checklists del lugar de trabajo",
+    "emptyChecklists": "Sin checklists recibidos.",
+    "contactsTitle": "Comunicaciones fuera de jornada",
+    "contactsHint": "Marca el contacto y se avisa al trabajador en la campanita (derecho a la desconexión).",
+    "channel": "Medio",
+    "reason": "Motivo",
+    "registerContact": "Registrar contacto",
+    "channels": {
+      "CALL": "Llamada",
+      "MESSAGE": "Mensaje",
+      "EMAIL": "Correo",
+      "OTHER": "Otro"
+    }
+  }
+}

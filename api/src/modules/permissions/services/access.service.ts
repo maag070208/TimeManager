@@ -26,6 +26,7 @@ import {
   type ITDataTableFetchParams,
 } from "@core/utils/table";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import { tenantTransaction } from "@core/tenancy";
 import type {
   AccessActivityRow,
   AccessException,
@@ -238,7 +239,7 @@ export class AccessService {
       throw new HttpError(409, "ROLE_ALREADY_ASSIGNED", { name: user.name, key: roleKey });
     }
 
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       await tx.userRole.create({ data: { userId, role: roleKey } });
       if (this.audit) {
         await this.audit(
@@ -271,7 +272,7 @@ export class AccessService {
       throw new HttpError(404, "ROLE_NOT_ASSIGNED", { name: user.name, key: roleKey });
     }
 
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       await tx.userRole.delete({ where: { userId_role: { userId, role: roleKey } } });
       if (this.audit) {
         await this.audit(

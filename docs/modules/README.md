@@ -11,6 +11,7 @@ Una ficha por módulo de `api/src/modules/`. Cada ficha describe qué hace, sus 
 | `hr` | Expediente de personal, documentos, catálogos, actas | 31 | [hr](hr.md) |
 | `schedules` | Horarios, asignaciones, asistencia calculada, cierre de nómina | 19 | [schedules](schedules.md) |
 | `overtime` | Aprobación de tiempo extra | 2 | [overtime](overtime.md) |
+| `nom` | Cumplimiento LFT 2027: inmutabilidad y ajustes de checadas, límites de jornada con alertas, retención/archivado, export formal, marcaje remoto y NOM-037 teletrabajo | 27 | [nom](nom.md) |
 
 ## Soporte (transversales, necesarios para operar)
 
@@ -26,6 +27,8 @@ Una ficha por módulo de `api/src/modules/`. Cada ficha describe qué hace, sus 
 | `config` | Configuración del sistema (sys-config) | 4 | [config](config.md) |
 | `email` | Cola y bitácora de correos, reintentos | 3 | [email](email.md) |
 | `tenants` | Clientes de la plataforma: alta, suspensión, uso (solo plataforma) | 4 | [tenants](tenants.md) |
+| `plans` | Catálogo de planes: límites de personal y relojes, precio de lista y enforcement (solo plataforma) | 5 | [plans](plans.md) |
+| `agent` | Agente local por cliente (TimeManagerAgent): token de dispositivo, ingesta de checadas, cola de trabajos y consola de alta/rotación | 13 | [agent](agent.md) |
 
 ## Estado frente al SaaS
 

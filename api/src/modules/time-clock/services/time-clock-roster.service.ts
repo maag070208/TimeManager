@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
-import { forEachActiveTenant, requireTenantId } from "@core/tenancy";
+import { forEachActiveTenant, requireTenantId, tenantTransaction } from "@core/tenancy";
 import { logger } from "@core/utils/logger";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
@@ -99,7 +99,7 @@ export class TimeClockRosterService {
       const names = new Map<string, string>();
       reads.forEach((r) => r.names.forEach((name, number) => names.has(number) || names.set(number, name)));
 
-      await this.db.$transaction(async (tx) => {
+      await tenantTransaction(this.db, async (tx) => {
         for (const serial of plan.replaceClocks) {
           const read = reads.find((r) => r.serial === serial)!;
           await tx.timeClockRosterEntry.deleteMany({ where: { clockSerial: serial } });

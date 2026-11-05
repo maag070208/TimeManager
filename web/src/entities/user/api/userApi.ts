@@ -93,6 +93,9 @@ export const usersApi = {
   ) => api.put<User>(`/users/${id}`, data),
   changePassword: (id: string, password: string) =>
     api.put<void>(`/users/${id}/password`, { password }),
+  /** Plantilla .xlsx del formato de carga de empleados. */
+  importTemplate: () =>
+    api.get<Blob>(`/users/import/template`, { responseType: "blob" }),
   import: (file: File) => {
     const form = new FormData();
     form.append("file", file);

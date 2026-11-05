@@ -11,15 +11,15 @@ Objetivo: extraer el módulo de Recursos Humanos + Reloj (checadas) como product
 | Requisito | Qué implica en el sistema | Dónde vive hoy |
 |---|---|---|
 | Registro electrónico de inicio y fin de jornada (presencial, híbrido, remoto) | Marcajes entrada/salida por persona, con fecha y hora exactas | `TimeClockPunch`, `AccessEvent`, reloj ZKTeco-like (`TimeClockSyncEvent`) |
-| Trazabilidad de correcciones | Cada corrección: quién, cuándo, por qué (pista de auditoría) | `audit` module (`AuditLogger`) — revisar si cubre checadas |
+| Trazabilidad de correcciones | Cada corrección: quién, cuándo, por qué (pista de auditoría) | **Implementado (F2-01/F2-02)**: `PunchAdjustment` + `audit_logs` y `GET /nom/punches/:id/history`; ver `modules/nom.md` |
 | Acceso del trabajador a sus marcajes y reporte de discrepancias | Portal/app del empleado con flujo de revisión y aprobación | Pantalla "Diferencias" (`TimeClockDifferencesTab`), app móvil `PuertoNuevoApp` |
 | Reportes por periodo o colaborador (registros, incidencias, horas extra), descargables | PDF/CSV de asistencia | `reports`, `schedules/weekly-attendance`, `/access/report` |
-| Horas extra con reglas por turno y alertas de límite diario/semanal | Tope de 12 h diarias (ordinaria + extra); alertas | `schedules` (computeWorkday, overtime) |
+| Horas extra con reglas por turno y alertas de límite diario/semanal | Tope de 12 h diarias (ordinaria + extra); alertas | `schedules` (cálculo) + `nom` (límites configurables y alertas, F2-03) |
 | Desconexión / horarios definidos por colaborador | Asignación de horarios por persona | `schedules` (`ScheduleAssignment`) |
 | Integración con nómina | Exportar horas extra, retardos e incidencias aprobadas | `schedules/payroll` (`PayrollClosure`) |
 | Datos personales (marcajes, ubicación, biometría) | Cifrado, acceso por rol, aviso de privacidad, geolocalización limitada al marcaje | `core/utils/security`, `@core/permissions` |
-| Retención de registros | **No definido por la fuente** — definir política (p. ej. ≥ 5 años, por validar) | No existe |
-| Integridad / anti-manipulación | **No definido por la fuente** — recomendado: registros inmutables + sello/hash | No existe |
+| Retención de registros | **No definido por la fuente** — definir política (p. ej. ≥ 5 años, por validar) | **Técnico implementado (F2-04)**: meses por cliente + archivado a `nom_archived_*`; la política legal sigue por validar |
+| Integridad / anti-manipulación | **No definido por la fuente** — recomendado: registros inmutables + sello/hash | **Parcial (F2-01)**: checadas append-only por trigger de BD y export con SHA-256; falta sello encadenado/firma por lote |
 
 Fechas que menciona la fuente: NOM-037 vigente desde 05-dic-2023; registro electrónico obligatorio y jornada de 46 h desde 01-ene-2027; reducción gradual a 40 h en 2030. Sanción citada: 250–5,000 UMA (art. 994 frac. IV Bis LFT).
 
@@ -89,15 +89,15 @@ Estas partes son del sistema completo y no deben ir en el producto de RH:
 
 ## 5. Lo que hay que construir o endurecer para la NOM
 
-1. **Inmutabilidad de checadas**: las correcciones no sobrescriben la checada; crean un registro de ajuste ligado (`originalPunchId`, `reason`, `createdById`, `createdAt`). Hoy no existe.
-2. **Pista de auditoría** de correcciones y aprobaciones de tiempo extra (quién, cuándo, qué cambió, por qué).
-3. **Política de retención** configurable y documentada (por validar con la STPS / asesor legal).
-4. **Sello de integridad** (hash encadenado o firma) sobre las checadas exportadas, para demostrar que no se alteraron.
-5. **Portal del empleado** para consultar sus marcajes y reportar discrepancias (hoy solo lo hace RH desde "Diferencias").
-6. **Exportación oficial** de reportes en formato que pida la autoridad (por definir cuando salga la disposición de la STPS).
-7. **Alertas de límite de jornada**: tope de 12 h diarias (ordinaria + extra) y aviso al acercarse a los límites semanales (46 h en 2027).
-8. **Aviso de privacidad y consentimiento** para geolocalización y datos biométricos, con geolocalización limitada al momento del marcaje.
-9. **Cifrado** de datos sensibles en reposo y control de acceso por rol en los endpoints de checadas.
+1. **Inmutabilidad de checadas**: las correcciones no sobrescriben la checada; crean un registro de ajuste ligado (`originalPunchId`, `reason`, `createdById`, `createdAt`). **Implementado (F2-01)**: trigger append-only en `time_clock_punches` + `PunchAdjustment` con valor anterior/nuevo y aprobador. Ver `modules/nom.md`.
+2. **Pista de auditoría** de correcciones y aprobaciones de tiempo extra (quién, cuándo, qué cambió, por qué). **Implementado (F2-02)**: cada ajuste y cada decisión de OT escriben en `audit_logs` con estado anterior/nuevo; filtro `entityId` en auditoría e historial por checada.
+3. **Política de retención** configurable y documentada (por validar con la STPS / asesor legal). **Técnico implementado (F2-04)**: meses por cliente, archivado a tablas `nom_archived_*`, worker diario y comando manual; falta la validación legal del plazo.
+4. **Sello de integridad** (hash encadenado o firma) sobre las checadas exportadas, para demostrar que no se alteraron. **Parcial**: el export incluye SHA-256 del contenido (incluidos los marcajes remotos) y las checadas/remotos son inmutables por DB; falta sellado encadenado por lote.
+5. **Portal del empleado** para consultar sus marcajes y reportar discrepancias (hoy solo lo hace RH desde "Diferencias"). **Implementado (F2-01/F2-07)**: `/mi-jornada` en la web con marcajes propios, **marcaje remoto** (`POST /nom/me/punch`, home office/campo), reporte de discrepancia y teletrabajo; incluye geolocalización opcional solo al momento del marcaje.
+6. **Exportación oficial** de reportes en formato que pida la autoridad (por definir cuando salga la disposición de la STPS). **Parcial**: `GET /nom/export/stps` (CSV/JSON versionado con hash); el layout oficial sigue pendiente.
+7. **Alertas de límite de jornada**: tope de 12 h diarias (ordinaria + extra) y aviso al acercarse a los límites semanales (46 h en 2027). **Implementado (F2-03)**: límites por cliente, worker y aviso a RH (campanita + correo).
+8. **Aviso de privacidad y consentimiento** para geolocalización y datos biométricos, con geolocalización limitada al momento del marcaje. **Implementado como modelo (F2-08)**: aviso editable por cliente (`nom_settings.privacyNotice`, versionado), aceptación del trabajador y geolocalización solo en el marcaje; el texto y su validez legal quedan a cargo de legal/cliente.
+9. **Cifrado** de datos sensibles en reposo y control de acceso por rol en los endpoints de checadas. **Parcial**: archivos privados (F1C-01), credenciales de reloj cifradas (F1B-10), permisos por endpoint y aviso de privacidad versionado (F2-08); falta cifrado de campos sensibles en BD (p. ej. domicilio de teletrabajo).
 
 ---
 

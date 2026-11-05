@@ -3,6 +3,7 @@ import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { isRole, loadPermissionsFromDb } from "@core/permissions";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import { tenantTransaction } from "@core/tenancy";
 import {
   type MatrixChange,
   type PermissionCatalogCreateInput,
@@ -156,7 +157,7 @@ export class PermissionService {
       if (!source) throw new HttpError(404, "ROLE_NOT_FOUND", { key: dto.copyFrom });
     }
 
-    const created = await this.db.$transaction(async (tx) => {
+    const created = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.role.create({
         data: {
           key: dto.key,
@@ -244,7 +245,7 @@ export class PermissionService {
 
     const previousState = roleStatus(previous);
 
-    const updated = await this.db.$transaction(async (tx) => {
+    const updated = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.role.update({ where: { key }, data });
 
       if (this.audit) {
@@ -283,7 +284,7 @@ export class PermissionService {
 
     await this.assertRolesManageSurvives(key);
 
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       await tx.role.delete({ where: { key } });
       if (this.audit) {
         await this.audit(
@@ -311,7 +312,7 @@ export class PermissionService {
       throw new HttpError(409, "PERMISSION_KEY_TAKEN", { key: dto.key });
     }
 
-    const created = await this.db.$transaction(async (tx) => {
+    const created = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.permission.create({
         data: {
           key: dto.key,
@@ -379,7 +380,7 @@ export class PermissionService {
 
     const previousState = catalogStatus(previous);
 
-    const updated = await this.db.$transaction(async (tx) => {
+    const updated = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.permission.update({ where: { key }, data });
 
       if (this.audit) {
@@ -449,7 +450,7 @@ export class PermissionService {
       await this.assertSomeRoleKeepsManage(removed);
     }
 
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       const previous = await tx.rolePermission.findMany({
         where: {
           OR: changes.map((change) => ({ role: change.role, permission: change.permission })),

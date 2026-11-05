@@ -1,0 +1,106 @@
+import { ITAlert, ITBentoStatStrip, ITButton, ITPage, ITStack, ITText } from "@axzydev/axzy_ui_system";
+import { LuBadgeDollarSign, LuPlus } from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import {
+  PlanFormDialog,
+  PlansTable,
+  usePlansConsole,
+} from "@features/plan/plans-console";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { PanelCard } from "@shared/ui/panel-card";
+import { TicConfirm } from "@shared/ui/tic-confirm";
+import { useGoBack } from "@shared/lib/useGoBack";
+
+/** Consola de planes del SaaS: catálogo, límites y precio de lista (solo plataforma). */
+export default function PlansPage() {
+  const { t } = useTranslation(["plans", "common"]);
+  const navigate = useNavigate();
+  const goBack = useGoBack();
+  const fx = usePlansConsole();
+
+  const newPlan = fx.canManage ? (
+    <ITButton variant="filled" color="primary" onClick={fx.openCreate}>
+      <ITText as="span" className="flex items-center gap-1.5 text-[11px] font-bold">
+        <LuPlus aria-hidden size={13} />
+        {t("new")}
+      </ITText>
+    </ITButton>
+  ) : undefined;
+
+  return (
+    <ITPage
+      className="m-0! p-0! px-8! min-w-full! pb-12!"
+      noPadding
+      title={t("title")}
+      description={t("description")}
+      backAction={() => goBack("/")}
+      icon={<LuBadgeDollarSign size={20} />}
+      breadcrumbs={[{ label: t("common:breadcrumbs.home"), onClick: () => navigate("/") }, { label: t("title") }]}
+      actions={newPlan}
+      loading={fx.plans === null && !fx.error}
+    >
+      <ITStack spacing={4}>
+        {fx.error && (
+          <ITAlert variant="error" dismissible onDismiss={() => fx.setError(null)}>
+            {fx.error}
+          </ITAlert>
+        )}
+
+        {fx.plans && fx.plans.length > 0 && (
+          <ITBentoStatStrip
+            items={[
+              { id: "all", label: t("kpis.all"), value: fx.counts.all, tone: "sea", color: "var(--color-primary-600)" },
+              { id: "active", label: t("kpis.active"), value: fx.counts.active, tone: "mint", color: "var(--color-success)" },
+              { id: "inactive", label: t("kpis.inactive"), value: fx.counts.inactive, tone: "sun", color: "var(--color-warning)" },
+            ]}
+            activeId="all"
+          />
+        )}
+
+        <PanelCard title={t("listTitle")} description={t("listDescription")}>
+          {fx.plans === null ? (
+            <ContentSkeleton size="sm" />
+          ) : fx.plans.length === 0 ? (
+            <ITText className="block py-6 text-center text-sm text-slate-500">{t("empty")}</ITText>
+          ) : (
+            <PlansTable
+              rows={fx.plans}
+              canManage={fx.canManage}
+              onEdit={fx.openEdit}
+              onToggleStatus={fx.setStatusTarget}
+            />
+          )}
+        </PanelCard>
+      </ITStack>
+
+      <PlanFormDialog
+        isOpen={fx.creating || fx.editing !== null}
+        plan={fx.editing}
+        onClose={fx.closeForm}
+        onSaved={fx.reload}
+      />
+
+      <TicConfirm
+        isOpen={!!fx.statusTarget}
+        onClose={() => fx.setStatusTarget(null)}
+        onConfirm={() => void fx.confirmStatus()}
+        loading={fx.savingStatus}
+        variant={fx.statusTarget?.active ? "danger" : "success"}
+        title={
+          fx.statusTarget
+            ? t(fx.statusTarget.active ? "confirm.deactivateTitle" : "confirm.activateTitle", {
+                name: fx.statusTarget.name,
+              })
+            : undefined
+        }
+        message={
+          fx.statusTarget
+            ? t(fx.statusTarget.active ? "confirm.deactivateMessage" : "confirm.activateMessage")
+            : undefined
+        }
+        confirmLabel={t(fx.statusTarget?.active ? "confirm.deactivate" : "confirm.activate")}
+      />
+    </ITPage>
+  );
+}

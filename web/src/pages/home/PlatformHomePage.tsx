@@ -2,8 +2,9 @@ import { useState } from "react";
 import { ITAlert, ITBentoStatStrip, ITButton, ITInput, ITPage, ITStack } from "@axzydev/axzy_ui_system";
 import { LuLayoutDashboard, LuPlus } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
-import { CreateTenantDialog, TenantsTable, useTenantsConsole, type TenantFilter } from "@features/tenant/tenants-console";
+import { AgentTokenDialog, CreateTenantDialog, PlanAssignDialog, TenantsTable, useTenantsConsole, type TenantFilter } from "@features/tenant/tenants-console";
 import { tenantHost } from "@shared/api/tenant";
+import type { Tenant } from "@entities/tenant";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { PanelCard } from "@shared/ui/panel-card";
 import { TicConfirm } from "@shared/ui/tic-confirm";
@@ -14,6 +15,8 @@ export default function PlatformHomePage() {
   const { t } = useTranslation("home");
   const fx = useTenantsConsole();
   const [creating, setCreating] = useState(false);
+  const [planTarget, setPlanTarget] = useState<Tenant | null>(null);
+  const [agentTarget, setAgentTarget] = useState<Tenant | null>(null);
   const target = fx.statusTarget;
   const suspending = target?.status === "ACTIVE";
 
@@ -68,7 +71,14 @@ export default function PlatformHomePage() {
               {fx.visible.length === 0 ? (
                 <TicState kind="noResults" size="sm" title={t("platform.noResults.title")} description={t("platform.noResults.description")} />
               ) : (
-                <TenantsTable rows={fx.visible} canManage={fx.canManage} onEnter={fx.enter} onToggleStatus={fx.setStatusTarget} />
+                <TenantsTable
+                  rows={fx.visible}
+                  canManage={fx.canManage}
+                  onEnter={fx.enter}
+                  onToggleStatus={fx.setStatusTarget}
+                  onEditPlan={setPlanTarget}
+                  onManageAgent={setAgentTarget}
+                />
               )}
             </div>
           )}
@@ -76,6 +86,19 @@ export default function PlatformHomePage() {
       </ITStack>
 
       <CreateTenantDialog isOpen={creating} onClose={() => setCreating(false)} onCreated={fx.reload} />
+
+      <PlanAssignDialog
+        isOpen={!!planTarget}
+        tenant={planTarget}
+        onClose={() => setPlanTarget(null)}
+        onSaved={fx.reload}
+      />
+
+      <AgentTokenDialog
+        isOpen={!!agentTarget}
+        tenant={agentTarget}
+        onClose={() => setAgentTarget(null)}
+      />
 
       <TicConfirm
         isOpen={!!target}

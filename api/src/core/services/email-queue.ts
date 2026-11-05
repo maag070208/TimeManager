@@ -211,6 +211,16 @@ async function withConcurrency<T>(items: T[], limit: number, fn: (item: T) => Pr
   await Promise.all(workers);
 }
 
+/** Reclama la fila para este proceso: dos workers no envían el mismo correo. */
+const claim = async (row: EmailLog): Promise<boolean> => {
+  // Empuja `nextAttemptAt` lejos: otro poller ya no la toma mientras se envía.
+  const { count } = await prismaClient.emailLog.updateMany({
+    where: { id: row.id, status: "PENDING" },
+    data: { nextAttemptAt: new Date(Date.now() + 10 * 60_000) },
+  });
+  return count === 1;
+};
+
 const poll = async (): Promise<void> => {
   const rows = await prismaClient.emailLog.findMany({
     where: {
@@ -221,13 +231,16 @@ const poll = async (): Promise<void> => {
     take: env.EMAIL_QUEUE_BATCH_SIZE,
   });
   if (rows.length === 0) return;
-  await withConcurrency(rows, env.EMAIL_QUEUE_CONCURRENCY, runRow);
+  const claimed: EmailLog[] = [];
+  for (const row of rows) if (await claim(row)) claimed.push(row);
+  if (claimed.length > 0) await withConcurrency(claimed, env.EMAIL_QUEUE_CONCURRENCY, runRow);
 };
 
 let workerTimer: ReturnType<typeof setInterval> | null = null;
 let draining = false;
 
-const tick = async (): Promise<void> => {
+/** Un drenado de la cola; lo usa el worker y el job `email.drain` de pg-boss. */
+export const drainEmailQueueOnce = async (): Promise<void> => {
   // Un solo ciclo a la vez: las filas se reclaman dentro del poll; si el
   // batch anterior aún corre, este tick se descarta.
   if (draining) return;
@@ -248,9 +261,9 @@ const tick = async (): Promise<void> => {
  */
 export const startEmailWorker = (): (() => void) => {
   if (workerTimer) return stopEmailWorker;
-  void tick();
+  void drainEmailQueueOnce();
   workerTimer = setInterval(() => {
-    void tick();
+    void drainEmailQueueOnce();
   }, env.EMAIL_QUEUE_POLL_MS);
   return stopEmailWorker;
 };
@@ -261,3 +274,11 @@ export const stopEmailWorker = (): void => {
     workerTimer = null;
   }
 };
+/** Correos pendientes (profundidad de la cola) para `/metrics`. */
+export const emailQueueDepth = async (): Promise<number> =>
+  prismaClient.emailLog.count({
+    where: {
+      status: "PENDING",
+      OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: new Date() } }],
+    },
+  });

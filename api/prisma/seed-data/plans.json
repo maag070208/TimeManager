@@ -1,0 +1,32 @@
+[
+  {
+    "id": "a1000000-0000-4000-8000-000000000500",
+    "key": "PLAN_500",
+    "name": "Básico",
+    "employeeLimit": 500,
+    "clockLimit": 1,
+    "monthlyPrice": "500.00",
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "id": "a1000000-0000-4000-8000-000000000750",
+    "key": "PLAN_750",
+    "name": "Profesional",
+    "employeeLimit": 750,
+    "clockLimit": 2,
+    "monthlyPrice": "750.00",
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "id": "a1000000-0000-4000-8000-000000001000",
+    "key": "PLAN_1000",
+    "name": "Empresarial",
+    "employeeLimit": 1000,
+    "clockLimit": 3,
+    "monthlyPrice": "1000.00",
+    "active": true,
+    "sortOrder": 3
+  }
+]

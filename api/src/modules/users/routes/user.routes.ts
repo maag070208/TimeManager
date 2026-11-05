@@ -108,6 +108,25 @@ export const createUserRouter = (controller: UserController): Router => {
   });
 
   registerPath({
+    method: "get",
+    path: "/users/import/template",
+    tags: ["Users"],
+    summary: "Download the Excel template to import employees (ADMIN, users.create)",
+    security: [{ bearerAuth: [] }],
+    responses: {
+      200: {
+        description: "Excel template (.xlsx)",
+        content: {
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+            schema: { type: "string", format: "binary" },
+          },
+        },
+      },
+      403: { description: "Missing users.create" },
+    },
+  });
+
+  registerPath({
     method: "post",
     path: "/users/import",
     tags: ["Users"],
@@ -256,6 +275,12 @@ export const createUserRouter = (controller: UserController): Router => {
     asyncHandler(controller.listEmployees)
   );
   router.post("/query", asyncHandler(controller.table));
+  // Antes de "/:id": la plantilla es ruta fija, no un id de usuario.
+  router.get(
+    "/import/template",
+    requiresPermission("users.create"),
+    asyncHandler(controller.importTemplate)
+  );
 
   router.post("/availability", requiresPermission("users.view"), asyncHandler(controller.availability));
   router.get("/", requiresPermission("users.view"), asyncHandler(controller.list));

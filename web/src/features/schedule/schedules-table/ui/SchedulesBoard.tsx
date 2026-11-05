@@ -87,6 +87,13 @@ export default function SchedulesBoard() {
   // El bot cambió un horario: el renglón se refresca sin salir de la tabla.
   useEffect(() => onAppEvent("schedule:updated", () => load()), []);
 
+  // El bot (u otra pantalla) pide editar un horario: se abre el formulario. Se
+  // navega con el router (que ya lleva el prefijo del cliente en local-first).
+  useEffect(
+    () => onAppEvent("schedule:edit", ({ id }) => navigate(`/schedules/${id}/edit`)),
+    [navigate],
+  );
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return (rows ?? []).filter((h) => {

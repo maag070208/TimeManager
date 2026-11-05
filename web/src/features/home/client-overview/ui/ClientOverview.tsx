@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ITBentoStatStrip, ITButton, ITText } from "@axzydev/axzy_ui_system";
+import { useCan } from "@entities/user";
 import { LuCalendarClock, LuCircleCheck, LuCircle, LuClock3, LuFolderOpen, LuSettings2, LuUsersRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -24,6 +25,11 @@ export default function ClientOverview() {
   const tr = dyn(t);
   const navigate = useNavigate();
   const fx = useClientOverview();
+  // El bloque de asistencia lo ve quien tiene `attendance.view` (p. ej. el
+  // empleado, con alcance OWN), pero `/hr/time-clock` exige `time_clock.view`.
+  // Sin ese permiso el "Ver todo" lleva al portal del trabajador (`/mi-jornada`),
+  // que es su vista de marcajes, en vez de rebotar a `/` (botón muerto).
+  const canTimeClockView = useCan("time_clock.view");
   const shortDate = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(i18n.language, { day: "numeric", month: "short" });
 
   if (!fx.hasAny) {
@@ -34,7 +40,10 @@ export default function ClientOverview() {
     );
   }
 
-  const pendingSteps = fx.onboarding?.filter((s) => !s.done).length ?? 0;
+  // Pasos del onboarding cuyo destino exige `time_clock.view`: sin permiso se
+  // omiten para que "Ir" no rebote a `/` (mismo criterio que el "Ver todo").
+  const onboardingSteps = fx.onboarding?.filter((step) => step.id !== "clock" || canTimeClockView) ?? null;
+  const pendingSteps = onboardingSteps?.filter((s) => !s.done).length ?? 0;
   const seeAll = (to: string) => (
     <ITButton variant="text" color="primary" size="sm" onClick={() => navigate(to)}>
       {t("client.seeAll")}
@@ -43,10 +52,10 @@ export default function ClientOverview() {
 
   return (
     <div className="flex flex-col gap-4">
-      {fx.onboarding && pendingSteps > 0 && (
+      {onboardingSteps && pendingSteps > 0 && (
         <PanelCard icon={<LuCircleCheck />} title={t("client.onboarding.title")} description={t("client.onboarding.description")}>
           <ol className="grid gap-2 sm:grid-cols-2">
-            {fx.onboarding.map((step, i) => (
+            {onboardingSteps.map((step, i) => (
               <li key={step.id} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-800/60">
                 {step.done ? (
                   <LuCircleCheck aria-hidden size={20} className="shrink-0 text-[var(--color-success)]" />
@@ -75,7 +84,11 @@ export default function ClientOverview() {
       )}
 
       {fx.can.attendance && (
-        <PanelCard icon={<LuClock3 />} title={t("client.attendance.title")} actions={seeAll("/hr/time-clock")}>
+        <PanelCard
+          icon={<LuClock3 />}
+          title={t("client.attendance.title")}
+          actions={seeAll(canTimeClockView ? "/hr/time-clock" : "/mi-jornada")}
+        >
           <Block value={fx.attendance}>
             {(a) => {
               const late = a.rows.filter((r) => r.status === "LATE").sort((x, y) => y.lateMin - x.lateMin).slice(0, 5);
@@ -195,7 +208,11 @@ export default function ClientOverview() {
         )}
 
         {fx.can.setup && (
-          <PanelCard icon={<LuSettings2 />} title={t("client.setup.title")} actions={seeAll("/hr/time-clock/employees")}>
+          <PanelCard
+            icon={<LuSettings2 />}
+            title={t("client.setup.title")}
+            actions={canTimeClockView ? seeAll("/hr/time-clock/employees") : undefined}
+          >
             <Block value={fx.setup}>
               {(s) => (
                 <ITBentoStatStrip

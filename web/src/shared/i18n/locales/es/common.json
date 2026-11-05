@@ -30,6 +30,7 @@
     "logout": "Cerrar sesión",
     "catalogs": "Catálogos",
     "roles": "Roles y permisos",
+    "plans": "Planes",
     "hrReports": "Reportes de personal",
     "employeeRecords": "Expedientes",
     "accessTimeClock": "Checadas del reloj",
@@ -46,7 +47,9 @@
     "weeklyAttendance": "Asistencia semanal",
     "payroll": "Pre Nómina",
     "settings": "Configuración",
-    "accountMenu": "Cuenta de {{name}}"
+    "accountMenu": "Cuenta de {{name}}",
+    "myWorkday": "Mi jornada",
+    "telework": "Teletrabajo (NOM-037)"
   },
   "files": {
     "access": "accesos",

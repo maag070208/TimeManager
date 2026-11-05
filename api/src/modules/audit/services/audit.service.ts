@@ -39,6 +39,7 @@ export class AuditService {
 
     if (params.action) where.action = params.action;
     if (params.entityType) where.entityType = params.entityType;
+    if (params.entityId) where.entityId = params.entityId;
     if (params.userId) where.userId = params.userId;
     if (params.deviceId) where.deviceId = params.deviceId;
 

@@ -19,6 +19,8 @@ import type { ITDataTableFetchParamsPost } from "@shared/api/table";
 import { formatMinutesAsHhMm, formatTimeInTZ } from "@shared/utils/dates";
 import { useDebouncedValue } from "@shared/lib/useDebouncedValue";
 import { periodRangeOf, shiftPeriod, toDateInput } from "@shared/lib/reportPeriod";
+import { dateAtNoonFromKey } from "@shared/utils/dates";
+import { useTenantTodayKey } from "@entities/user";
 import { fileName, type FileNameKey, dateLocale } from "@shared/i18n";
 
 /** Firma del generador de PDF, inyectado por la página (widgets → features por DI). */
@@ -68,8 +70,11 @@ const BROWSER_TIMEZONE =
 export const useAccessReport = ({ download, source = ACCESS_SOURCE }: Options) => {
   const { t } = useTranslation(["access-report", "common"]);
 
+  // El día por defecto es el de HOY del cliente (zona del tenant), no el del
+  // navegador: la API resuelve los límites del periodo en esa zona.
+  const tenantTodayKey = useTenantTodayKey();
   const [period, setPeriod] = useState<AccessReportPeriod>("WEEK");
-  const [date, setDate] = useState<Date>(() => new Date());
+  const [date, setDate] = useState<Date>(() => dateAtNoonFromKey(tenantTodayKey));
   const [departmentId, setDepartmentId] = useState("");
   const [search, setSearch] = useState("");
   const q = useDebouncedValue(search.trim(), 350);
@@ -132,8 +137,8 @@ export const useAccessReport = ({ download, source = ACCESS_SOURCE }: Options) =
 
   const changePeriod = (value: AccessReportPeriod) => {
     setPeriod(value);
-    // Cada periodo arranca en el que contiene hoy.
-    setDate(new Date());
+    // Cada periodo arranca en el que contiene el HOY del cliente.
+    setDate(dateAtNoonFromKey(tenantTodayKey));
   };
 
   const exportSessions = useCallback(

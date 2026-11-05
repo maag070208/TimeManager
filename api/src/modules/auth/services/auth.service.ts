@@ -9,6 +9,7 @@ import {
   type JwtPayload,
 } from "@core/utils/security";
 import { systemLanguage } from "@core/i18n";
+import { runWithRlsBypass } from "@core/tenancy";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { userToEntity, entityToAuthUserDto, userToAuthMeDto } from "../mappers/auth.mapper";
 import type { AuthMe, LoginResponse } from "../models/dto/auth.dto";
@@ -35,10 +36,14 @@ export class AuthService {
       tenantId = tenant.id;
     }
 
-    const user = await this.db.user.findFirst({
-      where: { username, tenantId },
-      include: { extraRoles: { select: { role: true } } },
-    });
+    // Pre-contexto: todavía no hay cliente en el contexto de tenancy, así que
+    // el lookup va con el bypass controlado de RLS (F1B-01).
+    const user = await runWithRlsBypass(() =>
+      this.db.user.findFirst({
+        where: { username, tenantId },
+        include: { extraRoles: { select: { role: true } } },
+      })
+    );
     if (!user) throw new HttpError(401, "INVALID_CREDENTIALS");
     if (!user.active) {
       // Cuenta dada de baja. Separamos este caso del "credenciales inválidas"

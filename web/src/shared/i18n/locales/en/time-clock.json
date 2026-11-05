@@ -887,5 +887,38 @@
     "problems": "With problems",
     "problemsHint": "Not connecting: check their detail",
     "allOk": "All connecting"
+  },
+  "agentJobs": {
+    "title": "Jobs for the local agent",
+    "description": "The agent installed on the client's network runs these actions against the clock.",
+    "clock": "Clock",
+    "action": "Action",
+    "employeeNumber": "Employee number",
+    "name": "Name",
+    "cardNo": "Card number",
+    "refresh": "Refresh",
+    "enqueue": "Enqueue",
+    "enqueuing": "Enqueuing…",
+    "queued": "Job enqueued: the agent will run it in seconds.",
+    "hint": "The job waits for the agent; the clock must have writes enabled.",
+    "readOnly": "This clock has writes disabled: enrollments and removals need it enabled.",
+    "recent": "Recent jobs",
+    "loading": "Loading jobs…",
+    "empty": "No jobs yet.",
+    "actions": {
+      "SYNC": "Sync punches",
+      "PERSON_ADD": "Add person",
+      "PERSON_REMOVE": "Remove person",
+      "CARD_ADD": "Add card",
+      "CARD_REMOVE": "Remove card",
+      "FINGERPRINT_APPLY": "Apply fingerprint"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "RUNNING": "Running",
+      "DONE": "Done",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled"
+    }
   }
 }

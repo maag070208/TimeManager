@@ -15,6 +15,19 @@ const TimezoneSchema = z.string().trim().refine(isValidTimezone, "INVALID_TIMEZO
 
 export const TenantStatusSchema = z.enum(["ACTIVE", "SUSPENDED"]);
 
+/** Plan contratado, tal como lo resume la ficha del cliente. */
+export const TenantPlanSchema = z
+  .object({
+    id: z.string(),
+    key: z.string(),
+    name: z.string(),
+    employeeLimit: z.number().int(),
+    clockLimit: z.number().int(),
+    monthlyPrice: z.string().nullable(),
+    active: z.boolean(),
+  })
+  .openapi("TenantPlan");
+
 export const TenantSchema = z
   .object({
     id: z.string(),
@@ -22,11 +35,14 @@ export const TenantSchema = z
     slug: z.string(),
     status: TenantStatusSchema,
     timezone: z.string(),
-    plan: z.string().nullable(),
+    planId: z.string().nullable(),
+    plan: TenantPlanSchema.nullable(),
     employeeLimit: z.number().int().nullable(),
+    /** Límites efectivos (plan + override del cliente). */
+    limits: z.object({ people: z.number().int().nullable(), clocks: z.number().int().nullable() }),
     createdAt: z.string(),
     updatedAt: z.string(),
-    usage: z.object({ activeUsers: z.number().int() }),
+    usage: z.object({ activeUsers: z.number().int(), clocks: z.number().int() }),
   })
   .openapi("Tenant");
 
@@ -37,7 +53,7 @@ export const TenantCreateDto = z
     name: z.string().trim().min(2).max(120),
     slug: SlugSchema,
     timezone: TimezoneSchema.optional(),
-    plan: z.string().trim().max(60).nullish(),
+    planId: z.string().trim().min(1).nullish(),
     employeeLimit: z.number().int().positive().nullish(),
     admin: z.object({
       name: z.string().trim().min(2).max(120),
@@ -56,7 +72,7 @@ export const TenantUpdateDto = z
     name: z.string().trim().min(2).max(120).optional(),
     status: TenantStatusSchema.optional(),
     timezone: TimezoneSchema.optional(),
-    plan: z.string().trim().max(60).nullish(),
+    planId: z.string().trim().min(1).nullish(),
     employeeLimit: z.number().int().positive().nullish(),
   })
   .refine((v) => Object.keys(v).length > 0, "EMPTY_UPDATE")

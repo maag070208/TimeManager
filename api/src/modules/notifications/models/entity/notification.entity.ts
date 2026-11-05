@@ -27,6 +27,16 @@ export interface NotifyRosterAlertInput {
   suspicious: boolean;
 }
 
+/** Aviso a RH: una persona superó el límite legal de jornada (F2-03). */
+export interface NotifyWorkdayLimitInput {
+  employeeName: string;
+  /** Día local `YYYY-MM-DD`. */
+  date: string;
+  workedMinutes: number;
+  limitMinutes: number;
+  scope: "day" | "week";
+}
+
 export interface NotifyDocumentUploadedInput {
   userId: string;
   documentId: string;
@@ -53,4 +63,5 @@ export interface NotificationPort {
   notifyUserDeactivated(input: NotifyUserDeactivatedInput): Promise<NotifyRecipientSummary>;
   notifyDocumentUploaded(input: NotifyDocumentUploadedInput): Promise<NotifyRecipientSummary>;
   notifyRosterAlert(input: NotifyRosterAlertInput): Promise<NotifyRecipientSummary>;
+  notifyWorkdayLimit(input: NotifyWorkdayLimitInput): Promise<NotifyRecipientSummary>;
 }

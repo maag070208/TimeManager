@@ -113,7 +113,12 @@ async function main(): Promise<void> {
   } finally {
     for (const f of created) {
       await runWithTenant(f.tenantId, async () => {
-        await db.timeClockPunch.deleteMany();
+        // F2-01: las checadas son inmutables. El limpiador de esta BD de
+        // pruebas usa la misma purga controlada que el archivado por retención.
+        await db.$transaction(async (tx) => {
+          await tx.$executeRawUnsafe("SET LOCAL app.nom_purge = 'on'");
+          await tx.timeClockPunch.deleteMany();
+        });
         await db.user.deleteMany();
         await db.schedule.deleteMany();
         await db.department.deleteMany();

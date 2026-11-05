@@ -28,7 +28,8 @@ import type {
   DeactivateUserInput,
 } from "../models/dto/user.dto";
 import { webLoginUrl } from "@core/config/web-url";
-import { currentTenantId, tenantBrand } from "@core/tenancy";
+import { currentTenantId, tenantBrand, tenantTransaction } from "@core/tenancy";
+import { assertCanAddPeople } from "@core/plans";
 
 const userSelect = {
   id: true,
@@ -54,6 +55,32 @@ const userSelect = {
   createdAt: true,
 } as const;
 
+/**
+ * Select del directorio para selectores (F1C-05): sin las relaciones de baja
+ * (`deactivatedBy`) ni subárea, que no se usan en los pickers.
+ */
+const employeePickerSelect = {
+  id: true,
+  username: true,
+  email: true,
+  name: true,
+  middleName: true,
+  paternalSurname: true,
+  maternalSurname: true,
+  role: true,
+  extraRoles: { select: { role: true } },
+  active: true,
+  jobTitle: true,
+  employeeNumber: true,
+  departmentId: true,
+  department: { select: { id: true, name: true } },
+  createdAt: true,
+} as const;
+
+/** Tope duro del directorio (F1C-05): nadie pide "todos" sin filtro. */
+export const EMPLOYEE_PICKER_MAX_LIMIT = 500;
+export const EMPLOYEE_PICKER_DEFAULT_LIMIT = 500;
+
 type UserRole = UserCreateInput["role"];
 
 /** Puerto de auditoría (DIP). Si no se inyecta, los logs no se escriben. */
@@ -71,6 +98,56 @@ export class UserService {
       where: role ? { role } : undefined,
       select: userSelect,
       orderBy: { name: "asc" },
+    });
+  }
+
+  /**
+   * Directorio de personas para selectores (F1C-05): filtros en la BD con tope
+   * de filas. Antes se cargaba TODA la tabla con 4 relaciones y se filtraba en
+   * memoria. Los filtros desconocidos se ignoran como antes.
+   */
+  async listEmployees(options: {
+    departmentId?: string;
+    roles?: string[];
+    q?: string;
+    includeInactive?: boolean;
+    limit?: number;
+  } = {}) {
+    const requested = options.limit ?? EMPLOYEE_PICKER_DEFAULT_LIMIT;
+    const limit = Math.min(Math.max(Math.trunc(requested) || EMPLOYEE_PICKER_DEFAULT_LIMIT, 1), EMPLOYEE_PICKER_MAX_LIMIT);
+    const where: Prisma.UserWhereInput = {};
+    if (!options.includeInactive) where.active = true;
+    if (options.departmentId) where.departmentId = options.departmentId;
+    const conditions: Prisma.UserWhereInput[] = [];
+    if (options.roles?.length) {
+      conditions.push({
+        OR: [
+          { role: { in: options.roles as never } },
+          { extraRoles: { some: { role: { in: options.roles as never } } } },
+        ],
+      });
+    }
+    const q = options.q?.trim();
+    if (q) {
+      conditions.push({
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { middleName: { contains: q, mode: "insensitive" } },
+          { paternalSurname: { contains: q, mode: "insensitive" } },
+          { maternalSurname: { contains: q, mode: "insensitive" } },
+          { employeeNumber: { contains: q, mode: "insensitive" } },
+          { jobTitle: { contains: q, mode: "insensitive" } },
+          { username: { contains: q, mode: "insensitive" } },
+          { department: { name: { contains: q, mode: "insensitive" } } },
+        ],
+      });
+    }
+    if (conditions.length > 0) where.AND = conditions;
+    return this.db.user.findMany({
+      where,
+      select: employeePickerSelect,
+      orderBy: { name: "asc" },
+      take: limit,
     });
   }
 
@@ -191,8 +268,9 @@ export class UserService {
     for (const key of [role, ...extraRoles]) {
       if (!isRoleAllowedFor(key, currentTenantId())) throw new HttpError(403, "ROLE_NOT_FOR_CLIENT", { role: key });
     }
+    await assertCanAddPeople(currentTenantId());
 
-    const created = await this.db.$transaction(async (tx) => {
+    const created = await tenantTransaction(this.db, async (tx) => {
       const row = await tx.user.create({
         data: {
           username: data.username,
@@ -345,7 +423,7 @@ export class UserService {
     }
 
     const { roles, ...rest } = data;
-    return this.db.$transaction(async (tx) => {
+    return tenantTransaction(this.db, async (tx) => {
       const row = await tx.user.update({
         where: { id },
         data: rest,
@@ -463,7 +541,7 @@ export class UserService {
       throw new HttpError(400, "CANNOT_DEACTIVATE_SELF");
     }
 
-    const result = await this.db.$transaction(async (tx) => {
+    const result = await tenantTransaction(this.db, async (tx) => {
       const user = await tx.user.findUnique({
         where: { id },
         select: { id: true, username: true, name: true, role: true, active: true, email: true, deactivatedAt: true },
@@ -599,7 +677,7 @@ export class UserService {
       throw new HttpError(400, "CANNOT_REACTIVATE_SELF");
     }
 
-    const result = await this.db.$transaction(async (tx) => {
+    const result = await tenantTransaction(this.db, async (tx) => {
       const user = await tx.user.findUnique({
         where: { id },
         select: { id: true, username: true, name: true, role: true, active: true, deactivatedAt: true, deactivationReason: true },

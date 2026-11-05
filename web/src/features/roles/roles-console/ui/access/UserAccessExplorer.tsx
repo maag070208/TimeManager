@@ -14,8 +14,11 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import type { RootState } from "@app/store";
 import type { AccessPermissionView, PermissionCatalog, PermissionMap, PolicyAdmin } from "@entities/permission";
 import { roleLabel, useCan, usersApi } from "@entities/user";
+import { getSelectedTenant } from "@shared/api/tenant";
 import { formatDate } from "@shared/i18n/format";
 import { groupByModule, isScopedPermission, matchesPermission } from "../../model/access-levels";
 import { matchesMember, memberRoles, type AccessMembersState } from "../../model/useAccessMembers";
@@ -72,6 +75,11 @@ export default function UserAccessExplorer({
   const { t } = useTranslation("roles");
   const navigate = useNavigate();
   const canExceptions = useCan("users.permissions");
+  // Cliente activo: el de la sesión (usuario de cliente) o el elegido por la
+  // plataforma. Con cliente no se ofrecen los roles del equipo TimeManager: la
+  // API los rechaza con 403.
+  const sessionTenant = useSelector((s: RootState) => s.auth.user?.tenant ?? null);
+  const client = sessionTenant ?? getSelectedTenant();
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [showInactive, setShowInactive] = useState(false);
@@ -234,7 +242,10 @@ export default function UserAccessExplorer({
   };
 
   const addRoleItems: ITDropdownMenuItem[] = roles
-    .filter((role) => admin.rolesMeta.find((item) => item.key === role)?.active && !access?.roles.some((item) => item.key === role))
+    .filter((role) => {
+      const meta = admin.rolesMeta.find((item) => item.key === role);
+      return meta?.active && (!client || meta.staff) && !access?.roles.some((item) => item.key === role);
+    })
     .map((role) => ({
       id: role,
       label: roleLabel(role),

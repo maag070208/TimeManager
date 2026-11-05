@@ -30,6 +30,7 @@
     "logout": "Sign out",
     "catalogs": "Catalogs",
     "roles": "Roles and permissions",
+    "plans": "Plans",
     "hrReports": "HR Reports",
     "employeeRecords": "Employee records",
     "accessTimeClock": "Time clock punches",
@@ -46,7 +47,9 @@
     "weeklyAttendance": "Weekly attendance",
     "payroll": "Payroll",
     "settings": "Settings",
-    "accountMenu": "{{name}}'s account"
+    "accountMenu": "{{name}}'s account",
+    "myWorkday": "My workday",
+    "telework": "Telework (NOM-037)"
   },
   "files": {
     "access": "access",

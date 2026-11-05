@@ -5,6 +5,7 @@ import { getCatalog, getMatrix, maxScope, scopeOf, isPermission, type Permission
 import type { JwtPayload } from "@core/utils/security";
 import type { AuditLogger } from "./user.service";
 
+import { tenantTransaction } from "@core/tenancy";
 /**
  * Excepciones de permiso por empleado (Fase 2). Una excepción reemplaza lo que
  * dice el rol para ese permiso: lo sube, lo baja o lo quita (`scope = NONE`).
@@ -150,7 +151,7 @@ export class UserPermissionsService {
           ? null
           : new Date(input.expiresAt);
 
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       const previous = await tx.userPermission.findUnique({
         where: { userId_permission: { userId, permission } },
       });
@@ -183,7 +184,7 @@ export class UserPermissionsService {
     if (!existing) {
       throw new HttpError(404, "PERMISSION_EXCEPTION_NOT_FOUND", { permission });
     }
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       await tx.userPermission.delete({ where: { userId_permission: { userId, permission } } });
       await this.audit?.(
         {

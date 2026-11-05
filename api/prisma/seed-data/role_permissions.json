@@ -498,5 +498,20 @@
     "role": "SUPPORT",
     "permission": "tenants.view",
     "scope": "ALL"
+  },
+  {
+    "role": "ADMIN",
+    "permission": "plans.view",
+    "scope": "ALL"
+  },
+  {
+    "role": "ADMIN",
+    "permission": "plans.manage",
+    "scope": "ALL"
+  },
+  {
+    "role": "SUPPORT",
+    "permission": "plans.view",
+    "scope": "ALL"
   }
 ]

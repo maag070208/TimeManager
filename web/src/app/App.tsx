@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { tenantRouteFromLocation } from "@shared/api/tenant";
 import LoginPage from "@pages/auth/LoginPage";
 import HomePage from "@pages/home/HomePage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
+import TenantRouteGate from "./guards/TenantRouteGate";
 import TimeClockPage from "@pages/access/TimeClockPage";
 import TimeClockReportPage from "@pages/access/TimeClockReportPage";
 import TimeClockEmployeesPage from "@pages/access/TimeClockEmployeesPage";
@@ -31,7 +33,10 @@ import UserFormPage from "@pages/users/UserFormPage";
 import UserHistoryPage from "@pages/users/UserHistoryPage";
 import UserImportPage from "@pages/users/UserImportPage";
 import NotificationsPage from "@pages/notifications/NotificationsPage";
+import MyWorkdayPage from "@pages/nom/MyWorkdayPage";
+import TeleworkAdminPage from "@pages/nom/TeleworkAdminPage";
 import RolesPage from "@pages/roles/RolesPage";
+import PlansPage from "@pages/plans/PlansPage";
 
 /** Personal se abre con expediente (`hr.records`) o con cuentas (`users.view`). */
 const PEOPLE_PERMISSIONS = ["hr.records", "users.view"] as const;
@@ -41,13 +46,31 @@ function LegacyUserRedirect({ to }: { to: "account" | "history" }) {
   return <Navigate to={`/employees/${id}/${to}`} replace />;
 }
 
+/** Inicio: en modo ruta por cliente (`/#/acme/…`) el canónico es `/home`. */
+function HomeRoute() {
+  return tenantRouteFromLocation().fromPath ? <Navigate to="/home" replace /> : <HomePage />;
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
+    <>
+      <TenantRouteGate />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
 
-      <Route element={<PrivateRoutes />}>
-        <Route path="/" element={<HomePage />} />
+        <Route element={<PrivateRoutes />}>
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/home" element={<HomePage />} />
+          {/* Portal del trabajador (NOM/F2-07): marcaje remoto, marcajes y teletrabajo. */}
+          <Route path="/mi-jornada" element={<MyWorkdayPage />} />
+          <Route
+            path="/teletrabajo"
+            element={
+              <RequiresPermission permission="time_clock.view">
+                <TeleworkAdminPage />
+              </RequiresPermission>
+            }
+          />
 
         
         <Route path="/departments" element={<DepartmentsPage />} />
@@ -132,6 +155,14 @@ export default function App() {
           element={
             <RequiresPermission permission="roles.manage">
               <RolesPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/plans"
+          element={
+            <RequiresPermission permission="plans.view">
+              <PlansPage />
             </RequiresPermission>
           }
         />
@@ -267,6 +298,7 @@ export default function App() {
                                                                                                                                                                                               </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }

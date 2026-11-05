@@ -63,7 +63,10 @@ model Tenant {
   slug          String       @unique
   status        TenantStatus @default(ACTIVE)
   timezone      String       @default("America/Mexico_City")
-  plan          String?
+  /// Plan contratado. `null` = sin plan (no aplica límites).
+  planId        String?
+  plan          Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
+  /// Override explícito del límite de personal del plan (soporte excepcional).
   employeeLimit Int?
 
   createdAt DateTime @default(now())
@@ -71,7 +74,35 @@ model Tenant {
 
   users User[]
 
+  // Configuración NOM por cliente (límites de jornada y retención).
+  nomSettings NomSettings?
+
+  @@index([planId])
   @@map("tenants")
+}
+
+/// Catálogo de planes del SaaS (F3-09): qué incluye cada uno (personal y
+/// relojes) y su precio de lista mensual. El cobro es manual/pospuesto: aquí
+/// solo viven los datos que la consola de plataforma administra.
+model Plan {
+  id            String   @id @default(uuid())
+  /// Clave estable para el código y el backfill del `plan` viejo (p. ej. `PLAN_500`).
+  key           String   @unique
+  name          String
+  /// Personas activas incluidas.
+  employeeLimit Int
+  /// Relojes checadores incluidos.
+  clockLimit    Int
+  /// Precio mensual de lista; `null` = por definir.
+  monthlyPrice  Decimal? @db.Decimal(12, 2)
+  active        Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenants Tenant[]
+
+  @@map("plans")
 }
 
 model Department {
@@ -215,6 +246,20 @@ model User {
   payrollWeeksClosed   PayrollWeekClosure[]      @relation("PayrollWeekCloser")
   payrollWeeksReopened PayrollWeekClosure[]      @relation("PayrollWeekReopener")
   payrollReviews       PayrollDepartmentReview[] @relation("PayrollDepartmentReviewer")
+
+  // NOM: correcciones de checadas (F2-01) y alertas de límite de jornada (F2-03).
+  punchAdjustmentsRequested PunchAdjustment[]  @relation("PunchAdjustmentRequester")
+  punchAdjustmentsDecided   PunchAdjustment[]  @relation("PunchAdjustmentDecider")
+  nomSettingsUpdated        NomSettings[]      @relation("NomSettingsUpdater")
+  workdayLimitAlerts        WorkdayLimitAlert[]
+
+  // Marcaje remoto y NOM-037 teletrabajo (F2-07/F2-08).
+  remotePunches              RemotePunch[]           @relation("RemotePunchUser")
+  teleworkRegistrations      TeleworkRegistration[]  @relation("TeleworkRegistrationUser")
+  createdTeleworkRegistrations TeleworkRegistration[] @relation("TeleworkRegistrationCreator")
+  teleworkChecklists         TeleworkChecklist[]     @relation("TeleworkChecklistUser")
+  outOfHoursContacts         OutOfHoursContact[]     @relation("OutOfHoursContactUser")
+  createdOutOfHoursContacts  OutOfHoursContact[]     @relation("OutOfHoursContactCreator")
 
   @@unique([tenantId, username])
   @@unique([tenantId, email])
@@ -649,6 +694,10 @@ model TimeClockPunch {
   // Instante de la checada según el reloj del equipo.
   occurredAt     DateTime
   createdAt      DateTime    @default(now())
+
+  /// Correcciones ligadas (la checada es inmutable, F2-01): se corrigen por
+  /// registro de ajuste, nunca editando/borrando la fila.
+  adjustments PunchAdjustment[]
 
   @@unique([clockSerial, serialNo])
   @@index([tenantId])
@@ -1169,3 +1218,328 @@ enum HotelInspectionResult {
 }
 
 /// Housekeeping task for one room. A room has at most one open task.
+
+// ---------------------------------------------------------------------------
+// NOM / LFT art. 132 fr. XXXIV (registro electrónico de jornada, 2027)
+// ---------------------------------------------------------------------------
+
+/// Corrección de una checada SIN tocarla. La checada original es inmutable
+/// (trigger append-only en la tabla); el ajuste guarda quién/cuándo/por qué y
+/// el valor anterior/nuevo, y requiere aprobación de un segundo usuario.
+enum PunchAdjustmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model PunchAdjustment {
+  id            String                @id @default(uuid())
+  tenantId      String                @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  punchId       String
+  punch         TimeClockPunch        @relation(fields: [punchId], references: [id], onDelete: Restrict)
+  requestedById String
+  requestedBy   User                  @relation("PunchAdjustmentRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  /// Motivo obligatorio (por qué se corrige).
+  reason        String
+  /// Snapshot del valor vigente al momento de pedir el ajuste.
+  previousState Json
+  /// Valor propuesto (p. ej. `{ occurredAt: "..." }`).
+  newState      Json
+  status        PunchAdjustmentStatus @default(PENDING)
+  decidedById   String?
+  decidedBy     User?                 @relation("PunchAdjustmentDecider", fields: [decidedById], references: [id], onDelete: SetNull)
+  decidedAt     DateTime?
+  decisionNote  String?
+  createdAt     DateTime              @default(now())
+
+  @@index([tenantId])
+  @@index([punchId])
+  @@index([status])
+  @@index([requestedById])
+  @@index([createdAt])
+  @@map("punch_adjustments")
+}
+
+/// Configuración NOM por cliente. Si un campo es `null` se usa el default
+/// global de `sys_config` (o el default legal calculado, p. ej. tope semanal
+/// por año: 46 h 2027→2029, 40 h desde 2030).
+model NomSettings {
+  tenantId            String   @id
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// Tope de jornada diaria (ordinaria + extra). Default legal: 12 h = 720.
+  workdayLimitMinutes Int?
+  /// Tope semanal. `null` = calcular por año (46 h 2027-2029, 40 h desde 2030).
+  weeklyLimitMinutes  Int?
+  /// Meses que un registro queda activo antes de archivarse. `null`/0 = sin archivado.
+  retentionMonths     Int?
+  /// ¿Se permite el marcaje remoto (app/web) para este cliente? (F2-07)
+  remotePunchEnabled  Boolean  @default(true)
+  /// Política de teletrabajo editable por cliente (NOM-037 / F2-08).
+  teleworkPolicy      String?
+  /// Política de desconexión digital (NOM-037 / F2-08).
+  disconnectPolicy    String?
+  /// Aviso de privacidad editable por cliente (validación legal fuera del sistema).
+  privacyNotice       String?
+  /// Versiones que el trabajador acepta (consentimiento).
+  policyVersion       Int      @default(1)
+  privacyNoticeVersion Int     @default(1)
+  policiesUpdatedAt   DateTime?
+  updatedById         String?
+  updatedBy           User?    @relation("NomSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt           DateTime @updatedAt
+
+  @@map("nom_settings")
+}
+
+enum WorkdayAlertScope {
+  DAY
+  WEEK
+}
+
+/// Alerta emitida al detectar una jornada/semana por encima del límite legal
+/// configurado. Se persiste para que la campanita/historial de RH no dependa
+/// del barrido y para no repetir el aviso (única por persona/escala/día).
+model WorkdayLimitAlert {
+  id            String            @id @default(uuid())
+  tenantId      String            @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scope         WorkdayAlertScope
+  /// Día local (`DATE`) que ancla la alerta; en WEEK es el primer día de la semana.
+  date          DateTime          @db.Date
+  workedMinutes Int
+  limitMinutes  Int
+  notifyCount   Int               @default(0)
+  notifiedAt    DateTime          @default(now())
+  createdAt     DateTime          @default(now())
+
+  @@unique([tenantId, userId, scope, date])
+  @@index([tenantId, createdAt])
+  @@map("workday_limit_alerts")
+}
+
+// ---------------------------------------------------------------------------
+// F1B-13/17 — Agente local del cliente (TimeManagerAgent)
+// ---------------------------------------------------------------------------
+
+/// Agente local del cliente: el "brazo" que corre en la red del cliente, habla
+/// ISAPI con sus relojes y sube checadas al API. La credencial es un token de
+/// dispositivo por cliente: en BD solo vive su hash SHA-256, es revocable
+/// (`active = false`) y rotable (`POST /agent/token`).
+model Agent {
+  id         String    @id @default(uuid())
+  tenantId   String
+  /// Nombre para reconocerlo en soporte (p. ej. "PC recepción").
+  name       String
+  /// SHA-256 hex del token de dispositivo; el token en claro solo se muestra al crearlo/rotarlo.
+  tokenHash  String    @unique
+  /// Versión instalada de TimeManagerAgent, reportada por el propio agente.
+  version    String?
+  active     Boolean   @default(true)
+  lastSeenAt DateTime?
+  lastSyncAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  jobs       AgentJob[]
+
+  @@index([tenantId])
+  @@map("agents")
+}
+
+/// Trabajo pedido desde la nube para que un agente lo ejecute contra el reloj.
+/// La cola vive en esta tabla hasta que entre pg-boss (A1): `AgentJobQueue` en
+/// `modules/agent/services/agent-job-queue.ts` es la interfaz que se sustituye.
+model AgentJob {
+  id          String         @id @default(uuid())
+  tenantId    String
+  /// Agente al que se le asignó; `null` = cualquiera del cliente puede tomarlo.
+  agentId     String?
+  agent       Agent?         @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  /// Reloj objetivo (serie); `null` = el trabajo no es de un reloj concreto.
+  clockSerial String?
+  type        AgentJobType
+  payload     Json           @default("{}")
+  status      AgentJobStatus @default(PENDING)
+  attempts    Int            @default(0)
+  maxAttempts Int            @default(5)
+  /// Antes de esta hora no se reclama (backoff de reintentos).
+  availableAt DateTime       @default(now())
+  claimedAt   DateTime?
+  finishedAt  DateTime?
+  result      Json?
+  error       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([tenantId, status, availableAt])
+  @@index([agentId])
+  @@map("agent_jobs")
+}
+
+/// Trabajos que el agente ejecuta contra el reloj (los define el API; el
+/// agente los consume en `GET /agent/jobs`).
+enum AgentJobType {
+  /// Leer checadas del reloj y subirlas (consola o botón "Sincronizar ahora").
+  SYNC
+  PERSON_ADD
+  PERSON_REMOVE
+  CARD_ADD
+  CARD_REMOVE
+  FINGERPRINT_APPLY
+}
+
+enum AgentJobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+  CANCELLED
+}
+
+// ---------------------------------------------------------------------------
+// F2-07 — Marcaje remoto (home office / campo), sin reloj físico
+// ---------------------------------------------------------------------------
+
+enum RemotePunchType {
+  ENTRY
+  EXIT
+}
+
+/// Modalidad declarada al marcar (NOM-037 distingue teletrabajo del trabajo
+/// presencial/campo).
+enum RemoteWorkMode {
+  PRESENCIAL
+  HIBRIDO
+  REMOTO
+  CAMPO
+}
+
+/// Marcaje remoto: inicio/fin de jornada capturado por el propio trabajador
+/// (web/app), sin reloj. `occurredAt` es la hora del SERVIDOR (autoritativa);
+/// la geolocalización es OPCIONAL y se guarda solo en este registro, en el
+/// momento del marcaje (no hay rastreo continuo). Append-only por trigger.
+model RemotePunch {
+  id                 String          @id @default(uuid())
+  tenantId           String          @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId             String
+  user               User            @relation("RemotePunchUser", fields: [userId], references: [id], onDelete: Restrict)
+  type               RemotePunchType
+  workMode           RemoteWorkMode  @default(REMOTO)
+  /// Hora autoritativa (servidor). El reloj del dispositivo no manda.
+  occurredAt         DateTime        @default(now())
+  /// Hora reportada por el cliente, solo auditoría (reintentos offline).
+  clientReportedAt   DateTime?
+  latitude           Float?
+  longitude          Float?
+  gpsAccuracyMeters  Float?
+  note               String?
+  /// Idempotencia del cliente: un reintento de red no duplica el marcaje.
+  clientEventId      String?         @unique
+  createdAt          DateTime        @default(now())
+
+  @@index([tenantId])
+  @@index([userId, occurredAt])
+  @@index([tenantId, occurredAt])
+  @@map("remote_punches")
+}
+
+// ---------------------------------------------------------------------------
+// F2-08 — NOM-037 teletrabajo
+// ---------------------------------------------------------------------------
+
+enum TeleworkMode {
+  REMOTO
+  HIBRIDO
+  CAMPO
+}
+
+enum TeleworkStatus {
+  ACTIVE
+  ENDED
+}
+
+/// Registro de una persona como teletrabajadora del cliente. Uno por persona
+/// (`@@unique([tenantId, userId])`); se puede terminar y reactivar. Guarda el
+/// consentimiento del trabajador sobre la política y el aviso de privacidad
+/// vigentes (versiones) y el domicilio de teletrabajo (opcional, dato sensible).
+model TeleworkRegistration {
+  id                  String        @id @default(uuid())
+  tenantId            String        @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId              String
+  user                User          @relation("TeleworkRegistrationUser", fields: [userId], references: [id], onDelete: Cascade)
+  mode                TeleworkMode  @default(REMOTO)
+  status              TeleworkStatus @default(ACTIVE)
+  /// Domicilio donde se ejecuta el teletrabajo (opcional; dato sensible).
+  homeAddress         String?
+  startedAt           DateTime      @default(now())
+  endedAt             DateTime?
+  /// Consentimiento de política/aviso (NOM-037 / LFPDPPP); versión aceptada.
+  consentAcceptedAt   DateTime?
+  consentPolicyVersion     Int?
+  consentPrivacyVersion    Int?
+  notes               String?
+  createdById         String?
+  createdBy           User?         @relation("TeleworkRegistrationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  checklists TeleworkChecklist[]
+
+  @@unique([tenantId, userId])
+  @@index([tenantId, status])
+  @@index([userId])
+  @@map("telework_registrations")
+}
+
+enum TeleworkChecklistKind {
+  INITIAL
+  PERIODIC
+}
+
+/// Checklist del lugar de teletrabajo (NOM-037): inicial al alta y periódico.
+/// Las respuestas se guardan como JSON validado contra la plantilla del API.
+model TeleworkChecklist {
+  id             String                @id @default(uuid())
+  tenantId       String                @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  registrationId String
+  registration   TeleworkRegistration  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User                  @relation("TeleworkChecklistUser", fields: [userId], references: [id], onDelete: Cascade)
+  kind           TeleworkChecklistKind
+  /// `{ "space_adequate": "YES"|"NO", ... }` (todas las claves de la plantilla).
+  answers        Json
+  completedAt    DateTime              @default(now())
+  createdById    String?
+
+  @@index([tenantId, userId])
+  @@index([registrationId])
+  @@index([tenantId, completedAt])
+  @@map("telework_checklists")
+}
+
+enum OutOfHoursContactChannel {
+  CALL
+  MESSAGE
+  EMAIL
+  OTHER
+}
+
+/// Control de comunicaciones fuera de jornada (NOM-037 / desconexión): el
+/// cliente marca un contacto fuera del horario y se avisa a la persona.
+model OutOfHoursContact {
+  id                String                   @id @default(uuid())
+  tenantId          String                   @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId            String
+  user              User                     @relation("OutOfHoursContactUser", fields: [userId], references: [id], onDelete: Cascade)
+  contactedAt       DateTime
+  channel           OutOfHoursContactChannel
+  reason            String
+  notifiedEmployee  Boolean                  @default(false)
+  createdById       String?
+  createdBy         User?                    @relation("OutOfHoursContactCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt         DateTime                 @default(now())
+
+  @@index([tenantId, contactedAt])
+  @@index([userId, contactedAt])
+  @@map("out_of_hours_contacts")
+}

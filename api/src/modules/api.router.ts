@@ -14,6 +14,9 @@ import { createSchedulesModule } from "./schedules";
 import { createTimeClockModule } from "./time-clock";
 import { createOvertimeModule } from "./overtime";
 import { createTenantsModule } from "./tenants";
+import { createNomModule } from "./nom";
+import { createPlansModule } from "./plans";
+import { createAgentModule } from "./agent";
 import { EmployeeDocumentService } from "./hr/services/employee-document.service";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { setSysConfigService } from "@core/services/mail";
@@ -79,6 +82,18 @@ const {
 const { router: overtimeRouter } = createOvertimeModule({
   calculator: schedulesService,
   audit: auditPort.createLog,
+});
+
+// Cumplimiento NOM (LFT art. 132 fr. XXXIV — registro electrónico de jornada):
+// ajustes de checadas, límites legales de jornada con alertas, retención/
+// archivado y export formal. Reutiliza el cálculo diario de Horarios como
+// puerto (misma dirección que overtime → schedules). El worker periódico corre
+// en `src/workers/runtime.ts`; los endpoints viven en `/nom`.
+const { router: nomRouter } = createNomModule({
+  calculator: schedulesService,
+  notifications: notificationService,
+  audit: auditPort.createLog,
+  sysConfig: async (key) => (await sysConfigService.get(key))?.value ?? null,
 });
 
 // Checador (reloj Hikvision): checadas copiadas del equipo por una
@@ -219,10 +234,16 @@ apiRouter.use("/sys-config", configRouter);
 apiRouter.use("/permissions", permissionsRouter);
 // Clientes de la plataforma (solo personal de plataforma).
 apiRouter.use("/tenants", createTenantsModule(auditPort.createLog).router);
+// Catálogo de planes del SaaS (solo personal de plataforma).
+apiRouter.use("/plans", createPlansModule(auditPort.createLog).router);
 apiRouter.use("/mail", emailRouter);
 apiRouter.use("/access", accessRouter);
 apiRouter.use("/schedules", schedulesRouter);
 apiRouter.use("/overtime", overtimeRouter);
+apiRouter.use("/nom", nomRouter);
 apiRouter.use("/time-clock", timeClockRouter);
+// Agente local del cliente (TimeManagerAgent): token de dispositivo propio,
+// ingesta de checadas y cola de trabajos hacia el reloj. No usa `authenticate`.
+apiRouter.use("/agent", createAgentModule(auditPort.createLog).router);
 
 export default apiRouter;

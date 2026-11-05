@@ -56,7 +56,8 @@ export const createTimeClockModule = (deps: TimeClockModuleDeps = {}) => {
   return {
     router: createTimeClockRouter(controller),
     service,
-    /** Sincronización periódica con los relojes; la arranca `src/index.ts`. */
+    roster,
+    /** Sincronización periódica con los relojes; la arranca el runtime de workers. */
     startWorker: () => {
       const stopSync = service.startWorker(env.TIME_CLOCK_SYNC_INTERVAL_MS);
       const stopRoster = roster.startWorker(env.TIME_CLOCK_SYNC_INTERVAL_MS);

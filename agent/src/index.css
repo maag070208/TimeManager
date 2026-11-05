@@ -1,0 +1,36 @@
+@layer theme, base, axzy-ui-system, components, utilities;
+
+@import "tailwindcss";
+@import "@axzydev/axzy_ui_system/dist/index.css" layer(axzy-ui-system);
+
+@source "../node_modules/@axzydev/axzy_ui_system/src/**/*.{ts,tsx}";
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--layout-bg, #f4f6fa);
+  font-family:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--tm-navy, #1d2636);
+}
+
+:root {
+  --layout-bg: #f4f6fa;
+  --tm-navy: #1d2636;
+  --tm-navy-deep: #121822;
+  --tm-paper: #f4f6fa;
+  --tm-amber: #f2a93b;
+  --tm-amber-ink: #e8920f;
+}
+
+/* Rejilla de fondo del panel: da profundidad sin competir con el contenido. */
+.agent-shell {
+  background-image:
+    radial-gradient(circle at 12% 0%, rgb(29 38 54 / 0.06), transparent 42%),
+    radial-gradient(circle at 88% 100%, rgb(232 146 15 / 0.07), transparent 45%);
+}

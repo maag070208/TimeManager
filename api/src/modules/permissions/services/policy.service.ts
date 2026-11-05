@@ -3,6 +3,7 @@ import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { POLICY_ACTIONS, loadPoliciesFromDb, type PolicyActionDef } from "@core/policies";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import { tenantTransaction } from "@core/tenancy";
 import {
   parseConditions,
   type PolicyCreateInput,
@@ -114,7 +115,7 @@ export class PolicyService {
     if (dto.priority !== undefined) data.priority = dto.priority;
     if (dto.active !== undefined) data.active = dto.active;
 
-    await this.db.$transaction(async (tx) => {
+    await tenantTransaction(this.db, async (tx) => {
       await tx.policy.update({ where: { id }, data });
       if (dto.roles !== undefined) {
         await tx.policyRole.deleteMany({ where: { policyId: id } });

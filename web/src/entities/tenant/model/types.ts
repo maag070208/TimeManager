@@ -1,3 +1,5 @@
+import type { Plan } from "@entities/plan";
+
 export type TenantStatus = "ACTIVE" | "SUSPENDED";
 
 /** Cliente tal como lo resume la sesión (`GET /auth/me`). */
@@ -8,21 +10,30 @@ export interface TenantInfo {
   timezone: string;
 }
 
+/** Ficha del cliente resumida por el plan contratado. */
+export type TenantPlan = Pick<
+  Plan,
+  "id" | "key" | "name" | "employeeLimit" | "clockLimit" | "monthlyPrice" | "active"
+>;
+
 /** Cliente de la plataforma (`GET /tenants`, solo ADMIN/SUPPORT). */
 export interface Tenant extends TenantInfo {
   status: TenantStatus;
-  plan: string | null;
+  planId: string | null;
+  plan: TenantPlan | null;
   employeeLimit: number | null;
+  /** Límites efectivos: plan + override del cliente. */
+  limits: { people: number | null; clocks: number | null };
   createdAt: string;
   updatedAt: string;
-  usage: { activeUsers: number };
+  usage: { activeUsers: number; clocks: number };
 }
 
 export interface TenantCreateInput {
   name: string;
   slug: string;
   timezone?: string;
-  plan?: string | null;
+  planId?: string | null;
   employeeLimit?: number | null;
   admin: { name: string; username: string; email?: string | null; password?: string };
 }
@@ -36,4 +47,6 @@ export interface TenantCreated {
   catalogs: { removalCategories: number; documentTypes: number };
 }
 
-export type TenantUpdateInput = Partial<Pick<Tenant, "name" | "status" | "timezone" | "plan" | "employeeLimit">>;
+export type TenantUpdateInput = Partial<
+  Pick<Tenant, "name" | "status" | "timezone" | "planId" | "employeeLimit">
+>;

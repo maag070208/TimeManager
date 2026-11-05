@@ -1,10 +1,24 @@
+import * as XLSX from "xlsx";
 import { t } from "@core/i18n";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { hashPassword } from "@core/utils/security";
 import { DEFAULT_ROLE_KEY } from "@core/permissions";
+import { currentTenantId } from "@core/tenancy";
+import { assertCanAddPeople } from "@core/plans";
 
 const MIN_PASSWORD_LENGTH = 6;
+
+/**
+ * Encabezados del formato de carga (`GET /users/import/template`). Son los
+ * mismos que acepta `import()` (en español; también admite sus equivalentes en
+ * inglés) y coinciden con lo que describe `users:import.description` en la web.
+ */
+export const USERS_IMPORT_COLUMNS = [
+  "Nombre del empleado",
+  "Nombre de usuario",
+  "Contraseña",
+] as const;
 
 export interface UserImportRow {
   name: string;
@@ -20,10 +34,25 @@ export interface UserImportResult {
 export class UserImportService {
   constructor(private readonly db: PrismaClient = prismaClient) {}
 
+  /**
+   * Plantilla .xlsx del formato de carga (encabezados + una fila de ejemplo
+   * comentada no se incluye: solo encabezados, para que nadie la importe tal
+   * cual). Se genera en memoria con la dependencia `xlsx`.
+   */
+  template(): Buffer {
+    const sheet = XLSX.utils.aoa_to_sheet([[...USERS_IMPORT_COLUMNS]]);
+    sheet["!cols"] = [{ wch: 34 }, { wch: 26 }, { wch: 22 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "Usuarios");
+    return XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+  }
+
   // Carga masiva de empleados desde Excel: cada fila crea un usuario con rol
   // EMPLEADO, sin departamento (se asigna después manualmente). Si el username
   // ya existe, esa fila se omite y se reporta al final en vez de detener todo.
   async import(rows: UserImportRow[]): Promise<UserImportResult> {
+    // La carga descuenta del plan de una vez: o cabe completa o no se escribe nada.
+    await assertCanAddPeople(currentTenantId(), rows.length);
     const result: UserImportResult = { created: 0, skipped: [] };
 
     for (let i = 0; i < rows.length; i++) {

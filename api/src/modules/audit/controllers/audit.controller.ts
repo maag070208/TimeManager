@@ -8,6 +8,7 @@ export class AuditController {
     const data = await this.auditService.list({
       action: typeof req.query.action === "string" ? req.query.action : undefined,
       entityType: typeof req.query.entityType === "string" ? req.query.entityType : undefined,
+      entityId: typeof req.query.entityId === "string" ? req.query.entityId : undefined,
       userId: typeof req.query.userId === "string" ? req.query.userId : undefined,
       deviceId: typeof req.query.deviceId === "string" ? req.query.deviceId : undefined,
       start: typeof req.query.start === "string" ? req.query.start : undefined,

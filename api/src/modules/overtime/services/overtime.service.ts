@@ -108,6 +108,11 @@ export class OvertimeService {
       }
       const date = toUtcDate(item.date);
 
+      // Estado previo de la decisión (para la pista de auditoría F2-02).
+      const previous = await this.db.overtimeApproval.findUnique({
+        where: { userId_date: { userId: item.userId, date } },
+      });
+
       if (input.status === "PENDING") {
         await this.db.overtimeApproval.deleteMany({ where: { userId: item.userId, date } });
       } else {
@@ -126,6 +131,35 @@ export class OvertimeService {
           update: snapshot,
         });
       }
+
+      // F2-02: una entrada de auditoría por decisión (quién, cuándo, qué
+      // cambió y por qué), además del resumen del lote de abajo.
+      await this.audit?.({
+        action: "OVERTIME_APPROVAL_DECISION",
+        entityType: "OvertimeApproval",
+        entityId: `${item.userId}|${item.date}`,
+        userId: actorId,
+        previousState: previous
+          ? {
+              status: previous.status,
+              extraMin: previous.extraMin,
+              note: previous.note,
+              decidedById: previous.decidedById,
+              decidedAt: previous.decidedAt?.toISOString() ?? null,
+            }
+          : undefined,
+        newState:
+          input.status === "PENDING"
+            ? undefined
+            : {
+                status: input.status,
+                extraMin: day.extraMin,
+                note: input.note ?? null,
+                scheduleName: day.scheduleName,
+              },
+        metadata: { employeeId: item.userId, date: item.date, note: input.note ?? null },
+      });
+
       updated += 1;
     }
 

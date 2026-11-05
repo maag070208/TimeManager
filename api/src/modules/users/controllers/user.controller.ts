@@ -60,34 +60,21 @@ export class UserController {
           .map((r) => r.trim())
           .filter((r): r is string => VALID_ROLES().includes(r))
       : undefined;
-    const q = typeof req.query.q === "string" ? req.query.q.trim().toLowerCase() : undefined;
+    const q = typeof req.query.q === "string" ? req.query.q.trim() : undefined;
     // Opciones de filtros de tablas: también quien ya se dio de baja tiene registros.
     const includeInactive = req.query.includeInactive === "true";
+    // Tope de filas (F1C-05): el directorio ya no carga la tabla completa.
+    const limitParam = Number(req.query.limit);
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : undefined;
 
-    const data = await this.users.list();
-    const filtered = data.filter((u) => {
-      if (!u.active && !includeInactive) return false;
-      if (departmentId && u.departmentId !== departmentId) return false;
-      if (rolesFilter && !rolesFilter.includes(u.role)) {
-        const extras = (u as { extraRoles?: Array<{ role: string }> }).extraRoles ?? [];
-        if (!extras.some((extra) => rolesFilter.includes(extra.role))) return false;
-      }
-      if (q) {
-        const haystack = [
-          u.name,
-          u.employeeNumber,
-          u.jobTitle,
-          u.department?.name,
-          u.username,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-      return true;
+    const data = await this.users.listEmployees({
+      departmentId,
+      roles: rolesFilter,
+      q,
+      includeInactive,
+      limit,
     });
-    res.json(filtered);
+    res.json(data);
   };
 
   create = async (req: Request, res: Response) => {
@@ -141,6 +128,18 @@ export class UserController {
 
   removePermission = async (req: Request, res: Response) => {
     res.json(await this.permissions.remove(req.params.id, req.params.permission, req.user!.id));
+  };
+
+  /** Plantilla .xlsx del formato de carga (mismas columnas que `importUsers`). */
+  importTemplate = async (_req: Request, res: Response) => {
+    const buffer = this.importService.template();
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", 'attachment; filename="plantilla-usuarios.xlsx"');
+    res.setHeader("Content-Length", String(buffer.length));
+    res.send(buffer);
   };
 
   importUsers = async (req: Request, res: Response) => {

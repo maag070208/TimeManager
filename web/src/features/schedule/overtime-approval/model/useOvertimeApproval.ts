@@ -10,6 +10,8 @@ import { useDepartmentOptions } from "@entities/department";
 import { useWeekStartDay } from "@entities/sys-config";
 import { useDebouncedValue } from "@shared/lib/useDebouncedValue";
 import { periodRangeOf, shiftPeriod, toDateInput, type ReportPeriod } from "@shared/lib/reportPeriod";
+import { dateAtNoonFromKey } from "@shared/utils/dates";
+import { useTenantTodayKey } from "@entities/user";
 import { formatDateTime, formatMinutesAsHhMm } from "@shared/utils/dates";
 import { fileName } from "@shared/i18n";
 import type { DownloadOvertimePdf } from "./types";
@@ -60,8 +62,11 @@ export const useOvertimeApproval = ({
   downloadPdf,
 }: UseOvertimeApprovalOptions) => {
   const { t } = useTranslation("overtime");
+  // El periodo arranca en el HOY del cliente (zona del tenant), no en el del
+  // navegador: la API resuelve el rango con la zona del tenant.
+  const tenantTodayKey = useTenantTodayKey();
   const [period, setPeriod] = useState<Period>("WEEK");
-  const [date, setDate] = useState<Date>(() => new Date());
+  const [date, setDate] = useState<Date>(() => dateAtNoonFromKey(tenantTodayKey));
   const [departmentId, setDepartmentId] = useState("");
   const [search, setSearch] = useState("");
   const q = useDebouncedValue(search.trim(), 350);
@@ -135,9 +140,9 @@ export const useOvertimeApproval = ({
 
   const changePeriod = useCallback((value: Period) => {
     setPeriod(value);
-    // Cada periodo arranca en el que contiene hoy.
-    setDate(new Date());
-  }, []);
+    // Cada periodo arranca en el que contiene el HOY del cliente.
+    setDate(dateAtNoonFromKey(tenantTodayKey));
+  }, [tenantTodayKey]);
 
   const previousPeriod = useCallback(() => setDate((d) => shiftPeriod(d, period, -1)), [period]);
   const nextPeriod = useCallback(() => setDate((d) => shiftPeriod(d, period, 1)), [period]);

@@ -1,0 +1,132 @@
+import { z } from "zod";
+
+const isoDate = z.string().refine((value) => !Number.isNaN(Date.parse(value)), "invalid_date");
+
+export const AdjustmentCreateDto = z
+  .object({
+    reason: z.string().trim().min(5).max(500),
+    occurredAt: isoDate.optional(),
+    method: z.enum(["FACE", "FINGERPRINT", "CARD", "OTHER"]).optional(),
+    minor: z.number().int().min(0).max(999).optional(),
+    note: z.string().trim().max(500).optional(),
+  })
+  .strict();
+
+export const AdjustmentDecisionDto = z
+  .object({
+    note: z.string().trim().max(500).optional(),
+  })
+  .strict();
+
+export const NomSettingsUpdateDto = z
+  .object({
+    workdayLimitMinutes: z.number().int().min(60).max(1440).nullable().optional(),
+    weeklyLimitMinutes: z.number().int().min(600).max(10080).nullable().optional(),
+    retentionMonths: z.number().int().min(1).max(120).nullable().optional(),
+    remotePunchEnabled: z.boolean().optional(),
+  })
+  .strict();
+
+export const AlertScanDto = z
+  .object({
+    date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    scope: z.enum(["DAY", "WEEK", "ALL"]).optional(),
+  })
+  .strict();
+
+export const ArchiveDto = z
+  .object({
+    dryRun: z.boolean().optional(),
+    /** Solo plataforma: archiva un cliente concreto (si no, el del contexto). */
+    tenantId: z.string().uuid().optional(),
+  })
+  .strict();
+
+export const DiscrepancyCreateDto = z
+  .object({
+    punchId: z.string().uuid(),
+    reason: z.string().trim().min(5).max(500),
+    expectedOccurredAt: isoDate.optional(),
+  })
+  .strict();
+
+export const PunchQueryDto = z
+  .object({
+    from: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    to: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    limit: z.coerce.number().int().min(1).max(500).optional(),
+  })
+  .passthrough();
+
+export const RemotePunchDto = z
+  .object({
+    type: z.enum(["ENTRY", "EXIT"]),
+    workMode: z.enum(["PRESENCIAL", "HIBRIDO", "REMOTO", "CAMPO"]).optional(),
+    clientEventId: z.string().uuid().optional(),
+    clientReportedAt: isoDate.optional(),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    gpsAccuracyMeters: z.number().nonnegative().max(100000).optional(),
+    note: z.string().trim().max(500).optional(),
+  })
+  .strict();
+
+export const TeleworkPolicyDto = z
+  .object({
+    teleworkPolicy: z.string().max(20000).nullable().optional(),
+    disconnectPolicy: z.string().max(20000).nullable().optional(),
+    privacyNotice: z.string().max(20000).nullable().optional(),
+  })
+  .strict();
+
+export const TeleworkRegistrationDto = z
+  .object({
+    userId: z.string().uuid(),
+    mode: z.enum(["REMOTO", "HIBRIDO", "CAMPO"]).optional(),
+    homeAddress: z.string().trim().max(500).optional(),
+    notes: z.string().trim().max(2000).optional(),
+    startedAt: isoDate.optional(),
+  })
+  .strict();
+
+export const TeleworkRegistrationUpdateDto = z
+  .object({
+    mode: z.enum(["REMOTO", "HIBRIDO", "CAMPO"]).optional(),
+    status: z.enum(["ACTIVE", "ENDED"]).optional(),
+    homeAddress: z.string().trim().max(500).nullable().optional(),
+    notes: z.string().trim().max(2000).nullable().optional(),
+    endedAt: isoDate.nullable().optional(),
+  })
+  .strict();
+
+export const TeleworkAcceptDto = z
+  .object({
+    policyVersion: z.number().int().min(1),
+    privacyNoticeVersion: z.number().int().min(1),
+  })
+  .strict();
+
+export const TeleworkChecklistDto = z
+  .object({
+    kind: z.enum(["INITIAL", "PERIODIC"]).optional(),
+    answers: z.record(z.enum(["YES", "NO"])),
+  })
+  .strict();
+
+export const OutOfHoursContactDto = z
+  .object({
+    userId: z.string().uuid(),
+    contactedAt: isoDate.optional(),
+    channel: z.enum(["CALL", "MESSAGE", "EMAIL", "OTHER"]),
+    reason: z.string().trim().min(5).max(500),
+  })
+  .strict();

@@ -140,23 +140,27 @@ export class TimeClockSummaryService {
     });
 
     const roster = await this.rosterFacts();
-    const rows = [];
-    for (const clock of clocks) {
-      if (!clock.url) continue;
-      const device = await this.deviceFor({ ...clock, url: clock.url });
-      const lastSync = await this.db.timeClockSyncEvent.findFirst({
-        where: { clockSerial: clock.serialNumber },
-        orderBy: { startedAt: "desc" },
-        select: { ok: true, error: true, startedAt: true },
-      });
-      const todays = clock.countsAttendance
-        ? await this.db.timeClockPunch.findMany({
-            where: { clockSerial: clock.serialNumber, occurredAt: { gte: dayStart } },
-            select: { occurredAt: true, employeeNumber: true, name: true, method: true },
-            orderBy: { occurredAt: "desc" },
-          })
-        : [];
-      const facts: ClockFacts = {
+    // Lecturas en paralelo por reloj (F1C-05): antes cada dashboard esperaba la
+    // lectura de red + 2 consultas del reloj anterior, en serie.
+    const rows = await Promise.all(
+      clocks.map(async (clock) => {
+        if (!clock.url) return null;
+        const [device, lastSync, todays] = await Promise.all([
+          this.deviceFor({ ...clock, url: clock.url }),
+          this.db.timeClockSyncEvent.findFirst({
+            where: { clockSerial: clock.serialNumber },
+            orderBy: { startedAt: "desc" },
+            select: { ok: true, error: true, startedAt: true },
+          }),
+          clock.countsAttendance
+            ? this.db.timeClockPunch.findMany({
+                where: { clockSerial: clock.serialNumber, occurredAt: { gte: dayStart } },
+                select: { occurredAt: true, employeeNumber: true, name: true, method: true },
+                orderBy: { occurredAt: "desc" },
+              })
+            : Promise.resolve([] as Array<{ occurredAt: Date; employeeNumber: string; name: string; method: string }>),
+        ]);
+        const facts: ClockFacts = {
         serial: clock.serialNumber,
         name: clock.name,
         countsAttendance: clock.countsAttendance,
@@ -165,9 +169,9 @@ export class TimeClockSummaryService {
         lastSyncOk: lastSync ? lastSync.ok : null,
         lastSyncError: lastSync?.error ?? null,
       };
-      const alerts: ClockAlert[] = buildAlerts(facts, { ...EMPTY_ROSTER, suspicious: false });
-      rows.push({
-        serial: clock.serialNumber,
+        const alerts: ClockAlert[] = buildAlerts(facts, { ...EMPTY_ROSTER, suspicious: false });
+        return {
+          serial: clock.serialNumber,
         name: clock.name,
         countsAttendance: clock.countsAttendance,
         connection: facts.connection,
@@ -184,15 +188,17 @@ export class TimeClockSummaryService {
           name: p.name,
           method: p.method,
         })),
-        alerts,
-      });
-    }
+          alerts,
+        };
+      })
+    );
+    const visibleRows = rows.filter((row): row is NonNullable<typeof row> => row !== null);
 
     // Alertas del padrón (globales): una sola vez, no por reloj.
     const globalAlerts = buildAlerts(
       { serial: "", name: null, countsAttendance: true, connection: "ONLINE", lastSyncAt: null, lastSyncOk: true, lastSyncError: null },
       roster
     );
-    return { generatedAt: now.toISOString(), timezone: tz, roster, alerts: globalAlerts, clocks: rows };
+    return { generatedAt: now.toISOString(), timezone: tz, roster, alerts: globalAlerts, clocks: visibleRows };
   }
 }

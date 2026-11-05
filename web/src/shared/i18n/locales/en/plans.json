@@ -1,0 +1,58 @@
+{
+  "title": "Plans",
+  "description": "SaaS plan catalog: included people and clocks, and monthly list price.",
+  "new": "New plan",
+  "kpis": {
+    "all": "Plans",
+    "active": "Active",
+    "inactive": "Deactivated"
+  },
+  "listTitle": "Plan catalog",
+  "listDescription": "Clients keep their plan even if it's deactivated; billing is tracked outside.",
+  "empty": "No plans yet: create the first one.",
+  "table": {
+    "plan": "Plan",
+    "people": "People",
+    "clocks": "Clocks",
+    "price": "Monthly price",
+    "status": "Status",
+    "actions": "Actions",
+    "noPrice": "To be defined"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Deactivated"
+  },
+  "actions": {
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "activate": "Reactivate"
+  },
+  "confirm": {
+    "deactivateTitle": "Deactivate the {{name}} plan?",
+    "deactivateMessage": "It won't be offered to new clients. Those already on it keep it and nothing is deleted.",
+    "activateTitle": "Reactivate the {{name}} plan?",
+    "activateMessage": "It will be offered again when assigning plans to clients.",
+    "deactivate": "Deactivate",
+    "activate": "Reactivate"
+  },
+  "form": {
+    "createTitle": "New plan",
+    "createSubtitle": "Pick how many people and clocks it includes, and its list price.",
+    "editTitle": "Edit plan",
+    "editSubtitle": "Changes apply to the clients that currently have it.",
+    "name": "Plan name",
+    "employeeLimit": "Included people",
+    "clockLimit": "Included clocks",
+    "monthlyPrice": "Monthly price (MXN)",
+    "priceHint": "Billing is still manual: this price is only shown in the console.",
+    "cancel": "Cancel",
+    "submit": "Save plan",
+    "saving": "Saving…",
+    "errors": {
+      "required": "Required",
+      "positive": "Must be a number above 0",
+      "price": "Invalid price"
+    }
+  }
+}

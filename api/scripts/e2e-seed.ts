@@ -68,7 +68,8 @@ const MAIN = async (): Promise<void> => {
     slug: string,
     tenantName: string,
     users: SeedUser[],
-    clockSerial: string
+    clockSerial: string,
+    clockUrl: string | null
   ): Promise<void> => {
     const tenant = await db.tenant.create({
       data: { name: tenantName, slug, status: "ACTIVE" },
@@ -80,8 +81,21 @@ const MAIN = async (): Promise<void> => {
         const department = await db.department.create({ data: { name } });
         departments.set(name, department.id);
       }
-      await db.schedule.create({ data: { name: "Matutino" } });
-      await db.schedule.create({ data: { name: "Vespertino" } });
+      // Horarios con semana completa (lunes a viernes 09:00–18:00): sin días,
+      // el PATCH de edición desde la UI responde 400 (`days min(1)`).
+      const morning = await db.schedule.create({ data: { name: "Matutino" } });
+      const evening = await db.schedule.create({ data: { name: "Vespertino" } });
+      await db.scheduleDay.createMany({
+        data: [morning, evening].flatMap((schedule) =>
+          [1, 2, 3, 4, 5].map((weekday) => ({
+            scheduleId: schedule.id,
+            weekday,
+            startTime: "09:00",
+            endTime: "18:00",
+            restDay: false,
+          }))
+        ),
+      });
 
       const created = new Map<string, { id: string }>();
       for (const user of users) {
@@ -103,6 +117,24 @@ const MAIN = async (): Promise<void> => {
 
       const staff = users.find((user) => user.role === "CLIENT_STAFF");
       const admin = users.find((user) => user.role === "CLIENT_ADMIN");
+      const rh = users.find((user) => user.role === "HUMAN_RESOURCES");
+
+      // Asignación vigente del horario Matutino para RH (cobertura de nómina y
+      // tiempo extra). NO se asigna a la persona de CLIENT_STAFF: el E2E de
+      // "asigna un horario" usa acme.staff y espera que siga disponible.
+      if (rh) {
+        const today = new Date();
+        const validFrom = new Date(
+          Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
+        );
+        await db.scheduleAssignment.create({
+          data: {
+            userId: created.get(rh.username)!.id,
+            scheduleId: morning.id,
+            validFrom,
+          },
+        });
+      }
       if (staff) {
         const base = new Date();
         base.setHours(8, 0, 0, 0);
@@ -127,7 +159,11 @@ const MAIN = async (): Promise<void> => {
         data: {
           serialNumber: clockSerial,
           name: "Entrada principal",
-          url: "http://127.0.0.1:4801",
+          url: clockUrl,
+          // Cursor por delante de los eventos sintéticos del mock: la sync del
+          // arranque no los inyecta y los reportes E2E quedan deterministas
+          // (solo las checadas sembradas). Un reloj real arranca en 0.
+          lastSerialNo: clockUrl ? 1_000_000 : 0,
           countsAttendance: true,
           writeEnabled: true,
         },
@@ -177,7 +213,10 @@ const MAIN = async (): Promise<void> => {
         department: "Operaciones",
       },
     ],
-    "E2E-ACME-CLOCK"
+    // El mock reporta MOCK-SERIAL-0001: la fila del reloj debe usar ese serial o
+    // las pantallas lo marcan como "ahora responde otro reloj".
+    "MOCK-SERIAL-0001",
+    "http://127.0.0.1:4801"
   );
 
   await seedTenant(
@@ -202,7 +241,9 @@ const MAIN = async (): Promise<void> => {
         department: "Operaciones",
       },
     ],
-    "E2E-BETA-CLOCK"
+    // Beta no tiene mock propio: el reloj queda sin URL (dado de baja).
+    "E2E-BETA-CLOCK",
+    null
   );
 
   const [tenants, users] = await Promise.all([db.tenant.count(), db.user.count()]);

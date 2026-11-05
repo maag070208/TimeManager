@@ -1,0 +1,79 @@
+{
+  "name": "timemanager-agent",
+  "productName": "TimeManagerAgent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agente local de TimeManager: sincroniza los relojes Hikvision del cliente (ISAPI) y ejecuta los trabajos que pide el panel.",
+  "author": "axzy.dev",
+  "license": "UNLICENSED",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "app": "vite build && electron .",
+    "build": "tsc --noEmit && vite build",
+    "test": "node --test electron/sync-core.test.cjs",
+    "typecheck": "tsc --noEmit",
+    "dist:win": "pnpm build && electron-builder --win",
+    "dist:linux": "pnpm build && electron-builder --linux"
+  },
+  "dependencies": {
+    "@axzydev/axzy_ui_system": "1.8.14",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-icons": "^5.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@types/node": "^22.13.5",
+    "@types/react": "19.0.8",
+    "@types/react-dom": "19.0.3",
+    "@vitejs/plugin-react-swc": "3.8.0",
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
+    "tailwindcss": "4.3.3",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0"
+  },
+  "build": {
+    "appId": "dev.axzy.timemanager.agent",
+    "productName": "TimeManagerAgent",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**",
+      "dist/**",
+      "resources/*.png"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": "always",
+      "shortcutName": "TimeManagerAgent",
+      "artifactName": "TimeManagerAgent-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "artifactName": "TimeManagerAgent-${version}.${ext}"
+    },
+    "icon": "resources/icon.png"
+  }
+}

@@ -887,5 +887,38 @@
     "problems": "Con problemas",
     "problemsHint": "No conectan: revisa su detalle",
     "allOk": "Todos conectan"
+  },
+  "agentJobs": {
+    "title": "Trabajos para el agente local",
+    "description": "El agente instalado en la red del cliente ejecuta estas acciones contra el reloj.",
+    "clock": "Reloj",
+    "action": "Acción",
+    "employeeNumber": "Número de empleado",
+    "name": "Nombre",
+    "cardNo": "Número de tarjeta",
+    "refresh": "Actualizar",
+    "enqueue": "Encolar",
+    "enqueuing": "Encolando…",
+    "queued": "Trabajo encolado: el agente lo ejecutará en segundos.",
+    "hint": "El trabajo espera al agente; el reloj debe tener la escritura habilitada.",
+    "readOnly": "Este reloj no tiene la escritura habilitada: las altas y bajas requieren habilitarla.",
+    "recent": "Trabajos recientes",
+    "loading": "Cargando trabajos…",
+    "empty": "Sin trabajos todavía.",
+    "actions": {
+      "SYNC": "Sincronizar checadas",
+      "PERSON_ADD": "Alta de persona",
+      "PERSON_REMOVE": "Baja de persona",
+      "CARD_ADD": "Alta de tarjeta",
+      "CARD_REMOVE": "Baja de tarjeta",
+      "FINGERPRINT_APPLY": "Aplicar huella"
+    },
+    "status": {
+      "PENDING": "Pendiente",
+      "RUNNING": "En curso",
+      "DONE": "Hecho",
+      "FAILED": "Falló",
+      "CANCELLED": "Cancelado"
+    }
   }
 }

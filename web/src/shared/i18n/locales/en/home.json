@@ -26,7 +26,8 @@
       "people": "People",
       "plan": "Plan",
       "since": "Since",
-      "actions": "Actions"
+      "actions": "Actions",
+      "clocks": "Clocks"
     },
     "status": {
       "active": "Active",
@@ -35,7 +36,9 @@
     "actions": {
       "enter": "Enter",
       "suspend": "Suspend",
-      "reactivate": "Reactivate"
+      "reactivate": "Reactivate",
+      "plan": "Plan",
+      "agent": "Agent"
     },
     "confirm": {
       "suspendTitle": "Suspend {{name}}?",
@@ -57,8 +60,8 @@
       "slug": "Subdomain",
       "slugHint": "Their staff will sign in at {{host}}",
       "timezone": "Time zone",
-      "employeeLimit": "People limit (optional)",
-      "plan": "Plan (optional)",
+      "employeeLimit": "People limit (optional override)",
+      "plan": "Plan",
       "admin": "Client admin",
       "adminName": "Name",
       "adminUsername": "Username",
@@ -85,7 +88,49 @@
         "close": "Done",
         "emailed": "We also emailed these details to {{email}}.",
         "notEmailed": "No email on file: share these details yourself."
-      }
+      },
+      "planNone": "No plan (no limits)"
+    },
+    "plan": {
+      "title": "{{name}}'s plan",
+      "subtitle": "The plan defines how many people and clocks the client includes.",
+      "select": "Current plan",
+      "none": "No plan",
+      "usage": "Current usage",
+      "people": "{{usage}} of {{limit}} people",
+      "clocks": "{{usage}} of {{limit}} clocks",
+      "unlimited": "Unlimited",
+      "overLimit": "Current usage is above the plan limit: no new people can be added until room is freed or the plan changes.",
+      "save": "Save plan",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "empty": "No active plans: create them in the plans console.",
+      "limitSummary": "{{people}} people · {{clocks}} clocks"
+    },
+    "agents": {
+      "title": "Local agent · {{name}}",
+      "subtitle": "Device credential for TimeManagerAgent, the app that syncs the clocks from the client's network.",
+      "nameLabel": "Computer name",
+      "namePlaceholder": "Front desk PC",
+      "create": "Create agent",
+      "creating": "Creating…",
+      "loading": "Loading agents…",
+      "empty": "This client has no agents yet.",
+      "tokenOnce": "New token (shown only once; copy it now):",
+      "tokenHint": "Paste it in TimeManagerAgent → API connection. Only its hash is stored; if lost, rotate it.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "active": "Active",
+      "revoked": "Revoked",
+      "version": "Version",
+      "lastSeen": "Last seen",
+      "rotate": "Rotate token",
+      "revoke": "Revoke",
+      "reactivate": "Reactivate",
+      "created": "Agent created. Save the token: it will not be shown again.",
+      "rotated": "Token rotated: the previous one no longer works.",
+      "revokedToast": "Agent revoked: its token stops working.",
+      "reactivatedToast": "Agent reactivated."
     }
   },
   "client": {

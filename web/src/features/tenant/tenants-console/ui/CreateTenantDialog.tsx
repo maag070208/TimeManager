@@ -108,8 +108,26 @@ export default function CreateTenantDialog({ isOpen, onClose, onCreated }: Props
           value={fx.form.timezone}
           onChange={(e) => fx.set("timezone", e.target.value)}
         />
+        <ITSelect
+          name="planId"
+          label={t("platform.create.plan")}
+          value={fx.form.planId}
+          onChange={(e) => fx.set("planId", e.target.value)}
+          options={[
+            { value: "", label: t("platform.create.planNone") },
+            ...fx.plans.map((plan) => ({
+              value: plan.id,
+              label: `${plan.name} — ${t("platform.plan.limitSummary", {
+                people: plan.employeeLimit.toLocaleString(),
+                clocks: plan.clockLimit,
+              })}`,
+            })),
+          ]}
+        />
         <ITInput name="employeeLimit" type="number" label={t("platform.create.employeeLimit")} value={fx.form.employeeLimit} onChange={(e) => fx.set("employeeLimit", e.target.value)} error={err("employeeLimit")} touched={!!fx.errors.employeeLimit} />
-        <ITInput name="plan" label={t("platform.create.plan")} value={fx.form.plan} onChange={(e) => fx.set("plan", e.target.value)} containerClassName="sm:col-span-2" />
+        {fx.plans.length === 0 && (
+          <ITText className="block text-xs text-slate-500 sm:col-span-2">{t("platform.plan.empty")}</ITText>
+        )}
 
         <ITText as="h3" className="mt-2 text-xs font-bold uppercase tracking-wide text-slate-500 sm:col-span-2">
           {t("platform.create.admin")}

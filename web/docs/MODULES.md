@@ -35,12 +35,35 @@ src/
 - Entidades: `user`, `department`, `subarea`, `personal`, `inventory`, `endTime`, `report`, `ticket`, `notification`, `dashboard`, `audit-log`, `sys-config`.
 - Estado global Redux: `auth`, `notifications`, `tickets` (+ slices por entidad).
 
+## Multi-cliente: ruta por cliente y subdominio
+
+Cada cliente se resuelve de la URL (`shared/lib/tenant-route`, `shared/api/tenant`):
+
+- **Ruta por cliente (local-first)**: `http://localhost:5006/#/cliente1/home`,
+  `/#/cliente2/home`. El primer segmento del hash es el slug y `HashRouter`
+  arranca con `basename="/<slug>"`; la URL canónica de inicio es
+  `/#/<slug>/home` y el login `/#/<slug>/login`. Un slug desconocido cae en su
+  login (`/#/noexiste/login`).
+- **Subdominio (legado y producción)**: `acme.localhost:5006` /
+  `acme.<VITE_TENANT_BASE_DOMAIN>`. El slug sale del host y la URL sigue **sin
+  prefijo** (`/#/login`, `/#/`, `/#/hr/time-clock`): los enlaces y sesiones
+  existentes no cambian.
+- La plataforma (ADMIN/SUPPORT) vive siempre sin prefijo (`/#/login`, `/#/`).
+  `TenantRouteGate` corrige una URL que no coincide con la sesión: personal de
+  plataforma bajo el prefijo de un cliente, o un cliente bajo la ruta de otro.
+- Los primeros segmentos que ya son rutas de la app (`login`, `home`,
+  `mi-jornada`, `teletrabajo`, `users`, `employees`, `departments`, `subareas`,
+  `roles`, `plans`, `notifications`, `hr`, `time-clocks`, `schedules`) nunca se
+  leen como slug y quedan reservados al dar de alta clientes.
+- `/users/*` conserva el prefijo del cliente (`/#/acme/users` →
+  `/#/acme/employees`).
+
 ## Roles y permisos
 
 | Rol | Quién | Alcance |
 |-----|-------|---------|
 | `ADMIN` | Equipo TimeManager (super admin) | Todos los permisos, incluidos `roles.manage` y `system.configure` |
-| `SUPPORT` | Equipo TimeManager (soporte) | Usuarios (ver/editar), relojes, horarios, asistencia, auditoría; sin expedientes ni nómina |
+| `SUPPORT` | Equipo TimeManager (soporte) | Usuarios (ver/editar), relojes, horarios, asistencia, auditoría y planes (ver); sin expedientes ni nómina |
 | `CLIENT_ADMIN` | Administrador del cliente | Todo lo operativo de su empresa; sin `roles.manage` ni `system.configure` |
 | `HUMAN_RESOURCES` | RH del cliente | Expedientes, altas de personal, checadas, horarios, horas extra, nómina y reportes |
 | `CLIENT_STAFF` | Personal del cliente | Solo su propia asistencia (`attendance.view: OWN`) |
@@ -103,6 +126,13 @@ El producto es solo el servicio de checadas. Tickets, inventario, cocina y las p
 - `pages/notifications`, `features/notification/list`
 - Lista, no leídas, marcar leída/todas, borrar. Realtime vía Ably (`useAblyNotifications`) + toast.
 - Endpoints: `/notifications`, `/notifications/unread-count`, `/notifications/:id/read`, `/notifications/read-all`.
+
+### 9. Plataforma: clientes y planes
+- Rutas: `/` (consola de clientes, sin cliente elegido) y `/plans`
+- `pages/home/PlatformHomePage` + `features/tenant/tenants-console`: tabla con personas y relojes contra su límite, alta guiada con selector de plan, **Entrar**, suspender/reactivar y diálogo **Plan** del cliente (`PlanAssignDialog`).
+- `pages/plans/PlansPage` + `features/plan/plans-console`: catálogo de planes (`plans.view`) con alta/edición (`PlanFormDialog`) y baja/reactivación; solo `plans.manage` ve las acciones.
+- `entities/plan` (`planApi`) y `entities/tenant` (`tenantApi`).
+- Endpoints: `/plans` (solo plataforma), `/tenants`, `/tenants/:id`.
 
 ## Widgets PDF / render (`widgets/`)
 

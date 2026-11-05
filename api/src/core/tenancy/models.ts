@@ -33,6 +33,18 @@ export const TENANT_MODELS: ReadonlySet<string> = new Set([
   "TimeClockRosterEntry",
   "TimeClockRosterRun",
   "OvertimeApproval",
+  "Agent",
+  "AgentJob",
+  // NOM / LFT 2027 (F2-01..F2-04): ajustes de checadas, configuración por
+  // cliente y alertas de límite de jornada.
+  "PunchAdjustment",
+  "NomSettings",
+  "WorkdayLimitAlert",
+  // F2-07/F2-08: marcaje remoto y NOM-037 teletrabajo.
+  "RemotePunch",
+  "TeleworkRegistration",
+  "TeleworkChecklist",
+  "OutOfHoursContact",
 ]);
 
 export const isTenantModel = (model: string): boolean => TENANT_MODELS.has(model);

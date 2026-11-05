@@ -1,6 +1,18 @@
+import { APP_ROOT_PATHS } from "@shared/lib/tenant-route";
+
 /** Mismas reglas que el API (`tenant.dto.ts`). */
 export const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
-export const RESERVED_SLUGS = ["app", "admin", "api", "www", "static", "cdn", "mail"];
+/** Tampoco puede pisar una ruta de la app: el primer segmento del hash es el slug. */
+export const RESERVED_SLUGS = [
+  "app",
+  "admin",
+  "api",
+  "www",
+  "static",
+  "cdn",
+  "mail",
+  ...APP_ROOT_PATHS,
+];
 
 /** "Hotel Playa Azul S.A." → "hotel-playa-azul-sa". */
 export const slugify = (name: string): string =>

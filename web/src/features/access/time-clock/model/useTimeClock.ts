@@ -8,6 +8,8 @@ import {
   type PunchMethod,
 } from "@entities/time-clock";
 import { fileName } from "@shared/i18n";
+import { dateAtNoonFromKey } from "@shared/utils/dates";
+import { useTenantTodayKey } from "@entities/user";
 
 /** Refresco del estado mientras corre una sincronización o una importación. */
 const STATUS_POLL_MS = 5_000;
@@ -51,10 +53,20 @@ const dateTime = (iso: string): [string, string] => {
  */
 export const useTimeClock = () => {
   const { t } = useTranslation(["time-clock", "common"]);
+  // "Hoy" se calcula en la zona del CLIENTE, no la del navegador: la API
+  // resuelve los límites del día con la zona del tenant.
+  const tenantTodayKey = useTenantTodayKey();
+  const tenantToday = useMemo(() => dateAtNoonFromKey(tenantTodayKey), [tenantTodayKey]);
+  const tenantYesterdayKey = useMemo(() => {
+    const yesterday = dateAtNoonFromKey(tenantTodayKey);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const pad2 = (n: number) => String(n).padStart(2, "0");
+    return `${yesterday.getFullYear()}-${pad2(yesterday.getMonth() + 1)}-${pad2(yesterday.getDate())}`;
+  }, [tenantTodayKey]);
 
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    new Date(),
-    new Date(),
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>(() => [
+    dateAtNoonFromKey(tenantTodayKey),
+    dateAtNoonFromKey(tenantTodayKey),
   ]);
   /** Píldora activa del rango: `custom` cuando el usuario elige las fechas. */
   const [rangeMode, setRangeMode] = useState<TimeClockRangeMode>("today");
@@ -215,7 +227,7 @@ export const useTimeClock = () => {
 
   const applyRange = (preset: TimeClockRangePreset) => {
     setRangeMode(preset);
-    const today = new Date();
+    const today = new Date(tenantToday);
     today.setHours(0, 0, 0, 0);
     if (preset === "today") {
       setDateRange([today, today]);
@@ -237,7 +249,7 @@ export const useTimeClock = () => {
 
   const clearFilters = () => {
     setRangeMode("today");
-    setDateRange([new Date(), new Date()]);
+    setDateRange([new Date(tenantToday), new Date(tenantToday)]);
     setQ("");
     setMethod("");
     setClock("");
@@ -334,6 +346,11 @@ export const useTimeClock = () => {
 
   return {
     t,
+    /** Día de HOY del cliente (para comparar etiquetas "Hoy"/"Ayer"). */
+    todayKey: tenantTodayKey,
+    yesterdayKey: tenantYesterdayKey,
+    /** `Date` a mediodía local del hoy del cliente (tope de selectores). */
+    tenantToday,
     dateRange,
     setDateRange,
     rangeMode,
