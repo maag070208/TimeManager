@@ -150,12 +150,13 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
   - Implementado: relación `User.tenant`/`Tenant.users` en schema (el FK ya existía en BD; sin migración). Refresh valida que el tenant del token coincida con el de la BD (si movieron al usuario de cliente, la sesión muere). `authenticate` corta en caliente si el cliente se suspende, rechaza el header `X-Tenant-Id` de usuarios de cliente (403) y el de plataforma con tenant inválido/suspendido (400). Nuevos códigos i18n `TENANT_SUSPENDED`, `TENANT_HEADER_FORBIDDEN`, `INVALID_TENANT_HEADER`.
   - Prueba funcional en Docker (fixture: admin plataforma + usuarios demo/acme-suspendido): **19/19** — login con/sin slug, slug inexistente, suspendido, refresh con rotación y con tenant ajeno, `/auth/me`, y 7 casos del middleware (contexto correcto, JWT ≠ BD, header prohibido/inválido/válido, plataforma sin header, suspensión en caliente).
 
-- [ ] **F1A-05 Servicios y workers.**
+- [x] **F1A-05 Servicios y workers.**
   - Reemplazar `findUnique` por campos que dejaron de ser únicos (`username`, `name`, `key`, `url`, `weekStart`, `employeeNumber`) por su único compuesto o `findFirst`.
   - Creaciones anidadas (`create: { … }` dentro de otro `create`) de modelos de cliente: pasar `tenantId: requireTenantId()` explícito (la extensión no entra a escrituras anidadas).
   - Workers (`startTimeClockWorker`, padrón/roster, cola de correo): iterar clientes `ACTIVE` y correr cada ciclo dentro de `runWithTenant(t.id, …)`.
   - Caches en memoria con datos de cliente: indexarlas por `tenantId` o eliminarlas.
   - Seed: `seedPermissionsFromFixtures` sigue siendo de plataforma; `RemovalCategory`/`DocumentType` plantilla se copian al crear un cliente.
+  - Implementado: `core/tenancy/iterate.ts` (`forEachActiveTenant`/`activeTenants`) + `catalogs.ts` (`seedTenantTemplateCatalogs`, idempotente, desde `seed-data/tenant_template_catalogs.json`). Sync de relojes y roster corren una vez por cliente ACTIVE; la cola de correo procesa cada correo en el contexto de su tenant. Únicos creates anidados hallados: `ScheduleDay` en create/update de horarios (corregidos). Caches auditadas: las de relojes usan `serialNumber` (PK global, sin colisión) y `sys_config` es de plataforma — quedan documentadas. Prueba funcional Docker: 5/5.
 
 - [ ] **F1A-06 Endpoint de clientes (mínimo).** Módulo `tenants`: `GET /tenants` (ADMIN/SUPPORT), `POST /tenants` (ADMIN: crea tenant + su `CLIENT_ADMIN` + catálogos plantilla), `PATCH /tenants/:id` (estado). Ficha `docs/modules/tenants.md`.
 
