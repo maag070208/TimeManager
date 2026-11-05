@@ -11,12 +11,15 @@ import { dateLocale } from "@shared/i18n";
 
 /** Mes corto sin el punto que agrega el locale ("nov." → "nov"). */
 const shortMonth = (d: Date) => d.toLocaleDateString(dateLocale(), { month: "short" }).replace(/\./g, "");
+/** Día de la semana corto sin punto ("mié." → "mié"). */
+const shortWeekday = (d: Date) =>
+  d.toLocaleDateString(dateLocale(), { weekday: "short" }).replace(/\./g, "");
 
-/** "2 – 8 nov" (mismo mes) o "29 oct – 4 nov" (mes distinto). */
+/** "mié 4 – mar 10 nov" (mismo mes) o "jue 29 oct – mié 4 nov" (mes distinto). */
 const weekRangeLabel = ([start, end]: [Date, Date]): string =>
   start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()
-    ? `${start.getDate()} – ${end.getDate()} ${shortMonth(end)}`
-    : `${start.getDate()} ${shortMonth(start)} – ${end.getDate()} ${shortMonth(end)}`;
+    ? `${shortWeekday(start)} ${start.getDate()} – ${shortWeekday(end)} ${end.getDate()} ${shortMonth(end)}`
+    : `${shortWeekday(start)} ${start.getDate()} ${shortMonth(start)} – ${shortWeekday(end)} ${end.getDate()} ${shortMonth(end)}`;
 
 /**
  * Nómina: el reporte semanal de asistencia (entradas, salidas, horas y tiempo
@@ -36,7 +39,7 @@ export default function PayrollPage() {
 
   const weekNav = (
     <div
-      className="flex items-center gap-0.5 rounded-full border px-1 py-0.5"
+      className="flex items-center gap-1 rounded-full border px-1.5 py-1"
       style={{ background: "var(--it-card-bg, #ffffff)", borderColor: "var(--it-card-border, #e2e8f0)" }}
     >
       <button
@@ -46,9 +49,9 @@ export default function PayrollPage() {
         aria-label={t("filters.previousWeek")}
         className="flex cursor-pointer items-center rounded-full !border-0 !bg-transparent p-1.5 text-slate-500 hover:bg-slate-100"
       >
-        <LuChevronLeft size={14} />
+        <LuChevronLeft size={18} />
       </button>
-      <ITText className="px-1 !text-[12px] font-bold whitespace-nowrap">{weekLabel}</ITText>
+      <ITText className="px-1.5 !text-[15px] font-extrabold tracking-tight whitespace-nowrap sm:!text-[16px]">{weekLabel}</ITText>
       <button
         type="button"
         onClick={fx.nextWeek}
@@ -56,7 +59,7 @@ export default function PayrollPage() {
         aria-label={t("filters.nextWeek")}
         className="flex cursor-pointer items-center rounded-full !border-0 !bg-transparent p-1.5 text-slate-500 hover:bg-slate-100"
       >
-        <LuChevronRight size={14} />
+        <LuChevronRight size={18} />
       </button>
     </div>
   );
