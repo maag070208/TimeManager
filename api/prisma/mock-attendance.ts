@@ -185,7 +185,7 @@ async function main() {
         name: fullName(p),
         paternalSurname: p.paternalSurname,
         maternalSurname: p.maternalSurname,
-        role: "EMPLOYEE",
+        role: "CLIENT_STAFF",
         jobTitle: p.jobTitle,
         employeeNumber: clockNumber,
         departmentId: department.id,
@@ -267,7 +267,10 @@ async function main() {
   );
 }
 
-runWithTenant(DEMO_TENANT_ID, () =>
+// Permite sembrar la demo en otro cliente local (p. ej. el tenant E2E `acme`).
+const targetTenantId = process.env.DEMO_TENANT_ID ?? DEMO_TENANT_ID;
+
+runWithTenant(targetTenantId, () =>
   main()
     .catch((err) => {
       console.error(err);
