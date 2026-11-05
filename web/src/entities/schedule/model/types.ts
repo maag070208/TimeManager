@@ -217,6 +217,8 @@ export interface WeeklyAttendanceQuery {
 /** Revisión vigente de un departamento (`departmentId` null = sin departamento). */
 export interface PayrollReviewEntry {
   departmentId: string | null;
+  /** Nombre del departamento revisado (null = grupo sin departamento). */
+  departmentName: string | null;
   /** true = marcada con «Marcar todo como revisado»; false = una por una. */
   bulk: boolean;
   reviewedAt: string;
@@ -267,6 +269,8 @@ export interface PayrollClosureSnapshot {
 }
 
 /** Un renglón del historial de cierres. */
+export type PayrollClosureReview = PayrollReviewEntry;
+
 export interface PayrollClosureRow {
   weekStart: string;
   closed: boolean;
@@ -275,6 +279,8 @@ export interface PayrollClosureRow {
   reopenedAt: string | null;
   reopenedBy: { id: string; name: string } | null;
   snapshot: PayrollClosureSnapshot | null;
+  /** Revisiones vigentes de esa semana, con su sello. */
+  reviews: PayrollClosureReview[];
 }
 
 /** Snapshot semanal de horas extra (F1 del plan de cumplimiento). */

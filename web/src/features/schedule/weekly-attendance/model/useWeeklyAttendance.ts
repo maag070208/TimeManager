@@ -94,6 +94,23 @@ export const useWeeklyAttendance = ({ downloadPdf }: { downloadPdf: DownloadWeek
     };
   }, [date, departmentId, q, t]);
 
+  /**
+   * Reporte de la semana SIN los filtros de la tabla. La revisión y el cierre
+   * son de TODA la semana: con la tabla filtrada por departamento, `report` solo
+   * trae ese departamento y no alcanza para validar el cierre.
+   */
+  const [reviewReport, setReviewReport] = useState<WeeklyAttendanceReport | null>(null);
+  useEffect(() => {
+    let active = true;
+    scheduleApi
+      .weeklyAttendance({ date })
+      .then((res) => active && setReviewReport(res))
+      .catch(() => active && setReviewReport(null));
+    return () => {
+      active = false;
+    };
+  }, [date]);
+
   const departmentName = useMemo(
     () => departments.data.find((d) => d.id === departmentId)?.name ?? null,
     [departments.data, departmentId]
@@ -174,6 +191,7 @@ export const useWeeklyAttendance = ({ downloadPdf }: { downloadPdf: DownloadWeek
     mode,
     setMode,
     report,
+    reviewReport,
     detailRows,
     tableParams,
     setTableParams,

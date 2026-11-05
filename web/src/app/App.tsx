@@ -41,6 +41,7 @@ import RolesPage from "@pages/roles/RolesPage";
 import PlansPage from "@pages/plans/PlansPage";
 import GeneralSettingsPage from "@pages/settings/GeneralSettingsPage";
 import LeaveAdminPage from "@pages/leave/LeaveAdminPage";
+import PayrollHistoryPage from "@pages/schedules/PayrollHistoryPage";
 
 /** Personal se abre con expediente (`hr.records`) o con cuentas (`users.view`). */
 const PEOPLE_PERMISSIONS = ["hr.records", "users.view"] as const;
@@ -306,6 +307,14 @@ export default function App() {
           element={
             <RequiresPermission permission="overtime.view">
               <OvertimeApprovalPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/schedules/payroll/history"
+          element={
+            <RequiresPermission permission="payroll.view">
+              <PayrollHistoryPage />
             </RequiresPermission>
           }
         />

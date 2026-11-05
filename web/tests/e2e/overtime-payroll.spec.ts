@@ -80,23 +80,20 @@ test.describe("pre nómina (acme.admin)", () => {
     await gotoRoute(page, "/schedules/payroll");
     expect((await initialReport).ok()).toBe(true);
 
-    await expect(page.getByText("Semana", { exact: true })).toBeVisible();
-    await expect(page.getByText(/–/).first()).toBeVisible();
-    await expect(page.getByText("Personas", { exact: true })).toBeVisible();
-    await expect(page.getByText("Horas trabajadas", { exact: true })).toBeVisible();
-    await expect(page.getByText("Faltas", { exact: true })).toBeVisible();
+    await expect(page.getByText("Semana", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Horas trabajadas", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Faltas", { exact: true }).first()).toBeVisible();
     // Reporte semanal: una fila por persona del seed.
     const table = page.getByRole("table").first();
     await expect(table).toBeVisible();
     await expect(table.getByRole("cell", { name: /Ana Administradora/ })).toBeVisible();
     await expect(table.getByRole("cell", { name: /Rita Recursos/ })).toBeVisible();
 
-    // Historial de cierres: sin semanas cerradas en el seed.
-    await page.getByRole("tab", { name: "Historial de cierres" }).click();
-    await expect(page.getByText("Todavía no hay semanas cerradas.")).toBeVisible();
-
-    // Acción mínima: volver a la semana y consultar la anterior.
-    await page.getByRole("tab", { name: "Semana" }).click();
+    // Historial de cierres: se abre desde la barra de acciones.
+    await page.getByRole("button", { name: /Historial/ }).first().click();
+    await expect(page).toHaveURL(/\/schedules\/payroll\/history/);
+    await expect(page.getByText(/Historial de pre-nóminas|Historial/i).first()).toBeVisible();
+    await page.goBack();
     const previousWeek = waitWeeklyAttendance(page);
     await page.getByRole("button", { name: "Semana anterior" }).click();
     expect((await previousWeek).ok()).toBe(true);

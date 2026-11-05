@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
+import { requireTenantId } from "@core/tenancy";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import { dateKeyOf, toUtcDate } from "./workday-rules";
@@ -19,6 +20,30 @@ export interface PayrollCloseInput {
 }
 
 const personName = { select: { id: true, name: true } } as const;
+const departmentName = { select: { name: true } } as const;
+
+/** Fila de revisión tal como viaja al cliente (incluye el «dónde» del departamento). */
+interface PayrollReviewView {
+  departmentId: string | null;
+  departmentName: string | null;
+  bulk: boolean;
+  reviewedAt: Date;
+  reviewedBy: { id: string; name: string } | null;
+}
+
+const reviewView = (review: {
+  departmentId: string | null;
+  bulk: boolean;
+  reviewedAt: Date;
+  reviewedBy: { id: string; name: string } | null;
+  department: { name: string } | null;
+}): PayrollReviewView => ({
+  departmentId: review.departmentId,
+  departmentName: review.department?.name ?? null,
+  bulk: review.bulk,
+  reviewedAt: review.reviewedAt,
+  reviewedBy: review.reviewedBy,
+});
 
 /**
  * Revisión por departamento y cierre de la pre-nómina semanal.
@@ -35,13 +60,32 @@ export class PayrollReviewService {
     private readonly audit?: AuditLogger
   ) {}
 
-  /** Historial de cierres: las últimas `limit` semanas, más reciente primero. */
+  /**
+   * Historial de cierres: las últimas `limit` semanas, más reciente primero, con
+   * quién/cuándo/dónde revisó cada departamento y quién cerró y reabrió. El
+   * `snapshot.reviews` que se guardó al cerrar es la fotografía inmutable.
+   */
   async listClosures(limit = 52) {
     const rows = await this.db.payrollWeekClosure.findMany({
       include: { closedBy: personName, reopenedBy: personName },
       orderBy: { weekStart: "desc" },
       take: limit,
     });
+    const reviews = rows.length
+      ? await this.db.payrollDepartmentReview.findMany({
+          where: { weekStart: { in: rows.map((row) => row.weekStart) } },
+          include: { reviewedBy: personName, department: departmentName },
+          orderBy: { reviewedAt: "asc" },
+        })
+      : [];
+    const byWeek = new Map<string, PayrollReviewView[]>();
+    for (const review of reviews) {
+      const key = dateKeyOf(review.weekStart);
+      const list = byWeek.get(key) ?? [];
+      list.push(reviewView(review));
+      byWeek.set(key, list);
+    }
+
     return rows.map((row) => ({
       weekStart: dateKeyOf(row.weekStart),
       closed: row.reopenedAt === null,
@@ -50,6 +94,7 @@ export class PayrollReviewService {
       reopenedAt: row.reopenedAt,
       reopenedBy: row.reopenedBy,
       snapshot: row.snapshot,
+      reviews: byWeek.get(dateKeyOf(row.weekStart)) ?? [],
     }));
   }
 
@@ -57,13 +102,13 @@ export class PayrollReviewService {
   async state(weekStart: string) {
     const week = toUtcDate(weekStart);
     const [closure, reviews] = await Promise.all([
-      this.db.payrollWeekClosure.findFirst({
-        where: { weekStart: week },
+      this.db.payrollWeekClosure.findUnique({
+        where: { tenantId_weekStart: { tenantId: requireTenantId(), weekStart: week } },
         include: { closedBy: personName, reopenedBy: personName },
       }),
       this.db.payrollDepartmentReview.findMany({
         where: { weekStart: week },
-        include: { reviewedBy: personName },
+        include: { reviewedBy: personName, department: departmentName },
         orderBy: { reviewedAt: "asc" },
       }),
     ]);
@@ -80,12 +125,7 @@ export class PayrollReviewService {
             snapshot: closure.snapshot,
           }
         : null,
-      reviews: reviews.map((review) => ({
-        departmentId: review.departmentId,
-        bulk: review.bulk,
-        reviewedAt: review.reviewedAt,
-        reviewedBy: review.reviewedBy,
-      })),
+      reviews: reviews.map(reviewView),
     };
   }
 
@@ -160,7 +200,8 @@ export class PayrollReviewService {
     const week = toUtcDate(input.weekStart);
     const reviews = await this.db.payrollDepartmentReview.findMany({
       where: { weekStart: week },
-      select: { departmentId: true },
+      include: { reviewedBy: personName, department: departmentName },
+      orderBy: { reviewedAt: "asc" },
     });
     const reviewed = new Set(reviews.map((row) => row.departmentId ?? ""));
     const missing = input.departmentIds.filter((id) => !reviewed.has(id ?? ""));
@@ -168,24 +209,27 @@ export class PayrollReviewService {
       throw new HttpError(409, "DEPARTMENTS_PENDING_REVIEW", { count: missing.length });
     }
 
-    const snapshot = input.snapshot as Prisma.InputJsonValue | undefined;
-    const closure = await this.db.payrollWeekClosure.findFirst({ where: { weekStart: week } });
-    if (closure) {
-      await this.db.payrollWeekClosure.update({
-        where: { id: closure.id },
-        data: {
-          closedById: actorId ?? null,
-          closedAt: new Date(),
-          reopenedById: null,
-          reopenedAt: null,
-          snapshot,
-        },
-      });
-    } else {
-      await this.db.payrollWeekClosure.create({
-        data: { weekStart: week, closedById: actorId ?? null, snapshot },
-      });
-    }
+    // La fotografía inmutable del cierre se queda también con quién/cuándo/dónde
+    // revisó cada departamento, aunque después se reabra o se cambien revisiones.
+    const withReviews = {
+      ...(input.snapshot ?? {}),
+      reviews: reviews.map((review) => reviewView(review)),
+    } as unknown as Prisma.InputJsonValue;
+    await this.db.payrollWeekClosure.upsert({
+      where: { tenantId_weekStart: { tenantId: requireTenantId(), weekStart: week } },
+      create: {
+        weekStart: week,
+        closedById: actorId ?? null,
+        snapshot: withReviews,
+      },
+      update: {
+        closedById: actorId ?? null,
+        closedAt: new Date(),
+        reopenedById: null,
+        reopenedAt: null,
+        snapshot: withReviews,
+      },
+    });
 
     await this.audit?.({
       action: "PAYROLL_WEEK_CLOSED",
@@ -201,13 +245,15 @@ export class PayrollReviewService {
   /** Reabre una semana cerrada (la fila queda con el sello de reapertura). */
   async reopen(actorId: string | undefined, input: { weekStart: string }) {
     const week = toUtcDate(input.weekStart);
-    const closure = await this.db.payrollWeekClosure.findFirst({ where: { weekStart: week } });
+    const closure = await this.db.payrollWeekClosure.findUnique({
+      where: { tenantId_weekStart: { tenantId: requireTenantId(), weekStart: week } },
+    });
     if (!closure || closure.reopenedAt !== null) {
       throw new HttpError(409, "PAYROLL_NOT_CLOSED", { week: dateKeyOf(week) });
     }
 
     await this.db.payrollWeekClosure.update({
-      where: { id: closure.id },
+      where: { tenantId_weekStart: { tenantId: requireTenantId(), weekStart: week } },
       data: { reopenedById: actorId ?? null, reopenedAt: new Date() },
     });
 

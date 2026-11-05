@@ -1,30 +1,7 @@
 {
   "title": "Payroll",
-  "description": "hours worked and overtime by department.",
+  "description": "Entries, exits, hours worked and overtime for the week by department for payroll",
   "breadcrumb": "Payroll",
-  "weekPill": "Week of {{range}}",
-  "tabs": {
-    "week": "Week",
-    "history": "Closing history"
-  },
-  "history": {
-    "title": "Closing history",
-    "empty": "No closed weeks yet.",
-    "week": "Week",
-    "people": "People",
-    "worked": "Hours",
-    "approved": "OT appr.",
-    "absences": "Absences",
-    "closedBy": "Closed by",
-    "closedAt": "Closed at",
-    "status": "Status",
-    "closed": "Closed",
-    "reopened": "Reopened",
-    "reopenedTooltip": "Reopened by {{name}} · {{date}}",
-    "detailSubtitle": "Closed by {{name}} · {{date}}",
-    "noSnapshot": "This closing has no department snapshot.",
-    "pdfTitle": "Payroll closing"
-  },
   "filters": {
     "week": "Week",
     "previousWeek": "Previous week",
@@ -40,7 +17,6 @@
   "columns": {
     "code": "Code",
     "employee": "Employee",
-    "department": "Department",
     "schedule": "Schedule",
     "day": "Day",
     "status": "Status",
@@ -55,7 +31,8 @@
     "incomplete": "Incomplete punches",
     "missing": "Missing",
     "shift": "Shift",
-    "total": "Total"
+    "total": "Total",
+    "department": "Department"
   },
   "view": {
     "label": "View",
@@ -90,7 +67,9 @@
     "approved": "Approved OT",
     "notApproved": "Not approved OT",
     "absences": "Absences",
-    "incomplete": "Incomplete punches"
+    "incomplete": "Incomplete punches",
+    "scopeAll": "Whole staff",
+    "scopeDepartment": "Figures for {{name}}"
   },
   "legend": "Legend",
   "withoutSchedule": "No schedule: no overtime",
@@ -124,7 +103,8 @@
   "exportExcel": "Excel",
   "exporting": "Generating…",
   "pdf": {
-    "title": "Weekly payroll",
+    "title": "Puerto Nuevo · Weekly payroll",
+    "company": "Puerto Nuevo Baja Hotel y Villas",
     "department": "Department",
     "week": "Week",
     "view": "View",
@@ -156,68 +136,76 @@
     "people": "of {{total}} people"
   },
   "reportTitle": "Weekly report",
-  "detailTitle": "Detail by person",
-  "exportPdfFull": "Export PDF",
-  "exportExcelFull": "Export Excel",
-  "steps": {
-    "attendance": "Attendance",
-    "attendanceOk": "Absences and late arrivals justified",
-    "attendancePending": "{{count}} absences to justify",
-    "overtime": "Overtime",
-    "overtimeNone": "0 to approve",
-    "overtimePending": "{{hours}} h to approve",
-    "review": "Review departments",
-    "reviewCaption": "{{done}} of {{total}} reviewed",
-    "close": "Close and export",
-    "closeCaption": "Pending",
-    "closeDone": "Closed"
+  "actionsBar": {
+    "notePending": "\"Close payroll\" is enabled when every department has been reviewed.",
+    "noteReady": "Every department is reviewed: you can close the week.",
+    "noteClosed": "Payroll closed by {{name}} on {{date}}.",
+    "exportPdf": "Export PDF",
+    "exportExcel": "Export Excel",
+    "verify": "Review payroll",
+    "close": "Close payroll",
+    "reopen": "Reopen week",
+    "verifyAll": "Verify the whole payroll",
+    "verifyByDepartment": "Verify by department",
+    "history": "History"
   },
-  "cards": {
-    "people": "People with punches",
-    "peopleCaption": "of {{total}} on clock",
-    "worked": "Hours worked",
-    "workedCaption": "this week",
-    "approved": "Approved overtime",
-    "approvedCaption": "{{hours}} h to approve",
-    "absences": "Unjustified absences",
-    "goToAttendance": "Go to Attendance"
+  "reviewDialog": {
+    "title": "Review payroll",
+    "subtitle": "Review the departments of week {{week}} before closing it.",
+    "pending": "{{count}} of {{total}} departments pending review",
+    "markAll": "Mark all as reviewed",
+    "empty": "No departments with punches this week.",
+    "cancel": "Close",
+    "closeWeek": "Close payroll"
   },
-  "deptTable": {
-    "department": "Department",
-    "people": "People",
-    "normalHours": "Regular hours",
-    "extraHours": "Overtime",
-    "absences": "Absences",
-    "review": "Review",
-    "reviewed": "Reviewed",
-    "pending": "To review",
-    "reviewedTooltip": "Reviewed by {{name}} · {{date}} ({{how}})",
-    "reviewedBulk": "mark all",
-    "reviewedSingle": "one by one",
-    "detail": "View detail",
-    "reviewAll": "Mark all as reviewed",
-    "note": "The review is saved per week with who did it; the closing keeps a snapshot of the figures."
-  },
-  "deptDetail": {
-    "subtitle": "{{count}} people this week"
-  },
-  "reviewAllDialog": {
-    "title": "Mark all as reviewed?",
-    "message": "All {{count}} departments will be marked as reviewed. You can unmark any of them from its detail.",
-    "confirm": "Yes, mark all",
+  "closeDialog": {
+    "title": "Close the week",
+    "message": "Payroll for week {{week}} will be closed. You can reopen it later if something needs fixing.",
+    "confirm": "Close week",
     "cancel": "Cancel"
   },
-  "review": {
-    "mark": "Mark as reviewed",
-    "unmark": "Unmark"
+  "reviewStatus": {
+    "reviewed": "Reviewed",
+    "pending": "Pending review"
   },
-  "close": {
-    "note": "\"Close payroll\" is enabled once every department is reviewed.",
-    "allReviewed": "All departments are reviewed: you can close the week.",
-    "button": "Close payroll",
+  "verifyAllDialog": {
+    "title": "Verify the whole payroll",
+    "message": "The {{count}} departments of week {{week}} will be marked as reviewed. You can uncheck any of them later from \"Verify by department\".",
+    "confirm": "Yes, verify all",
+    "cancel": "Cancel"
+  },
+  "history": {
+    "title": "Payroll history",
+    "description": "Closed weeks: who reviewed each department, when, and who closed the week.",
+    "loadError": "Could not load the history",
+    "reopenError": "Could not reopen the week",
+    "empty": "No closed payrolls yet.",
+    "week": "Week {{range}}",
+    "closed": "Closed",
+    "reopened": "Reopened",
+    "closedBy": "Closed by {{name}} · {{date}}",
+    "reopenedBy": "Reopened by {{name}} · {{date}}",
+    "open": "View detail",
+    "hide": "Hide detail",
+    "reviewHeader": "Review by department",
+    "columns": {
+      "department": "Department",
+      "people": "People",
+      "reviewer": "Reviewed by",
+      "when": "When",
+      "mode": "How"
+    },
+    "noDepartment": "No department",
+    "noReviews": "No reviews recorded.",
+    "bulk": "Mark all",
+    "individual": "Individual",
     "reopen": "Reopen",
-    "closed": "Payroll closed. You can reopen it if needed.",
-    "closedBy": "Payroll closed by {{name}} · {{date}}. You can reopen it if needed.",
-    "disabled": "Departments still pending review"
+    "stats": {
+      "people": "{{count}} people",
+      "worked": "{{hours}} h worked",
+      "extra": "{{hours}} h overtime",
+      "approved": "{{hours}} h approved",
+      "absences": "{{count}} absences"
+    }
   }
 }
