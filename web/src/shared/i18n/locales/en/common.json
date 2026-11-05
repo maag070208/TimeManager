@@ -145,7 +145,7 @@
     "title": "Map"
   },
   "pdf": {
-    "footer": "Puerto Nuevo Hotel y Villas — Asset Control System",
+    "footer": "TimeManager — Attendance tracking",
     "pageOf": "Page {{current}} of {{total}}",
     "page": "Page",
     "of": "of",

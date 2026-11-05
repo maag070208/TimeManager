@@ -145,7 +145,7 @@
     "title": "Mapa"
   },
   "pdf": {
-    "footer": "Puerto Nuevo Hotel y Villas — Sistema de Control de Activos",
+    "footer": "TimeManager — Control de asistencia",
     "pageOf": "Página {{current}} de {{total}}",
     "page": "Página",
     "of": "de",

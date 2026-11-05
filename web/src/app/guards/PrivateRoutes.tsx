@@ -21,7 +21,7 @@ import { API_CONSTANTS } from "@shared/api/constants/API_CONSTANTS";
 import { desktop } from "@shared/lib/desktop";
 import { useAblyNotifications, type LiveNotification } from "./useAblyNotifications";
 import ForcePasswordChange from "./ForcePasswordChange";
-import logoUrl from "@shared/assets/puerto-nuevo-logo.svg";
+import logoUrl from "@shared/assets/brand/timemanager-logo-for-dark-bg.svg";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {

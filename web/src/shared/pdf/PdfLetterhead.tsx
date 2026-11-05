@@ -1,5 +1,5 @@
 import { Image, Text, View } from "@react-pdf/renderer";
-import { LOGO_PUERTO_NUEVO_BASE64 } from "@shared/assets/logoPuertoNuevo";
+import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
 import { pdfTheme } from "./theme";
 import { i18n } from "@shared/i18n";
 
@@ -27,7 +27,7 @@ export default function PdfLetterhead({ title, pageIndex, pageCount, generatedAt
       <View style={pdfTheme.band}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={pdfTheme.logoBadge}>
-            <Image src={LOGO_PUERTO_NUEVO_BASE64} style={pdfTheme.logoImg} />
+            <Image src={LOGO_TIMEMANAGER_BASE64} style={pdfTheme.logoImg} />
           </View>
           <View style={pdfTheme.bandTextWrap}>
             <Text style={pdfTheme.bandHotel}>TimeManager</Text>

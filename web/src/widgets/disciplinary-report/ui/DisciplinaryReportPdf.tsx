@@ -9,7 +9,7 @@ import {
 import { formatDate } from "@shared/utils/dates";
 import { useTranslation } from "react-i18next";
 import type { DisciplinaryReport } from "@entities/hr";
-import { LOGO_PUERTO_NUEVO_BASE64 } from "@shared/assets/logoPuertoNuevo";
+import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
 
 interface Props {
   disciplinaryReport: DisciplinaryReport;
@@ -147,7 +147,7 @@ export default function DisciplinaryReportPdf({ disciplinaryReport }: Props) {
       <Page size="LETTER" style={styles.page}>
         <View style={styles.topHeader}>
           <View style={styles.logoBox}>
-            <Image src={LOGO_PUERTO_NUEVO_BASE64} style={styles.logo} />
+            <Image src={LOGO_TIMEMANAGER_BASE64} style={styles.logo} />
           </View>
           <View style={styles.metaBox}>
             <View style={styles.metaRow}>

@@ -1,5 +1,5 @@
 import { Lottie } from "lottie-react";
-import animationData from "@shared/assets/puerto-nuevo-logo.json";
+import animationData from "@shared/assets/lottie/timemanager-loader-for-light-bg.json";
 
 export type LottieLoaderSize = "sm" | "md" | "lg";
 
