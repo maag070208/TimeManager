@@ -9,6 +9,7 @@ import { RetentionService } from "./services/retention.service";
 import { StpsExportService } from "./services/stps-export.service";
 import { RemotePunchService } from "./services/remote-punch.service";
 import { TeleworkService } from "./services/telework.service";
+import { WeeklyOvertimeService } from "./services/weekly-overtime.service";
 import { NomController } from "./controllers/nom.controller";
 import { createNomRouter } from "./routes/nom.routes";
 
@@ -19,6 +20,8 @@ export { RetentionService, retentionCutoff } from "./services/retention.service"
 export { StpsExportService } from "./services/stps-export.service";
 export { RemotePunchService } from "./services/remote-punch.service";
 export { TeleworkService } from "./services/telework.service";
+export { WeeklyOvertimeService } from "./services/weekly-overtime.service";
+export { classifyWeeklyOvertime, OVERTIME_ENGINE_VERSION } from "@modules/overtime/services/weekly-overtime-engine";
 
 type SysConfigReader = (key: string) => Promise<string | null>;
 
@@ -47,6 +50,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
   const exporter = new StpsExportService(prismaClient, deps.calculator);
   const remotePunches = new RemotePunchService(prismaClient, settings, deps.audit);
   const telework = new TeleworkService(prismaClient, settings, deps.notifications, deps.audit);
+  const weeklyOvertime = new WeeklyOvertimeService(prismaClient, deps.calculator, deps.audit);
   const controller = new NomController(
     settings,
     adjustments,
@@ -54,7 +58,8 @@ export const createNomModule = (deps: NomModuleDeps) => {
     retention,
     exporter,
     remotePunches,
-    telework
+    telework,
+    weeklyOvertime
   );
   return {
     router: createNomRouter(controller),
@@ -65,6 +70,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
     exporter,
     remotePunches,
     telework,
+    weeklyOvertime,
     /**
      * Worker NOM: barrido horario de límites de jornada (ayer) y archivado
      * diario de los clientes con retención configurada. Lo arranca `src/index.ts`.

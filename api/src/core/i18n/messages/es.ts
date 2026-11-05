@@ -418,6 +418,7 @@ export const es = {
     INVALID_ADJUSTMENT_DATE: "La hora propuesta no es una fecha válida",
     INVALID_WORKDAY_LIMIT: "El límite diario debe estar entre {{min}} y {{max}} minutos",
     INVALID_WEEKLY_LIMIT: "El límite semanal debe estar entre {{min}} y {{max}} minutos",
+    WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",
     INVALID_RETENTION_MONTHS: "La retención debe estar entre {{min}} y {{max}} meses (vacío desactiva el archivado)",
     REMOTE_PUNCH_DISABLED: "El marcaje remoto está deshabilitado para este cliente",
     INVALID_PUNCH_SEQUENCE: "Ya tienes un registro abierto de tipo {{type}}: ciérralo antes del siguiente",

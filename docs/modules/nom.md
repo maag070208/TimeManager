@@ -115,3 +115,14 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - `/#/mi-jornada` es **solo para sesiones de cliente** (guarda `TenantOnly`); el personal de plataforma no lo ve en el menú y la ruta lo regresa a su inicio. En modo rutas por cliente vive en `/#/<slug>/mi-jornada`.
 - El portal es responsive: resumen de entrada/salida en dos tarjetas, formularios y botones a ancho completo en móvil, listas y checklist que se apilan. El menú lateral usa un icono propio (`LuCalendarCheck`) para la pantalla.
 - La hidratación de `/auth/me` no expulsa a un cliente de su ruta: los guards esperan a que la sesión tenga `tenant` y permisos antes de redirigir.
+
+## Motor semanal de horas extra (F1)
+
+- `src/modules/overtime/services/weekly-overtime-engine.ts`: función pura que clasifica la semana en **doble**, **triple** y **excedente ilegal** con la tabla legal 2026-2030 (jornada 48/46/44/42/40 h; extra al doble 9/9/10/11/12 h; 4 h/día, 4 días/semana, 4 h al triple, tope diario 12 h). Menores de 18 no hacen extra y se marca infracción; el excedente ilegal se contabiliza (se paga) y genera infracción.
+- 18 casos de prueba del plan en `weekly-overtime-engine.test.ts` (más dos de guardia).
+- `weekly_overtime_ledgers` (migración `20261112000000_weekly_overtime_ledger`): snapshot por persona/semana con detalle día por día, violaciones, versión del motor y estado DRAFT → CONFIRMED/CLOSED. RLS por cliente.
+- Endpoints (permiso `time_clock.view` para leer, `time_clock.write` para recalcular/confirmar):
+  - `GET /nom/overtime/weekly?date=YYYY-MM-DD` (calcula/recupera la semana),
+  - `POST /nom/overtime/weekly/recalculate` (body `date`),
+  - `POST /nom/overtime/weekly/:id/confirm` (congela el snapshot).
+- Pendiente de F1: tipo de turno H-01, festivos H-05, aprobación semanal desde la UI y export STPS v1 con bolsas.

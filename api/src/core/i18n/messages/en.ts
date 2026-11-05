@@ -420,6 +420,7 @@ export const en: Messages = {
     INVALID_ADJUSTMENT_DATE: "The proposed time is not a valid date",
     INVALID_WORKDAY_LIMIT: "The daily limit must be between {{min}} and {{max}} minutes",
     INVALID_WEEKLY_LIMIT: "The weekly limit must be between {{min}} and {{max}} minutes",
+    WEEKLY_LEDGER_NOT_FOUND: "Weekly overtime ledger not found",
     INVALID_RETENTION_MONTHS: "Retention must be between {{min}} and {{max}} months (empty disables archiving)",
     REMOTE_PUNCH_DISABLED: "Remote punching is disabled for this client",
     INVALID_PUNCH_SEQUENCE: "You already have an open {{type}}: close it before the next one",

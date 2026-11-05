@@ -279,6 +279,25 @@ describe("F2-03 límites legales y alertas", () => {
     assert.equal(config.body?.legal?.maxOvertimeDaysPerWeek, 4);
   });
 
+  test("ledger semanal de horas extra: se calcula, lista y exige permisos", async () => {
+    const tenant = await createTenant();
+    const hr = await clientSession("HUMAN_RESOURCES", { tenant });
+    const staff = await clientSession("CLIENT_STAFF", { tenant });
+
+    const week = await api("GET", "/nom/overtime/weekly?date=2027-03-10", { token: hr.token });
+    expectStatus(week, 200, "ledger semanal");
+    assert.ok(Array.isArray(week.body), "devuelve una lista de ledgers");
+
+    const recalc = await api("POST", "/nom/overtime/weekly/recalculate", {
+      token: hr.token,
+      body: { date: "2027-03-10" },
+    });
+    expectStatus(recalc, 200, "recálculo semanal");
+
+    const denied = await api("GET", "/nom/overtime/weekly?date=2027-03-10", { token: staff.token });
+    expectError(denied, 403, "INSUFFICIENT_PERMISSIONS", "ledger sin permiso");
+  });
+
   test("el barrido responde y un empleado sin permisos no puede dispararlo", async () => {
     const tenant = await createTenant();
     const hr = await clientSession("HUMAN_RESOURCES", { tenant });

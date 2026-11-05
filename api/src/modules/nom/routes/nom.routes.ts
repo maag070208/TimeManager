@@ -57,6 +57,11 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/alerts", canRead, asyncHandler(controller.listAlerts));
   router.post("/alerts/scan", canWrite, asyncHandler(controller.scanAlerts));
 
+  // Motor semanal de horas extra (F1): ledger por persona/semana.
+  router.get("/overtime/weekly", canRead, asyncHandler(controller.listWeeklyOvertime));
+  router.post("/overtime/weekly/recalculate", canWrite, asyncHandler(controller.recalculateWeeklyOvertime));
+  router.post("/overtime/weekly/:id/confirm", canWrite, asyncHandler(controller.confirmWeeklyOvertime));
+
   // Retención/archivado (F2-04).
   router.get("/retention", canRead, asyncHandler(controller.getRetention));
   router.post("/retention/archive", canWrite, asyncHandler(controller.archive));

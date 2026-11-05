@@ -33,6 +33,7 @@ export const TENANT_MODELS: ReadonlySet<string> = new Set([
   "TimeClockRosterEntry",
   "TimeClockRosterRun",
   "OvertimeApproval",
+  "WeeklyOvertimeLedger",
   "Agent",
   "AgentJob",
   // NOM / LFT 2027 (F2-01..F2-04): ajustes de checadas, configuración por

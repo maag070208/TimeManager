@@ -164,6 +164,7 @@ model User {
   permissionGrants   UserPermission[] @relation("UserPermissionGrants")
   permissionsGranted UserPermission[] @relation("UserPermissionGrantedBy")
   policiesCreated    Policy[]         @relation("PolicyCreatedBy")
+  weeklyOvertimeLedgers WeeklyOvertimeLedger[] @relation("WeeklyOvertimeLedgerUser")
   active             Boolean          @default(true)
   jobTitle           String?
   employeeNumber     String?
@@ -906,6 +907,53 @@ model OvertimeApproval {
   @@index([date])
   @@index([status])
   @@map("overtime_approvals")
+}
+
+/// Estado del snapshot semanal de horas extra (F1).
+enum WeeklyOvertimeStatus {
+  DRAFT
+  CONFIRMED
+  CLOSED
+}
+
+/// Snapshot inmutable por persona/semana de la clasificación de horas extra
+/// (doble, triple y excedente ilegal), con el detalle día por día y la versión
+/// del motor. Se recalcula mientras está DRAFT y se congela al confirmar/cerrar.
+model WeeklyOvertimeLedger {
+  id      String @id @default(uuid())
+  tenantId String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId  String
+  user    User   @relation("WeeklyOvertimeLedgerUser", fields: [userId], references: [id], onDelete: Cascade)
+  /// Lunes local de la semana (UTC-medianoche).
+  weekStart DateTime @db.Date
+  year      Int
+
+  ordinaryMin       Int @default(0)
+  otDoubleMin       Int @default(0)
+  otTripleMin       Int @default(0)
+  otIllegalMin      Int @default(0)
+  restDayWorkedMin  Int @default(0)
+  holidayWorkedMin  Int @default(0)
+  sundayWorked      Boolean @default(false)
+  minor             Boolean @default(false)
+  violations        Json    @default("[]")
+  days              Json    @default("[]")
+  engineVersion     String
+
+  status        WeeklyOvertimeStatus @default(DRAFT)
+  workerAckAt   DateTime?
+  workerAckHash String?
+  confirmedById String?
+  confirmedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, userId, weekStart])
+  @@index([tenantId, weekStart])
+  @@index([userId, weekStart])
+  @@index([status])
+  @@map("weekly_overtime_ledgers")
 }
 
 // ---------------------------------------------------------------------------

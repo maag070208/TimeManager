@@ -1,6 +1,6 @@
 # Plan de cumplimiento al 100 %: NOM-037-STPS-2023 + reforma LFT 2026 (jornada, horas extra y registro electrónico)
 
-Fecha: 2026-11-05. Estado: **F0 implementada** (5-nov-2026); F1-F6 pendientes.
+Fecha: 2026-11-05. Estado: **F0 implementada** y **F1 en curso** (motor semanal + ledger); F2-F6 pendientes.
 Complementa a [NOM_CUMPLIMIENTO.md](NOM_CUMPLIMIENTO.md) (estado actual) y a [modules/nom.md](modules/nom.md).
 
 > **Alcance legal.** Este documento es un mapeo técnico de la norma al producto, no una opinión
@@ -232,7 +232,7 @@ Hoy es 5-nov-2026; el escalón de 46 h y las disposiciones STPS entran el **1-en
 | Fase | Fecha objetivo | Contenido |
 |---|---|---|
 | **F0 — Correcciones urgentes** ✅ (5-nov-2026) | 15-nov-2026 | Tabla legal 48/46/44/42/40 y 9/9/10/11/12 en código (1.1); alertas semanales contra el tope correcto; configuración solo más estricta (1.7); corregir [NOM_CUMPLIMIENTO.md](NOM_CUMPLIMIENTO.md) y [modules/nom.md](modules/nom.md) (dicen 46 h para 2027-2029 y que el registro es obligatorio hasta 2027) |
-| **F1 — Motor semanal de horas extra** | 10-dic-2026 | Algoritmo 1.3 + casos 1.4 + `WeeklyOvertimeLedger`; tipo de turno (H-01); festivos (H-05); menores; descanso de 7 días (H-07); registro sin tolerancias (1.6); aprobación por semana; pre-nómina y export con bolsas (R-04) |
+| **F1 — Motor semanal de horas extra** 🚧 (motor + ledger; restan turno/festivos/export/UI) | 10-dic-2026 | Algoritmo 1.3 + casos 1.4 + `WeeklyOvertimeLedger`; tipo de turno (H-01); festivos (H-05); menores; descanso de 7 días (H-07); registro sin tolerancias (1.6); aprobación por semana; pre-nómina y export con bolsas (R-04) |
 | **F2 — Transición 2027** | 15-dic-2026 | Validación de horarios (H-02) y asistente de transición (H-03) corrido en todos los clientes antes del 1-ene |
 | **F3 — Prueba plena y retención** | 31-ene-2027 | Acuerdo del método y conformidad periódica (R-01); retención art. 804 (R-02); autorización previa y consentimiento de extra (1.5) |
 | **F4 — NOM-037 completa** | 28-feb-2027 | Brechas P0/P1 de la sección 4, desconexión del propio sistema, expediente exportable |

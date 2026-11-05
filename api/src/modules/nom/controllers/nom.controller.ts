@@ -26,6 +26,7 @@ import type { RetentionService } from "../services/retention.service";
 import type { StpsExportService } from "../services/stps-export.service";
 import type { RemotePunchService } from "../services/remote-punch.service";
 import type { TeleworkService } from "../services/telework.service";
+import type { WeeklyOvertimeService } from "../services/weekly-overtime.service";
 
 const tenantIdOrThrow = (): string => {
   const tenantId = currentTenantId();
@@ -47,7 +48,8 @@ export class NomController {
     private readonly retention: RetentionService,
     private readonly exporter: StpsExportService,
     private readonly remotePunches: RemotePunchService,
-    private readonly telework: TeleworkService
+    private readonly telework: TeleworkService,
+    private readonly weeklyOvertime: WeeklyOvertimeService
   ) {}
 
   getConfig = async (_req: Request, res: Response) => {
@@ -93,6 +95,27 @@ export class NomController {
   scanAlerts = async (req: Request, res: Response) => {
     const input = AlertScanDto.parse(req.body ?? {});
     res.json(await this.alerts.scan(tenantIdOrThrow(), input));
+  };
+
+
+  listWeeklyOvertime = async (req: Request, res: Response) => {
+    const date = typeof req.query.date === "string" ? req.query.date : undefined;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new HttpError(400, "INVALID_REPORT_DATE");
+    }
+    res.json(await this.weeklyOvertime.computeWeek(tenantIdOrThrow(), date));
+  };
+
+  recalculateWeeklyOvertime = async (req: Request, res: Response) => {
+    const date = typeof req.body?.date === "string" ? req.body.date : undefined;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new HttpError(400, "INVALID_REPORT_DATE");
+    }
+    res.json(await this.weeklyOvertime.computeWeek(tenantIdOrThrow(), date));
+  };
+
+  confirmWeeklyOvertime = async (req: Request, res: Response) => {
+    res.json(await this.weeklyOvertime.confirm(tenantIdOrThrow(), req.params.id, actorOf(req)));
   };
 
   getRetention = async (_req: Request, res: Response) => {
