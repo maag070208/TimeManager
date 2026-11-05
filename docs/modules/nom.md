@@ -155,4 +155,5 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **Política con secciones obligatorias (5.2):** `PUT /nom/telework/policy` rechaza 400 `TELEWORK_POLICY_SECTIONS_MISSING` si falta horario, desconexión, riesgos, equipo, lactancia o reversibilidad; `GET /nom/telework/policy/template` entrega la plantilla base.
 - **Expediente NOM-037 exportable (10.4):** `GET /nom/telework/evidence` devuelve políticas, registros, checklists, equipo, capacitación, avisos, reversibilidad y hash SHA-256 para conservarlo como evidencia.
 - **Alertas de capacitación:** `GET /nom/telework/trainings/expiring?days=30` lista las que vencen en la ventana.
-- Pendiente F4: desconexión del propio sistema (diferir notificaciones al teletrabajador fuera de jornada) y retención mínima de 1 año de evidencias.
+- **Desconexión del propio sistema (4.11/7.3 e):** las notificaciones a un teletrabajador activo se **difieren a su siguiente jornada** si llegan fuera de su horario (`notifications.deferredUntil`); no aparecen en la campanita ni cuentan como no leídas hasta entonces. Cubre también turnos que cruzan medianoche.
+- Pendiente F4: retención mínima de 1 año de evidencias y P1/P2 (riesgos ergonómicos, exámenes médicos, violencia familiar, dictámenes).

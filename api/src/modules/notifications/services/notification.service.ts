@@ -5,6 +5,7 @@ import { systemLanguage, t } from "@core/i18n";
 import { enqueueEmail } from "@core/services/email-queue";
 import { rosterAlertEmail, workdayLimitEmail } from "@core/services/email-templates";
 import { createNotificationTokenRequest } from "./ably-token.service";
+import { resolveTeleworkDeferral } from "./telework-deferral";
 import type {
   CreateNotificationInput,
   NotifyWorkdayLimitInput,
@@ -21,8 +22,11 @@ const ADMIN_HR_ROLES = ["CLIENT_ADMIN", "HUMAN_RESOURCES"] as const;
 export class NotificationService implements NotificationPort {
   constructor(private readonly db = prismaClient) {}
 
-  createNotification(input: CreateNotificationInput) {
-    return this.db.notification.create({ data: input });
+  async createNotification(input: CreateNotificationInput) {
+    const deferredUntil = await resolveTeleworkDeferral(this.db, input.userId);
+    return this.db.notification.create({
+      data: { ...input, ...(deferredUntil ? { deferredUntil } : {}) },
+    });
   }
 
   /**
@@ -35,13 +39,32 @@ export class NotificationService implements NotificationPort {
 
   async createManyNotifications(inputs: CreateNotificationInput[]) {
     if (inputs.length === 0) return;
-    return this.db.notification.createMany({ data: inputs });
+    const userIds = [...new Set(inputs.map((input) => input.userId))];
+    const deferrals = new Map<string, Date>();
+    for (const userId of userIds) {
+      const deferredUntil = await resolveTeleworkDeferral(this.db, userId);
+      if (deferredUntil) deferrals.set(userId, deferredUntil);
+    }
+    return this.db.notification.createMany({
+      data: inputs.map((input) => {
+        const deferredUntil = deferrals.get(input.userId);
+        return { ...input, ...(deferredUntil ? { deferredUntil } : {}) };
+      }),
+    });
+  }
+
+  /** Condición para mostrar solo lo que ya se puede entregar (desconexión). */
+  private visibleNow() {
+    return {
+      OR: [{ deferredUntil: null }, { deferredUntil: { lte: new Date() } }],
+    };
   }
 
   listNotifications(userId: string, unreadOnly = false) {
     return this.db.notification.findMany({
       where: {
         userId,
+        ...this.visibleNow(),
         ...(unreadOnly ? { read: false } : {}),
       },
       orderBy: { createdAt: "desc" },
@@ -50,7 +73,9 @@ export class NotificationService implements NotificationPort {
   }
 
   async getUnreadCount(userId: string) {
-    return this.db.notification.count({ where: { userId, read: false } });
+    return this.db.notification.count({
+      where: { userId, read: false, ...this.visibleNow() },
+    });
   }
 
   async markAsRead(id: string, userId: string) {

@@ -369,6 +369,9 @@ model Notification {
   title     String
   detail    String?
   read      Boolean  @default(false)
+  /// NOM-037 4.11/7.3 e): si el destinatario es teletrabajador y está fuera de
+  /// su jornada, la notificación se difiere hasta su siguiente jornada.
+  deferredUntil DateTime?
   createdAt DateTime @default(now())
 
   @@index([tenantId])
