@@ -105,7 +105,7 @@ describe("F4 NOM-037: brechas P0", () => {
       body: {
         userId: staff.user.id,
         completedAt: "2026-11-01",
-        expiresAt: "2027-11-01",
+        expiresAt: "2026-11-20",
         evidence: "Constancia interna",
       },
     });
@@ -141,5 +141,17 @@ describe("F4 NOM-037: brechas P0", () => {
       api("GET", "/nom/telework/reversals", { token: hr.token }),
     ]);
     for (const response of lists) expectStatus(response, 200, "listados NOM-037");
+
+    const expiring = await api("GET", "/nom/telework/trainings/expiring?days=30", {
+      token: hr.token,
+    });
+    expectStatus(expiring, 200, "capacitaciones por vencer");
+    assert.ok((expiring.body as unknown[]).length >= 1);
+
+    const evidence = await api("GET", "/nom/telework/evidence", { token: hr.token });
+    expectStatus(evidence, 200, "expediente NOM-037");
+    assert.equal(evidence.body?.schemaVersion, "nom037-expediente-v1");
+    assert.match(String(evidence.body?.sha256), /^[0-9a-f]{64}$/);
+    assert.ok((evidence.body?.registrations as unknown[]).length >= 1);
   });
 });

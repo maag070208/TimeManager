@@ -180,6 +180,16 @@ export class NomController {
     );
   };
 
+  expiringTeleworkTrainings = async (req: Request, res: Response) => {
+    const days = Number(req.query.days) || 30;
+    res.json(await this.teleworkCompliance.expiringTrainings(tenantIdOrThrow(), Math.min(Math.max(days, 1), 365)));
+  };
+
+  teleworkEvidence = async (_req: Request, res: Response) => {
+    const evidence = await this.teleworkCompliance.evidence(tenantIdOrThrow());
+    res.json(evidence);
+  };
+
   listTeleworkTrainings = async (_req: Request, res: Response) => {
     res.json(await this.teleworkCompliance.listTrainings(tenantIdOrThrow()));
   };

@@ -201,6 +201,84 @@ export class TeleworkComplianceService {
     });
   }
 
+  /** Capacitaciones que vencen en `days` días (alerta NOM-037 5.9/8.1). */
+  async expiringTrainings(tenantId: string, days = 30) {
+    const now = new Date();
+    const until = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+    return this.db.teleworkTraining.findMany({
+      where: { tenantId, expiresAt: { gte: now, lte: until } },
+      orderBy: { expiresAt: "asc" },
+      include: { user: { select: { name: true, employeeNumber: true } } },
+    });
+  }
+
+  /**
+   * Expediente NOM-037 exportable (10.4): políticas, registros, checklists,
+   * equipo, capacitación, avisos, reversibilidad y contactos fuera de jornada,
+   * con hash de integridad para conservarlo como evidencia.
+   */
+  async evidence(tenantId: string) {
+    const [tenant, settings, registrations, checklists, equipment, trainings, notices, reversals] =
+      await Promise.all([
+        this.db.tenant.findUnique({ where: { id: tenantId }, select: { id: true, name: true, slug: true } }),
+        this.db.nomSettings.findUnique({
+          where: { tenantId },
+          select: {
+            teleworkPolicy: true,
+            disconnectPolicy: true,
+            privacyNotice: true,
+            policyVersion: true,
+            privacyNoticeVersion: true,
+            policiesUpdatedAt: true,
+          },
+        }),
+        this.db.teleworkRegistration.findMany({
+          where: { tenantId },
+          orderBy: { startedAt: "asc" },
+          include: { user: { select: { name: true, employeeNumber: true } } },
+        }),
+        this.db.teleworkChecklist.findMany({
+          where: { tenantId },
+          orderBy: { completedAt: "asc" },
+          include: { user: { select: { name: true, employeeNumber: true } } },
+        }),
+        this.db.teleworkEquipmentDelivery.findMany({
+          where: { tenantId },
+          orderBy: { deliveredAt: "asc" },
+          include: { user: { select: { name: true, employeeNumber: true } } },
+        }),
+        this.db.teleworkTraining.findMany({
+          where: { tenantId },
+          orderBy: { completedAt: "asc" },
+          include: { user: { select: { name: true, employeeNumber: true } } },
+        }),
+        this.db.teleworkNotice.findMany({
+          where: { tenantId },
+          orderBy: { occurredAt: "asc" },
+          include: { user: { select: { name: true, employeeNumber: true } } },
+        }),
+        this.db.teleworkReversalRequest.findMany({
+          where: { tenantId },
+          orderBy: { requestedAt: "asc" },
+          include: { user: { select: { name: true, employeeNumber: true } } },
+        }),
+      ]);
+    const body = {
+      schemaVersion: "nom037-expediente-v1",
+      generatedAt: new Date().toISOString(),
+      tenant,
+      policy: settings,
+      registrations,
+      checklists,
+      equipment,
+      trainings,
+      notices,
+      reversals,
+    };
+    const hash = sha256(body);
+    return { ...body, sha256: hash };
+  }
+
   async listNotices(tenantId: string) {
     return this.db.teleworkNotice.findMany({
       where: { tenantId },

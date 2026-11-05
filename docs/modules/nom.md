@@ -153,4 +153,6 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **Equipo entregado** (`telework_equipment_deliveries`) con acuse del trabajador y hash; **capacitación anual** con vencimiento; **avisos escritos** del trabajador y **reversibilidad a presencial** con decisión auditada.
 - Endpoints de RH y de autoservicio (`/nom/me/telework/...`); todo con RLS por cliente.
 - **Política con secciones obligatorias (5.2):** `PUT /nom/telework/policy` rechaza 400 `TELEWORK_POLICY_SECTIONS_MISSING` si falta horario, desconexión, riesgos, equipo, lactancia o reversibilidad; `GET /nom/telework/policy/template` entrega la plantilla base.
-- Pendiente F4: retención/export del expediente NOM-037, desconexión del propio sistema (diferir notificaciones al teletrabajador fuera de jornada) y alertas automáticas de capacitación por vencer.
+- **Expediente NOM-037 exportable (10.4):** `GET /nom/telework/evidence` devuelve políticas, registros, checklists, equipo, capacitación, avisos, reversibilidad y hash SHA-256 para conservarlo como evidencia.
+- **Alertas de capacitación:** `GET /nom/telework/trainings/expiring?days=30` lista las que vencen en la ventana.
+- Pendiente F4: desconexión del propio sistema (diferir notificaciones al teletrabajador fuera de jornada) y retención mínima de 1 año de evidencias.
