@@ -1,4 +1,4 @@
-import { label, t } from "@core/i18n";
+import { t } from "@core/i18n";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import type { UserHistoryEntryEntity } from "../models/entity/user.entity";

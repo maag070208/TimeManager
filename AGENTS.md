@@ -12,7 +12,7 @@ docs/  Documentación del producto (índice en docs/README.md)
 
 La documentación vive en `docs/` y se mantiene junto con el código: `docs/modules/<modulo>.md` es la ficha de cada módulo de `api/src/modules/` (alcance, endpoints, modelos, permisos, notas multi-tenant); si un módulo cambia, su ficha se actualiza en el mismo cambio. `docs/SAAS_PLAN.md` es el plan de escalamiento a SaaS multi-cliente; decisiones pendientes marcadas **[ABIERTA]**.
 
-No hay package.json raíz: cada carpeta es un proyecto independiente con pnpm.
+Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la raíz, paquetes `api` (`timemanager-api`) y `web` (`timemanager-web`), **un solo `pnpm-lock.yaml`**. `pnpm install` siempre desde la raíz. Scripts raíz: `pnpm dev` (ambos), `pnpm dev:api`, `pnpm dev:web`, `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm seed`. Los Dockerfiles se construyen desde la raíz: `docker build -f api/Dockerfile .`.
 
 ## API (`api/`)
 
@@ -51,7 +51,7 @@ No hay package.json raíz: cada carpeta es un proyecto independiente con pnpm.
 - **No correr E2E salvo que el usuario lo pida explícitamente.**
 - Sin comentarios en código salvo casos no obvios (convención del repo).
 - Sensibilidad de datos: marcajes, geolocalización y biometría son datos personales sensibles — cifrado, acceso por rol, consentimiento (ver sección 5 de `docs/RH_MODULO_STANDALONE.md`).
-- Git: rama `main`, repo nuevo sin commits todavía (al 2026-11-04).
+- Git: rama `main`, un solo repo (`maag070208/TimeManager`). `api/.github` y `web/.github` son workflows heredados de Puerto Nuevo (publican `axzydev/axzy_ptnv_*`): GitHub no los ejecuta ahí; **no moverlos a la raíz** sin cambiar la imagen destino.
 
 ## Pendientes conocidos
 

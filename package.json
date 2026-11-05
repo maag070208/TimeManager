@@ -1,0 +1,16 @@
+{
+  "name": "timemanager",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "dev": "pnpm --parallel --filter timemanager-api --filter timemanager-web dev",
+    "dev:api": "pnpm --filter timemanager-api dev",
+    "dev:web": "pnpm --filter timemanager-web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm --filter timemanager-api exec tsc --noEmit && pnpm --filter timemanager-web exec tsc -b",
+    "prisma:generate": "pnpm --filter timemanager-api prisma:generate",
+    "prisma:migrate": "pnpm --filter timemanager-api prisma:migrate",
+    "seed": "pnpm --filter timemanager-api seed"
+  }
+}

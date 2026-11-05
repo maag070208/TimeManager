@@ -1,6 +1,6 @@
 import { prismaClient } from "@core/config/database";
 import { broadcastToUser } from "@core/services/ably";
-import { label, systemLanguage, t } from "@core/i18n";
+import { systemLanguage, t } from "@core/i18n";
 import { enqueueEmail } from "@core/services/email-queue";
 import { rosterAlertEmail } from "@core/services/email-templates";
 import type {

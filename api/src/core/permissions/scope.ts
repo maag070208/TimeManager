@@ -1,6 +1,5 @@
-import type { Prisma } from "@prisma/client";
 import type { PermissionScope } from "./catalog";
-import { scopeOf, type UserPermissions } from "./resolver";
+import type { UserPermissions } from "./resolver";
 
 /**
  * Registro sobre el que se evalúa un alcance. Reutiliza la semántica de

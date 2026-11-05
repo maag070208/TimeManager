@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { parseTableParams, paginatedTable } from "@core/utils/table";
-import { scopeOf } from "@core/permissions";
 import {
   PersonalProfileUpdateDto,
   EmployeeAssignmentDto,

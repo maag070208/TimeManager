@@ -7,6 +7,7 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 | Documento | Contenido |
 |---|---|
 | [RH_MODULO_STANDALONE.md](RH_MODULO_STANDALONE.md) | Visión del producto: alcance RH standalone, requisitos NOM-037 / registro electrónico de jornada, huecos por construir |
+| [PLAN_IMPLEMENTACION.md](PLAN_IMPLEMENTACION.md) | Roadmap ejecutable: arquitectura objetivo, decisiones y tareas por fase con ID, archivos y criterio de "hecho" |
 | [SAAS_PLAN.md](SAAS_PLAN.md) | Plan de escalamiento a SaaS multi-cliente (multi-tenancy): decisiones, impacto por módulo y roadmap por fases |
 | [ARQUITECTURA.md](ARQUITECTURA.md) | Arquitectura de escalamiento: API stateless + workers, colas, índices y particionado de la BD, performance de la web |
 | [modules/](modules/README.md) | Ficha por módulo del sistema: qué hace, endpoints, modelos, permisos, frontend y notas multi-tenant |

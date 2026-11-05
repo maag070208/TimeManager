@@ -20,27 +20,34 @@ Documentación completa en [`docs/`](docs/README.md):
 
 ## Puesta en marcha
 
+Monorepo con pnpm workspaces (`api` y `web`, un solo lockfile). Todo desde la raíz:
+
 1. Base de datos: crear una PostgreSQL en el proveedor y copiar la URL de conexión.
 2. `api/.env` (no se versiona; ver `api/.env.example`):
    - `DATABASE_URL=postgresql://usuario:clave@host:5432/db?sslmode=require`
    - `JWT_SECRET=...` (cadena aleatoria larga)
    - `ABLY_API_KEY=...` (o un valor de prueba si no usas tiempo real)
-3. Migrar y crear el administrador inicial:
+3. Instalar, migrar y crear el administrador inicial:
 
    ```bash
-   cd api
    pnpm install
-   npx prisma migrate deploy
-   INITIAL_ADMIN_USERNAME=admin INITIAL_ADMIN_PASSWORD='cambia-esta-clave' pnpm exec ts-node -r tsconfig-paths/register prisma/seed.ts
+   pnpm prisma:migrate
+   INITIAL_ADMIN_USERNAME=admin INITIAL_ADMIN_PASSWORD='cambia-esta-clave' pnpm seed
+   ```
+
+4. Levantar API (http://localhost:4001) y web (http://localhost:5006) juntas:
+
+   ```bash
    pnpm dev
    ```
 
-4. Web:
+   Por separado: `pnpm dev:api` / `pnpm dev:web`. Verificación: `pnpm typecheck`, `pnpm lint`, `pnpm build`.
+
+5. Imágenes Docker (contexto = raíz):
 
    ```bash
-   cd web
-   pnpm install
-   pnpm dev   # http://localhost:5006 (usa VITE_API_URL, por defecto http://localhost:4001/api/v1)
+   docker build -f api/Dockerfile .
+   docker build -f web/Dockerfile --build-arg VITE_API_URL=https://api.ejemplo.com/api/v1 .
    ```
 
 ## Estado de verificación

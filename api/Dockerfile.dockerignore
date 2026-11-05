@@ -1,0 +1,16 @@
+# Contexto = raíz del monorepo. Solo entra lo que la API necesita.
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+**/*.log
+**/.DS_Store
+.git
+web
+docs
+brand
+api/tests
+api/coverage
+api/prisma/legacy/*.sql
+api/prisma/legacy/extract.ts
+api/prisma/legacy/refresh-seed.ts
