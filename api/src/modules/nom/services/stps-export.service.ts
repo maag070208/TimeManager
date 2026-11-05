@@ -10,8 +10,9 @@ import type {
   StpsRemotePunchRow,
 } from "../models/entity/nom.entity";
 import type { WorkdayCalculator } from "./workday-alerts.service";
+import type { WeeklyOvertimeService } from "./weekly-overtime.service";
 
-const SCHEMA_VERSION = "stps-registro-jornada-v0";
+const SCHEMA_VERSION = "stps-registro-jornada-v1";
 
 const csvCell = (value: string | number | boolean | null): string => {
   if (value === null) return "";
@@ -30,7 +31,8 @@ const csvCell = (value: string | number | boolean | null): string => {
 export class StpsExportService {
   constructor(
     private readonly db: PrismaClient = prismaClient,
-    private readonly calculator: WorkdayCalculator
+    private readonly calculator: WorkdayCalculator,
+    private readonly weekly?: WeeklyOvertimeService
   ) {}
 
   async export(tenantId: string, params: StpsExportParams): Promise<StpsExportResult> {
@@ -45,7 +47,47 @@ export class StpsExportService {
       sort: undefined,
     });
 
-    const rows: StpsExportRow[] = days
+    // Asegura el ledger semanal del periodo para exportar las bolsas.
+    if (this.weekly) {
+      for (
+        let cursor = new Date(range.start.getTime());
+        cursor.getTime() < range.end.getTime();
+        cursor = new Date(cursor.getTime() + 7 * 24 * 60 * 60 * 1000)
+      ) {
+        await this.weekly.computeWeek(tenantId, localDateKey(cursor, range.timezone));
+      }
+    }
+
+    type LedgerDay = {
+      date: string;
+      doubleMin: number;
+      tripleMin: number;
+      illegalMin: number;
+      restDayWorkedMin: number;
+      holidayWorkedMin: number;
+      sunday: boolean;
+      violations: string[];
+    };
+    const buckets = new Map<string, LedgerDay>();
+    if (this.weekly) {
+      const ledgers = await this.db.weeklyOvertimeLedger.findMany({
+        where: {
+          tenantId,
+          weekStart: {
+            gte: new Date(range.start.getTime() - 7 * 24 * 60 * 60 * 1000),
+            lt: range.end,
+          },
+        },
+        select: { userId: true, days: true },
+      });
+      for (const ledger of ledgers) {
+        for (const day of ledger.days as unknown as LedgerDay[]) {
+          buckets.set(`${ledger.userId}|${day.date}`, day);
+        }
+      }
+    }
+
+    const rows = days
       .map((day) => ({
         date: day.date,
         employeeNumber: day.employeeNumber,
@@ -56,6 +98,14 @@ export class StpsExportService {
         workedMinutes: day.workedMin,
         scheduledMinutes: day.scheduledMin,
         extraMinutes: day.extraMin,
+        extraDoubleMinutes: buckets.get(`${day.userId}|${day.date}`)?.doubleMin ?? 0,
+        extraTripleMinutes: buckets.get(`${day.userId}|${day.date}`)?.tripleMin ?? 0,
+        illegalExtraMinutes: buckets.get(`${day.userId}|${day.date}`)?.illegalMin ?? 0,
+        restDayWorkedMinutes: buckets.get(`${day.userId}|${day.date}`)?.restDayWorkedMin ?? 0,
+        holidayWorkedMinutes: buckets.get(`${day.userId}|${day.date}`)?.holidayWorkedMin ?? 0,
+        sundayWorked: buckets.get(`${day.userId}|${day.date}`)?.sunday ?? false,
+        minor: false,
+        violations: buckets.get(`${day.userId}|${day.date}`)?.violations ?? [],
         restDay: day.restDay,
         withoutSchedule: day.withoutSchedule,
         lastExitAt: day.exitAt,
@@ -99,6 +149,11 @@ export class StpsExportService {
       workedMinutes: rows.reduce((sum, row) => sum + row.workedMinutes, 0),
       scheduledMinutes: rows.reduce((sum, row) => sum + row.scheduledMinutes, 0),
       extraMinutes: rows.reduce((sum, row) => sum + row.extraMinutes, 0),
+      extraDoubleMinutes: rows.reduce((sum, row) => sum + row.extraDoubleMinutes, 0),
+      extraTripleMinutes: rows.reduce((sum, row) => sum + row.extraTripleMinutes, 0),
+      illegalExtraMinutes: rows.reduce((sum, row) => sum + row.illegalExtraMinutes, 0),
+      restDayWorkedMinutes: rows.reduce((sum, row) => sum + row.restDayWorkedMinutes, 0),
+      holidayWorkedMinutes: rows.reduce((sum, row) => sum + row.holidayWorkedMinutes, 0),
       people: new Set(rows.map((row) => row.employeeNumber ?? row.name)).size,
       incidents: rows.filter((row) => row.restDay || row.withoutSchedule).length,
       remotePunches: remoteRows.length,
@@ -135,7 +190,7 @@ export class StpsExportService {
       `# generado: ${generatedAt}`,
       `# filas: ${rows.length} · personas: ${totals.people} · minutos trabajados: ${totals.workedMinutes} · marcajes remotos: ${remoteRows.length}`,
       `# sha256: ${sha256}`,
-      "fecha,numeroEmpleado,nombre,departamento,horario,turno,minutosTrabajados,minutosProgramados,minutosExtra,descanso,sinHorario,ultimaSalida",
+      "fecha,numeroEmpleado,nombre,departamento,horario,turno,minutosTrabajados,minutosProgramados,minutosExtra,extraDoble,extraTriple,excedenteIlegal,descansoLaborado,festivoLaborado,domingo,menor,infracciones,descanso,sinHorario,ultimaSalida",
       ...rows.map((row) =>
         [
           row.date,
@@ -147,6 +202,14 @@ export class StpsExportService {
           row.workedMinutes,
           row.scheduledMinutes,
           row.extraMinutes,
+          row.extraDoubleMinutes,
+          row.extraTripleMinutes,
+          row.illegalExtraMinutes,
+          row.restDayWorkedMinutes,
+          row.holidayWorkedMinutes,
+          row.sundayWorked ? "si" : "no",
+          row.minor ? "si" : "no",
+          row.violations.join("|"),
           row.restDay ? "si" : "no",
           row.withoutSchedule ? "si" : "no",
           row.lastExitAt,

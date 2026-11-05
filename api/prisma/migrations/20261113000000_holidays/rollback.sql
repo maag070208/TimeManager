@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS "holidays";
+DROP TYPE IF EXISTS "HolidayKind";

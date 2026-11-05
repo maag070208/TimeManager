@@ -40,6 +40,48 @@ export const minutesBetween = (from: string | null, to: string | null): number =
   return diff > 0 ? diff : diff + 24 * 60;
 };
 
+export type ShiftType = "DIURNA" | "NOCTURNA" | "MIXTA";
+
+/** Minutos de un tramo dentro de la ventana nocturna [20:00, 06:00). */
+const nocturnalMinutes = (from: number, to: number): number => {
+  let count = 0;
+  for (let minute = from; minute < to; minute += 1) {
+    const clock = ((minute % (24 * 60)) + 24 * 60) % (24 * 60);
+    if (clock >= 20 * 60 || clock < 6 * 60) count += 1;
+  }
+  return count;
+};
+
+/**
+ * Tipo de turno del art. 60 a partir del horario del día: diurna (6:00-20:00),
+ * nocturna (20:00-6:00) o mixta cuando abarca ambos periodos con menos de
+ * 3.5 h nocturnas. Los tramos que cruzan medianoche se manejan igual.
+ */
+export const shiftTypeOf = (day: {
+  startTime: string | null;
+  endTime: string | null;
+  splitStartTime: string | null;
+  splitEndTime: string | null;
+} | null | undefined): ShiftType | null => {
+  if (!day?.startTime || !day?.endTime) return null;
+  const ranges: Array<[number, number]> = [];
+  const first = [toMinutes(day.startTime), toMinutes(day.endTime)] as [number, number];
+  ranges.push([first[0], first[1] > first[0] ? first[1] : first[1] + 24 * 60]);
+  if (day.splitStartTime && day.splitEndTime) {
+    const split = [toMinutes(day.splitStartTime), toMinutes(day.splitEndTime)] as [number, number];
+    ranges.push([split[0], split[1] > split[0] ? split[1] : split[1] + 24 * 60]);
+  }
+  let night = 0;
+  let total = 0;
+  for (const [from, to] of ranges) {
+    night += nocturnalMinutes(from, to);
+    total += to - from;
+  }
+  if (night === 0) return "DIURNA";
+  if (night >= total) return "NOCTURNA";
+  return night < 210 ? "MIXTA" : "NOCTURNA";
+};
+
 export interface WorkdaySchedule {
   name: string;
   entryToleranceMin: number;

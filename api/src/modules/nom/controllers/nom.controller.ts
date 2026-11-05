@@ -27,6 +27,7 @@ import type { StpsExportService } from "../services/stps-export.service";
 import type { RemotePunchService } from "../services/remote-punch.service";
 import type { TeleworkService } from "../services/telework.service";
 import type { WeeklyOvertimeService } from "../services/weekly-overtime.service";
+import type { HolidayService } from "../services/holiday.service";
 
 const tenantIdOrThrow = (): string => {
   const tenantId = currentTenantId();
@@ -49,7 +50,8 @@ export class NomController {
     private readonly exporter: StpsExportService,
     private readonly remotePunches: RemotePunchService,
     private readonly telework: TeleworkService,
-    private readonly weeklyOvertime: WeeklyOvertimeService
+    private readonly weeklyOvertime: WeeklyOvertimeService,
+    private readonly holidays: HolidayService
   ) {}
 
   getConfig = async (_req: Request, res: Response) => {
@@ -97,6 +99,28 @@ export class NomController {
     res.json(await this.alerts.scan(tenantIdOrThrow(), input));
   };
 
+
+
+  listHolidays = async (req: Request, res: Response) => {
+    const year = Number(req.query.year) || new Date().getUTCFullYear();
+    if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+      throw new HttpError(400, "INVALID_REPORT_DATE");
+    }
+    res.json(await this.holidays.list(tenantIdOrThrow(), year));
+  };
+
+  createHoliday = async (req: Request, res: Response) => {
+    const date = typeof req.body?.date === "string" ? req.body.date : "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new HttpError(400, "INVALID_REPORT_DATE");
+    const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+    if (name.length < 3) throw new HttpError(400, "INVALID_HOLIDAY_NAME");
+    const kind = req.body?.kind === "OBLIGATORIO" ? "OBLIGATORIO" : "CONVENIO";
+    res.status(201).json(await this.holidays.create(tenantIdOrThrow(), { date, name, kind }, actorOf(req)));
+  };
+
+  deleteHoliday = async (req: Request, res: Response) => {
+    res.json(await this.holidays.remove(tenantIdOrThrow(), req.params.id, actorOf(req)));
+  };
 
   listWeeklyOvertime = async (req: Request, res: Response) => {
     const date = typeof req.query.date === "string" ? req.query.date : undefined;

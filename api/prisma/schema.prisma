@@ -909,6 +909,27 @@ model OvertimeApproval {
   @@map("overtime_approvals")
 }
 
+/// Catálogo de días festivos por cliente (art. 74 LFT): obligatorios y de
+/// convenio. Se siembran los obligatorios por año desde el servicio.
+enum HolidayKind {
+  OBLIGATORIO
+  CONVENIO
+}
+
+model Holiday {
+  id       String @id @default(uuid())
+  tenantId String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  date     DateTime @db.Date
+  name     String
+  kind     HolidayKind @default(OBLIGATORIO)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, date])
+  @@index([tenantId, date])
+  @@map("holidays")
+}
+
 /// Estado del snapshot semanal de horas extra (F1).
 enum WeeklyOvertimeStatus {
   DRAFT

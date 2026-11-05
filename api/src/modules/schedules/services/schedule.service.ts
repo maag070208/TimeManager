@@ -14,7 +14,7 @@ import {
 } from "@core/utils/timezone";
 import { TimeClockReportService } from "@modules/time-clock/services/time-clock-report.service";
 import type { AuditLogger } from "@modules/users/services/user.service";
-import { computeWorkday, dateKeyOf, shiftOf, toUtcDate } from "./workday-rules";
+import { computeWorkday, dateKeyOf, shiftOf, shiftTypeOf, toUtcDate, weekdayOf } from "./workday-rules";
 import { loadScheduleAssignments, scheduleOn } from "./schedule-assignments";
 import type {
   ScheduleOvertimeDay,
@@ -434,6 +434,7 @@ export class ScheduleService {
           restDay: day.restDay,
           withoutSchedule: day.withoutSchedule,
           shift: shiftOf(schedule, dayKey),
+          shiftType: shiftTypeOf(schedule?.days.find((d) => d.weekday === weekdayOf(dayKey))),
           exitAt: lastExit > 0 ? new Date(lastExit).toISOString() : null,
         });
       }

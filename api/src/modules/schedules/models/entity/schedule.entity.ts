@@ -60,6 +60,8 @@ export interface ScheduleOvertimeDay {
   withoutSchedule: boolean;
   /** Turno programado del día ("14:00-22:00"); null en descanso o sin horario. */
   shift: string | null;
+  /** Tipo de turno del art. 60 calculado a partir del horario. */
+  shiftType: "DIURNA" | "NOCTURNA" | "MIXTA" | null;
   /** Última salida del día (ISO) según las sesiones del reloj. */
   exitAt: string | null;
 }

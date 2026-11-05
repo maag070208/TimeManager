@@ -191,6 +191,15 @@ export interface StpsExportRow {
   workedMinutes: number;
   scheduledMinutes: number;
   extraMinutes: number;
+  /** Bolsas del motor semanal (F1). */
+  extraDoubleMinutes: number;
+  extraTripleMinutes: number;
+  illegalExtraMinutes: number;
+  restDayWorkedMinutes: number;
+  holidayWorkedMinutes: number;
+  sundayWorked: boolean;
+  minor: boolean;
+  violations: string[];
   restDay: boolean;
   withoutSchedule: boolean;
   lastExitAt: string | null;

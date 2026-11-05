@@ -143,7 +143,7 @@ test("export STPS CSV: encabezado, filas, hash y nombre del archivo", async () =
   assert.ok(csv.body.includes(`# sha256: ${csv.sha256}`));
   assert.ok(
     csv.body.includes(
-      "fecha,numeroEmpleado,nombre,departamento,horario,turno,minutosTrabajados,minutosProgramados,minutosExtra,descanso,sinHorario,ultimaSalida"
+      "fecha,numeroEmpleado,nombre,departamento,horario,turno,minutosTrabajados,minutosProgramados,minutosExtra,extraDoble,extraTriple,excedenteIlegal,descansoLaborado,festivoLaborado,domingo,menor,infracciones,descanso,sinHorario,ultimaSalida"
     )
   );
   // Orden por fecha ascendente (10 antes que 11).
@@ -162,7 +162,7 @@ test("export STPS CSV: encabezado, filas, hash y nombre del archivo", async () =
     totals: { people: number; workedMinutes: number };
     rows: unknown[];
   };
-  assert.equal(parsed.schemaVersion, "stps-registro-jornada-v0");
+  assert.equal(parsed.schemaVersion, "stps-registro-jornada-v1");
   assert.equal(parsed.rows.length, 2);
   assert.equal(parsed.totals.people, 2);
   assert.equal(parsed.totals.workedMinutes, 1280);

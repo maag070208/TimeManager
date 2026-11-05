@@ -125,4 +125,7 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
   - `GET /nom/overtime/weekly?date=YYYY-MM-DD` (calcula/recupera la semana),
   - `POST /nom/overtime/weekly/recalculate` (body `date`),
   - `POST /nom/overtime/weekly/:id/confirm` (congela el snapshot).
-- Pendiente de F1: tipo de turno H-01, festivos H-05, aprobación semanal desde la UI y export STPS v1 con bolsas.
+- **Tipo de turno (H-01):** `shiftTypeOf` en `schedules/services/workday-rules.ts` clasifica cada día como diurna/nocturna/mixta (art. 60) y viaja en el cálculo diario (`shiftType`); el motor semanal lo usa para el máximo diario de 7/7.5/8 h.
+- **Festivos (H-05):** catálogo `holidays` por cliente con siembra automática de los obligatorios del art. 74 al consultar el año; `GET/POST/DELETE /nom/holidays`. El motor separa la bolsa `festivoLaborado` y no consume el tope de extra.
+- **Export STPS v1:** `stps-registro-jornada-v1` incluye columnas `extraDoble`, `extraTriple`, `excedenteIlegal`, `descansoLaborado`, `festivoLaborado`, `domingo`, `menor` e `infracciones`, tomadas del ledger semanal; el export asegura el cálculo del ledger de las semanas del periodo.
+- Pendiente de F1: aprobación semanal en la UI y pre-nómina con bolsas.

@@ -6,6 +6,7 @@ import type { ScheduleOvertimeDay } from "@modules/schedules/models/entity/sched
 import { classifyWeeklyOvertime, type WeeklyOvertimeDayInput } from "@modules/overtime/services/weekly-overtime-engine";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import type { WorkdayCalculator } from "./workday-alerts.service";
+import type { HolidayService } from "./holiday.service";
 
 /** Semana de nómina (lunes local) en formato de fecha UTC-medianoche. */
 const toUtcDate = (dateKey: string): Date => new Date(`${dateKey}T00:00:00.000Z`);
@@ -32,7 +33,8 @@ export class WeeklyOvertimeService {
   constructor(
     private readonly db: PrismaClient = prismaClient,
     private readonly calculator: WorkdayCalculator,
-    private readonly audit?: AuditLogger
+    private readonly audit?: AuditLogger,
+    private readonly holidays?: HolidayService
   ) {}
 
   private async usersById(userIds: string[]) {
@@ -55,6 +57,13 @@ export class WeeklyOvertimeService {
     const weekStartKey = localDateKey(range.start, range.timezone);
     const weekStart = toUtcDate(weekStartKey);
     const users = await this.usersById([...new Set(days.map((day) => day.userId))]);
+    const holidayDates = this.holidays
+      ? await this.holidays.between(
+          tenantId,
+          localDateKey(range.start, range.timezone),
+          localDateKey(new Date(range.end.getTime() - 1), range.timezone)
+        )
+      : new Set<string>();
 
     const byUser = new Map<string, ScheduleOvertimeDay[]>();
     for (const day of days) {
@@ -77,9 +86,9 @@ export class WeeklyOvertimeService {
           date: day.date,
           workedMin: day.workedMin,
           scheduledMin: day.scheduledMin,
-          // TODO(F1): tipo de turno calculado (H-01) y festivos (H-05).
-          shiftType: "DIURNA",
+          shiftType: day.shiftType ?? "DIURNA",
           restDay: day.restDay,
+          holidayWorked: holidayDates.has(day.date) && !day.restDay && day.workedMin > 0,
         }));
 
       const result = classifyWeeklyOvertime({

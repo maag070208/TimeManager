@@ -279,6 +279,33 @@ describe("F2-03 límites legales y alertas", () => {
     assert.equal(config.body?.legal?.maxOvertimeDaysPerWeek, 4);
   });
 
+  test("festivos: siembra obligatorios, alta de convenio y duplicado", async () => {
+    const tenant = await createTenant();
+    const hr = await clientSession("HUMAN_RESOURCES", { tenant });
+
+    const list = await api("GET", "/nom/holidays?year=2027", { token: hr.token });
+    expectStatus(list, 200, "festivos del año");
+    const rows = list.body as unknown as Array<{ date: string; name: string }>;
+    assert.ok(rows.length >= 7, "siembra los obligatorios del art. 74");
+    assert.ok(rows.some((row) => row.date.startsWith("2027-01-01")));
+    assert.ok(rows.some((row) => row.name.includes("Constitución")));
+
+    const created = await api("POST", "/nom/holidays", {
+      token: hr.token,
+      body: { date: "2027-12-24", name: "Nochebuena", kind: "CONVENIO" },
+    });
+    expectStatus(created, 201, "alta de festivo de convenio");
+
+    const duplicate = await api("POST", "/nom/holidays", {
+      token: hr.token,
+      body: { date: "2027-12-24", name: "Nochebuena repetida" },
+    });
+    expectError(duplicate, 409, "HOLIDAY_ALREADY_EXISTS", "festivo duplicado");
+
+    const deleted = await api("DELETE", `/nom/holidays/${created.body?.id}`, { token: hr.token });
+    expectStatus(deleted, 200, "baja de festivo");
+  });
+
   test("ledger semanal de horas extra: se calcula, lista y exige permisos", async () => {
     const tenant = await createTenant();
     const hr = await clientSession("HUMAN_RESOURCES", { tenant });
@@ -429,7 +456,7 @@ describe("Export formal y autoservicio de configuración", () => {
       { token: hr.token }
     );
     expectStatus(jsonExport, 200, "export JSON");
-    assert.equal(jsonExport.body?.schemaVersion, "stps-registro-jornada-v0");
+    assert.equal(jsonExport.body?.schemaVersion, "stps-registro-jornada-v1");
     assert.match(String(jsonExport.body?.sha256), /^[0-9a-f]{64}$/);
     assert.ok(Array.isArray(jsonExport.body?.rows));
     assert.equal(jsonExport.body?.tenant?.id, tenant.id);
@@ -447,6 +474,7 @@ describe("Export formal y autoservicio de configuración", () => {
     assert.ok(csvExport.text.startsWith("# TimeManager"));
     assert.ok(csvExport.text.includes("# sha256: "));
     assert.ok(csvExport.text.includes("fecha,numeroEmpleado,nombre"));
+    assert.ok(csvExport.text.includes("extraDoble,extraTriple,excedenteIlegal"));
     assert.ok(csvExport.text.includes("# marcajes remotos (sin reloj físico; hora del servidor)"));
     assert.ok(csvExport.text.includes("19.4326") === false, "no filtra coordenadas al CSV");
     assert.match(
