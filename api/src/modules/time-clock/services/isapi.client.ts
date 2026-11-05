@@ -16,7 +16,7 @@ import type {
 /** El reloj rechazó usuario/contraseña. */
 export class IsapiAuthError extends Error {
   constructor() {
-    super("The time clock rejected the credentials (TIME_CLOCK_USER / TIME_CLOCK_PASS)");
+    super("The time clock rejected the credentials");
     this.name = "IsapiAuthError";
   }
 }

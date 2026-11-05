@@ -10,7 +10,7 @@ import {
   ITText,
   useITBentoCountUp,
 } from "@axzydev/axzy_ui_system";
-import type { PersonalProfile } from "@entities/hr";
+import { resolvePhotoUrl, type PersonalProfile } from "@entities/hr";
 import { roleLabel } from "@entities/user";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 
@@ -70,7 +70,7 @@ export default function EmployeeHero({ profile, onPhotoUpload, documents }: Prop
       <ITCard contentClassName="!p-0">
         <ITFlex align="center" gap={4} wrap="wrap" className="px-5 py-4">
           <div className="relative w-fit shrink-0">
-            <ProfileAvatar photoUrl={profile.photoUrl} name={profile.name} size="lg" className="h-[64px]! w-[64px]!" />
+            <ProfileAvatar photoUrl={resolvePhotoUrl(profile.photoUrl)} name={profile.name} size="lg" className="h-[64px]! w-[64px]!" />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}

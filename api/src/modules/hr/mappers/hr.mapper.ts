@@ -1,15 +1,20 @@
-import { publicObjectUrl } from "@core/services/storage";
+import { signedObjectUrl } from "@core/services/storage";
+import { signedPhotoPath } from "@core/utils/security";
 import type { PersonalProfile, EmployeeDocument } from "../models/dto/hr.dto";
 import type { PersonalProfileEntity, EmployeeDocumentEntity } from "../models/entity/hr.entity";
 
 const dateOnly = (value: Date | null): string | null =>
   value ? value.toISOString().slice(0, 10) : null;
 
-/** publicObjectUrl lanza si el storage no está configurado; degradamos a null en vez de tronar la respuesta. */
-const safeUrl = (key: string | null): string | null => {
-  if (!key) return null;
+/**
+ * `photoUrl` es la ruta RELATIVA a la base del API de la foto con credencial
+ * firmada de corta vida (F1C-01); sin `photoKey` no hay foto. Si firmar fallara
+ * (p. ej. sin JWT_SECRET) degradamos a null en vez de tronar la ficha.
+ */
+const safePhotoUrl = (userId: string, photoKey: string | null): string | null => {
+  if (!photoKey) return null;
   try {
-    return publicObjectUrl(key);
+    return signedPhotoPath(userId);
   } catch {
     return null;
   }
@@ -30,7 +35,7 @@ export const personalProfileToDto = (entity: PersonalProfileEntity): PersonalPro
   middleName: entity.middleName,
   paternalSurname: entity.paternalSurname,
   maternalSurname: entity.maternalSurname,
-  photoUrl: safeUrl(entity.photoKey),
+  photoUrl: safePhotoUrl(entity.id, entity.photoKey),
 
   gender: entity.gender,
   bloodType: entity.bloodType,
@@ -63,14 +68,21 @@ export const personalProfileToDto = (entity: PersonalProfileEntity): PersonalPro
   createdAt: entity.createdAt.toISOString(),
 });
 
-export const employeeDocumentToDto = (entity: EmployeeDocumentEntity): EmployeeDocument => ({
+/**
+ * Documento del expediente: la `url` es un GET presignado de S3 (caduca en
+ * minutos) porque el bucket es privado; ya no se emiten URLs públicas.
+ * Es asíncrono por la firma de la URL.
+ */
+export const employeeDocumentToDto = async (
+  entity: EmployeeDocumentEntity
+): Promise<EmployeeDocument> => ({
   id: entity.id,
   documentTypeId: entity.documentTypeId,
   documentType: entity.documentType,
   originalName: entity.originalName,
   mimeType: entity.mimeType,
   sizeBytes: entity.sizeBytes,
-  url: publicObjectUrl(entity.storageKey),
+  url: await signedObjectUrl(entity.storageKey),
   uploadedById: entity.uploadedById,
   createdAt: entity.createdAt.toISOString(),
 });

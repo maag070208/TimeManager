@@ -3,6 +3,9 @@ import type { Messages } from "./es";
 // Textos de la API en inglés (mismas llaves que `es.ts`).
 export const en: Messages = {
   errors: {
+    // Live notifications (Ably via token)
+    ABLY_NOT_CONFIGURED: "Live notifications are not configured",
+    ABLY_TOKEN_FAILED: "The live notifications token could not be issued",
     // Almacén de cocina
     TAX_RATE_INACTIVE: "The VAT rate is inactive",
     TAX_RATE_NOT_FOUND: "VAT rate not found",
@@ -358,9 +361,10 @@ export const en: Messages = {
     TIME_CLOCK_DUPLICATE: "That clock is already registered as \"{{name}}\" ({{url}})",
     TIME_CLOCK_EMPLOYEE_NOT_FOUND: "Number {{employeeNumber}} has no punches on the clock",
     TIME_CLOCK_IMPORT_IN_PROGRESS: "An import is already running; wait for it to finish",
-    TIME_CLOCK_INVALID_CREDENTIALS: "{{url}} rejected the user and password (TIME_CLOCK_USER / TIME_CLOCK_PASS)",
+    TIME_CLOCK_CREDENTIALS_INCOMPLETE: "Set the clock user and password together (or neither of them)",
+    TIME_CLOCK_INVALID_CREDENTIALS: "{{url}} rejected the clock user and password; edit its credentials",
     TIME_CLOCK_LINK_NOT_FOUND: "Number {{employeeNumber}} is not linked",
-    TIME_CLOCK_NOT_CONFIGURED: "The API has no time clock user: set TIME_CLOCK_USER and TIME_CLOCK_PASS (or the old CHECADOR_USER / CHECADOR_PASS) and restart the API",
+    TIME_CLOCK_NOT_CONFIGURED: "No clock has credentials and the API has no global pair either: edit the clock password or set TIME_CLOCK_USER and TIME_CLOCK_PASS in the .env (development fallback)",
     TIME_CLOCK_NOT_FOUND: "That clock is not registered",
     TIME_CLOCK_SERIAL_CHANGED: "{{url}} now answers as another clock (serial {{serial}}): retire \"{{name}}\" and register the new one",
     TIME_CLOCK_SYNC_IN_PROGRESS: "A sync is already running; wait for it to finish",

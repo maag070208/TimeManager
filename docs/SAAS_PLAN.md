@@ -87,6 +87,9 @@ Modelo de plan (p. ej. por número de empleados activos + módulos): básico (ch
 ### 3.4 Relojes físicos (caso especial)
 
 - El serial del reloj se registra a un tenant en el alta; la sincronización autentica por API key del reloj ligada al tenant (no por sesión de usuario).
+- **Un reloj por cliente**, instalado en su red local (`192.168.x`): las credenciales del API hacia el Hikvision (usuario/contraseña) deben ir por reloj en la BD, cifradas (F1B-10); el `.env` solo es default de desarrollo.
+- El API en la nube **no alcanza** la red del cliente: falta decidir gateway/agente on-prem con conexión saliente o VPN por cliente (A4 / F1B-11).
+- La **estación de enrolamiento de huellas es de TimeManager** (central, no del cliente): se configura en `sys_config` y el enrolamiento apunta al reloj del cliente destino (F1B-12).
 - Un reloj jamás se mueve de tenant sin re-provisioning (borra personas y checadas del reloj anterior).
 
 ---
@@ -174,7 +177,8 @@ Estado de partida (2026-11-04): BD de Railway recién migrada con el baseline, s
 
 ## 6. Preguntas abiertas (para decidir)
 
-1. **D3**: ¿qué dominio usamos (`*.timemanager.mx`)?
-2. **D5**: ¿modelo de planes y cómo se cobra (Stripe/Conekta/manual)?
-3. ¿El cliente actual (Puerto Nuevo) migra como tenant #1 en la fase 1, o arrancamos tenants limpios?
-4. ¿La app móvil entra al SaaS desde el inicio o se queda como add-on posterior?
+1. **D3** — **Resuelta**: `timemanager.mx` (compra del dominio pendiente del usuario).
+2. **D5** — **Pospuesta**: se decide antes de F3-04; considerar Stripe vs Conekta vs facturación manual.
+3. ¿El cliente actual (Puerto Nuevo) migra como tenant #1? — **Resuelta: arrancamos limpios**, sin migrar datos heredados.
+4. ¿La app móvil entra al SaaS desde el inicio? — Sigue abierta (add-on posterior).
+5. **A4** — ¿el API llega a los relojes on-prem por agente propio (conexión saliente) o por VPN por cliente? Define F1B-11.

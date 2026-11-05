@@ -14,7 +14,7 @@ import { LuCamera, LuIdCard, LuMapPin, LuPhone, LuUserRound } from "react-icons/
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEmployeeDetail } from "@features/hr/employee-detail";
-import type { PersonalProfile, PersonalProfileUpdateInput } from "@entities/hr";
+import { resolvePhotoUrl, type PersonalProfile, type PersonalProfileUpdateInput } from "@entities/hr";
 import { departmentsApi, type Department } from "@entities/department";
 import { DatePickerPortal } from "@shared/ui/date-picker-portal";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
@@ -272,7 +272,7 @@ export default function EmployeeProfileEditPage() {
         <ITFlex direction="column" gap={5}>
           <ITFlex align="center" gap={4}>
             <div className="relative inline-block shrink-0">
-              <ProfileAvatar photoUrl={profile.photoUrl} name={profile.name} size="xl" />
+              <ProfileAvatar photoUrl={resolvePhotoUrl(profile.photoUrl)} name={profile.name} size="xl" />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}

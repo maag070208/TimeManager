@@ -2,7 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
-  readonly VITE_ABLY_API_KEY?: string;
   /** Dominio base de los subdominios de cliente en producción (p. ej. `timemanager.mx`). */
   readonly VITE_TENANT_BASE_DOMAIN?: string;
 }

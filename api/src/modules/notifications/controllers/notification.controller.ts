@@ -15,6 +15,11 @@ export class NotificationController {
     res.json({ count });
   };
 
+  ablyToken = async (req: Request, res: Response) => {
+    const tokenRequest = await this.service.createAblyTokenRequest(req.user!.id);
+    res.json(tokenRequest);
+  };
+
   markRead = async (req: Request, res: Response) => {
     await this.service.markAsRead(req.params.id, req.user!.id);
     res.status(204).send();

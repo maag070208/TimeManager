@@ -1,6 +1,9 @@
 // Textos de la API en español. `en.ts` debe tener exactamente las mismas llaves.
 export const es = {
   errors: {
+    // Notificaciones en vivo (Ably por token)
+    ABLY_NOT_CONFIGURED: "Las notificaciones en vivo no están configuradas",
+    ABLY_TOKEN_FAILED: "No se pudo emitir el token de notificaciones en vivo",
     // Almacén de cocina
     TAX_RATE_INACTIVE: "La tasa de IVA está desactivada",
     TAX_RATE_NOT_FOUND: "Tasa de IVA no encontrada",
@@ -356,9 +359,10 @@ export const es = {
     TIME_CLOCK_DUPLICATE: "Ese reloj ya está dado de alta como \"{{name}}\" ({{url}})",
     TIME_CLOCK_EMPLOYEE_NOT_FOUND: "El número {{employeeNumber}} no tiene checadas en el reloj",
     TIME_CLOCK_IMPORT_IN_PROGRESS: "Ya hay una importación en curso; espera a que termine",
-    TIME_CLOCK_INVALID_CREDENTIALS: "{{url}} rechazó el usuario y la contraseña (TIME_CLOCK_USER / TIME_CLOCK_PASS)",
+    TIME_CLOCK_CREDENTIALS_INCOMPLETE: "Captura el usuario y la contraseña del reloj juntos (o ninguno de los dos)",
+    TIME_CLOCK_INVALID_CREDENTIALS: "{{url}} rechazó el usuario y la contraseña del reloj; edita sus credenciales",
     TIME_CLOCK_LINK_NOT_FOUND: "El número {{employeeNumber}} no está vinculado",
-    TIME_CLOCK_NOT_CONFIGURED: "La API no tiene el usuario de los relojes: define TIME_CLOCK_USER y TIME_CLOCK_PASS (o los viejos CHECADOR_USER / CHECADOR_PASS) y reinicia el API",
+    TIME_CLOCK_NOT_CONFIGURED: "Ningún reloj tiene credenciales y la API tampoco tiene el par global: edita la contraseña del reloj o define TIME_CLOCK_USER y TIME_CLOCK_PASS en el .env (fallback de desarrollo)",
     TIME_CLOCK_NOT_FOUND: "Ese reloj no está dado de alta",
     TIME_CLOCK_SERIAL_CHANGED: "{{url}} ahora responde otro reloj (serie {{serial}}): da de baja \"{{name}}\" y da de alta el nuevo",
     TIME_CLOCK_SYNC_IN_PROGRESS: "Ya hay una sincronización en curso; espera a que termine",

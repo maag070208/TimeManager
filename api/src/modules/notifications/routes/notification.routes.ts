@@ -3,6 +3,7 @@ import { authenticate } from "@core/middlewares/auth.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import {
+  AblyTokenRequestSchema,
   NotificationListResponseSchema,
   UnreadCountSchema,
 } from "../models/dto/notification.dto";
@@ -35,6 +36,24 @@ export const createNotificationsRouter = (controller: NotificationController): R
     security: bearer,
     responses: {
       200: { description: "Conteo", content: { "application/json": { schema: UnreadCountSchema } } },
+    },
+  });
+
+  registerPath({
+    method: "get",
+    path: "/notifications/ably-token",
+    tags: ["Notificaciones"],
+    summary: "Ably TokenRequest for the user's own channel (subscribe only)",
+    description:
+      "Signed server-side with the Ably app key; the browser never receives the key. " +
+      "Capability is restricted to `user:<id>` with `subscribe`; short TTL.",
+    security: bearer,
+    responses: {
+      200: {
+        description: "Ably TokenRequest",
+        content: { "application/json": { schema: AblyTokenRequestSchema } },
+      },
+      503: { description: "Live notifications are not configured" },
     },
   });
 
@@ -77,6 +96,7 @@ export const createNotificationsRouter = (controller: NotificationController): R
 
   router.get("/", asyncHandler(controller.list));
   router.get("/unread-count", asyncHandler(controller.unreadCount));
+  router.get("/ably-token", asyncHandler(controller.ablyToken));
   router.post("/read-all", asyncHandler(controller.markAllRead));
   router.post("/:id/read", asyncHandler(controller.markRead));
   router.delete("/:id", asyncHandler(controller.remove));

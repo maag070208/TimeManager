@@ -20,6 +20,8 @@ import { setSysConfigService } from "@core/services/mail";
 import { LANGUAGE_CONFIG_KEY, setSystemLanguageReader } from "@core/i18n";
 import { registerPath } from "@core/swagger/registry";
 import { prismaClient } from "@core/config/database";
+import { HttpError } from "@core/middlewares/error.middleware";
+import { PhotoTokenError, assertPhotoToken } from "@core/utils/security";
 
 const authRouter = createAuthModule();
 const { departmentRouter, subareaRouter } = createDepartmentModule();
@@ -168,17 +170,33 @@ apiRouter.get("/health/ready", async (_req, res) => {
   }
 });
 
-// Proxy público de la foto del empleado. El bucket S3 no expone CORS al
-// origen del navegador; este endpoint sirve la misma-imagen same-origin
-// para que la credencial (canvas + fetch) pueda dibujarla sin disparar
-// el canvas tainted check. La URL canónica del objeto ya está en pública.
+// Foto del empleado servida por el API (el bucket S3 es privado desde F1C-01).
+// Va ANTES de `apiRouter.use("/hr", ...)` a propósito: el router de RH exige
+// `authenticate` y la web pinta la foto desde `<img src>` / fetch same-origin
+// sin headers, así que la credencial va en la query (`?token=`) y ES la
+// autorización. El token es un JWT de propósito `photo` y vida corta emitido
+// al armar `photoUrl` (`signedPhotoPath`); aquí se valida firma, expiración y
+// que `sub` sea el dueño de la foto. Sin token → 401; token ajeno → 403.
 const personalPhotoService = new EmployeeDocumentService();
 apiRouter.get(
   "/hr/:id/photo/raw",
   asyncHandler(async (req, res) => {
+    const token = typeof req.query.token === "string" ? req.query.token : "";
+    if (!token) throw new HttpError(401, "TOKEN_MISSING");
+    try {
+      assertPhotoToken(token, req.params.id);
+    } catch (err) {
+      if (err instanceof PhotoTokenError) {
+        throw err.reason === "FORBIDDEN"
+          ? new HttpError(403, "FORBIDDEN")
+          : new HttpError(401, "INVALID_TOKEN");
+      }
+      throw err;
+    }
     const { body, contentType } = await personalPhotoService.downloadPhoto(req.params.id);
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Cache-Control", "private, max-age=300");
+    // Menor que la vida del token (5 min): una URL cacheada no queda caducada.
+    res.setHeader("Cache-Control", "private, max-age=240");
     res.send(body);
   })
 );

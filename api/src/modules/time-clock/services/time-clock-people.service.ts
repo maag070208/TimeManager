@@ -4,8 +4,8 @@ import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
 import { IsapiAuthError, IsapiClient } from "./isapi.client";
-import type { TimeClockCredentials } from "./time-clock.service";
 
 const MAX_PEOPLE = 1000;
 const MAX_CARDS = 1000;
@@ -61,7 +61,8 @@ const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost"]);
 export class TimeClockPeopleService {
   constructor(
     private readonly db: PrismaClient = prismaClient,
-    private readonly credentials: TimeClockCredentials | null = null,
+    /** Fallback de `.env` para relojes sin credenciales propias (F1B-10). */
+    private readonly fallbackCredentials: TimeClockCredentials | null = null,
     private readonly audit?: AuditLogger,
     private readonly allowWrites = false,
     private readonly station: FingerprintStation | null = null
@@ -73,12 +74,12 @@ export class TimeClockPeopleService {
   private readonly biometricsCache = new Map<string, { at: number; byEmployee: Record<string, PersonBiometrics> }>();
 
   private async clockFor(serial: string, write: boolean, timeoutMs?: number): Promise<{ client: IsapiClient; name: string | null }> {
-    if (!this.credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
     const clock = await this.db.timeClock.findUnique({ where: { serialNumber: serial } });
     if (!clock || !clock.url) throw new HttpError(404, "TIME_CLOCK_NOT_FOUND");
     if (write && !this.canWriteClock(clock)) throw new HttpError(403, "TIME_CLOCK_READ_ONLY");
-    const { user, pass } = this.credentials;
-    return { client: new IsapiClient(clock.url, user, pass, timeoutMs), name: clock.name };
+    const credentials = credentialsOf(clock, this.fallbackCredentials);
+    if (!credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
+    return { client: new IsapiClient(clock.url, credentials.user, credentials.pass, timeoutMs), name: clock.name };
   }
 
   /** Escritura permitida: el mock (local), el interruptor del reloj, o la variable global. */

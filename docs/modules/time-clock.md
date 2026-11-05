@@ -4,7 +4,7 @@ El módulo más grande del sistema (47 rutas). Gestiona los relojes físicos tip
 
 ## Qué hace
 
-- **Relojes**: alta/baja/edición por número de serie, settings, bitácora de eventos de sync, inspección (overview, usuarios, tarjetas, eventos, cámara).
+- **Relojes**: alta/baja/edición por número de serie, credenciales propias por reloj (cifradas, write-only), settings, bitácora de eventos de sync, inspección (overview, usuarios, tarjetas, eventos, cámara).
 - **Checadas**: importación y sincronización desde el reloj, consulta con filtros (`POST /query`), resumen, estado del servicio.
 - **Personas del reloj**: vínculo `employeeNo` ↔ usuario (`TimeClockEmployee`), sugerencias de vínculo, alta/baja de personas en el reloj físico, tarjetas RFID, fotos.
 - **Biometría**: estación de captura de huella, estado por empleado, captura y aplicación al reloj.
@@ -25,7 +25,19 @@ El módulo más grande del sistema (47 rutas). Gestiona los relojes físicos tip
 
 ## Modelos
 
-`TimeClock` (reloj físico/serie), `TimeClockPunch` (checada), `TimeClockEmployee` (vínculo reloj↔usuario), `TimeClockSyncEvent` (bitácora de sync), `TimeClockRosterRun` + `TimeClockRosterEntry` (cargas), `RemovalCategory` (catálogo de bajas).
+`TimeClock` (reloj físico/serie; `username` + `passwordEncrypted` desde F1B-10), `TimeClockPunch` (checada), `TimeClockEmployee` (vínculo reloj↔usuario), `TimeClockSyncEvent` (bitácora de sync), `TimeClockRosterRun` + `TimeClockRosterEntry` (cargas), `RemovalCategory` (catálogo de bajas).
+
+## Credenciales del reloj (F1B-10)
+
+Cada reloj se conecta con **su propio** usuario y contraseña, no con un par global:
+
+- `TimeClock.username` guarda el usuario; `TimeClock.passwordEncrypted` la contraseña cifrada con AES-256-GCM (`api/src/core/utils/crypto.ts`: `encryptSecret`/`decryptSecret`).
+- Clave: `ENCRYPTION_KEY` (base64, 32 bytes). Si no está definida se **deriva de `JWT_SECRET` con HKDF-SHA256** y se escribe un warning una sola vez; en producción conviene fijarla (rotar `JWT_SECRET` con esa derivación deja ilegibles los secretos guardados).
+- Alta: `POST /time-clock/clocks` acepta `username` y `password` opcionales (los dos o ninguno; se validan contra el equipo antes de guardarlo). Edición: `PATCH /time-clock/clocks/:serial` acepta `username` y/o `password`; la contraseña puede cambiarse sola (mismo usuario) o junto con el usuario.
+- **Write-only**: ni el alta, la edición, `GET /time-clock/status` ni ningún endpoint devuelven la contraseña, solo `username` y `hasCredentials: boolean` (el usuario efectivo y si hay con qué conectar). Tampoco se escribe en la bitácora (`metadata` solo lleva `username` y `credentialsChanged`).
+- **Fallback de desarrollo/E2E**: si el reloj no tiene credenciales propias se usa el par global `TIME_CLOCK_USER/PASS` (o los viejos `CHECADOR_USER/PASS`). La precedencia es siempre reloj → `.env`; `503 TIME_CLOCK_NOT_CONFIGURED` solo aparece cuando no hay ni credenciales del reloj ni del `.env`. El alta sin credenciales propias también usa el fallback.
+- `POST /time-clock/sync` prueba las credenciales del reloj antes de responder: si el equipo las rechaza devuelve `502 TIME_CLOCK_INVALID_CREDENTIALS` al instante (un reloj caído sigue respondiendo 202 y el fallo queda en su bitácora).
+- Migración: `api/prisma/migrations/20261106000000_clock_credentials/migration.sql` (`ALTER TABLE time_clocks ADD COLUMN ...`), con rollback en la misma carpeta. Backfill: los relojes ya dados de alta no necesitan cambios; siguen con el par global hasta que se les capturen las suyas.
 
 ## Permisos
 

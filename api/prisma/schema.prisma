@@ -668,26 +668,32 @@ model TimeClockPunch {
 /// Dar de baja solo borra la `url`: el cursor, el nombre y las checadas se
 /// quedan, y si el reloj se vuelve a dar de alta sigue desde donde iba.
 model TimeClock {
-  serialNumber     String                 @id
-  tenantId         String                 @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  serialNumber      String                 @id
+  tenantId          String                 @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
   /// Para reconocerlo en pantalla (p. ej. "Entrada de personal").
-  name             String?
+  name              String?
   /// `http(s)://host[:puerto]`; `null` = dado de baja (no se sincroniza).
-  url              String?
+  url               String?
   /// Si sus checadas arman las entradas/salidas (y las horas extra). Los
   /// relojes de puertas de oficina se checan varias veces por turno: sus
   /// checadas se guardan, pero no cuentan como entrada o salida.
-  countsAttendance Boolean                @default(true)
+  countsAttendance  Boolean                @default(true)
   /// Si la API puede escribir en este reloj (altas, bajas, huellas). Apagado por defecto:
   /// un reloj real solo acepta escritura cuando se habilita a propósito. El mock siempre acepta.
-  writeEnabled     Boolean                @default(false)
-  model            String?
-  lastSerialNo     Int                    @default(0)
-  syncedAt         DateTime?
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
-  syncEvents       TimeClockSyncEvent[]
-  rosterEntries    TimeClockRosterEntry[]
+  writeEnabled      Boolean                @default(false)
+  /// Usuario admin del propio equipo (F1B-10). Write-only: el API solo lo
+  /// devuelve, nunca la contraseña. `null` = usa el fallback del `.env`.
+  username          String?
+  /// Contraseña del reloj cifrada con AES-256-GCM (`core/utils/crypto`).
+  /// Nunca se devuelve ni se registra en claro.
+  passwordEncrypted String?
+  model             String?
+  lastSerialNo      Int                    @default(0)
+  syncedAt          DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  syncEvents        TimeClockSyncEvent[]
+  rosterEntries     TimeClockRosterEntry[]
 
   @@unique([tenantId, url])
   @@index([tenantId])

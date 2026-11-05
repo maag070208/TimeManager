@@ -18,6 +18,7 @@ const stationFromEnv = (): FingerprintStation | null => {
   const pass = process.env.FINGERPRINT_STATION_PASS;
   return url && user && pass ? { url, user, pass } : null;
 };
+import { envClockCredentials } from "./services/clock-credentials";
 import { TimeClockSummaryService } from "./services/time-clock-summary.service";
 import { TimeClockController } from "./controllers/time-clock.controller";
 import { createTimeClockRouter } from "./routes/time-clock.routes";
@@ -34,11 +35,9 @@ export interface TimeClockModuleDeps {
 }
 
 export const createTimeClockModule = (deps: TimeClockModuleDeps = {}) => {
-  // Los relojes se dan de alta desde la web; el usuario es el mismo para todos.
-  // Sin él no hay con qué conectarse: la tabla responde con lo ya guardado.
-  const credentials = env.TIME_CLOCK_USER
-    ? { user: env.TIME_CLOCK_USER, pass: env.TIME_CLOCK_PASS }
-    : null;
+  // Fallback de desarrollo/E2E: cada reloj usa sus credenciales guardadas en BD
+  // (F1B-10) y solo recurre a este par del `.env` si no tiene las suyas.
+  const credentials = envClockCredentials();
   const service = new TimeClockService(prismaClient, credentials, deps.sysConfig, deps.audit);
   const report = new TimeClockReportService(prismaClient, deps.sysConfig);
   const employees = new TimeClockEmployeesService(prismaClient, deps.audit);

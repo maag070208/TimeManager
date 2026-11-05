@@ -26,3 +26,19 @@ export const UnreadCountSchema = registry.register(
   "UnreadCount",
   z.object({ count: z.number() }).openapi("UnreadCount")
 );
+
+/** Ably TokenRequest firmado en el servidor (F1C-02). */
+export const AblyTokenRequestSchema = registry.register(
+  "AblyTokenRequest",
+  z
+    .object({
+      keyName: z.string(),
+      clientId: z.string().optional(),
+      capability: z.string(),
+      ttl: z.number().optional(),
+      timestamp: z.number(),
+      nonce: z.string(),
+      mac: z.string(),
+    })
+    .openapi("AblyTokenRequest")
+);

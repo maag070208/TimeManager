@@ -1,4 +1,5 @@
 import type { Language } from "@core/i18n";
+import { signedPhotoPath } from "@core/utils/security";
 import type { User } from "@prisma/client";
 import { permissionsOf, type PermissionScope } from "@core/permissions";
 import type { AuthUserEntity } from "../models/entity/auth.entity";
@@ -46,7 +47,8 @@ export const userToAuthMeDto = (
   jobTitle: user.jobTitle,
   department: user.department,
   tenant: user.tenant ?? null,
-  photoUrl: user.photoKey ? `/hr/${user.id}/photo/raw` : null,
+  // Credencial firmada de corta vida (F1C-01): el endpoint ya no es público.
+  photoUrl: user.photoKey ? signedPhotoPath(user.id) : null,
   permissions: permissionsOf({
     id: user.id,
     role: user.role,

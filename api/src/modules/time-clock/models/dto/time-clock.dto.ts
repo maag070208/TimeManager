@@ -107,6 +107,9 @@ export const TimeClockDeviceSchema = registry.register(
     name: z.string(),
     url: z.string(),
     countsAttendance: z.boolean(),
+    /** Usuario efectivo (del reloj o fallback del `.env`); la contraseña nunca se devuelve. */
+    username: z.string().nullable(),
+    hasCredentials: z.boolean(),
     model: z.string().nullable(),
     lastSerialNo: z.number().int(),
     syncedAt: z.string().nullable(),
@@ -132,10 +135,11 @@ export const TimeClockStatusSchema = registry.register(
 // ── Relojes (alta, baja y configuración; solo se LEE del reloj) ─────────────
 
 /**
- * `POST /checador/relojes`: la dirección del reloj (`192.168.1.132`, o la URL
+ * `POST /time-clock/clocks`: la dirección del reloj (`192.168.1.132`, o la URL
  * que se copia del navegador; se guarda solo `http(s)://host[:puerto]`), un
- * nombre opcional (sin él, el que tenga configurado el reloj) y si cuenta para
- * entradas/salidas (default sí).
+ * nombre opcional (sin él, el que tenga configurado el reloj), si cuenta para
+ * entradas/salidas (default sí) y, opcionalmente, el usuario y la contraseña
+ * del propio equipo (write-only: se guardan cifrados y nunca se devuelven).
  */
 export const TimeClockDto = registry.register(
   "TimeClockInput",
@@ -143,13 +147,18 @@ export const TimeClockDto = registry.register(
     url: z.string().trim().min(1).max(300),
     name: z.string().trim().max(80).optional(),
     countsAttendance: z.boolean().optional(),
+    /** Usuario admin del reloj (write-only junto con `password`). */
+    username: z.string().trim().min(1).max(80).optional(),
+    /** Contraseña del reloj (write-only; nunca se devuelve ni se registra). */
+    password: z.string().min(1).max(200).optional(),
   })
 );
 export type TimeClockInput = z.infer<typeof TimeClockDto>;
 
 /**
- * `PATCH /checador/relojes/:serie`: cambia cómo lo usa el sistema (su nombre y
- * si cuenta para entradas/salidas). No toca el reloj.
+ * `PATCH /time-clock/clocks/:serial`: cambia cómo lo usa el sistema (nombre,
+ * si cuenta para entradas/salidas, si acepta escritura) y sus credenciales
+ * (write-only). No toca el reloj.
  */
 export const TimeClockUpdateDto = registry.register(
   "TimeClockUpdate",
@@ -158,10 +167,20 @@ export const TimeClockUpdateDto = registry.register(
       name: z.string().trim().min(1).max(80).optional(),
       countsAttendance: z.boolean().optional(),
       writeEnabled: z.boolean().optional(),
+      /** Usuario del reloj (write-only junto con `password`, o solo para reemplazarlo). */
+      username: z.string().trim().min(1).max(80).optional(),
+      /** Contraseña del reloj (write-only; nunca se devuelve). */
+      password: z.string().min(1).max(200).optional(),
     })
-    .refine((v) => v.name !== undefined || v.countsAttendance !== undefined || v.writeEnabled !== undefined, {
-      message: "TIME_CLOCK_CHANGES_REQUIRED",
-    })
+    .refine(
+      (v) =>
+        v.name !== undefined ||
+        v.countsAttendance !== undefined ||
+        v.writeEnabled !== undefined ||
+        v.username !== undefined ||
+        v.password !== undefined,
+      { message: "TIME_CLOCK_CHANGES_REQUIRED" }
+    )
 );
 export type TimeClockUpdate = z.infer<typeof TimeClockUpdateDto>;
 

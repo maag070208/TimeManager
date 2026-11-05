@@ -11,10 +11,14 @@ export const useAblyNotifications = (
   userId: string | undefined,
   onNotification?: (notification: LiveNotification) => void
 ) => {
-  useAblyChannel(userId ? `user:${userId}` : undefined, {
-    NOTIFICATION: (data: unknown) => {
-      store.dispatch(prependNotification(data));
-      onNotification?.((data ?? {}) as LiveNotification);
+  useAblyChannel(
+    userId ? `user:${userId}` : undefined,
+    {
+      NOTIFICATION: (data: unknown) => {
+        store.dispatch(prependNotification(data));
+        onNotification?.((data ?? {}) as LiveNotification);
+      },
     },
-  });
+    userId
+  );
 };

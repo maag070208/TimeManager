@@ -4,7 +4,8 @@ import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { formatDateTime, systemLanguage, t } from "@core/i18n";
 import { env } from "@core/config/env.config";
-import { downloadObject, publicObjectUrl, uploadObject } from "@core/services/storage";
+import { downloadObject, signedObjectUrl, uploadObject } from "@core/services/storage";
+import { signedPhotoPath } from "@core/utils/security";
 import { enqueueEmail, enqueueNotificationEmail } from "@core/services/email-queue";
 import { documentUploadedEmail, employeeRegistrationEmail } from "@core/services/email-templates";
 import type { NotificationPort } from "@modules/notifications";
@@ -54,7 +55,7 @@ export class EmployeeDocumentService {
     const key = `hr/${userId}/photo/${crypto.randomUUID()}-${sanitizeName(validFile.originalname)}`;
     await uploadObject(key, validFile.buffer, validFile.mimetype);
     await this.db.user.update({ where: { id: userId }, data: { photoKey: key } });
-    return { photoUrl: publicObjectUrl(key) };
+    return { photoUrl: signedPhotoPath(userId) };
   }
 
   async downloadPhoto(userId: string): Promise<{ body: Buffer; contentType: string }> {
@@ -127,11 +128,12 @@ export class EmployeeDocumentService {
     const uploadDate = formatDateTime(new Date(), lng);
     const employeeName = employee?.name ?? t("labels.employee", {}, lng);
 
-    // URL pública del documento para el cuerpo del correo (fallback si no se
-    // adjunta). No debería fallar porque el upload ya usó el mismo bucket.
+    // URL firmada (caduca) del documento para el cuerpo del correo (el bucket
+    // es privado, F1C-01). No debería fallar porque el upload ya usó el mismo
+    // bucket; si falla, el correo va solo con el adjunto.
     let docUrl: string | undefined;
     try {
-      docUrl = publicObjectUrl(document.storageKey);
+      docUrl = await signedObjectUrl(document.storageKey);
     } catch {
       docUrl = undefined;
     }

@@ -14,7 +14,7 @@ import { LuPencil, LuUserRound } from "react-icons/lu";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Department } from "@entities/department";
-import type { PersonalProfile } from "@entities/hr";
+import { resolvePhotoUrl, type PersonalProfile } from "@entities/hr";
 import { roleLabel, useRolesCatalog } from "@entities/user";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 
@@ -96,7 +96,7 @@ export default function EmployeesTable({
       sortable: false,
       render: (u) => (
         <ITFlex align="center" gap={2} className="cursor-pointer">
-          <ProfileAvatar photoUrl={u.photoUrl} name={u.name} size="sm" />
+          <ProfileAvatar photoUrl={resolvePhotoUrl(u.photoUrl)} name={u.name} size="sm" />
           <ITFlex direction="column" gap={0.5} className="min-w-0">
             <ITText className="truncate text-[13px] font-semibold text-slate-800">{u.name}</ITText>
             <ITText className="text-[12px] text-slate-400">

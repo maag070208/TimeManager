@@ -1,8 +1,10 @@
 import { prismaClient } from "@core/config/database";
+import { env } from "@core/config/env.config";
 import { broadcastToUser } from "@core/services/ably";
 import { systemLanguage, t } from "@core/i18n";
 import { enqueueEmail } from "@core/services/email-queue";
 import { rosterAlertEmail } from "@core/services/email-templates";
+import { createNotificationTokenRequest } from "./ably-token.service";
 import type {
   CreateNotificationInput,
   NotifyDocumentUploadedInput,
@@ -20,6 +22,14 @@ export class NotificationService implements NotificationPort {
 
   createNotification(input: CreateNotificationInput) {
     return this.db.notification.create({ data: input });
+  }
+
+  /**
+   * TokenRequest de Ably para el navegador del usuario: `clientId` propio y
+   * capability de suscripción solo a `user:<id>`. La app key nunca sale del API.
+   */
+  createAblyTokenRequest(userId: string) {
+    return createNotificationTokenRequest(userId, env.ABLY_API_KEY);
   }
 
   async createManyNotifications(inputs: CreateNotificationInput[]) {

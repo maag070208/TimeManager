@@ -1,7 +1,15 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@core/config/env.config";
 import { HttpError } from "@core/middlewares/error.middleware";
 
+/**
+ * S3 del expediente (fotos y documentos). El bucket DEBE ser privado: aquí no
+ * se construye ninguna URL pública de objeto. Toda lectura pasa por
+ * `downloadObject` (proxy del API) o por `signedObjectUrl` (GET presignado que
+ * caduca). El cambio de política del bucket es de infraestructura, no de este
+ * código; ver `docs/modules/hr.md`.
+ */
 const configured = Boolean(
   env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY && env.AWS_BUCKET_NAME
 );
@@ -22,42 +30,43 @@ const client = configured
     })
   : null;
 
-export const uploadObject = async (key: string, body: Buffer, contentType: string) => {
+/** Vida de las URLs de descarga firmadas (10 min). */
+export const OBJECT_URL_EXPIRES_IN = 600;
+
+const requireStorage = (): { client: S3Client; bucket: string } => {
   if (!client || !env.AWS_BUCKET_NAME) {
     throw new HttpError(503, "STORAGE_NOT_CONFIGURED");
   }
-  await client.send(new PutObjectCommand({
-    Bucket: env.AWS_BUCKET_NAME,
+  return { client, bucket: env.AWS_BUCKET_NAME };
+};
+
+export const uploadObject = async (key: string, body: Buffer, contentType: string) => {
+  const { client: s3, bucket } = requireStorage();
+  await s3.send(new PutObjectCommand({
+    Bucket: bucket,
     Key: key,
     Body: body,
     ContentType: contentType,
   }));
 };
 
+/** Lee el objeto con credenciales IAM (nunca por URL pública). */
 export const downloadObject = async (key: string) => {
-  const publicUrl = `https://${env.AWS_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
-  try {
-    const response = await fetch(publicUrl);
-    if (response.ok) return Buffer.from(await response.arrayBuffer());
-  } catch {
-    // Fall back to the SDK when the public object URL is unavailable.
-  }
-
-  if (!client || !env.AWS_BUCKET_NAME) {
-    throw new HttpError(503, "STORAGE_NOT_CONFIGURED");
-  }
-  const result = await client.send(new GetObjectCommand({ Bucket: env.AWS_BUCKET_NAME, Key: key }));
+  const { client: s3, bucket } = requireStorage();
+  const result = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   if (!result.Body) throw new HttpError(404, "FILE_NOT_FOUND");
   return Buffer.from(await result.Body.transformToByteArray());
 };
 
-// URL publica directa al objeto (mismo patron que ~/DEV/CHECK/FANSAL/API).
-// No requiere firmar la peticion ni permisos IAM de lectura (s3:GetObject),
-// por lo que no depende de las credenciales configuradas ni expira nunca
-// mientras el bucket permita lectura publica sobre el prefijo del objeto.
-export const publicObjectUrl = (key: string) => {
-  if (!env.AWS_BUCKET_NAME) {
-    throw new HttpError(503, "STORAGE_NOT_CONFIGURED");
-  }
-  return `https://${env.AWS_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
+/**
+ * URL de descarga firmada (`GetObjectCommand` presignado, caduca). Sustituye a
+ * la antigua URL pública de S3: con el bucket privado es la única vía directa
+ * al objeto, y el cliente no necesita credenciales IAM.
+ */
+export const signedObjectUrl = async (
+  key: string,
+  expiresIn: number = OBJECT_URL_EXPIRES_IN
+): Promise<string> => {
+  const { client: s3, bucket } = requireStorage();
+  return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn });
 };

@@ -4,9 +4,9 @@ import { HttpError } from "@core/middlewares/error.middleware";
 import { forEachActiveTenant, requireTenantId } from "@core/tenancy";
 import { logger } from "@core/utils/logger";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
 import { IsapiClient } from "./isapi.client";
 import { planRoster, type RosterLink, type RosterReading } from "./roster-plan";
-import type { TimeClockCredentials } from "./time-clock.service";
 
 /** Da de baja al usuario con el flujo de siempre (`UserService.deactivate`). */
 export type UserDeactivator = (
@@ -43,7 +43,8 @@ export class TimeClockRosterService {
 
   constructor(
     private readonly db: PrismaClient = prismaClient,
-    private readonly credentials: TimeClockCredentials | null = null,
+    /** Fallback de `.env` para relojes sin credenciales propias (F1B-10). */
+    private readonly fallbackCredentials: TimeClockCredentials | null = null,
     private readonly audit?: AuditLogger,
     private readonly deactivateUser?: UserDeactivator,
     private readonly alerts?: RosterAlerts
@@ -51,19 +52,23 @@ export class TimeClockRosterService {
 
   /** Corrida completa del padrón. Un solo corrido a la vez (409 si ya hay una). */
   async run(trigger: "AUTO" | "MANUAL") {
-    if (!this.credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
     if (this.running) throw new HttpError(409, "TIME_CLOCK_ROSTER_IN_PROGRESS");
     this.running = true;
     const startedAt = new Date();
     try {
       const clocks = await this.db.timeClock.findMany({
         where: { countsAttendance: true, url: { not: null } },
-        select: { serialNumber: true, url: true, name: true },
+        select: { serialNumber: true, url: true, name: true, username: true, passwordEncrypted: true },
       });
+      // 503 solo cuando no hay ni credenciales en los relojes ni fallback del `.env`.
+      if (!clocks.some((clock) => credentialsOf(clock, this.fallbackCredentials) !== null)) {
+        throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
+      }
 
       const reads: ClockRead[] = [];
       for (const clock of clocks) {
-        reads.push(await this.readClock(clock.serialNumber, clock.name, clock.url!));
+        if (!clock.url) continue;
+        reads.push(await this.readClock({ ...clock, url: clock.url }));
       }
 
       const links = await this.db.timeClockEmployee.findMany({
@@ -180,7 +185,14 @@ export class TimeClockRosterService {
    * Lectura de un reloj: identidad + lista completa de personas. Si algo falla o
    * la lista llega incompleta, el reloj queda como no válido (R4).
    */
-  private async readClock(serial: string, name: string | null, url: string): Promise<ClockRead> {
+  private async readClock(clock: {
+    serialNumber: string;
+    name: string | null;
+    url: string;
+    username: string | null;
+    passwordEncrypted: string | null;
+  }): Promise<ClockRead> {
+    const { serialNumber: serial, name, url } = clock;
     const previous = await this.db.timeClockRosterEntry.findMany({
       where: { clockSerial: serial },
       select: { employeeNumber: true },
@@ -194,8 +206,9 @@ export class TimeClockRosterService {
       summary: { serial, ok: false, count: 0, error },
     });
     try {
-      const { user, pass } = this.credentials!;
-      const client = new IsapiClient(url, user, pass);
+      const credentials = credentialsOf(clock, this.fallbackCredentials);
+      if (!credentials) return fail("TIME_CLOCK_NOT_CONFIGURED");
+      const client = new IsapiClient(url, credentials.user, credentials.pass);
       const info = await client.deviceInfo();
       if (info.serialNumber !== serial) return fail("TIME_CLOCK_SERIAL_CHANGED");
 
@@ -380,16 +393,18 @@ export class TimeClockRosterService {
 
   /** Worker: revisa el padrón cada `intervalMs` (y al arrancar), sin tocar el cursor de checadas. */
   startWorker(intervalMs: number): () => void {
-    if (!this.credentials) return () => undefined;
     const tick = (): void => {
       if (this.running) return;
       // Una corrida por cliente ACTIVE, cada una en su contexto: dentro, el
       // padrón solo ve los relojes y empleados de ese cliente.
       forEachActiveTenant(async () => {
         await this.run("AUTO");
-      }).catch((err: unknown) =>
-        logger.error(`[time-clock-roster] ${messageOf(err)}`)
-      );
+      }).catch((err: unknown) => {
+        // Sin credenciales en ningún reloj ni en el `.env` no hay nada que revisar:
+        // no se llena la bitácora de errores cada ciclo por una instalación vacía.
+        if (err instanceof HttpError && err.code === "TIME_CLOCK_NOT_CONFIGURED") return;
+        logger.error(`[time-clock-roster] ${messageOf(err)}`);
+      });
     };
     tick();
     const timer = setInterval(tick, intervalMs);

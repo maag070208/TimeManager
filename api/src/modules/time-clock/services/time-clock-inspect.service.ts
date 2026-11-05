@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
 import { IsapiClient } from "./isapi.client";
-import type { TimeClockCredentials } from "./time-clock.service";
 
 /** Límites para no leer de más en una sola respuesta. */
 const MAX_USERS = 1000;
@@ -17,15 +17,20 @@ const ANY_EVENT_TYPE = 0;
 export class TimeClockInspectService {
   constructor(
     private readonly db: PrismaClient = prismaClient,
-    private readonly credentials: TimeClockCredentials | null = null
+    /** Fallback de `.env` para relojes sin credenciales propias (F1B-10). */
+    private readonly fallbackCredentials: TimeClockCredentials | null = null
   ) {}
 
   private async clientFor(serial: string): Promise<{ client: IsapiClient; name: string | null; url: string }> {
-    if (!this.credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
     const clock = await this.db.timeClock.findUnique({ where: { serialNumber: serial } });
     if (!clock || !clock.url) throw new HttpError(404, "TIME_CLOCK_NOT_FOUND");
-    const { user, pass } = this.credentials;
-    return { client: new IsapiClient(clock.url, user, pass), name: clock.name, url: clock.url };
+    const credentials = credentialsOf(clock, this.fallbackCredentials);
+    if (!credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
+    return {
+      client: new IsapiClient(clock.url, credentials.user, credentials.pass),
+      name: clock.name,
+      url: clock.url,
+    };
   }
 
   /** Identidad, hora y conteos del equipo. */

@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { resolveTimezone, startOfLocalDay, localDateKey } from "@core/utils/timezone";
+import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
 import { IsapiAuthError, IsapiClient } from "./isapi.client";
-import type { TimeClockCredentials } from "./time-clock.service";
 import {
   buildAlerts,
   classifyConnection,
@@ -25,6 +25,14 @@ interface DeviceRead {
 
 const EMPTY_ROSTER: RosterFacts = { suspicious: false, pendingRemovals: 0, reappeared: 0, unlinked: 0 };
 
+/** Datos mínimos del reloj para leerlo con sus credenciales (propias o del `.env`). */
+interface ClockReadTarget {
+  serialNumber: string;
+  url: string;
+  username: string | null;
+  passwordEncrypted: string | null;
+}
+
 /**
  * Resumen de estado del reloj para el dashboard (RELOJ_DASHBOARD.md §4.1).
  * Junta la base de datos (checadas de hoy, sincronización, padrón) con una
@@ -37,16 +45,18 @@ export class TimeClockSummaryService {
 
   constructor(
     private readonly db: PrismaClient = prismaClient,
-    private readonly credentials: TimeClockCredentials | null = null,
+    /** Fallback de `.env` para relojes sin credenciales propias (F1B-10). */
+    private readonly fallbackCredentials: TimeClockCredentials | null = null,
     private readonly now: () => Date = () => new Date(),
-    private readonly readDevice: (url: string) => Promise<DeviceRead["device"] & { counts: DeviceRead["counts"] }> = (url) =>
-      this.defaultRead(url)
+    private readonly readDevice: (clock: ClockReadTarget) => Promise<DeviceRead["device"] & { counts: DeviceRead["counts"] }> = (
+      clock
+    ) => this.defaultRead(clock)
   ) {}
 
-  private async defaultRead(url: string) {
-    if (!this.credentials) throw new Error("no credentials");
-    const { user, pass } = this.credentials;
-    const client = new IsapiClient(url, user, pass);
+  private async defaultRead(clock: ClockReadTarget) {
+    const credentials = credentialsOf(clock, this.fallbackCredentials);
+    if (!credentials) throw new Error("no time clock credentials");
+    const client = new IsapiClient(clock.url, credentials.user, credentials.pass);
     const [info, count] = await Promise.all([client.deviceInfo(), client.userCount()]);
     return {
       deviceName: info.deviceName,
@@ -57,22 +67,22 @@ export class TimeClockSummaryService {
   }
 
   /** Lectura del equipo con caché; `null` si no se puede intentar. */
-  private async deviceFor(serial: string, url: string | null): Promise<DeviceRead> {
-    const hit = this.cache.get(serial);
+  private async deviceFor(clock: ClockReadTarget): Promise<DeviceRead> {
+    const hit = this.cache.get(clock.serialNumber);
     const nowMs = this.now().getTime();
     if (hit && nowMs - hit.at < DEVICE_READ_TTL_MS) return hit;
-    if (!this.credentials || !url) {
+    if (!clock.url || !credentialsOf(clock, this.fallbackCredentials)) {
       return { at: nowMs, read: null, device: null, counts: null };
     }
     try {
-      const data = await this.readDevice(url);
+      const data = await this.readDevice({ ...clock, url: clock.url });
       const entry: DeviceRead = {
         at: nowMs,
         read: { ok: true },
         device: { deviceName: data.deviceName, model: data.model, firmwareVersion: data.firmwareVersion },
         counts: data.counts,
       };
-      this.cache.set(serial, entry);
+      this.cache.set(clock.serialNumber, entry);
       return entry;
     } catch (err) {
       const entry: DeviceRead = {
@@ -81,7 +91,7 @@ export class TimeClockSummaryService {
         device: null,
         counts: null,
       };
-      this.cache.set(serial, entry);
+      this.cache.set(clock.serialNumber, entry);
       return entry;
     }
   }
@@ -117,14 +127,23 @@ export class TimeClockSummaryService {
     const dayStart = startOfLocalDay(localDateKey(now, tz), tz);
     const clocks = await this.db.timeClock.findMany({
       where: { url: { not: null } },
-      select: { serialNumber: true, name: true, url: true, countsAttendance: true, syncedAt: true },
+      select: {
+        serialNumber: true,
+        name: true,
+        url: true,
+        username: true,
+        passwordEncrypted: true,
+        countsAttendance: true,
+        syncedAt: true,
+      },
       orderBy: { createdAt: "asc" },
     });
 
     const roster = await this.rosterFacts();
     const rows = [];
     for (const clock of clocks) {
-      const device = await this.deviceFor(clock.serialNumber, clock.url);
+      if (!clock.url) continue;
+      const device = await this.deviceFor({ ...clock, url: clock.url });
       const lastSync = await this.db.timeClockSyncEvent.findFirst({
         where: { clockSerial: clock.serialNumber },
         orderBy: { startedAt: "desc" },

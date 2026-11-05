@@ -6,6 +6,7 @@ import {
   type PrismaClient,
 } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
+import { signedPhotoPath } from "@core/utils/security";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import {
@@ -112,10 +113,11 @@ export class AccessService {
       department: employee.department?.name ?? null,
       active: employee.active,
       // Contrato de `fotoUrl`: ruta RELATIVA a la base de la API, sin el
-      // prefijo `/api/v1`. El cliente debe resolverla contra su base
+      // prefijo `/api/v1`, con la credencial firmada de corta vida embebida
+      // (F1C-01). El cliente debe resolverla contra su base
       // (web: `${BASE_URL}${fotoUrl}`; app: ruta relativa contra su ApiClient).
       // Es `null` si el empleado no tiene foto. No incluye host ni `/api/v1`.
-      photoUrl: employee.photoKey ? `/hr/${employee.id}/photo/raw` : null,
+      photoUrl: employee.photoKey ? signedPhotoPath(employee.id) : null,
       credentialVersion: version,
       lastEvent: lastEvent ? this.eventSummary(lastEvent) : null,
       suggestedType: lastEvent?.type === "ENTRY" ? ("EXIT" as const) : ("ENTRY" as const),

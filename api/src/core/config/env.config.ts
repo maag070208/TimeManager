@@ -17,6 +17,12 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL!,
   WEB_ORIGIN: process.env.WEB_ORIGIN ?? "*",
   JWT_SECRET: process.env.JWT_SECRET!,
+  /**
+   * Clave para cifrar secretos en reposo (p. ej. la contraseña de cada reloj):
+   * base64 de exactamente 32 bytes. Si falta, `core/utils/crypto` la deriva de
+   * `JWT_SECRET` con HKDF-SHA256 y avisa una vez; en producción conviene fijarla.
+   */
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY ?? "",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "7d",
   /** Vida del refresh token (endurecimiento). */
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN ?? "30d",
@@ -62,8 +68,10 @@ export const env = {
       !process.env.RESEND_API_KEY),
 
   // Relojes checadores Hikvision (ISAPI, SOLO LECTURA). Los relojes se dan de
-  // alta desde la web; el usuario y la contraseña son los mismos para todos.
-  // Sin usuario no se sincroniza: las checadas siguen consultables.
+  // alta desde la web y cada reloj guarda su propio usuario/contraseña
+  // cifrados (F1B-10). Este par es solo el fallback de desarrollo/E2E para
+  // relojes dados de alta sin credenciales propias; sin ninguno de los dos no
+  // se sincroniza (las checadas guardadas siguen consultables).
   //
   // `CHECADOR_USER`/`CHECADOR_PASS` es el nombre VIEJO, y así lo pasan los
   // `docker-compose` ya instalados (el del cliente, por ejemplo). Se acepta como

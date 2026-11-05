@@ -230,6 +230,10 @@ export interface TimeClockDeviceStatus {
   url: string;
   /** Si sus checadas arman las entradas/salidas (las puertas de oficina no). */
   countsAttendance: boolean;
+  /** Usuario efectivo con el que se conecta (del reloj o, si no tiene, del `.env`). */
+  username: string | null;
+  /** Hay usuario y contraseña utilizables (propias o fallback del `.env`). La contraseña NUNCA sale. */
+  hasCredentials: boolean;
   model: string | null;
   lastSerialNo: number;
   syncedAt: Date | null;
@@ -243,7 +247,7 @@ export interface TimeClockDeviceStatus {
 }
 
 export interface TimeClockStatus {
-  /** `false` sin `CHECADOR_USER`: no hay con qué conectarse a los relojes. */
+  /** `false` sin credenciales en ningún reloj ni en el `.env`: no hay con qué conectarse. */
   configured: boolean;
   /** Suma de las corridas en curso de todos los relojes. */
   inProgress: TimeClockProgress | null;

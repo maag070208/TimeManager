@@ -3,6 +3,7 @@ import { prismaClient } from "@core/config/database";
 import { forEachActiveTenant } from "@core/tenancy";
 import { paginatedQuery } from "@core/db/table";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { encryptSecret } from "@core/utils/crypto";
 import { logger } from "@core/utils/logger";
 import {
   ci,
@@ -19,6 +20,7 @@ import {
   startOfLocalDay,
 } from "@core/utils/timezone";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
 import { IsapiAuthError, IsapiClient } from "./isapi.client";
 import type {
   TimeClockImportInput,
@@ -39,12 +41,6 @@ import type {
 } from "../models/entity/time-clock.entity";
 
 type SysConfigReader = (key: string) => Promise<string | null>;
-
-/** Usuario y contraseña de los relojes: los mismos para todos. */
-export interface TimeClockCredentials {
-  user: string;
-  pass: string;
-}
 
 /** Un reloj dado de alta (tiene dirección). */
 type RegisteredClock = TimeClock & { url: string };
@@ -148,6 +144,13 @@ const normalizeUrl = (value: string): string => {
   return url.origin;
 };
 
+/** Credenciales capturadas en el alta: o vienen las dos o ninguna. */
+const ownCredentialsOf = (input: { username?: string; password?: string }): TimeClockCredentials | null => {
+  if (input.username === undefined && input.password === undefined) return null;
+  if (!input.username || !input.password) throw new HttpError(400, "TIME_CLOCK_CREDENTIALS_INCOMPLETE");
+  return { user: input.username.trim(), pass: input.password };
+};
+
 /** Evento ISAPI → fila de `checadas`; `null` si el reloj mandó una hora ilegible. */
 const toPunch = (
   clockSerial: string,
@@ -179,8 +182,8 @@ export class TimeClockService {
 
   constructor(
     private readonly db: PrismaClient = prismaClient,
-    /** `null` sin `CHECADOR_USER`: las checadas se consultan, pero no se sincroniza. */
-    private readonly credentials: TimeClockCredentials | null = null,
+    /** Fallback de `.env` para relojes sin credenciales propias (F1B-10). */
+    private readonly fallbackCredentials: TimeClockCredentials | null = null,
     private readonly sysConfig?: SysConfigReader,
     private readonly audit?: AuditLogger
   ) {}
@@ -270,11 +273,13 @@ export class TimeClockService {
   }
 
   async status(): Promise<TimeClockStatus> {
+    const clocks = await this.registeredClocks();
     return {
-      configured: this.credentials !== null,
+      // Hay con qué conectar si hay fallback o al menos un reloj con credenciales propias.
+      configured: this.fallbackCredentials !== null || clocks.some((clock) => credentialsOf(clock, null) !== null),
       inProgress: this.inProgressTotal(),
       importJob: this.importJob,
-      devices: await this.statusOf(await this.registeredClocks()),
+      devices: await this.statusOf(clocks),
     };
   }
 
@@ -287,7 +292,12 @@ export class TimeClockService {
    */
   async register(input: TimeClockInput, actorId?: string): Promise<TimeClockDeviceStatus> {
     const url = normalizeUrl(input.url);
-    const client = this.client(url, TIMEOUT_INTERACTIVE_MS);
+    const own = ownCredentialsOf(input);
+    const credentials = own ?? this.fallbackCredentials;
+    if (!credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
+    // El alta conecta ANTES de crear la fila: con un usuario/contraseña mal
+    // capturados el reloj no queda dado de alta.
+    const client = new IsapiClient(url, credentials.user, credentials.pass, TIMEOUT_INTERACTIVE_MS);
     const sameUrl = await this.db.timeClock.findFirst({ where: { url } });
     if (sameUrl) throw this.duplicate(sameUrl);
 
@@ -299,10 +309,21 @@ export class TimeClockService {
 
     const name = input.name?.trim() || info.deviceName || info.serialNumber;
     const countsAttendance = input.countsAttendance ?? true;
+    const passwordEncrypted = own ? encryptSecret(own.pass) : null;
     const clock = await this.db.timeClock.upsert({
       where: { serialNumber: info.serialNumber },
-      create: { serialNumber: info.serialNumber, url, name, countsAttendance, model: info.model },
-      update: { url, name, countsAttendance, model: info.model },
+      create: {
+        serialNumber: info.serialNumber,
+        url,
+        name,
+        countsAttendance,
+        model: info.model,
+        username: own?.user ?? null,
+        passwordEncrypted,
+      },
+      // Al volver a dar de alta un reloj ya conocido, unas credenciales nuevas
+      // reemplazan a las anteriores; sin ellas se conservan las que tenía.
+      update: { url, name, countsAttendance, model: info.model, ...(own ? { username: own.user, passwordEncrypted } : {}) },
     });
     if (!isRegistered(clock)) throw new Error("The time clock has no address");
     await this.audit?.({
@@ -310,7 +331,7 @@ export class TimeClockService {
       entityType: "TimeClock",
       entityId: clock.serialNumber,
       userId: actorId,
-      metadata: { url, name, countsAttendance, model: info.model },
+      metadata: { url, name, countsAttendance, model: info.model, hasCredentials: own !== null },
     });
 
     // Un alta es un intento explícito: quita una pausa por credenciales previa.
@@ -332,10 +353,22 @@ export class TimeClockService {
     actorId?: string
   ): Promise<TimeClockDeviceStatus> {
     const before = await this.findRegisteredClock(serial);
-    const clock = await this.db.timeClock.update({
-      where: { serialNumber: serial },
-      data: { name: input.name?.trim(), countsAttendance: input.countsAttendance, writeEnabled: input.writeEnabled },
-    });
+    const data: Prisma.TimeClockUpdateInput = {
+      name: input.name?.trim(),
+      countsAttendance: input.countsAttendance,
+      writeEnabled: input.writeEnabled,
+    };
+    // Credenciales write-only: la contraseña se puede cambiar sola (mismo
+    // usuario) o junto con el usuario; nunca se devuelve.
+    if (input.username !== undefined || input.password !== undefined) {
+      const username = (input.username !== undefined ? input.username.trim() : before.username) ?? null;
+      if (!username || (!input.password && !before.passwordEncrypted)) {
+        throw new HttpError(400, "TIME_CLOCK_CREDENTIALS_INCOMPLETE");
+      }
+      data.username = username;
+      if (input.password) data.passwordEncrypted = encryptSecret(input.password);
+    }
+    const clock = await this.db.timeClock.update({ where: { serialNumber: serial }, data });
     if (!isRegistered(clock)) throw new Error("The time clock has no address");
     await this.audit?.({
       action: "TIME_CLOCK_UPDATED",
@@ -343,8 +376,9 @@ export class TimeClockService {
       entityId: serial,
       userId: actorId,
       metadata: {
-        before: { name: before.name, countsAttendance: before.countsAttendance, writeEnabled: before.writeEnabled },
-        after: { name: clock.name, countsAttendance: clock.countsAttendance, writeEnabled: clock.writeEnabled },
+        before: { name: before.name, countsAttendance: before.countsAttendance, writeEnabled: before.writeEnabled, username: before.username },
+        after: { name: clock.name, countsAttendance: clock.countsAttendance, writeEnabled: clock.writeEnabled, username: clock.username },
+        credentialsChanged: input.username !== undefined || input.password !== undefined,
       },
     });
     const [row] = await this.statusOf([clock]);
@@ -373,7 +407,7 @@ export class TimeClockService {
    */
   async settings(serial: string): Promise<TimeClockConfig> {
     const clock = await this.findRegisteredClock(serial);
-    const client = this.client(clock.url, TIMEOUT_INTERACTIVE_MS);
+    const client = this.client(clock, TIMEOUT_INTERACTIVE_MS);
     const info = await this.connect(client, clock.url);
     this.verifySerial(clock, info);
 
@@ -464,11 +498,10 @@ export class TimeClockService {
    * hasta reiniciar la API (o hasta un reintento manual).
    */
   startWorker(intervalMs: number): () => void {
-    if (!this.credentials) {
+    if (!this.fallbackCredentials) {
       logger.info(
-        "[time-clock] sin credenciales (TIME_CLOCK_USER/TIME_CLOCK_PASS, o el viejo CHECADOR_USER/CHECADOR_PASS): sync disabled"
+        "[time-clock] no global TIME_CLOCK_USER/PASS: only clocks with their own credentials will be synced"
       );
-      return () => undefined;
     }
     const tick = async (): Promise<void> => {
       try {
@@ -476,6 +509,8 @@ export class TimeClockService {
         // registeredClocks() solo ve los relojes de ese cliente.
         await forEachActiveTenant(async () => {
           for (const clock of await this.registeredClocks()) {
+            // Sin credenciales propias ni fallback no hay nada que intentar.
+            if (!credentialsOf(clock, this.fallbackCredentials)) continue;
             const clockStatus = this.clockStatus(clock.serialNumber);
             if (!clockStatus.inProgress && !clockStatus.pausedByCredentials) void this.run(clock);
           }
@@ -502,9 +537,27 @@ export class TimeClockService {
     if (free.length === 0) {
       throw new HttpError(409, "TIME_CLOCK_SYNC_IN_PROGRESS");
     }
+    // Las credenciales del reloj se prueban antes de responder: si el equipo las
+    // rechaza, el 502 se ve al instante en la web (la corrida de fondo no puede
+    // reportarlo en la respuesta). Un reloj caído sí sigue respondiendo 202.
+    for (const clock of free) await this.assertClockCredentials(clock);
     // `run` fija `enCurso` de forma síncrona antes de su primer `await`.
     for (const clock of free) void this.run(clock, "MANUAL");
     return this.inProgressTotal()!;
+  }
+
+  /** 502 si el equipo rechaza el usuario/contraseña del reloj; otros fallos se ignoran. */
+  private async assertClockCredentials(clock: RegisteredClock): Promise<void> {
+    const credentials = credentialsOf(clock, this.fallbackCredentials);
+    if (!credentials) return; // la corrida en segundo plano lo registrará como fallo
+    try {
+      const client = new IsapiClient(clock.url, credentials.user, credentials.pass, TIMEOUT_INTERACTIVE_MS);
+      await client.deviceInfo();
+    } catch (err) {
+      if (err instanceof IsapiAuthError) {
+        throw new HttpError(502, "TIME_CLOCK_INVALID_CREDENTIALS", { url: clock.url });
+      }
+    }
   }
 
   /** Nunca lanza: el resultado (ok o error) queda en `ultimaCorrida` del reloj. */
@@ -526,7 +579,7 @@ export class TimeClockService {
     let run: TimeClockRun;
 
     try {
-      const client = this.client(clock.url);
+      const client = this.client(clock);
       this.verifySerial(clock, await client.deviceInfo());
       const cursor = await this.db.timeClock.findUniqueOrThrow({ where: { serialNumber: serial } });
       confirmed = cursor.lastSerialNo;
@@ -639,7 +692,7 @@ export class TimeClockService {
         let nuevas = 0;
         let error: string | null = null;
         try {
-          const client = this.client(clock.url);
+          const client = this.client(clock);
           this.verifySerial(clock, await client.deviceInfo());
           for (const minor of MINORS_PUNCH) {
             for await (const { totalMatches, events } of client.acsEventsBetween(start, end, minor)) {
@@ -823,12 +876,15 @@ export class TimeClockService {
       const clockStatus = this.statuses.get(r.serialNumber);
       const total = bySerial.get(r.serialNumber);
       const guardado = ultimoPorSerial.get(r.serialNumber);
+      const credentials = credentialsOf(r, this.fallbackCredentials);
       return {
         clockSerial: r.serialNumber,
         name: r.name ?? r.serialNumber,
         url: r.url,
         countsAttendance: r.countsAttendance,
         writeEnabled: r.writeEnabled,
+        username: credentials?.user ?? r.username ?? null,
+        hasCredentials: credentials !== null,
         model: r.model,
         lastSerialNo: r.lastSerialNo,
         syncedAt: r.syncedAt,
@@ -870,26 +926,27 @@ export class TimeClockService {
     return clock;
   }
 
-  /** Relojes para sincronizar o importar; 503 si no hay credenciales o ninguno dado de alta. */
+  /**
+   * Relojes para sincronizar o importar. 503 `NO_TIME_CLOCKS` si no hay ninguno
+   * dado de alta y 503 `TIME_CLOCK_NOT_CONFIGURED` solo si ni los relojes ni el
+   * `.env` tienen credenciales.
+   */
   private async clocksToRead(): Promise<RegisteredClock[]> {
-    this.requireCredentials();
     const clocks = await this.registeredClocks();
     if (clocks.length === 0) {
       throw new HttpError(503, "NO_TIME_CLOCKS");
     }
+    if (!clocks.some((clock) => credentialsOf(clock, this.fallbackCredentials) !== null)) {
+      throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
+    }
     return clocks;
   }
 
-  private requireCredentials(): TimeClockCredentials {
-    if (!this.credentials) {
-      throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
-    }
-    return this.credentials;
-  }
-
-  private client(url: string, timeoutMs?: number): IsapiClient {
-    const { user, pass } = this.requireCredentials();
-    return new IsapiClient(url, user, pass, timeoutMs);
+  /** Credenciales del reloj (propias) o fallback del `.env`; 503 si no hay ninguna. */
+  private client(clock: RegisteredClock, timeoutMs?: number): IsapiClient {
+    const credentials = credentialsOf(clock, this.fallbackCredentials);
+    if (!credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");
+    return new IsapiClient(clock.url, credentials.user, credentials.pass, timeoutMs);
   }
 
   /** Identidad del reloj; si no contesta o rechaza las credenciales, 502 con el motivo. */

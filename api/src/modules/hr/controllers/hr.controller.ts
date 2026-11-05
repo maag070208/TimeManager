@@ -71,7 +71,7 @@ export class PersonalController {
 
   listDocuments = async (req: Request, res: Response) => {
     const data = await this.documents.listDocuments(req.params.id);
-    res.json(data.map(employeeDocumentToDto));
+    res.json(await Promise.all(data.map(employeeDocumentToDto)));
   };
 
   uploadDocument = async (req: Request, res: Response) => {
@@ -82,7 +82,7 @@ export class PersonalController {
       req.user!.id,
       req.file
     );
-    res.status(201).json(employeeDocumentToDto(data));
+    res.status(201).json(await employeeDocumentToDto(data));
   };
 
   removeDocument = async (req: Request, res: Response) => {

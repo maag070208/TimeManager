@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import type { PersonalProfile } from "@entities/hr";
-import { personalApi } from "@entities/hr";
+import { resolvePhotoUrl, type PersonalProfile } from "@entities/hr";
 import { generateCredentialQr, photoAsDataUrl, initialsOf } from "./credential";
 import { credentialDataUrl } from "./image";
 import { i18n } from "@shared/i18n";
@@ -43,9 +42,7 @@ export const useEmployeeCredential = (
       try {
         const [qr, photo] = await Promise.all([
           generateCredentialQr(profile),
-          photoAsDataUrl(
-            profile.id ? personalApi.photoRawUrl(profile.id) : null
-          ),
+          photoAsDataUrl(resolvePhotoUrl(profile.photoUrl)),
         ]);
         if (cancelled) return;
         const initialsValue = initialsOf(profile.name);
