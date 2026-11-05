@@ -8,6 +8,8 @@ export const AdjustmentCreateDto = z
     occurredAt: isoDate.optional(),
     method: z.enum(["FACE", "FINGERPRINT", "CARD", "OTHER"]).optional(),
     minor: z.number().int().min(0).max(999).optional(),
+    punchType: z.enum(["ENTRY", "EXIT", "LUNCH_START", "LUNCH_END"]).optional(),
+    workMode: z.enum(["PRESENCIAL", "HIBRIDO", "REMOTO", "CAMPO"]).optional(),
     note: z.string().trim().max(500).optional(),
   })
   .strict();

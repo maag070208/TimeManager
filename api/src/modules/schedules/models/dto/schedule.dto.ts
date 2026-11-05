@@ -117,6 +117,7 @@ export const WeeklyAttendanceQueryDto = registry.register(
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "DATE_FORMAT"),
     departmentId: z.string().min(1).optional(),
     q: z.string().max(100).optional(),
+    refresh: z.boolean().optional(),
   })
 );
 

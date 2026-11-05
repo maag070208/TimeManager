@@ -16,11 +16,17 @@ export const loadApprovedAdjustments = async (
   punchIds: string[]
 ): Promise<ApprovedAdjustment[]> => {
   if (punchIds.length === 0) return [];
-  return db.punchAdjustment.findMany({
-    where: { punchId: { in: punchIds }, status: "APPROVED" },
+  const rows = await db.punchAdjustment.findMany({
+    where: { targetType: "CLOCK", targetId: { in: punchIds }, status: "APPROVED" },
     orderBy: [{ decidedAt: "asc" }, { createdAt: "asc" }],
-    select: { punchId: true, newState: true, decidedAt: true, createdAt: true },
+    select: { targetId: true, newState: true, decidedAt: true, createdAt: true },
   });
+  return rows.map((row) => ({
+    punchId: row.targetId,
+    newState: row.newState,
+    decidedAt: row.decidedAt,
+    createdAt: row.createdAt,
+  }));
 };
 
 /** Aplica en orden los ajustes aprobados y devuelve las checadas con su hora vigente. */

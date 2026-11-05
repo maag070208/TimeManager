@@ -170,12 +170,35 @@ export class TimeClockReportService {
         occurredAt: { gte: range.start, lt: range.end },
       },
       orderBy: { occurredAt: "asc" },
-      select: { userId: true, type: true, occurredAt: true },
+      select: { id: true, userId: true, type: true, occurredAt: true },
     });
+    // RJ-04: ajustes aprobados sobre marcajes remotos (hora y tipo vigentes).
+    const remoteAdjustments = await this.db.punchAdjustment.findMany({
+      where: {
+        targetType: "REMOTE",
+        targetId: { in: remotePunches.map((punch) => punch.id) },
+        status: "APPROVED",
+      },
+      orderBy: [{ decidedAt: "asc" }, { createdAt: "asc" }],
+      select: { targetId: true, newState: true },
+    });
+    const remoteStateById = new Map<string, { occurredAt?: string; type?: string }>();
+    for (const adjustment of remoteAdjustments) {
+      const state = adjustment.newState as Record<string, unknown>;
+      const current = remoteStateById.get(adjustment.targetId) ?? {};
+      if (typeof state.occurredAt === "string") current.occurredAt = state.occurredAt;
+      if (typeof state.type === "string") current.type = state.type;
+      remoteStateById.set(adjustment.targetId, current);
+    }
+
     const remoteByUser = new Map<string, Array<{ type: string; occurredAt: Date }>>();
     for (const punch of remotePunches) {
       const list = remoteByUser.get(punch.userId) ?? [];
-      list.push({ type: punch.type, occurredAt: punch.occurredAt });
+      const adjusted = remoteStateById.get(punch.id);
+      list.push({
+        type: adjusted?.type ?? punch.type,
+        occurredAt: adjusted?.occurredAt ? new Date(adjusted.occurredAt) : punch.occurredAt,
+      });
       remoteByUser.set(punch.userId, list);
     }
 

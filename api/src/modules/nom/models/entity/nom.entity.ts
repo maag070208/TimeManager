@@ -76,6 +76,10 @@ export interface AdjustmentCreateInput {
   method?: PunchMethod;
   /** Nuevo código minor del evento. */
   minor?: number;
+  /** Corrección para marcajes remotos: tipo de checada. */
+  punchType?: "ENTRY" | "EXIT" | "LUNCH_START" | "LUNCH_END";
+  /** Corrección para marcajes remotos: modalidad. */
+  workMode?: RemoteWorkMode;
   /** Nota libre del aprobador/revisor. */
   note?: string;
 }

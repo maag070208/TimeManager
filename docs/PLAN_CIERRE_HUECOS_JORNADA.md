@@ -1,6 +1,6 @@
 # Plan de cierre de huecos — registro electrónico de jornada (LFT 2027)
 
-Fecha: 2026-11-05. Estado: **Fase 1 en curso** — RJ-02, RJ-03 y RJ-06 implementados; RJ-04 pendiente. Resto del plan sin implementar.
+Fecha: 2026-11-05. Estado: **Fase 1 completa** — RJ-02, RJ-03, RJ-04 y RJ-06 implementados. Falta Fase 2-4 (RJ-01/05/07/08/09/10).
 
 Cierra los huecos que quedaron abiertos tras la auditoría de código del registro electrónico
 de jornada (LFT art. 132 fr. XXXIV, exigible 01-ene-2027; multa art. 994 fr. IV Bis) frente al
@@ -49,7 +49,7 @@ Trazabilidad de este plan con el resumen legal:
 | RJ-01 | Sin convenio art. 58 (distribución/cambio a 46 h) | P0 | M | — |
 | RJ-02 | Marcaje remoto no suma jornada (subregistro) | P0 | L | ✅ implementado |
 | RJ-03 | Ajuste aprobado no incide en jornada ni export | P0 | M | ✅ implementado (falta cancelar un aprobado) |
-| RJ-04 | Marcaje remoto sin flujo de corrección | P0 | M | RJ-03 |
+| RJ-04 | Marcaje remoto sin flujo de corrección | P0 | M | ✅ implementado |
 | RJ-05 | Retención falla con checadas ajustadas; piso legal incompleto | P0 | M | — |
 | RJ-06 | Export incompleto para inspección | P1 | M | ✅ v2 implementado (falta detalle de access_events) |
 | RJ-07 | Prueba plena unilateral y UI que no muestra lo que se firma | P1 | M | — |
@@ -70,7 +70,8 @@ si es multi-tenant. Nada de E2E salvo petición explícita.
 - **RJ-02 ✅** el reporte de reloj crea sesiones desde `remote_punches` (ENTRY → LUNCH_START → LUNCH_END → EXIT) cuando el día no tiene reloj; si hay ambos, gana el reloj y se marca `REMOTE_CONFLICT`. Flag por cliente `nom_settings.remoteCountsForWorkday` (default true) expuesto en Configuración del cliente.
 - **RJ-06 ✅** export `stps-registro-jornada-v2`: primera entrada, última salida y origen por día, detalle de marcajes (reloj vigente + remoto + archivo), `minor` desde el ledger y SHA-256 sobre el texto final (CSV y JSON) recalculable por el receptor.
 - **Evidencia:** unitarios 115/115, integración 186/186, `tsc` limpio. E2E de prenómina/Mi jornada en verde.
-- **Siguiente:** RJ-04 (ajustes de marcaje remoto), luego RJ-05, RJ-01/RJ-08, RJ-07 y RJ-09/RJ-10.
+- **RJ-04 ✅** `PunchAdjustment` es polimórfico (`targetType` CLOCK/REMOTE/ACCESS + `targetId`); la discrepancia del trabajador ya acepta marcajes web, RH aprueba y el reporte usa la hora/tipo vigentes. La UI de Mi jornada permite reportar checadas remotas. Historial y auditoría conservan el objetivo.
+- **Siguiente:** Fase 2 — RJ-01 (convenio art. 58) y RJ-08 (jornada diaria/tope 12 h). Luego RJ-05, RJ-07 y RJ-09/RJ-10.
 
 ## 3. P0 — Evidencia que se cae en inspección o juicio
 

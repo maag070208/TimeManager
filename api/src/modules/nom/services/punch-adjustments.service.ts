@@ -39,36 +39,46 @@ export class PunchAdjustmentsService {
     private readonly audit?: AuditLogger
   ) {}
 
-  private async loadPunch(punchId: string) {
-    const punch = await this.db.timeClockPunch.findUnique({ where: { id: punchId } });
-    if (!punch) throw new HttpError(404, "PUNCH_NOT_FOUND");
-    return punch;
+  private async loadTarget(targetId: string) {
+    const clock = await this.db.timeClockPunch.findUnique({ where: { id: targetId } });
+    if (clock) return { kind: "CLOCK" as const, punch: clock };
+    const remote = await this.db.remotePunch.findUnique({
+      where: { id: targetId },
+      include: { user: { select: { id: true, name: true, employeeNumber: true } } },
+    });
+    if (remote) return { kind: "REMOTE" as const, punch: remote };
+    throw new HttpError(404, "PUNCH_NOT_FOUND");
   }
 
-  private snapshotOf(punch: {
-    occurredAt: Date;
-    method: string;
-    minor: number;
-    clockSerial: string;
-    serialNo: number;
-    employeeNumber: string;
-    name: string;
-  }): PunchSnapshot {
+  private snapshotOf(target: Awaited<ReturnType<PunchAdjustmentsService["loadTarget"]>>): PunchSnapshot {
+    if (target.kind === "REMOTE") {
+      const remote = target.punch;
+      return {
+        occurredAt: remote.occurredAt.toISOString(),
+        method: remote.workMode as PunchSnapshot["method"],
+        minor: 0,
+        clockSerial: "REMOTO",
+        serialNo: 0,
+        employeeNumber: remote.user.employeeNumber ?? "",
+        name: remote.user.name,
+      };
+    }
+    const clock = target.punch;
     return {
-      occurredAt: punch.occurredAt.toISOString(),
-      method: punch.method as PunchSnapshot["method"],
-      minor: punch.minor,
-      clockSerial: punch.clockSerial,
-      serialNo: punch.serialNo,
-      employeeNumber: punch.employeeNumber,
-      name: punch.name,
+      occurredAt: clock.occurredAt.toISOString(),
+      method: clock.method as PunchSnapshot["method"],
+      minor: clock.minor,
+      clockSerial: clock.clockSerial,
+      serialNo: clock.serialNo,
+      employeeNumber: clock.employeeNumber,
+      name: clock.name,
     };
   }
 
   private toDto(row: AdjustmentRow): AdjustmentDto {
     return {
       id: row.id,
-      punchId: row.punchId,
+      punchId: row.punchId ?? row.targetId,
       status: row.status,
       reason: row.reason,
       previousState: row.previousState as Record<string, unknown>,
@@ -89,7 +99,7 @@ export class PunchAdjustmentsService {
     actor: Actor,
     source: "HR" | "EMPLOYEE" = "HR"
   ): Promise<AdjustmentDto> {
-    const punch = await this.loadPunch(punchId);
+    const target = await this.loadTarget(punchId);
 
     const newState: Record<string, unknown> = {};
     if (input.occurredAt !== undefined) {
@@ -97,17 +107,25 @@ export class PunchAdjustmentsService {
       if (Number.isNaN(occurredAt.getTime())) throw new HttpError(400, "INVALID_ADJUSTMENT_DATE");
       newState.occurredAt = occurredAt.toISOString();
     }
-    if (input.method !== undefined) newState.method = input.method;
-    if (input.minor !== undefined) newState.minor = input.minor;
+    if (target.kind === "CLOCK") {
+      if (input.method !== undefined) newState.method = input.method;
+      if (input.minor !== undefined) newState.minor = input.minor;
+    } else {
+      if (input.punchType !== undefined) newState.type = input.punchType;
+      if (input.workMode !== undefined) newState.workMode = input.workMode;
+    }
     if (input.note !== undefined) newState.note = input.note;
     if (Object.keys(newState).length === 0) {
       throw new HttpError(400, "PUNCH_ADJUSTMENT_NO_CHANGES");
     }
 
-    const previousState = this.snapshotOf(punch);
+    const previousState = this.snapshotOf(target);
     const row = await this.db.punchAdjustment.create({
       data: {
-        punchId,
+        targetType: target.kind,
+        targetId: punchId,
+        punchId: target.kind === "CLOCK" ? punchId : null,
+        remotePunchId: target.kind === "REMOTE" ? punchId : null,
         requestedById: actor.id,
         reason: input.reason,
         previousState: previousState as unknown as Record<string, any>,
@@ -118,7 +136,7 @@ export class PunchAdjustmentsService {
 
     await this.audit?.({
       action: source === "EMPLOYEE" ? "PUNCH_DISCREPANCY_REPORTED" : "PUNCH_ADJUSTMENT_REQUESTED",
-      entityType: "TimeClockPunch",
+      entityType: target.kind === "CLOCK" ? "TimeClockPunch" : "RemotePunch",
       entityId: punchId,
       userId: actor.id,
       userName: actor.name ?? undefined,
@@ -132,9 +150,47 @@ export class PunchAdjustmentsService {
 
   /** Historial visible de una checada: ajustes + pista de auditoría. */
   async history(punchId: string): Promise<PunchHistory> {
-    const punch = await this.loadPunch(punchId);
+    const target = await this.loadTarget(punchId);
+    if (target.kind === "REMOTE") {
+      const adjustments = await this.db.punchAdjustment.findMany({
+        where: { targetType: "REMOTE", targetId: punchId },
+        orderBy: { createdAt: "asc" },
+        include: adjustmentInclude,
+      });
+      const effective = { occurredAt: target.punch.occurredAt.toISOString(), type: target.punch.type };
+      const appliedAdjustmentIds: string[] = [];
+      for (const adjustment of adjustments) {
+        if (adjustment.status !== "APPROVED") continue;
+        const state = adjustment.newState as Record<string, unknown>;
+        if (typeof state.occurredAt === "string") effective.occurredAt = state.occurredAt;
+        if (typeof state.type === "string") effective.type = state.type as typeof effective.type;
+        appliedAdjustmentIds.push(adjustment.id);
+      }
+      return {
+        punch: {
+          id: target.punch.id,
+          clockSerial: "REMOTO",
+          serialNo: 0,
+          employeeNumber: target.punch.user.employeeNumber ?? "",
+          name: target.punch.user.name,
+          method: target.punch.workMode as PunchHistory["punch"]["method"],
+          minor: 0,
+          occurredAt: target.punch.occurredAt.toISOString(),
+          createdAt: target.punch.createdAt.toISOString(),
+        },
+        effective: {
+          occurredAt: effective.occurredAt,
+          method: target.punch.workMode as PunchHistory["effective"]["method"],
+          minor: 0,
+          appliedAdjustmentIds,
+        },
+        adjustments: adjustments.map((a) => this.toDto(a)),
+        audit: [],
+      } as unknown as PunchHistory;
+    }
+    const punch = target.punch;
     const adjustments = await this.db.punchAdjustment.findMany({
-      where: { punchId },
+      where: { targetType: "CLOCK", targetId: punchId },
       orderBy: { createdAt: "asc" },
       include: adjustmentInclude,
     });
@@ -248,8 +304,8 @@ export class PunchAdjustmentsService {
 
     await this.audit?.({
       action: decision === "APPROVE" ? "PUNCH_ADJUSTMENT_APPROVED" : "PUNCH_ADJUSTMENT_REJECTED",
-      entityType: "TimeClockPunch",
-      entityId: adjustment.punchId,
+      entityType: adjustment.targetType === "REMOTE" ? "RemotePunch" : "TimeClockPunch",
+      entityId: adjustment.targetId,
       userId: actor.id,
       userName: actor.name ?? undefined,
       previousState: { status: "PENDING" },
@@ -363,8 +419,10 @@ export class PunchAdjustmentsService {
     input: { punchId: string; reason: string; expectedOccurredAt?: string }
   ): Promise<AdjustmentDto> {
     const { numbers, user } = await this.employeeNumbersOf(userId);
-    const punch = await this.loadPunch(input.punchId);
-    if (!numbers.includes(punch.employeeNumber)) {
+    const target = await this.loadTarget(input.punchId);
+    if (target.kind === "REMOTE") {
+      if (target.punch.userId !== userId) throw new HttpError(403, "NOT_YOUR_PUNCH");
+    } else if (!numbers.includes(target.punch.employeeNumber)) {
       throw new HttpError(403, "NOT_YOUR_PUNCH");
     }
     return this.create(

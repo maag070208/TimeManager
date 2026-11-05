@@ -360,7 +360,7 @@ export default function MyWorkdayPage() {
                             {row.type ? tr(row.type === "ENTRY" ? "punches.entry" : "punches.exit") : t("punches.noType")}
                           </ITText>
                         </div>
-                        {row.source === "CLOCK" && (
+                        {row.source !== "ACCESS" && (
                           <ITButton
                             variant="outlined"
                             color="secondary"

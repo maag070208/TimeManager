@@ -12,6 +12,7 @@ import {
   createTenant,
   createUser,
   expectStatus,
+  login,
   setupSuite,
   stopSuite,
   type Session,
@@ -60,7 +61,7 @@ describe("evidencia de jornada", () => {
 
     const report = await api("POST", "/schedules/weekly-attendance", {
       token: admin.token,
-      body: { date: today },
+      body: { date: today, refresh: true },
     });
     expectStatus(report, 200, "reporte semanal con marcaje web");
     const row = (report.body?.rows as Array<{ userId?: string; totals: { workedMin: number }; days: Array<{ date: string; status: string }> }>).find(
@@ -73,6 +74,66 @@ describe("evidencia de jornada", () => {
     assert.equal(row!.totals.workedMin, 480);
     const day = row!.days.find((d) => d.date === today);
     assert.equal(day?.status, "WORKED");
+  });
+
+  test("un marcaje web se corrige con discrepancia y aprobación (RJ-04)", async () => {
+    const client = await getDb();
+    const remoteWorker = await createUser({
+      tenantId: tenant.id,
+      role: "CLIENT_STAFF",
+      employeeNumber: `REM-${Date.now()}`,
+    });
+    const workerSession = await login({ username: remoteWorker.username, tenant: tenant.slug });
+    const entry = await client.remotePunch.create({
+      data: {
+        tenantId: tenant.id,
+        userId: remoteWorker.id,
+        type: "ENTRY",
+        workMode: "REMOTO",
+        occurredAt: at("09:00"),
+      },
+    });
+    await client.remotePunch.create({
+      data: {
+        tenantId: tenant.id,
+        userId: remoteWorker.id,
+        type: "EXIT",
+        workMode: "REMOTO",
+        occurredAt: at("17:00"),
+      },
+    });
+
+    const discrepancy = await api("POST", "/nom/me/discrepancies", {
+      token: workerSession.token,
+      body: {
+        punchId: entry.id,
+        reason: "Entré a las 08:00, no a las 09:00",
+        expectedOccurredAt: at("08:00").toISOString(),
+      },
+    });
+    expectStatus(discrepancy, 201, "discrepancia de marcaje web");
+
+    const approved = await api("POST", `/nom/adjustments/${discrepancy.body?.id}/approve`, {
+      token: admin.token,
+      body: { note: "Corregido" },
+    });
+    expectStatus(approved, 200, "aprobación del ajuste remoto");
+
+    const history = await api("GET", `/nom/punches/${entry.id}/history`, { token: admin.token });
+    expectStatus(history, 200, "historial del marcaje remoto");
+    assert.equal((history.body?.effective as { occurredAt: string }).occurredAt, at("08:00").toISOString());
+
+    const report = await api("POST", "/schedules/weekly-attendance", {
+      token: admin.token,
+      body: { date: today, refresh: true },
+    });
+    expectStatus(report, 200, "reporte con ajuste remoto");
+    const row = (report.body?.rows as Array<{ userId: string; totals: { workedMin: number } }>).find(
+      (candidate) => candidate.userId === remoteWorker.id
+    );
+    assert.ok(row, "persona con marcaje remoto ajustado");
+    // 08:00 → 17:00 = 9 h (la corrección sí suma).
+    assert.equal(row!.totals.workedMin, 540);
   });
 
   test("un ajuste aprobado corrige la jornada y el export lo refleja", async () => {
@@ -96,6 +157,8 @@ describe("evidencia de jornada", () => {
     await client.punchAdjustment.create({
       data: {
         tenantId: tenant.id,
+        targetType: "CLOCK",
+        targetId: punch.id,
         punchId: punch.id,
         requestedById: workerId,
         reason: "Entró a las 10:00, no a las 09:00",
@@ -122,7 +185,7 @@ describe("evidencia de jornada", () => {
 
     const report = await api("POST", "/schedules/weekly-attendance", {
       token: admin.token,
-      body: { date: today },
+      body: { date: today, refresh: true },
     });
     expectStatus(report, 200, "reporte con ajuste");
     const row = (report.body?.rows as Array<{ id?: string; userId?: string; totals: { workedMin: number } }>).find(

@@ -35,6 +35,8 @@ export interface WeeklyAttendanceParams {
   departmentId?: string;
   /** Busca por nombre, número de empleado o número del reloj. */
   q?: string;
+  /** Ignora la caché corta (botón «Actualizar» / pruebas). */
+  refresh?: boolean;
 }
 
 const addDays = (dayKey: string, days: number) => {
@@ -80,7 +82,7 @@ export class WeeklyAttendanceService {
 
   async report(params: WeeklyAttendanceParams): Promise<WeeklyAttendanceReport> {
     const cacheKey = `${currentTenantId() ?? "platform"}|${params.date}|${params.departmentId ?? ""}|${params.q ?? ""}`;
-    const cached = this.cache.get(cacheKey);
+    const cached = params.refresh ? undefined : this.cache.get(cacheKey);
     if (cached && Date.now() - cached.at < 30_000) return cached.report;
     const report = await this.computeReport(params);
     this.cache.set(cacheKey, { at: Date.now(), report });

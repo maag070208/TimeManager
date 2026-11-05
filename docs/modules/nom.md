@@ -190,6 +190,7 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 
 - **RJ-03:** `core/utils/adjusted-punches.ts` materializa la hora vigente de una checada aplicando sus ajustes APPROVED en orden. El reporte de reloj (y todo lo que depende de él: asistencia, prenómina, ledger, export) lee esa hora; la checada original sigue inmutable.
 - **RJ-02:** el reporte de reloj crea sesiones desde `remote_punches` (ENTRY/LUNCH_START/LUNCH_END/EXIT) cuando la persona no tiene checadas de reloj ese día. Si hay ambas fuentes, gana el reloj y la sesión se marca `REMOTE_CONFLICT`. Se controla por cliente con `nom_settings.remoteCountsForWorkday` (default true).
+- **RJ-04:** `punch_adjustments` guarda `targetType` (CLOCK/REMOTE/ACCESS) y `targetId`; las discrepancias de Mi jornada aplican a marcajes remotos y el reporte usa la hora/tipo corregidos. La checada original permanece inmutable.
 - **RJ-06:** export `stps-registro-jornada-v2` con `primeraEntrada`, `ultimaSalida` y `origen` por día, sección de detalle de marcajes (reloj vigente, remoto y archivo), `minor` desde el ledger y SHA-256 calculado sobre el texto final entregado.
 
 ## Checada multicanal (reloj, web, app)

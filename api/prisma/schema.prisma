@@ -1472,11 +1472,23 @@ enum PunchAdjustmentStatus {
   REJECTED
 }
 
+enum PunchAdjustmentTarget {
+  CLOCK
+  REMOTE
+  ACCESS
+}
+
 model PunchAdjustment {
   id            String                @id @default(uuid())
   tenantId      String                @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
-  punchId       String
-  punch         TimeClockPunch        @relation(fields: [punchId], references: [id], onDelete: Restrict)
+  /// Objetivo polimórfico: checada de reloj, marcaje remoto o evento de acceso.
+  targetType    PunchAdjustmentTarget @default(CLOCK)
+  targetId      String
+  /// Compatibilidad: checada de reloj (null en marcajes remotos).
+  punchId       String?
+  punch         TimeClockPunch?       @relation(fields: [punchId], references: [id], onDelete: Restrict)
+  remotePunchId String?
+  remotePunch   RemotePunch?          @relation("RemotePunchAdjustments", fields: [remotePunchId], references: [id], onDelete: Restrict)
   requestedById String
   requestedBy   User                  @relation("PunchAdjustmentRequester", fields: [requestedById], references: [id], onDelete: Restrict)
   /// Motivo obligatorio (por qué se corrige).
@@ -1494,6 +1506,7 @@ model PunchAdjustment {
 
   @@index([tenantId])
   @@index([punchId])
+  @@index([tenantId, targetType, targetId])
   @@index([status])
   @@index([requestedById])
   @@index([createdAt])
@@ -1684,6 +1697,7 @@ model RemotePunch {
   note              String?
   /// Idempotencia del cliente: un reintento de red no duplica el marcaje.
   clientEventId     String?         @unique
+  adjustments       PunchAdjustment[] @relation("RemotePunchAdjustments")
   createdAt         DateTime        @default(now())
 
   @@index([tenantId])
