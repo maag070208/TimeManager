@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ITPage, ITText } from "@axzydev/axzy_ui_system";
 import { FaMoneyCheckAlt } from "react-icons/fa";
-import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PayrollHistoryPanel, useWeeklyAttendance, WeeklyAttendanceReport } from "@features/schedule";
@@ -36,33 +35,6 @@ export default function PayrollPage() {
   const [tab, setTab] = useState<"week" | "history">("week");
 
   const weekLabel = t("weekPill", { range: weekRangeLabel(fx.rangeValue) });
-
-  const weekNav = (
-    <div
-      className="flex items-center gap-1 rounded-full border px-1.5 py-1"
-      style={{ background: "var(--it-card-bg, #ffffff)", borderColor: "var(--it-card-border, #e2e8f0)" }}
-    >
-      <button
-        type="button"
-        onClick={fx.previousWeek}
-        title={t("filters.previousWeek")}
-        aria-label={t("filters.previousWeek")}
-        className="flex cursor-pointer items-center rounded-full !border-0 !bg-transparent p-1.5 text-slate-500 hover:bg-slate-100"
-      >
-        <LuChevronLeft size={18} />
-      </button>
-      <ITText className="px-1.5 !text-[15px] font-extrabold tracking-tight whitespace-nowrap sm:!text-[16px]">{weekLabel}</ITText>
-      <button
-        type="button"
-        onClick={fx.nextWeek}
-        title={t("filters.nextWeek")}
-        aria-label={t("filters.nextWeek")}
-        className="flex cursor-pointer items-center rounded-full !border-0 !bg-transparent p-1.5 text-slate-500 hover:bg-slate-100"
-      >
-        <LuChevronRight size={18} />
-      </button>
-    </div>
-  );
 
   const tabSwitcher = (
     <div
@@ -99,7 +71,6 @@ export default function PayrollPage() {
       noPadding
       horizontalPadding={"px-0"}
       maxWidth="7xl"
-      actions={tab === "week" ? weekNav : undefined}
       breadcrumbs={[
         { label: t("common:breadcrumbs.home"), onClick: () => navigate("/") },
         { label: t("common:nav.hr"), onClick: () => navigate("/employees") },

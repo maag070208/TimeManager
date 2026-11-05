@@ -80,7 +80,8 @@ test.describe("pre nómina (acme.admin)", () => {
     await gotoRoute(page, "/schedules/payroll");
     expect((await initialReport).ok()).toBe(true);
 
-    await expect(page.getByText(/^Semana \S+ \d+ – \S+ \d+/).first()).toBeVisible();
+    await expect(page.getByText("Semana", { exact: true })).toBeVisible();
+    await expect(page.getByText(/–/).first()).toBeVisible();
     await expect(page.getByText("Personas", { exact: true })).toBeVisible();
     await expect(page.getByText("Horas trabajadas", { exact: true })).toBeVisible();
     await expect(page.getByText("Faltas", { exact: true })).toBeVisible();

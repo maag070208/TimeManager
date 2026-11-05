@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { ITBadget, ITButton, ITCard, ITText, ITAlert } from "@axzydev/axzy_ui_system";
-import { LuDownload, LuFileSpreadsheet, LuInfo } from "react-icons/lu";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { LuCheckCheck, LuDownload, LuFileSpreadsheet, LuInfo } from "react-icons/lu";
 import { dateLocale } from "@shared/i18n";
 import { dyn } from "@shared/i18n/dyn";
-import { hoursDecimal } from "@entities/schedule";
+import { buildDepartmentRows, hoursDecimal } from "@entities/schedule";
+import { useCan } from "@entities/user";
+import { useDepartmentReviews } from "../model/useDepartmentReviews";
 import type { WeeklyAttendanceDay, WeeklyAttendanceDetailRow } from "@entities/schedule";
 import type { UseWeeklyAttendance } from "../model/useWeeklyAttendance";
 
@@ -30,6 +32,14 @@ const dayStatus = (day: WeeklyAttendanceDay | undefined) => {
   return { text: "—", tone: "muted" as const };
 };
 
+const weekLabel = ([start, end]: [Date, Date]): string => {
+  const weekday = (d: Date) => d.toLocaleDateString(dateLocale(), { weekday: "short" }).replace(/\./g, "");
+  const month = (d: Date) => d.toLocaleDateString(dateLocale(), { month: "short" }).replace(/\./g, "");
+  return start.getMonth() === end.getMonth()
+    ? `${weekday(start)} ${start.getDate()} – ${weekday(end)} ${end.getDate()} ${month(end)}`
+    : `${weekday(start)} ${start.getDate()} ${month(start)} – ${weekday(end)} ${end.getDate()} ${month(end)}`;
+};
+
 const toneClass: Record<"muted" | "warning" | "danger" | "success", string> = {
   muted: "text-slate-400",
   warning: "bg-amber-50 text-amber-800",
@@ -46,7 +56,16 @@ export default function WeeklyAttendanceReport({ fx }: { fx: UseWeeklyAttendance
   const report = fx.report;
   const summary = report?.summary;
   const [showLegend, setShowLegend] = useState(false);
+  const [showDepartments, setShowDepartments] = useState(false);
+  const [confirmReviewAll, setConfirmReviewAll] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const departments = fx.departments.data ?? [];
+
+  const departmentRows = useMemo(() => (report ? buildDepartmentRows(report) : []), [report]);
+  const reviews = useDepartmentReviews(report?.range.days[0] ?? null);
+  const canReview = useCan("payroll.review");
+  const canClose = useCan("payroll.close");
+  const allReviewed = departmentRows.length > 0 && reviews.reviewedCount >= departmentRows.length;
 
   const days = report?.range.days ?? [];
 
@@ -91,6 +110,156 @@ export default function WeeklyAttendanceReport({ fx }: { fx: UseWeeklyAttendance
     <div className="flex flex-col gap-4">
       {fx.error && <ITAlert variant="error" dismissible onDismiss={() => fx.setError(null)}>{fx.error}</ITAlert>}
 
+      {/* Filtros */}
+      <div className="grid items-end gap-3 rounded-2xl border border-slate-100 bg-white p-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+        <div className="flex flex-col gap-1 text-[11px] font-semibold text-slate-500">
+          Semana
+          <div className="flex items-center justify-between gap-1 rounded-lg border border-slate-200 px-1 py-1">
+            <button
+              type="button"
+              aria-label={t("filters.previousWeek")}
+              onClick={fx.previousWeek}
+              className="rounded-md p-1 text-slate-500 hover:bg-slate-100"
+            >
+              ‹
+            </button>
+            <span className="px-1 text-[12.5px] font-bold text-slate-800 whitespace-nowrap">{weekLabel(fx.rangeValue)}</span>
+            <button
+              type="button"
+              aria-label={t("filters.nextWeek")}
+              onClick={fx.nextWeek}
+              className="rounded-md p-1 text-slate-500 hover:bg-slate-100"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+        <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-500">
+          Departamento
+          <select
+            value={fx.departmentId}
+            onChange={(event) => fx.setDepartmentId(event.target.value)}
+            className="rounded-lg border border-slate-200 px-3 py-2 text-[13px] text-slate-800"
+          >
+            <option value="">{t("filters.allDepartments")}</option>
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>{department.name}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-500">
+          Buscar empleado
+          <input
+            value={fx.search}
+            onChange={(event) => fx.setSearch(event.target.value)}
+            placeholder="Nombre o número"
+            className="rounded-lg border border-slate-200 px-3 py-2 text-[13px] text-slate-800"
+          />
+        </label>
+        <div />
+      </div>
+
+      {showLegend && (
+        <div className="flex flex-wrap gap-2 rounded-xl bg-slate-50 p-3 text-[11px] text-slate-600">
+          <ITBadget color="gray" size="sm">— descanso o sin datos</ITBadget>
+          <ITBadget color="warning" size="sm">S/I sin información</ITBadget>
+          <ITBadget color="danger" size="sm">Falta</ITBadget>
+          <ITBadget color="warning" size="sm">S/F salida sin registrar</ITBadget>
+          <ITBadget color="success" size="sm">horas trabajadas · + con tiempo extra</ITBadget>
+        </div>
+      )}
+
+
+      {/* Barra de acciones de pre-nómina (como la maqueta) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-white px-4 py-3">
+        <ITText muted className="!text-[12px]">
+          {reviews.closed
+            ? t("close.closedBy", {
+                name: reviews.closure?.closedBy?.name ?? "—",
+                date: reviews.closure ? new Date(reviews.closure.closedAt).toLocaleString(dateLocale(), { dateStyle: "medium", timeStyle: "short" }) : "",
+              })
+            : allReviewed
+              ? t("close.allReviewed")
+              : t("close.note")}
+        </ITText>
+        <div className="flex flex-wrap items-center gap-2">
+          <ITButton variant="outlined" color="secondary" size="sm" onClick={fx.exportPdf} disabled={!report?.rows.length || fx.exporting}>
+            <LuDownload size={14} className="mr-1" /> Exportar PDF
+          </ITButton>
+          <ITButton variant="outlined" color="secondary" size="sm" onClick={fx.exportExcel} disabled={!report?.rows.length}>
+            <LuFileSpreadsheet size={14} className="mr-1" /> Exportar Excel
+          </ITButton>
+          <ITButton variant="filled" color="primary" size="sm" onClick={() => setConfirmReviewAll(true)} disabled={!canReview || reviews.closed || allReviewed}>
+            <LuCheckCheck size={14} className="mr-1" /> Verificar toda la pre-nómina
+          </ITButton>
+          <ITButton variant="outlined" color="secondary" size="sm" onClick={() => setShowDepartments((v) => !v)} disabled={reviews.closed}>
+            Verificar por departamento
+          </ITButton>
+          <ITButton
+            variant="filled"
+            color="warning"
+            size="sm"
+            disabled={!allReviewed || !canClose || reviews.busy}
+            title={allReviewed ? undefined : t("close.disabled")}
+            onClick={() =>
+              reviews.close(
+                departmentRows.map((row) => row.departmentId),
+                {
+                  summary,
+                  departments: departmentRows,
+                  people: (report?.rows ?? []).map((row) => ({
+                    departmentId: row.departmentId,
+                    name: row.name,
+                    clock: row.clockNumbers.join(", ") || row.employeeNumber || "",
+                    workedMin: row.totals.workedMin,
+                    extraMin: row.totals.extraMin,
+                    approvedExtraMin: row.totals.approvedExtraMin,
+                    absences: row.totals.absences,
+                  })),
+                }
+              )
+            }
+          >
+            Cerrar pre-nómina
+          </ITButton>
+        </div>
+      </div>
+
+      {showDepartments && (
+        <ITCard contentClassName="!p-4">
+          <div className="flex flex-col gap-2">
+            {departmentRows.map((row) => {
+              const reviewed = reviews.isReviewed(row.departmentId);
+              return (
+                <div key={row.departmentId ?? "none"} className="flex items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0">
+                  <div>
+                    <ITText className="font-semibold !text-[13px]">{row.name}</ITText>
+                    <ITText muted className="!text-[11px]">
+                      {row.people} personas · {fmtHours(row.normalMin)} h · {row.absences} faltas
+                    </ITText>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ITBadget color={reviewed ? "success" : "warning"} size="sm">
+                      {reviewed ? "Revisado" : "Por revisar"}
+                    </ITBadget>
+                    {canReview && !reviews.closed && (
+                      <ITButton
+                        variant="outlined"
+                        color="secondary"
+                        size="sm"
+                        disabled={reviews.busy}
+                        onClick={() => reviews.toggle(row.departmentId)}
+                      >
+                        {reviewed ? "Quitar" : "Marcar revisado"}
+                      </ITButton>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </ITCard>
+      )}
       {/* KPIs */}
       <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(185px, 1fr))" }}>
         {kpis.map((kpi) => (
@@ -117,56 +286,6 @@ export default function WeeklyAttendanceReport({ fx }: { fx: UseWeeklyAttendance
           </div>
         ))}
       </div>
-
-      {/* Filtros */}
-      <div className="grid grid-cols-1 items-end gap-3 rounded-2xl border border-slate-100 bg-white p-4 sm:grid-cols-[1fr_1fr_1.2fr]">
-        <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-500">
-          Departamento
-          <select
-            value={fx.departmentId}
-            onChange={(event) => fx.setDepartmentId(event.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-[13px] text-slate-800"
-          >
-            <option value="">{t("filters.allDepartments")}</option>
-            {departments.map((department) => (
-              <option key={department.id} value={department.id}>{department.name}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-500">
-          Buscar empleado
-          <input
-            value={fx.search}
-            onChange={(event) => fx.setSearch(event.target.value)}
-            placeholder="Nombre o número"
-            className="rounded-lg border border-slate-200 px-3 py-2 text-[13px] text-slate-800"
-          />
-        </label>
-        <div className="flex items-center justify-end gap-2">
-          <ITButton variant="outlined" color="secondary" size="sm" onClick={() => setShowLegend((v) => !v)}>
-            <LuInfo size={14} className="mr-1" />
-            Simbología
-          </ITButton>
-          <ITButton variant="outlined" color="secondary" size="sm" onClick={fx.exportExcel} disabled={!report?.rows.length}>
-            <LuFileSpreadsheet size={14} className="mr-1" />
-            Excel
-          </ITButton>
-          <ITButton variant="filled" color="primary" size="sm" onClick={fx.exportPdf} disabled={!report?.rows.length || fx.exporting}>
-            <LuDownload size={14} className="mr-1" />
-            PDF
-          </ITButton>
-        </div>
-      </div>
-
-      {showLegend && (
-        <div className="flex flex-wrap gap-2 rounded-xl bg-slate-50 p-3 text-[11px] text-slate-600">
-          <ITBadget color="gray" size="sm">— descanso o sin datos</ITBadget>
-          <ITBadget color="warning" size="sm">S/I sin información</ITBadget>
-          <ITBadget color="danger" size="sm">Falta</ITBadget>
-          <ITBadget color="warning" size="sm">S/F salida sin registrar</ITBadget>
-          <ITBadget color="success" size="sm">horas trabajadas · + con tiempo extra</ITBadget>
-        </div>
-      )}
 
       {/* Tabla */}
       <ITCard className="overflow-hidden !p-0" contentClassName="!p-0">
@@ -282,6 +401,21 @@ export default function WeeklyAttendanceReport({ fx }: { fx: UseWeeklyAttendance
           )}
         </div>
       </ITCard>
+
+      <ITConfirmDialog
+        isOpen={confirmReviewAll}
+        onClose={() => setConfirmReviewAll(false)}
+        onConfirm={() => {
+          reviews.reviewAll(departmentRows.map((row) => row.departmentId));
+          setConfirmReviewAll(false);
+          setToast("Revisión guardada.");
+        }}
+        title="Verificar toda la pre-nómina"
+        message={`Se marcarán ${departmentRows.length} departamentos como revisados.`}
+        confirmLabel="Verificar"
+        cancelLabel="Cancelar"
+      />
+      {toast && <ITToast message={toast} type="success" position="bottom-center" duration={2500} onClose={() => setToast(null)} />}
     </div>
   );
 }
