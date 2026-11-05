@@ -276,3 +276,24 @@ export interface PayrollClosureRow {
   reopenedBy: { id: string; name: string } | null;
   snapshot: PayrollClosureSnapshot | null;
 }
+
+/** Snapshot semanal de horas extra (F1 del plan de cumplimiento). */
+export interface WeeklyOvertimeRow {
+  id: string;
+  userId: string;
+  weekStart: string;
+  year: number;
+  ordinaryMin: number;
+  otDoubleMin: number;
+  otTripleMin: number;
+  otIllegalMin: number;
+  restDayWorkedMin: number;
+  holidayWorkedMin: number;
+  sundayWorked: boolean;
+  minor: boolean;
+  violations: string[];
+  days: Array<Record<string, unknown>>;
+  engineVersion: string;
+  status: "DRAFT" | "CONFIRMED" | "CLOSED";
+  user?: { name: string; employeeNumber: string | null } | null;
+}

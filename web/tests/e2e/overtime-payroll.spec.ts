@@ -32,6 +32,7 @@ test.describe("tiempo extra (acme.admin)", () => {
     expect((await initialQuery).ok()).toBe(true);
 
     await expect(page.getByText("Consulta y aprobación de horas extra del personal.")).toBeVisible();
+    await expect(page.getByText("Horas extra por semana (LFT 2026)")).toBeVisible();
     // Indicadores del periodo y pestañas por estatus.
     await expect(page.getByText("Por aprobar", { exact: true })).toBeVisible();
     await expect(page.getByText("Aprobado", { exact: true })).toBeVisible();

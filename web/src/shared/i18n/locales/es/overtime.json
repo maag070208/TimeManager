@@ -101,5 +101,27 @@
     "rejected": "{{count}} día(s) rechazado(s)",
     "error": "No se pudo guardar la decisión"
   },
-  "howTo": "Marca las horas que sí se trabajaron y apruébalas; el resto se rechaza."
+  "howTo": "Marca las horas que sí se trabajaron y apruébalas; el resto se rechaza.",
+  "weekly": {
+    "title": "Horas extra por semana (LFT 2026)",
+    "hint": "Clasificación legal por persona y semana: doble, triple y excedente ilegal.",
+    "date": "Semana de",
+    "refresh": "Consultar",
+    "empty": "Sin ledgers para esa semana.",
+    "confirm": "Confirmar semana",
+    "confirmed": "Confirmada",
+    "ordinary": "Ordinaria",
+    "double": "Doble",
+    "triple": "Triple",
+    "illegal": "Excedente ilegal",
+    "violations": "Infracciones",
+    "week": "Semana",
+    "person": "Persona",
+    "status": "Estado",
+    "draft": "Borrador",
+    "confirmedStatus": "Confirmada",
+    "closed": "Cerrada",
+    "confirmOk": "Semana confirmada y congelada.",
+    "loadError": "No se pudo calcular la semana."
+  }
 }

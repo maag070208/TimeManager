@@ -10,6 +10,7 @@ import type {
   ScheduleInput,
   WeeklyAttendanceQuery,
   WeeklyAttendanceReport,
+  WeeklyOvertimeRow,
 } from "../model/types";
 
 export const scheduleApi = {
@@ -46,6 +47,14 @@ export const scheduleApi = {
   /** Universo completo sin paginar, SOLO aprobado (para CSV/KPIs/PDF). */
   overtimeExport: (params: ITDataTableFetchParamsPost) =>
     tableQuery<OvertimeResponse>(`/schedules/overtime/export`, params),
+
+  /** Ledger semanal de horas extra (F1): calcula/recupera la semana. */
+  weeklyOvertime: (date: string) =>
+    api.get<WeeklyOvertimeRow[]>(`/nom/overtime/weekly?date=${encodeURIComponent(date)}`),
+
+  /** Congela el snapshot semanal (aprobación de RH). */
+  confirmWeeklyOvertime: (id: string) =>
+    api.post<WeeklyOvertimeRow>(`/nom/overtime/weekly/${id}/confirm`, {}),
 
   // ── Pre-nómina: revisión por departamento y cierre de la semana ──────────
 

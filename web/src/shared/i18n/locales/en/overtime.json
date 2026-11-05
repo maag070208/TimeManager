@@ -101,5 +101,27 @@
     "rejected": "{{count}} day(s) rejected",
     "error": "Could not save the decision"
   },
-  "howTo": "Tick the hours that were actually worked and approve them; the rest is rejected."
+  "howTo": "Tick the hours that were actually worked and approve them; the rest is rejected.",
+  "weekly": {
+    "title": "Weekly overtime (LFT 2026)",
+    "hint": "Legal classification per person/week: double, triple and illegal excess.",
+    "date": "Week of",
+    "refresh": "Query",
+    "empty": "No ledgers for that week.",
+    "confirm": "Confirm week",
+    "confirmed": "Confirmed",
+    "ordinary": "Ordinary",
+    "double": "Double",
+    "triple": "Triple",
+    "illegal": "Illegal excess",
+    "violations": "Violations",
+    "week": "Week",
+    "person": "Person",
+    "status": "Status",
+    "draft": "Draft",
+    "confirmedStatus": "Confirmed",
+    "closed": "Closed",
+    "confirmOk": "Week confirmed and frozen.",
+    "loadError": "Could not compute the week."
+  }
 }
