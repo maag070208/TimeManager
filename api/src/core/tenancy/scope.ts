@@ -4,7 +4,9 @@ type Args = Record<string, unknown>;
 
 const READ_OPS = new Set([
   "findUnique",
+  "findUniqueOrThrow",
   "findFirst",
+  "findFirstOrThrow",
   "findMany",
   "count",
   "aggregate",

@@ -10,6 +10,14 @@ test("lecturas y escrituras con where agregan tenantId", () => {
   }
 });
 
+test("las variantes OrThrow también se filtran por cliente", () => {
+  for (const op of ["findUniqueOrThrow", "findFirstOrThrow"]) {
+    assert.deepEqual(scopeArgs("User", op, { where: { id: "1" } }, T).where, { id: "1", tenantId: T }, op);
+    const args = { where: { id: "1" } };
+    assert.deepEqual(scopeArgs("User", op, args, null), args, op);
+  }
+});
+
 test("sin where crea uno con tenantId", () => {
   assert.deepEqual(scopeArgs("Schedule", "findMany", undefined, T), { where: { tenantId: T } });
 });

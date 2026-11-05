@@ -1,7 +1,7 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
-import { requireTenantId } from "@core/tenancy";
+import { currentTenantId, requireTenantId } from "@core/tenancy";
 import { ci, filterEnum, filterId, filterText, type ITDataTableFetchParams } from "@core/utils/table";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import type {
@@ -228,6 +228,10 @@ export class TimeClockEmployeesService {
 
   /** Todos los empleados del reloj con su vínculo o su sugerencia. */
   private async rows(): Promise<TimeClockEmployeeRow[]> {
+    // `$queryRaw` no pasa por la extensión de tenancy: el filtro de cliente va
+    // explícito. Sin contexto (workers) se conserva el barrido global.
+    const tenantId = currentTenantId();
+    const tenantFilter = tenantId ? Prisma.sql`WHERE "tenantId" = ${tenantId}` : Prisma.empty;
     const [fromClock, links, free] = await Promise.all([
       this.db.$queryRaw<{ employeeNumber: string; name: string; punches: number; lastPunch: Date }[]>`
         SELECT "employeeNumber",
@@ -235,6 +239,7 @@ export class TimeClockEmployeesService {
                count(*)::int AS "punches",
                max("occurredAt") AS "lastPunch"
         FROM "time_clock_punches"
+        ${tenantFilter}
         GROUP BY "employeeNumber"`,
       this.db.timeClockEmployee.findMany({ select: { employeeNumber: true, user: { select: userSelect } } }),
       // Se sugieren usuarios que aún no tienen número del reloj, también los

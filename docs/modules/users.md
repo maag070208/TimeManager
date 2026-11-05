@@ -4,7 +4,7 @@ CRUD de usuarios del sistema (que también son los empleados), importación masi
 
 ## Qué hace
 
-- **Consulta**: tabla paginada (`POST /query`), lista, detalle, disponibilidad de username/email, selector de empleados (`GET /employees`).
+- **Consulta**: tabla paginada (`POST /query`), lista, detalle, disponibilidad de username/email, selector de empleados (`GET /employees`, solo con alguno de `schedules.view`, `time_clock.view` o `hr.records`: son las pantallas que lo consumen).
 - **Ciclo de vida**: crear, editar, cambio de contraseña, desactivar/reactivar (baja lógica con `deactivatedAt`, autor, motivo y categoría del catálogo `RemovalCategory`), borrado.
 - **Importación**: alta masiva por archivo (`POST /import`).
 - **Historial**: `GET /:id/history` (timeline + audit-log).
@@ -12,7 +12,7 @@ CRUD de usuarios del sistema (que también son los empleados), importación masi
 
 ## Endpoints
 
-`GET /employees`, `POST /query`, `POST /availability`, `GET /`, `GET /:id`, `GET /:id/history`, `POST /`, `POST /import`, `PUT /:id`, `PUT /:id/password`, `PATCH /:id/deactivate`, `PATCH /:id/reactivate`, `DELETE /:id`, `GET /:id/permissions`, `PUT/DELETE /:id/permissions/:permission`.
+`GET /employees` (uno de `schedules.view`/`time_clock.view`/`hr.records`), `POST /query`, `POST /availability`, `GET /`, `GET /:id`, `GET /:id/history`, `POST /`, `POST /import`, `PUT /:id`, `PUT /:id/password`, `PATCH /:id/deactivate`, `PATCH /:id/reactivate`, `DELETE /:id`, `GET /:id/permissions`, `PUT/DELETE /:id/permissions/:permission`.
 
 ## Modelos
 

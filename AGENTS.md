@@ -16,7 +16,7 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 
 ## API (`api/`)
 
-- **Stack**: Express 4, Prisma 5 (`prisma/schema.prisma`, 36 modelos, baseline `20261104000000_baseline_rh`), zod, JWT, Winston, Swagger, Ably, AWS S3, xlsx.
+- **Stack**: Express 4, Prisma 5 (`prisma/schema.prisma`, 37 modelos, baseline `20261104000000_baseline_rh`), zod, JWT, Winston, Swagger, Ably, AWS S3, xlsx.
 - **Estructura**: `src/core` (config, db, middlewares, permissions, policies, services, utils) y `src/modules/<modulo>/{controllers,routes,services,models,index.ts}`. Router central: `src/modules/api.router.ts`.
 - **Alias TS**: `@src/*`, `@core/*`, `@modules/*` (baseUrl `./`; compilar con `tsc && tsc-alias`).
 - **Módulos (15)**: `time-clock`, `access`, `hr`, `schedules`, `overtime` (núcleo RH), `auth`, `users`, `departments`, `permissions`, `audit`, `notifications`, `dashboard`, `config`, `email` (soporte) y `tenants` (clientes de la plataforma). Las carpetas vacías `inventory`, `kitchen`, `tickets`, `hotel-store`, `material-outputs`, `reports`, `suppliers` son residuo del ERP — pendiente borrarlas.
@@ -26,6 +26,7 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
   - Build: `pnpm build` · Lint: `pnpm lint`
   - Prisma: `pnpm prisma:generate`, `pnpm prisma:migrate` (deploy), `pnpm seed`
   - Tests unitarios: `pnpm test:unit` (node:test + ts-node, `src/**/*.test.ts`, sin BD)
+  - Tests de integración de flujos: `pnpm db:test:up` (Postgres 16 local en Docker, puerto 55433) y `pnpm test:integration` (API real; el arnés rechaza cualquier BD que no sea local `tm_test*`)
   - Aislamiento entre clientes: `TENANCY_CHECK_DATABASE_URL=<BD de prueba> pnpm tenancy-check` (nunca contra la nube)
 
 ### Reglas de base de datos

@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { currentTenantId } from "@core/tenancy";
 import { ci, paginatedTable, type ITDataTableFetchParams, type TableFilters } from "@core/utils/table";
 import {
   assertDateKey,
@@ -271,10 +272,15 @@ export class TimeClockReportService {
   /** Nombre más reciente de cada número en el reloj. */
   private async clockNames(numbers: string[]): Promise<Map<string, string>> {
     if (numbers.length === 0) return new Map();
+    // `$queryRaw` no pasa por la extensión de tenancy: el filtro de cliente va
+    // explícito. Sin contexto (workers) se conserva el barrido global.
+    const tenantId = currentTenantId();
+    const tenantFilter = tenantId ? Prisma.sql`AND "tenantId" = ${tenantId}` : Prisma.empty;
     const rows = await this.db.$queryRaw<{ employeeNumber: string; name: string }[]>`
       SELECT "employeeNumber", (array_agg("name" ORDER BY "occurredAt" DESC))[1] AS "name"
       FROM "time_clock_punches"
       WHERE "employeeNumber" IN (${Prisma.join(numbers)})
+      ${tenantFilter}
       GROUP BY "employeeNumber"`;
     return new Map(rows.map((f) => [f.employeeNumber, f.name]));
   }

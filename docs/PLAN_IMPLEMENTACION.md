@@ -5,7 +5,7 @@ Roadmap **ejecutable** para convertir TimeManager en una plataforma de renta de 
 - El **porqué** de cada decisión vive en [SAAS_PLAN.md](SAAS_PLAN.md) (tenancy, identidad, planes) y [ARQUITECTURA.md](ARQUITECTURA.md) (escala, colas, BD, web).
 - Este archivo es el **qué y en qué orden**. Al terminar una tarea, se marca `[x]` aquí en el mismo commit.
 
-Última actualización: 2026-11-04.
+Última actualización: 2026-11-04 (auditoría de runtime y despliegue; ver ARQUITECTURA §5).
 
 ---
 
@@ -107,10 +107,11 @@ Matriz completa: `api/prisma/seed-data/role_permissions.json`.
 | D2 | Usuario pertenece a un solo cliente; únicos por cliente | Cerrada |
 | D3 | Cliente por subdominio | Cerrada (falta dominio) |
 | D4 | Datos plataforma vs cliente (ver §F1A-01) | Cerrada |
-| D5 | Planes y cobro (por empleado activo/mes; Stripe vs Conekta vs manual) | **Abierta** |
-| A1 | Cola: BullMQ + Redis vs pg-boss (sin Redis) | **Abierta** — ver ARQUITECTURA §6 |
-| A2 | Proveedor de Postgres (límites de conexiones, PgBouncer, réplicas) | **Abierta** |
-| A3 | Dominio de producción (`timemanager.mx`?) | **Abierta** |
+| D5 | Planes y cobro (por empleado activo/mes; Stripe vs Conekta vs manual) | **Pospuesta** (hay que considerarla en F3-04; no bloquea S1–S3) |
+| A1 | Cola: BullMQ + Redis vs pg-boss (sin Redis) | **Abierta** — no bloquea F1B-02: los workers se separan con lock en Postgres y la cola se decide después |
+| A2 | Proveedor de Postgres (límites de conexiones, PgBouncer, réplicas) | **Cerrada**: se queda Railway + PgBouncer (F1B-07); falta confirmar plan y límite de conexiones |
+| A3 | Dominio de producción (`timemanager.mx`?) | **Cerrada**: `timemanager.mx` (compra del dominio pendiente) |
+| A4 | Cómo alcanza el API a los relojes on-prem de cada cliente (gateway/agente, VPN o push del equipo) | **Abierta** — define F1B-11 |
 
 ---
 
@@ -194,6 +195,21 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [ ] **F1B-06 Relojes con API key por cliente** (alta del reloj = serial + key ligada al tenant).
 - [ ] **F1B-07 PgBouncer + `connection_limit`** (regla: réplicas × límite ≤ 70 % del máximo de la BD).
 - [ ] **F1B-08 Índices de alto volumen**: `time_clock_punches (tenantId, employeeNumber, occurredAt)`, `access_events (tenantId, …, occurredAt)`.
+- [ ] **F1B-10 Credenciales del reloj por reloj, en BD.** Hoy `TIME_CLOCK_USER/PASS` es global: todos los relojes comparten el mismo admin, y con un reloj por cliente cada equipo tendrá su propia contraseña. Mover usuario y contraseña al modelo `TimeClock` (cifrados en reposo con una `ENCRYPTION_KEY`), que `IsapiClient` reciba las del reloj y el `.env` quede solo como default de desarrollo. El API nunca devuelve la contraseña (solo si está configurada). Migración SQL a mano + backfill desde el `.env` para los relojes actuales. Archivos: `api/prisma/schema.prisma`, `api/prisma/migrations/*`, `api/src/modules/time-clock/**`, `api/src/core/utils/crypto*.ts`.
+- [ ] **F1B-11 Alcanzar el reloj del cliente desde la nube (A4).** Los equipos viven en `192.168.x` de la red del cliente; el API en la nube no los alcanza. Decidir e implementar: agente on-prem por cliente que abre conexión saliente (WebSocket/poll) y ejecuta sync/escrituras/estación, o VPN/WireGuard por cliente. El agente debe ser el mismo código de workers (F1B-02) con un modo `--edge`. Archivos: `api/src/workers/*`, docs de despliegue.
+- [ ] **F1B-12 Estación de huellas central (de TimeManager).** La DS-K1F600U es nuestra, no del cliente: se configura por `sys_config` (o BD de plataforma), no por `.env`, y el enrolamiento apunta al reloj del cliente destino. Hoy `stationFromEnv()` es global y la captura aplica al reloj seleccionado; falta que la estación viva en la consola de plataforma y que el flujo exija tenant. Archivos: `api/src/modules/time-clock/index.ts`, `services/time-clock-people.service.ts`, `web/src/features/access/time-clock-*`.
+- [x] **F1B-09 Aislamiento probado en los flujos, no solo en la capa Prisma.** Cerradas dos fugas entre clientes: los `$queryRaw` de checadas/relojes ahora filtran por el tenant del contexto (`time-clock-employees.service.ts`, `time-clock-report.service.ts`) y la extensión cubre `findUniqueOrThrow`/`findFirstOrThrow` (antes `GET /users/:id` leía expedientes de otro cliente). Regresión: `api/tests/integration/tenancy.flow.test.ts` (13 casos) + unit de `scopeArgs`.
+
+### Fase 1c — Cierre de seguridad y artefacto desplegable (bloquea vender)
+
+Sale de la auditoría de runtime y despliegue del 2026-11-04. No depende de decisiones de planes ni de NOM: son huecos de seguridad de datos y la falta de un artefacto que se pueda desplegar de verdad.
+
+- [ ] **F1C-01 Foto y archivos personales privados.** Hoy `GET /api/v1/hr/:id/photo/raw` es público (sin `authenticate` ni tenant) y el bucket S3 se lee por URL pública (`publicObjectUrl`), igual para documentos de expediente. Criterio: el endpoint exige sesión y tenant, el bucket deja de ser público y se sirven URL firmadas con expiración (la credencial debe seguir pintando la foto). Archivos: `api/src/modules/api.router.ts`, `api/src/core/services/storage.ts`, `api/src/modules/hr/*`, `web/src/shared/lib/`.
+- [ ] **F1C-02 Ably por token, no por key en el bundle.** Rotar la key (L-20) y emitir desde el API un `TokenRequest` con capability `subscribe` solo sobre `user:<id propio>`; el navegador deja de recibir una key con privilegios. Quitar `broadcastTicketEvent`/`broadcastDashboardEvent` y el canal `dashboard` (L-10). Archivos: `api/src/core/services/ably.ts`, `api/src/modules/notifications/*`, `web/src/shared/lib/ably.ts`.
+- [ ] **F1C-03 API lista para producción.** `compression`; rate limit en `/auth/login` y en los `/query` (store en memoria hoy, Redis en F1B-03); `trust proxy`; no escribir un `audit_log` por cada 403 sin freno; `SIGTERM` + `$disconnect` con cierre ordenado; imagen sin devDependencies, usuario no root y `HEALTHCHECK`. Archivos: `api/src/app.ts`, `api/src/index.ts`, `api/Dockerfile`.
+- [ ] **F1C-04 Artefacto desplegable y CI.** Crear `web/nginx.conf` + `web/render-config.sh` (L-05) con gzip, cache inmutable y fallback SPA; que la imagen web use `build:prod` (hoy `build:image` compila en modo development); servir o eliminar `/config.js`; CI en la raíz (F4-06) con typecheck, lint, unit, integración y build de ambas imágenes; sacar `prisma migrate deploy` del `CMD` y correrlo como paso de release. Archivos: `web/Dockerfile`, `web/nginx.conf`, `web/render-config.sh`, `.github/workflows/*`, `api/Dockerfile`.
+- [ ] **F1C-05 Endpoints caros con techo.** `GET /users/employees` con paginación y sin traer 4 relaciones de toda la tabla; `weekly-attendance` deja de cargar `limit: 100000` por request (precalcular o paginar; el dashboard la llama dos veces); `/time-clock/dashboard` sin `await` secuencial por reloj. Archivos: `api/src/modules/users/*`, `api/src/modules/schedules/services/weekly-attendance.service.ts`, `api/src/modules/time-clock/services/time-clock-summary.service.ts`.
+- [ ] **F1C-06 Documentación y entorno al día.** `api/.env.example` no tiene `JWT_SECRET` ni `ABLY_API_KEY` (la API no arranca con él), falta `web/.env.example` y los docs dicen 36 modelos cuando son 37. Criterio: un clon limpio arranca siguiendo los `.env.example`.
 
 ### Fase 2 — Requisitos NOM (antes de vender "cumple NOM")
 
@@ -215,6 +231,7 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [ ] **F3-04** Límites por plan (`employeeLimit`, relojes) aplicados en altas y en la consola.
 - [ ] **F3-05** Branding por cliente (logo y color) y correo con remitente por cliente.
 - [ ] **F3-06** Subdominios en producción (DNS wildcard + certificado wildcard).
+- [ ] **F3-07 Aprovisionamiento guiado del reloj del cliente.** En la consola de plataforma: alta del equipo (serial, nombre, URL/LAN, usuario y contraseña, habilitar escritura), botón "Probar conexión", "Sincronizar ahora" y estado del último sync. Requiere F1B-10 y F1B-11; es el paso que se repite con cada cliente nuevo.
 
 ### Fase 4 — Operación SaaS
 
@@ -224,6 +241,7 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [ ] **F4-04** Backups y restore **por cliente** ensayado.
 - [ ] **F4-05** Prueba de carga con k6: 5,000 checadas en 10 min + dashboards concurrentes.
 - [ ] **F4-06** CI en la raíz (`.github/workflows`): typecheck, lint, unit, build de imágenes **con nombre TimeManager**.
+- [x] **F4-07 Pruebas de integración de flujos.** Arnés propio (`api/tests/integration/harness.ts`): API real con `createApp` contra Postgres 16 en Docker, arranque por archivo con BD limpia (truncate + siembra de roles/permisos/matriz/políticas) y sesiones por rol. 43 casos: sesión/login/refresh/cambio de contraseña (14), Personal y seguridad de roles (16), aislamiento entre clientes y regresión de las fugas (13). Comandos: `pnpm db:test:up` + `pnpm test:integration` (el arnés se niega a correr contra cualquier BD que no sea local `tm_test*`).
 
 ### Fase 5 — Enterprise (cuando lo pida un cliente)
 
@@ -245,6 +263,7 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [ ] **L-10** `Notification.ticketId` + canal Ably `tickets:` + referencias en `appEvents`, `useAblyNotifications` y DTO de `dashboard` (residuo de tickets).
 - [ ] **L-11** `AuditLog.deviceId`/`deviceCode` (residuo del audit de inventario): DTO/entity/mapper de `audit` + writers del `AuditLogger`.
 - [x] **L-18** Personal y Usuarios en una sola pantalla (Personal): una persona = una cuenta. Acciones de cuenta en un menú "⋯" por fila, lista por permiso (expediente o cuentas), `/users/*` redirige. Se cerró una escalada: un `CLIENT_ADMIN` podía dar ADMIN/SUPPORT (roles de plataforma) a su personal; ahora el API lo rechaza (`ROLE_NOT_FOR_CLIENT`) y la web no los ofrece. En Railway no había ningún caso.
+- [ ] **L-20 Rotar la key de Ably.** La app key estuvo hardcodeada en `web/src/shared/lib/ably.ts` desde el primer commit (historial de git) y viajó en el bundle; ya se lee de `VITE_ABLY_API_KEY` (`.env` local, `.env.example` y build-arg del Dockerfile), pero la key vigente debe rotarse en el panel de Ably y, a mediano plazo, sustituirse por tokens emitidos por el API con capability de solo suscribir `user:<id>`.
 - [ ] **F1A-12 Defensa en profundidad de rutas de plataforma.** `roles.manage` (matriz global), `system.configure` (`sys_config` global) y la consola de roles deberían exigir además usuario de plataforma, como `/tenants`.
 - [x] **L-17** Correos: marca TimeManager (colores, logo PNG, remitente, textos sin "Puerto Nuevo"/"Cartas Responsivas", `charset=utf-8`), nombre del cliente en encabezado y asunto, botón de entrada por subdominio y avisos de RH dentro del cliente (ya no a la lista global). Fuera las plantillas de tickets, tareas y órdenes de compra. Pendiente del usuario: verificar `axzy.dev` en Resend (hoy 403).
 - [x] **L-14** Un solo indicador de carga: el esqueleto de `ITPage`. Página completa → `<ITPage loading>`; bloque dentro de página o diálogo → `ContentSkeleton` (`shared/ui/content-skeleton`, mismo esqueleto). Fuera `LottieLoader`, el `ITLoader` de contenido y `TicState kind="loading"` (20 pantallas). Los botones conservan su `loading`.
@@ -276,3 +295,19 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 | Pico de checadas a la hora de entrada | Cola de ingesta (F1B-03), índices (F1B-08), prueba k6 (F4-05) |
 | Requisitos STPS sin publicar | F2-06 antes de prometer cumplimiento |
 | Conexiones de Postgres agotadas | PgBouncer (F1B-07), decisión A2 |
+
+---
+
+## 7. Próximos sprints (orden recomendado)
+
+Los IDs mandan; esto solo agrupa lo que se trabaja junto.
+
+| Sprint | Tareas | Sale con |
+|---|---|---|
+| **S1 — Seguridad** (2-3 días) | F1C-01, F1C-02, F1C-06 | Ninguna foto o documento accesible sin sesión; Ably por token; integración en verde |
+| **S2 — Artefacto** (2-3 días) | F1C-04, F4-06 | `docker build` de API y web OK; CI en la raíz verde; deploy a staging reproducible |
+| **S3 — Capacidad** (1-2 semanas) | F1B-02, F1B-07, F1C-03, F1C-05, F4-05 | k6 con p95 < 500 ms; 2 réplicas sin workers duplicados ni caches viejas |
+| **S4 — Relojes por cliente** (1-2 semanas) | F1B-10, F1B-11, F1B-12, F3-07 | Se instala un reloj en casa del cliente y el API lo sincroniza con SUS credenciales; alta guiada y estación de huellas nuestra |
+| **S5 — NOM y negocio** | F2-01…F2-06, D5, F3-04 | Expediente NOM vendible y planes aplicados en alta |
+
+Decisiones que necesito del equipo para no bloquear: A1 (cola BullMQ vs pg-boss), A2 (plan y límites de Postgres en Railway), D5 (modelo de cobro), A3 (dominio de producción) y si el cliente actual migra como tenant #1.

@@ -32,7 +32,7 @@ export const createUserRouter = (controller: UserController): Router => {
     method: "get",
     path: "/users/employees",
     tags: ["Users"],
-    summary: "List employees (signature picker)",
+    summary: "List employees (person picker: schedules, time clock, HR reports)",
     security: [{ bearerAuth: [] }],
     parameters: [
       { in: "query", name: "departmentId", required: false, schema: { type: "string" } },
@@ -41,6 +41,7 @@ export const createUserRouter = (controller: UserController): Router => {
     ],
     responses: {
       200: { description: "Filtered employee list", content: { "application/json": { schema: UserSchema.array() } } },
+      403: { description: "Sin permiso para ver el directorio" },
     },
   });
 
@@ -246,8 +247,14 @@ export const createUserRouter = (controller: UserController): Router => {
     },
   });
 
-  // USER y ADMIN pueden listar EMPLEADO (selector de firmas)
-  router.get("/employees", asyncHandler(controller.listEmployees));
+  // Directorio de personas para selectores: lo comparten la asignación de
+  // horarios, el personal del reloj y los reportes de RH. Sin este guard,
+  // cualquier CLIENT_STAFF lista correos, puestos y números de empleado.
+  router.get(
+    "/employees",
+    requiresAnyPermission(["schedules.view", "time_clock.view", "hr.records"]),
+    asyncHandler(controller.listEmployees)
+  );
   router.post("/query", asyncHandler(controller.table));
 
   router.post("/availability", requiresPermission("users.view"), asyncHandler(controller.availability));
