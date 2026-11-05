@@ -9,7 +9,6 @@ import {
 } from "@features/user/user-form";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { FormSection } from "@shared/ui/form-section";
-import { TicState } from "@shared/ui/tic";
 import { LiveSummary, LiveSummaryRow } from "@shared/ui/live-summary";
 import { StickyActions } from "@shared/ui/sticky-actions";
 
@@ -72,7 +71,7 @@ export default function UserFormPage() {
           { label: breadcrumb },
         ]}
       >
-        <TicState kind="loading" />
+        {null}
       </ITPage>
     );
   }

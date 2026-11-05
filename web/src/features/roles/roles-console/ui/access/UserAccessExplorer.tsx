@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { AccessPermissionView, PermissionCatalog, PermissionMap, PolicyAdmin } from "@entities/permission";
 import { roleLabel, useCan, usersApi } from "@entities/user";
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import { formatDate } from "@shared/i18n/format";
 import { groupByModule, isScopedPermission, matchesPermission } from "../../model/access-levels";
 import { matchesMember, memberRoles, type AccessMembersState } from "../../model/useAccessMembers";
@@ -29,6 +28,7 @@ import SidebarPreview from "../shared/SidebarPreview";
 import { TabBar } from "@shared/ui/tab-bar";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import ExceptionDialog from "./ExceptionDialog";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 interface Props {
   admin: RolesAdminState;
@@ -312,9 +312,7 @@ export default function UserAccessExplorer({
         )}
 
         {userId && loading && !access && (
-          <div className="flex justify-center py-14">
-            <LottieLoader />
-          </div>
+          <ContentSkeleton />
         )}
 
         {userId && error && (

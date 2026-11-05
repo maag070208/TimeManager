@@ -6,7 +6,6 @@ import {
   ITDatePicker,
   ITFlex,
   ITInput,
-  ITLoader,
   ITPage,
   ITSelect,
   ITText,
@@ -251,16 +250,13 @@ export default function EmployeeProfileEditPage() {
           { label: tt("detail.title"), onClick: () => navigate(-1) },
           { label: tt("detail.editInfo") },
         ]}
+        loading={!detail.error}
       >
         {detail.error ? (
           <ITAlert variant="error" dismissible onDismiss={() => detail.setError(null)}>
             {detail.error}
           </ITAlert>
-        ) : (
-          <ITFlex justify="center" className="py-16">
-            <ITLoader variant="spinner" size="lg" color="primary" />
-          </ITFlex>
-        )}
+        ) : null}
       </ITPage>
     );
   }

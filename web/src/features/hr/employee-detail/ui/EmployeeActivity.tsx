@@ -9,6 +9,7 @@ import { PanelCard } from "@shared/ui/panel-card";
 import { dyn } from "@shared/i18n";
 import { formatDateTime } from "@shared/utils/dates";
 import { ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 type Tone = "primary" | "success" | "warning" | "danger" | "info" | "secondary";
 
@@ -70,7 +71,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
   }, [userId, t]);
 
   if (error) return <TicState kind="error" description={error} />;
-  if (!data) return <TicState kind="loading" title={t("detail.activity.loading")} />;
+  if (!data) return <ContentSkeleton />;
   const { summary, inventory } = data;
   const openLoans = inventory ? inventory.loans.filter((l) => l.status === "ACTIVE" || l.status === "PARTIAL") : [];
   const label = (key: string) => dyn(t)(`detail.activity.status.${key}`);

@@ -1,4 +1,3 @@
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import { useEffect, useMemo, useState } from "react";
 import {
   ITAlert,
@@ -18,6 +17,7 @@ import { formatMinutesAsHhMm } from "@shared/utils/dates";
 import { daysWorked, restDays, weeklyMinutes } from "../model/summary";
 import { i18n } from "@shared/i18n";
 import { useGoBack } from "@shared/lib/useGoBack";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 const emptyDays = (): ScheduleDayInput[] =>
   [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
@@ -191,9 +191,7 @@ export default function ScheduleForm({ id }: { id?: string }) {
 
   if (loading) {
     return (
-      <ITFlex justify="center" className="py-10">
-        <LottieLoader size="lg" />
-      </ITFlex>
+      <ContentSkeleton />
     );
   }
 

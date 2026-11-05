@@ -21,10 +21,6 @@
     "offline": {
       "title": "No connection",
       "description": "Check your internet. Tic will retry as soon as you're back online."
-    },
-    "loading": {
-      "title": "Loading…",
-      "description": "Tic is getting your information ready."
     }
   },
   "guide": {

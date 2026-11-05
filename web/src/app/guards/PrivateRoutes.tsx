@@ -13,7 +13,7 @@ import { API_CONSTANTS } from "@shared/api/constants/API_CONSTANTS";
 import { desktop } from "@shared/lib/desktop";
 import { useAblyNotifications, type LiveNotification } from "./useAblyNotifications";
 import ForcePasswordChange from "./ForcePasswordChange";
-import { TenantSwitcher } from "@features/tenant/tenant-switcher";
+import { PLATFORM_PATHS, TenantSwitcher, useClientContext } from "@features/tenant/tenant-switcher";
 import { getSelectedTenant } from "@shared/api/tenant";
 import { setTenantBrandName } from "@shared/lib/tenantBrand";
 import logoUrl from "@shared/assets/brand/timemanager-logo-for-light-bg.svg";
@@ -33,6 +33,7 @@ export default function PrivateRoutes() {
   const { token, user } = useSelector((s: RootState) => s.auth);
   const unreadCount = useSelector((s: RootState) => s.notifications.unreadCount);
   const [toast, setToast] = useState<string | null>(null);
+  const { platformWithoutClient } = useClientContext();
 
   // En la app de escritorio llega como notificación nativa del sistema; en el
   // navegador, como aviso dentro de la página.
@@ -129,6 +130,12 @@ export default function PrivateRoutes() {
     return <ForcePasswordChange />;
   }
 
+  // Plataforma sin cliente elegido: solo su consola, roles y avisos. Las
+  // pantallas de cliente mezclarían datos de todos los clientes (F1A-10).
+  if (platformWithoutClient && !(PLATFORM_PATHS as readonly string[]).includes(location.pathname)) {
+    return <Navigate to="/" replace />;
+  }
+
   // El menú se arma desde el catálogo de pantallas (`APP_SCREENS`) y los
   // permisos efectivos (`GET /auth/me`); la web no reimplementa la matriz.
   const permissions = user?.permissions;
@@ -155,7 +162,8 @@ export default function PrivateRoutes() {
   };
 
   const canView = (screen: AppScreen): boolean =>
-    isScreenVisible(permissions, screen, user?.role);
+    isScreenVisible(permissions, screen, user?.role) &&
+    (!platformWithoutClient || !screen.path || (PLATFORM_PATHS as readonly string[]).includes(screen.path));
 
   const toSubItem = (screen: AppScreen) => ({
     id: screen.id,
@@ -168,7 +176,11 @@ export default function PrivateRoutes() {
 
   const toNavigationItem = (screen: AppScreen): ITNavigationItem | null => {
     if (!canView(screen)) return null;
-    const children = (screen.children ?? []).filter((child) => canView(child));
+    const leavesOf = (section: AppScreen) => (section.children ?? []).filter((leaf) => canView(leaf));
+    const children = (screen.children ?? []).filter(
+      (child) => canView(child) && (!child.children?.length || leavesOf(child).length > 0)
+    );
+    if (!screen.path && screen.children?.length && children.length === 0) return null;
     return {
       id: screen.id,
       label: tt(screen.labelKey),
@@ -183,7 +195,7 @@ export default function PrivateRoutes() {
               ? {
                 id: child.id,
                 label: tt(child.labelKey),
-                items: child.children.filter((leaf) => canView(leaf)).map(toSubItem),
+                items: leavesOf(child).map(toSubItem),
               }
               : toSubItem(child)
           ),
@@ -232,7 +244,6 @@ export default function PrivateRoutes() {
         className="h-12 w-auto object-contain"
       />
     ),
-    logoText: "TimeManager",
     children: <TenantSwitcher />,
     userMenu: user
       ? {

@@ -1,4 +1,3 @@
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -46,10 +45,8 @@ export default function DisciplinaryReportDetailPage() {
   if (loading) {
     return (
       <ITPage className="m-0! p-0! px-8! min-w-full! pb-12!"
-        noPadding title={tt("preview.title")} backAction={() => goBack("/employees/disciplinary-reports")}>
-        <ITFlex justify="center" align="center" className="py-20">
-          <LottieLoader size="lg" />
-        </ITFlex>
+        noPadding title={tt("preview.title")} backAction={() => goBack("/employees/disciplinary-reports")} loading>
+        {null}
       </ITPage>
     );
   }

@@ -21,10 +21,6 @@
     "offline": {
       "title": "Sin conexión",
       "description": "Revisa tu internet. Tic reintentará en cuanto vuelvas a estar en línea."
-    },
-    "loading": {
-      "title": "Cargando…",
-      "description": "Tic está preparando tu información."
     }
   },
   "guide": {

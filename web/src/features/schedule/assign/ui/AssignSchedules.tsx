@@ -1,4 +1,3 @@
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ITAlert,
@@ -19,6 +18,7 @@ import { usersApi, type User } from "@entities/user";
 import { useDepartmentOptions } from "@entities/department";
 import { scheduleApi, type AssignedPerson, type Schedule } from "@entities/schedule";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 const toDateInput = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -168,9 +168,7 @@ export default function AssignSchedules() {
 
   if (loading) {
     return (
-      <ITFlex justify="center" className="py-10">
-        <LottieLoader size="lg" />
-      </ITFlex>
+      <ContentSkeleton />
     );
   }
 

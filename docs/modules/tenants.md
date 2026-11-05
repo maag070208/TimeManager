@@ -28,7 +28,8 @@ Alta, consulta y suspensión de clientes (tenants) del SaaS. Solo personal de pl
 - `entities/tenant` (tipos + `tenantApi`).
 - `features/tenant/tenant-switcher`: en la barra superior. Usuario de cliente: nombre de su empresa. Plataforma con `tenants.view`: selector de cliente; la elección se guarda en `localStorage` (`tm_selected_tenant_v1`), viaja como `X-Tenant-Id` (interceptor en `shared/api/client.ts`) y recarga la app al cambiar. Un `X-Tenant-Id` rechazado borra la elección.
 - Login: el slug sale del subdominio (`shared/api/tenant.ts`, `tenantSlugFromHost`): `acme.localhost:5006` en local, `acme.<VITE_TENANT_BASE_DOMAIN>` en producción; `app.`/`admin.`/`www.` o sin subdominio = plataforma.
-- La consola de clientes (alta guiada, uso) es F3-01/F3-02.
+- Consola de plataforma en `/` (sin cliente elegido): `pages/home/PlatformHomePage` + `features/tenant/tenants-console` (tabla, alta guiada, entrar, suspender/reactivar).
+- `useClientContext` (`features/tenant/tenant-switcher`): `isPlatform`, `client` y `platformWithoutClient`. Sin cliente elegido solo se abren `PLATFORM_PATHS` (`/`, `/notifications`, `/roles`).
 
 ## Notas multi-tenant
 

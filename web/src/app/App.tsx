@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "@pages/auth/LoginPage";
+import HomePage from "@pages/home/HomePage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 import TimeClockPage from "@pages/access/TimeClockPage";
@@ -39,7 +40,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
 
       <Route element={<PrivateRoutes />}>
-        <Route path="/" element={<Navigate to="/employees" replace />} />
+        <Route path="/" element={<HomePage />} />
 
         
         <Route path="/departments" element={<DepartmentsPage />} />

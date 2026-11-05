@@ -1,0 +1,153 @@
+{
+  "platform": {
+    "title": "TimeManager console",
+    "description": "Your clients, their status and usage.",
+    "newClient": "New client",
+    "kpis": {
+      "all": "Clients",
+      "active": "Active",
+      "suspended": "Suspended",
+      "people": "{{count}} active people"
+    },
+    "listTitle": "Clients",
+    "listDescription": "Enter a client to operate its screens as support.",
+    "search": "Search by name or subdomain…",
+    "empty": {
+      "title": "No clients yet",
+      "description": "Add the first one: its subdomain, admin and catalogs are created."
+    },
+    "noResults": {
+      "title": "No matches",
+      "description": "Try another name or clear the filter."
+    },
+    "table": {
+      "client": "Client",
+      "status": "Status",
+      "people": "People",
+      "plan": "Plan",
+      "since": "Since",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "actions": {
+      "enter": "Enter",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate"
+    },
+    "confirm": {
+      "suspendTitle": "Suspend {{name}}?",
+      "suspendMessage": "Nobody from this client can sign in and their sessions end immediately. Their data is kept.",
+      "reactivateTitle": "Reactivate {{name}}?",
+      "reactivateMessage": "Their staff can sign in again at {{host}}.",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate"
+    },
+    "pickClient": {
+      "title": "Pick a client",
+      "description": "This is a client screen. Enter one from the list or with the selector above."
+    },
+    "create": {
+      "title": "New client",
+      "subtitle": "Its subdomain, admin and base catalogs are created.",
+      "company": "Company",
+      "name": "Company name",
+      "slug": "Subdomain",
+      "slugHint": "Their staff will sign in at {{host}}",
+      "timezone": "Time zone",
+      "employeeLimit": "People limit (optional)",
+      "plan": "Plan (optional)",
+      "admin": "Client admin",
+      "adminName": "Name",
+      "adminUsername": "Username",
+      "adminEmail": "Email (optional)",
+      "cancel": "Cancel",
+      "submit": "Create client",
+      "saving": "Creating…",
+      "errors": {
+        "required": "Required",
+        "slug": "Lowercase letters, numbers and hyphens only; it can't be app, admin, api or www",
+        "username": "At least 3 characters",
+        "email": "Invalid email",
+        "number": "Must be a number above 0"
+      },
+      "done": {
+        "title": "{{name}} is ready",
+        "subtitle": "Share these details with their admin.",
+        "url": "Sign-in",
+        "user": "Username",
+        "password": "Temporary password",
+        "hint": "The password is shown only now. They'll be asked to change it on first sign-in.",
+        "copy": "Copy details",
+        "copied": "Copied",
+        "close": "Done"
+      }
+    }
+  },
+  "client": {
+    "greeting": "Hi, {{name}}",
+    "description": "{{company}} · {{date}}",
+    "nothing": {
+      "title": "Welcome",
+      "description": "Your account has no screens yet. Ask your admin for access."
+    },
+    "loadError": "This section could not be loaded",
+    "seeAll": "See all",
+    "onboarding": {
+      "title": "First steps",
+      "description": "Get your account ready in four steps.",
+      "done": "Done",
+      "go": "Go",
+      "staff": "Add your staff",
+      "staffHint": "One by one or importing an Excel file.",
+      "schedules": "Create schedules",
+      "schedulesHint": "Shifts, tolerances and meal breaks.",
+      "assign": "Assign a schedule to everyone",
+      "assignHint": "{{count}} people without a schedule.",
+      "clock": "Link the time clock",
+      "clockHint": "{{count}} people without a clock number."
+    },
+    "attendance": {
+      "title": "Today's attendance",
+      "present": "On time",
+      "late": "Late",
+      "notArrived": "Not arrived",
+      "onSite": "{{count}} on site now",
+      "latest": "Late today",
+      "noLate": "Nobody was late today.",
+      "lateMin": "{{min}} min"
+    },
+    "people": {
+      "title": "Staff",
+      "active": "Active",
+      "hires": "Hires this month",
+      "departures": "Departures this month",
+      "birthdays": "Upcoming birthdays",
+      "anniversaries": "Upcoming anniversaries",
+      "years": "{{count}} years",
+      "none": "No upcoming dates."
+    },
+    "records": {
+      "title": "Employee records",
+      "complete": "Complete",
+      "missingRequired": "Missing a document",
+      "missingFields": "Missing data"
+    },
+    "overtime": {
+      "title": "Overtime this week",
+      "pending": "To approve",
+      "approved": "Approved",
+      "rejected": "Not approved",
+      "hours": "{{value}} h",
+      "topPending": "Most hours to approve"
+    },
+    "setup": {
+      "title": "Setup to finish",
+      "unlinked": "Numbers without a person",
+      "withoutClock": "No clock",
+      "withoutSchedule": "No schedule"
+    }
+  }
+}

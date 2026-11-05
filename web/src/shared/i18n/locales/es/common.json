@@ -133,5 +133,6 @@
     "platform": "Plataforma (sin cliente)",
     "switchHint": "Cliente sobre el que operas",
     "current": "Empresa"
-  }
+  },
+  "loading": "Cargando…"
 }

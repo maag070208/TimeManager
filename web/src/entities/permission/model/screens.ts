@@ -73,6 +73,7 @@ const ALL_SCREENS: readonly AppScreen[] = [
   {
     id: "start",
     labelKey: "nav.home",
+    path: "/",
     match: "exact",
   },
   {

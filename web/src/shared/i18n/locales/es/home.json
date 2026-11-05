@@ -1,0 +1,153 @@
+{
+  "platform": {
+    "title": "Panel de TimeManager",
+    "description": "Tus clientes, su estado y su uso.",
+    "newClient": "Nuevo cliente",
+    "kpis": {
+      "all": "Clientes",
+      "active": "Activos",
+      "suspended": "Suspendidos",
+      "people": "{{count}} personas activas"
+    },
+    "listTitle": "Clientes",
+    "listDescription": "Entra a un cliente para operar sus pantallas como soporte.",
+    "search": "Buscar por nombre o subdominio…",
+    "empty": {
+      "title": "Aún no hay clientes",
+      "description": "Da de alta el primero: se crea su subdominio, su administrador y sus catálogos."
+    },
+    "noResults": {
+      "title": "Sin coincidencias",
+      "description": "Prueba con otro nombre o quita el filtro."
+    },
+    "table": {
+      "client": "Cliente",
+      "status": "Estado",
+      "people": "Personas",
+      "plan": "Plan",
+      "since": "Alta",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "suspended": "Suspendido"
+    },
+    "actions": {
+      "enter": "Entrar",
+      "suspend": "Suspender",
+      "reactivate": "Reactivar"
+    },
+    "confirm": {
+      "suspendTitle": "¿Suspender a {{name}}?",
+      "suspendMessage": "Nadie de este cliente podrá entrar y sus sesiones se cierran de inmediato. Sus datos se conservan.",
+      "reactivateTitle": "¿Reactivar a {{name}}?",
+      "reactivateMessage": "Su personal podrá volver a entrar por {{host}}.",
+      "suspend": "Suspender",
+      "reactivate": "Reactivar"
+    },
+    "pickClient": {
+      "title": "Elige un cliente",
+      "description": "Esta pantalla es de un cliente. Entra a uno desde la lista o con el selector de arriba."
+    },
+    "create": {
+      "title": "Nuevo cliente",
+      "subtitle": "Se crean su subdominio, su administrador y sus catálogos base.",
+      "company": "Empresa",
+      "name": "Nombre de la empresa",
+      "slug": "Subdominio",
+      "slugHint": "Su personal entrará por {{host}}",
+      "timezone": "Zona horaria",
+      "employeeLimit": "Límite de personas (opcional)",
+      "plan": "Plan (opcional)",
+      "admin": "Administrador del cliente",
+      "adminName": "Nombre",
+      "adminUsername": "Usuario",
+      "adminEmail": "Correo (opcional)",
+      "cancel": "Cancelar",
+      "submit": "Crear cliente",
+      "saving": "Creando…",
+      "errors": {
+        "required": "Obligatorio",
+        "slug": "Solo minúsculas, números y guiones; no puede ser app, admin, api o www",
+        "username": "Mínimo 3 caracteres",
+        "email": "Correo no válido",
+        "number": "Debe ser un número mayor a 0"
+      },
+      "done": {
+        "title": "{{name}} está listo",
+        "subtitle": "Comparte estos datos con su administrador.",
+        "url": "Entrada",
+        "user": "Usuario",
+        "password": "Contraseña provisional",
+        "hint": "La contraseña solo se muestra ahora. Al entrar por primera vez se le pedirá cambiarla.",
+        "copy": "Copiar datos",
+        "copied": "Copiado",
+        "close": "Listo"
+      }
+    }
+  },
+  "client": {
+    "greeting": "Hola, {{name}}",
+    "description": "{{company}} · {{date}}",
+    "nothing": {
+      "title": "Bienvenido",
+      "description": "Tu cuenta aún no tiene pantallas asignadas. Pide acceso a tu administrador."
+    },
+    "loadError": "No se pudo cargar esta sección",
+    "seeAll": "Ver todo",
+    "onboarding": {
+      "title": "Primeros pasos",
+      "description": "Deja tu cuenta lista en cuatro pasos.",
+      "done": "Hecho",
+      "go": "Ir",
+      "staff": "Da de alta a tu personal",
+      "staffHint": "Uno por uno o importando un Excel.",
+      "schedules": "Crea los horarios",
+      "schedulesHint": "Turnos, tolerancias y comida.",
+      "assign": "Asigna un horario a cada persona",
+      "assignHint": "{{count}} personas sin horario.",
+      "clock": "Vincula el reloj checador",
+      "clockHint": "{{count}} personas sin número de reloj."
+    },
+    "attendance": {
+      "title": "Asistencia de hoy",
+      "present": "A tiempo",
+      "late": "Con retardo",
+      "notArrived": "Sin llegar",
+      "onSite": "{{count}} en sitio ahora",
+      "latest": "Retardos de hoy",
+      "noLate": "Nadie llegó tarde hoy.",
+      "lateMin": "{{min}} min"
+    },
+    "people": {
+      "title": "Personal",
+      "active": "Activos",
+      "hires": "Altas del mes",
+      "departures": "Bajas del mes",
+      "birthdays": "Cumpleaños próximos",
+      "anniversaries": "Aniversarios próximos",
+      "years": "{{count}} años",
+      "none": "Sin fechas próximas."
+    },
+    "records": {
+      "title": "Expedientes",
+      "complete": "Completos",
+      "missingRequired": "Falta un documento",
+      "missingFields": "Faltan datos"
+    },
+    "overtime": {
+      "title": "Tiempo extra de la semana",
+      "pending": "Por aprobar",
+      "approved": "Aprobado",
+      "rejected": "No aprobado",
+      "hours": "{{value}} h",
+      "topPending": "Más horas por aprobar"
+    },
+    "setup": {
+      "title": "Pendientes de configuración",
+      "unlinked": "Números sin persona",
+      "withoutClock": "Sin reloj",
+      "withoutSchedule": "Sin horario"
+    }
+  }
+}

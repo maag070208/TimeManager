@@ -68,8 +68,9 @@ export default function UserHistoryPage() {
           { label: tt("list.breadcrumb"), onClick: () => navigate("/users") },
           { label: tt("history.breadcrumb") },
         ]}
+        loading
       >
-        <TicState kind="loading" />
+        {null}
       </ITPage>
     );
   }

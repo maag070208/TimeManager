@@ -5,7 +5,6 @@ import {
   ITChip,
   ITFlex,
   ITInput,
-  ITLoader,
   ITText,
   ITToast,
 } from "@axzydev/axzy_ui_system";
@@ -14,6 +13,7 @@ import { FaLink, FaUnlink } from "react-icons/fa";
 import type { User } from "@entities/user";
 import { PanelCard } from "@shared/ui/panel-card";
 import type { UseTimeClockDifferences } from "../model/useTimeClockDifferences";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 interface FilaProps {
   seleccionada: boolean;
@@ -82,7 +82,7 @@ export default function TimeClockDifferencesTab({ fx }: { fx: UseTimeClockDiffer
     desvincular,
   } = fx;
 
-  if (loading) return <ITLoader size="md" />;
+  if (loading) return <ContentSkeleton />;
 
   return (
     <ITFlex direction="column" gap={4}>

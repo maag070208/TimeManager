@@ -43,3 +43,14 @@ export const setSelectedTenant = (tenant: SelectedTenant | null): void => {
     /* noop */
   }
 };
+
+/** URL de entrada de un cliente: su subdominio sobre el host actual o el de producción. */
+export const tenantUrl = (slug: string): string => {
+  const base = import.meta.env.VITE_TENANT_BASE_DOMAIN;
+  if (base) return `https://${slug}.${base}`;
+  const { protocol, port } = window.location;
+  return `${protocol}//${slug}.localhost${port ? `:${port}` : ""}`;
+};
+
+/** Subdominio legible (`acme.timemanager.mx`), para mostrar sin protocolo. */
+export const tenantHost = (slug: string): string => tenantUrl(slug).replace(/^https?:\/\//, "");

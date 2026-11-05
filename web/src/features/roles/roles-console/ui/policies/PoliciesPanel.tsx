@@ -3,10 +3,10 @@ import { ITAlert, ITButton, ITCard, ITFlex, ITSlideToggle, ITStack, ITText } fro
 import { FaArrowDown, FaArrowUp, FaCheckCircle, FaEdit, FaLightbulb, FaLock, FaPlus, FaVial } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { PolicyAdmin } from "@entities/permission";
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import type { PoliciesState } from "../../model/usePolicies";
 import PolicySentence from "../shared/PolicySentence";
 import PolicyEditorDialog, { type PolicySubmit } from "../PolicyEditorDialog";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 interface Props {
   policies: PoliciesState;
@@ -66,9 +66,7 @@ export default function PoliciesPanel({ policies, onTest, notify }: Props) {
 
   if (loading && !data) {
     return (
-      <div className="flex justify-center py-16">
-        <LottieLoader />
-      </div>
+      <ContentSkeleton />
     );
   }
 

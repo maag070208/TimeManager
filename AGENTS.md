@@ -41,6 +41,8 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 - **Alias**: `@app`, `@entities`, `@features`, `@pages`, `@widgets`, `@shared`.
 - **Roles** (claves en inglés, nombres en español): `ADMIN` y `SUPPORT` (equipo TimeManager), `CLIENT_ADMIN`, `HUMAN_RESOURCES` y `CLIENT_STAFF` (cliente). Viven en la tabla `roles`; catálogo y matriz en `api/prisma/seed-data/{roles,role_permissions}.json`. La UI se gobierna por permisos (`useCan`), no por clave de rol.
 - **Mascota**: Tic (canvas 8-bit, sin imágenes) en `shared/ui/tic` (`Tic`, `TicState`, `TicAvatar`, `Escena`), `shared/ui/tic-chat` y `shared/ui/tic-confirm`; textos en el namespace i18n `tic`.
+- **Carga**: un solo indicador, el esqueleto de `ITPage`. Página completa → `<ITPage loading>`; bloque dentro de una página o diálogo → `ContentSkeleton` (`shared/ui/content-skeleton`). No usar spinners, Lottie ni `TicState` para cargar.
+- **Inicio (`/`)**: consola de plataforma para ADMIN/SUPPORT sin cliente elegido; inicio del cliente (`features/home/client-overview`) en cualquier otro caso.
 - **Multi-cliente**: el login toma el cliente del subdominio (`acme.localhost:5006` en local); ADMIN/SUPPORT eligen cliente en la barra superior (`X-Tenant-Id`).
 - **Mapa detallado de módulos frontend**: `web/docs/MODULES.md`.
 - **Comandos**:

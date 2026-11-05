@@ -176,7 +176,8 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
   - Script de aislamiento `api/scripts/tenancy-check.ts` contra una BD de prueba: crea tenants A y B con un empleado, horario y checada cada uno; comprueba que A no lista, lee por id, edita ni borra lo de B; limpia al final.
   - Implementado: `pnpm test:unit` (node:test + ts-node, `src/**/*.test.ts`): 18 pruebas de `scopeArgs`, contexto ALS, CORS y DTO de tenants. Encontró y corrigió un bug: `createMany` con `data` como objeto (válido en Prisma) rompía `scopeArgs`. `pnpm tenancy-check` solo lee `TENANCY_CHECK_DATABASE_URL` (nunca `DATABASE_URL`): **13/13** en Postgres 16 (Docker), sin residuos.
 
-- [ ] **F1A-10 Plataforma sin cliente elegido.** Hoy ADMIN/SUPPORT sin `X-Tenant-Id` ven en las pantallas de cliente los datos de **todos** los clientes mezclados, y las altas fallan en BD (sin `tenantId`). Pedir elegir cliente antes de abrir pantallas de cliente (o abrir directo en la consola F3-01).
+- [x] **F1A-10 Plataforma sin cliente elegido.** Hoy ADMIN/SUPPORT sin `X-Tenant-Id` ven en las pantallas de cliente los datos de **todos** los clientes mezclados, y las altas fallan en BD (sin `tenantId`). Pedir elegir cliente antes de abrir pantallas de cliente (o abrir directo en la consola F3-01).
+  - Implementado: sin cliente elegido, ADMIN/SUPPORT solo ven Inicio (consola), Roles y Avisos (`PLATFORM_PATHS` en `features/tenant/tenant-switcher`); cualquier otra ruta redirige a `/` y el menú esconde grupos vacíos.
 - [ ] **F1A-11 Login en la app de escritorio.** Electron no tiene subdominio: agregar campo de empresa (solo en escritorio) o configurar el slug por instalación.
 
 - [x] **F1A-09 Aplicar y verificar.** Migración en Railway, crear 2 tenants de prueba, login por subdominio de cada uno, correr `tenancy-check`, actualizar fichas de módulos y `AGENTS.md`.
@@ -205,8 +206,10 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 
 ### Fase 3 — Consola de plataforma y onboarding
 
-- [ ] **F3-01** Consola de plataforma (web, solo ADMIN/SUPPORT): lista de clientes, plan, estado, uso (empleados activos, checadas/día, relojes).
+- [x] **F3-01** Consola de plataforma (web, solo ADMIN/SUPPORT): lista de clientes, plan, estado, uso (empleados activos, checadas/día, relojes).
+  - Implementado en `/` sin cliente elegido (`pages/home/PlatformHomePage`, `features/tenant/tenants-console`): totales, búsqueda y filtro por estado, subdominio, personas activas / límite, plan, alta, **Entrar** (opera como el cliente) y **Suspender/Reactivar** con confirmación. Falta en uso: checadas/día y relojes (requiere agregarlos a `GET /tenants`).
 - [ ] **F3-02** Alta de cliente guiada: tenant + `CLIENT_ADMIN` + catálogos plantilla + correo de bienvenida.
+  - Hecho: diálogo "Nuevo cliente" (subdominio sugerido desde el nombre, zona horaria, límite, plan, administrador) que al terminar muestra entrada, usuario y contraseña provisional una sola vez, con botón de copiar. Falta: correo de bienvenida.
 - [ ] **F3-03** "Entrar como cliente" para soporte, con auditoría.
 - [ ] **F3-04** Límites por plan (`employeeLimit`, relojes) aplicados en altas y en la consola.
 - [ ] **F3-05** Branding por cliente (logo y color) y correo con remitente por cliente.
@@ -240,6 +243,9 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [x] **L-09** `User.company` (texto libre, muere con D2 en favor de `tenantId`): borrado del schema, DTOs/entities/mappers/services de `users` y `hr`, y de la web (hero, tipos). La migración F1A-02 debe incluir el `DROP COLUMN`.
 - [ ] **L-10** `Notification.ticketId` + canal Ably `tickets:` + referencias en `appEvents`, `useAblyNotifications` y DTO de `dashboard` (residuo de tickets).
 - [ ] **L-11** `AuditLog.deviceId`/`deviceCode` (residuo del audit de inventario): DTO/entity/mapper de `audit` + writers del `AuditLogger`.
+- [x] **L-14** Un solo indicador de carga: el esqueleto de `ITPage`. Página completa → `<ITPage loading>`; bloque dentro de página o diálogo → `ContentSkeleton` (`shared/ui/content-skeleton`, mismo esqueleto). Fuera `LottieLoader`, el `ITLoader` de contenido y `TicState kind="loading"` (20 pantallas). Los botones conservan su `loading`.
+- [x] **L-15** Inicio del cliente (`/`, `features/home/client-overview`): primeros pasos (personal, horarios, asignación, reloj), asistencia de hoy, personal, expedientes, tiempo extra de la semana y pendientes de configuración; cada bloque según permiso y con su propio esqueleto/error. Antes `/` mandaba a `/employees`.
+- [x] **L-16** `PanelCard` apilaba título y descripción en fila (se veían pegados en todas las tarjetas); el logo de la barra superior repetía "TimeManager".
 - [x] **L-13** Mascota: Langostín (Puerto Nuevo) reemplazada por **Tic** en toda la web (`shared/ui/tic`, `tic-chat`, `tic-confirm`, namespace i18n `tic`); fuera la entrada muerta de la galería del menú, los namespaces i18n sin uso `tickets`/`inventory`/`home` y los textos "Puerto Nuevo" visibles (departamentos, pre nómina, credencial).
 - [ ] **L-12** `DepartmentTicketSchema` en el DTO de `departments` y grupo `tickets` en el DTO de `dashboard`.
 

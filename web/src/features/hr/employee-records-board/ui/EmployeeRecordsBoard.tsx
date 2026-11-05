@@ -12,12 +12,12 @@ import {
   ITSearchSelect,
   ITToast, ITText } from "@axzydev/axzy_ui_system";
 import { FaBell, FaChevronRight, FaSearch } from "react-icons/fa";
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { RowAction } from "@shared/ui/row-action";
 import { Num } from "@shared/ui/bento-bits";
 import type { RecordGapsRow } from "@entities/dashboard";
 import { recordStatus, type RecordFilter, type RecordStatus, type UseEmployeeRecords } from "../model/useEmployeeRecords";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 const FILTERS: RecordFilter[] = ["ALL", "REQUIRED", "INCOMPLETE", "COMPLETE"];
 const OTHER_DOCS_PREVIEW = 4;
@@ -117,9 +117,7 @@ export default function EmployeeRecordsBoard({ fx, hideKpis = false }: Props) {
 
   if (fx.loading && fx.visible.length === 0 && !fx.error) {
     return (
-      <div className="flex justify-center py-16">
-        <LottieLoader size="lg" />
-      </div>
+      <ContentSkeleton />
     );
   }
 

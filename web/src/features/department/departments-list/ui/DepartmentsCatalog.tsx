@@ -21,6 +21,7 @@ import { Num } from "@shared/ui/bento-bits";
 import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
 import { TicState } from "@shared/ui/tic";
 import { ListSummaryStrip, type ListSummaryItem } from "@shared/ui/list-summary-strip";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 type StatusFilter = "all" | "active" | "inactive" | "staffed";
 type AreasFilter = "any" | "with" | "without";
@@ -178,7 +179,7 @@ export default function DepartmentsCatalog({
     );
   }
 
-  if (departments === null) return <TicState kind="loading" />;
+  if (departments === null) return <ContentSkeleton />;
 
   if (rows.length === 0) {
     return (

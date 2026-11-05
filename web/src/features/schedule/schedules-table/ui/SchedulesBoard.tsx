@@ -20,6 +20,7 @@ import { RowAction } from "@shared/ui/row-action";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { emitAppEvent, onAppEvent } from "@shared/lib/appEvents";
 import { dateLocale } from "@shared/i18n";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 type Filter = "all" | "active" | "inactive";
 
@@ -268,7 +269,7 @@ export default function SchedulesBoard() {
   ];
 
   if (failed) return <TicState kind="error" />;
-  if (!rows) return <TicState kind="loading" />;
+  if (!rows) return <ContentSkeleton />;
 
   return (
     <ITStack spacing={4}>

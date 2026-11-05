@@ -6,6 +6,7 @@ import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
 import { TicState } from "@shared/ui/tic";
 import { PanelCard } from "@shared/ui/panel-card";
 import { formatLongDate } from "@shared/utils/dates";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 /** Encabezado del día: "Hoy", "Ayer" o la fecha larga con la primera letra en mayúscula. */
 const useDayLabel = () => {
@@ -61,7 +62,7 @@ export default function NotificationsPage() {
         <FilterPills items={filters} value={fx.filter} onChange={fx.setFilter} />
 
         <PanelCard>
-          {initialLoad && <TicState kind="loading" />}
+          {initialLoad && <ContentSkeleton />}
 
           {empty && (
             <TicState

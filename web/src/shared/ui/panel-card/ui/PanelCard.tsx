@@ -32,7 +32,7 @@ export default function PanelCard({ title, icon, description, actions, onOpen, o
     <ITCard className={`bento-rise ${className ?? ""}`}>
       {hasHeader && (
         <ITFlex align="start" justify="between" gap={3} className={children ? "mb-4" : undefined}>
-          <ITFlex className="min-w-0 flex-1">
+          <ITFlex direction="column" className="min-w-0 flex-1">
             {title && (
               <ITFlex align="center" gap={2}>
                 {icon && <span className="icon-breathe flex shrink-0 items-center text-slate-400">{icon}</span>}

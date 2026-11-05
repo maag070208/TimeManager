@@ -1,4 +1,3 @@
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import {
   ITAlert,
   ITButton,
@@ -40,16 +39,13 @@ export default function DepartmentDetailPage() {
           { label: tt("detail.breadcrumbDepartments"), onClick: () => navigate("/departments") },
           { label: tt("detail.breadcrumbDetail") },
         ]}
+        loading={!detail.error}
       >
         {detail.error ? (
           <ITAlert variant="error" dismissible onDismiss={() => detail.setError(null)}>
             {detail.error}
           </ITAlert>
-        ) : (
-          <ITFlex justify="center">
-            <LottieLoader size="lg" />
-          </ITFlex>
-        )}
+        ) : null}
       </ITPage>
     );
   }

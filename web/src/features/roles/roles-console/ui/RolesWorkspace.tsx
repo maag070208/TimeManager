@@ -1,7 +1,6 @@
 import { ITAlert, ITDialog, ITToast, ITText, ITStack } from "@axzydev/axzy_ui_system";
 import { FaGavel, FaHistory, FaListUl, FaTable, FaUserShield, FaUsersCog } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import type { RolesWorkspaceState, WorkspaceTab } from "../model/useRolesWorkspace";
 import AccessActivityPanel from "./activity/AccessActivityPanel";
 import AccessSimulator from "./access/AccessSimulator";
@@ -16,6 +15,7 @@ import RoleEditorDialog from "./RoleEditorDialog";
 import RolesHelpDialog from "./RolesHelpDialog";
 import { ChangesReviewDialog, PendingChangesBar } from "./shared/PendingChanges";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 interface Props {
   workspace: RolesWorkspaceState;
@@ -33,9 +33,7 @@ export default function RolesWorkspace({ workspace }: Props) {
 
   if (loading && !data) {
     return (
-      <div className="flex justify-center py-20">
-        <LottieLoader />
-      </div>
+      <ContentSkeleton />
     );
   }
 

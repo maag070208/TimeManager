@@ -12,6 +12,7 @@ import {
 import { formatDateTime } from "@shared/utils/dates";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { TicState } from "@shared/ui/tic";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 /**
  * Timeline de sincronización de un reloj: cada intento con su hora, si conectó,
@@ -112,7 +113,7 @@ export default function ClockHistoryDialog({
         )}
 
         {cargando && !historial ? (
-          <TicState kind="loading" size="sm" />
+          <ContentSkeleton size="sm" />
         ) : error ? (
           <TicState kind="error" size="sm" description={t("history.loadError")} />
         ) : historial && historial.events.length === 0 ? (

@@ -6,7 +6,7 @@ import Tic from "./Tic";
 import type { TicAnim } from "./ticSprite";
 import { ITText } from "@axzydev/axzy_ui_system";
 
-export type TicStateKind = "empty" | "noResults" | "forbidden" | "error" | "offline" | "loading";
+export type TicStateKind = "empty" | "noResults" | "forbidden" | "error" | "offline";
 
 interface Props {
   kind: TicStateKind;
@@ -27,15 +27,14 @@ const ANIM_BY_KIND: Record<TicStateKind, TicAnim> = {
   forbidden: "lock",
   error: "err",
   offline: "offline",
-  loading: "loading",
 };
 
 const MASCOT_SIZE = { sm: 72, md: 112 } as const;
 
 /**
- * Estado de lista/feed/tablero: vacío, sin resultados, sin permiso, error,
- * sin conexión o cargando. Centrado y tranquilo; sin movimiento si el sistema
- * pide menos animación.
+ * Estado de lista/feed/tablero: vacío, sin resultados, sin permiso, error o
+ * sin conexión. Centrado y tranquilo; sin movimiento si el sistema pide menos
+ * animación. La carga no va aquí: es el esqueleto de `ITPage` (`ContentSkeleton`).
  */
 export default function TicState({ kind, title, description, action, size = "md", className }: Props) {
   const { t } = useTranslation("tic");

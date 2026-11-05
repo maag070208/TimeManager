@@ -14,7 +14,7 @@ export default function TenantSwitcher() {
       ...(tenants ?? []).map((tenant) => ({ value: tenant.id, label: tenant.name })),
     ];
     return (
-      <div className="w-48 max-w-[40vw]" title={t("tenant.switchHint")}>
+      <div className="w-28 sm:w-48" title={t("tenant.switchHint")}>
         <ITSelect
           name="tenant"
           size="sm"

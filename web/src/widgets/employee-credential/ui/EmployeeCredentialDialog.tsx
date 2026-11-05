@@ -1,4 +1,3 @@
-import { LottieLoader } from "@shared/ui/lottie-loader";
 import { ITAlert, ITButton, ITDialog, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { FaDownload } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
@@ -6,6 +5,7 @@ import type { PersonalProfile } from "@entities/hr";
 import { useEmployeeCredential } from "../model/useEmployeeCredential";
 import { downloadCredentialImage } from "../model/image";
 import EmployeeCredentialPreview from "./EmployeeCredentialPreview";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 interface Props {
   isOpen: boolean;
@@ -32,9 +32,7 @@ export default function EmployeeCredentialDialog({ isOpen, onClose, profile }: P
     >
       <div className="max-h-[75vh] overflow-y-auto">
         {loading ? (
-          <ITFlex justify="center" className="py-12">
-            <LottieLoader size="lg" />
-          </ITFlex>
+          <ContentSkeleton />
         ) : error ? (
           <ITAlert variant="error">{error}</ITAlert>
         ) : profile && imageDataUrl ? (
