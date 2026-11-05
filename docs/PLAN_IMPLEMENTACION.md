@@ -179,9 +179,9 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [ ] **F1A-10 Plataforma sin cliente elegido.** Hoy ADMIN/SUPPORT sin `X-Tenant-Id` ven en las pantallas de cliente los datos de **todos** los clientes mezclados, y las altas fallan en BD (sin `tenantId`). Pedir elegir cliente antes de abrir pantallas de cliente (o abrir directo en la consola F3-01).
 - [ ] **F1A-11 Login en la app de escritorio.** Electron no tiene subdominio: agregar campo de empresa (solo en escritorio) o configurar el slug por instalación.
 
-- [ ] **F1A-09 Aplicar y verificar.** Migración en Railway, crear 2 tenants de prueba, login por subdominio de cada uno, correr `tenancy-check`, actualizar fichas de módulos y `AGENTS.md`.
+- [x] **F1A-09 Aplicar y verificar.** Migración en Railway, crear 2 tenants de prueba, login por subdominio de cada uno, correr `tenancy-check`, actualizar fichas de módulos y `AGENTS.md`.
   - 2026-11-04, verificado (solo lectura): Railway ya tiene `20261104000000_baseline_rh` y `20261105000000_tenancy` aplicadas ("Database schema is up to date"). Estado: tenant `demo` ACTIVE, un usuario `ADMIN` de plataforma (`tenantId` null), cero datos de negocio (departamentos, horarios, relojes, checadas, catálogos), así que no hubo backfill que revisar.
-  - Falta (escribe en la BD de la nube): sembrar `tenants.view`/`tenants.manage` (lo hace solo el API nuevo al arrancar), catálogos plantilla de `demo`, segundo tenant `prueba` con su `CLIENT_ADMIN`, login por subdominio de ambos y `tenancy-check` contra Railway.
+  - Hecho (autorizado): permisos `tenants.*` sembrados; catálogos plantilla en `demo`; tenant `prueba` creado; `CLIENT_ADMIN` `admin.demo` y `admin.prueba` con contraseña provisional (obligados a cambiarla). Login por slug **12/12** (cada uno entra solo por su subdominio, no sin slug ni por el ajeno; cada cliente ve solo sus usuarios y catálogos). `tenancy-check` contra Railway **13/13**, sin residuos (quedan solo `demo` y `prueba`).
 
 ### Fase 1b — Endurecimiento del aislamiento y de la escala
 
