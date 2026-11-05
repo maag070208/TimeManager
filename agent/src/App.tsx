@@ -171,9 +171,13 @@ export default function App() {
   return (
     <div className="agent-shell flex h-full flex-col">
       <header className="flex items-center gap-3 bg-[#1D2636] px-6 py-3 text-[#F4F6FA] shadow-md">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F2A93B] text-sm font-black text-[#1D2636]">
-          TM
-        </div>
+        <svg viewBox="16 16 88 88" className="h-9 w-9 shrink-0" aria-hidden="true">
+          <path d="M75.96 29.98 A34 34 0 1 1 44.04 29.98" fill="none" stroke="#F4F6FA" strokeWidth="8" strokeLinecap="round" />
+          <path d="M38 30 H82" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
+          <path d="M60 30 V60" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
+          <path d="M60 60 L77 70" stroke="#F4F6FA" strokeWidth="6" strokeLinecap="round" />
+          <circle cx="60" cy="60" r="5" fill="#F2A93B" />
+        </svg>
         <div className="flex-1">
           <ITText as="h1" className="text-base font-semibold leading-tight" style={{ color: "inherit" }}>
             TimeManagerAgent

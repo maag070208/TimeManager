@@ -47,6 +47,7 @@
       "resources/*.png"
     ],
     "win": {
+      "icon": "resources/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -61,7 +62,12 @@
       "perMachine": false,
       "createDesktopShortcut": "always",
       "shortcutName": "TimeManagerAgent",
-      "artifactName": "TimeManagerAgent-Setup-${version}.${ext}"
+      "artifactName": "TimeManagerAgent-Setup-${version}.${ext}",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
+      "installerHeaderIcon": "resources/icon.ico",
+      "installerSidebar": "resources/installerSidebar.bmp",
+      "installerHeader": "resources/installerHeader.bmp"
     },
     "linux": {
       "target": [
@@ -73,10 +79,13 @@
         }
       ],
       "category": "Utility",
-      "artifactName": "TimeManagerAgent-${version}.${ext}"
+      "artifactName": "TimeManagerAgent-${version}.${ext}",
+      "icon": "resources/icon.png",
+      "syncDesktopName": true
     },
     "icon": "resources/icon.png",
     "mac": {
+      "icon": "resources/icon.png",
       "target": [
         {
           "target": "dmg",
@@ -88,5 +97,6 @@
       "category": "public.app-category.productivity",
       "artifactName": "TimeManagerAgent-${version}-${arch}.${ext}"
     }
-  }
+  },
+  "desktopName": "TimeManagerAgent"
 }

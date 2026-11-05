@@ -12,9 +12,9 @@
  */
 
 const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
+const path = require("node:path");
 const fs = require("node:fs");
 const os = require("node:os");
-const path = require("node:path");
 const { ConfigStore } = require("./config-store.cjs");
 const { Logger } = require("./logger.cjs");
 const { AgentService } = require("./agent-service.cjs");
@@ -66,6 +66,7 @@ const registerAutoStart = (enabled) => {
 
 const createWindow = () => {
   window = new BrowserWindow({
+    icon: path.join(__dirname, "..", "resources", "icon.png"),
     width: 1080,
     height: 760,
     minWidth: 920,
