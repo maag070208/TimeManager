@@ -26,9 +26,20 @@ test.describe("Landing pública", () => {
     await page.getByText("¿Sirve para home office y personal en campo?").click();
     await expect(page.getByText(/Además del reloj, cada persona tiene su portal/i)).toBeVisible();
 
+    // El tema elegido persiste al recargar.
+    await page.reload();
+    await expect(page.locator(".tm-landing")).toHaveAttribute("data-theme", before === "light" ? "dark" : "light");
+
     // Acceso al sistema desde la landing.
     await page.getByRole("link", { name: /^Iniciar sesión$/ }).first().click();
     await expect(page).toHaveURL(/\/login/);
     await expect(page.locator('input[name="username"]')).toBeVisible();
+  });
+
+  test("desde el login se puede volver a la landing", async ({ page }) => {
+    await page.goto(`${PLATFORM.base}/#/login`);
+    await page.getByRole("link", { name: /Conoce TimeManager/i }).click();
+    await expect(page).toHaveURL(/\/landing/);
+    await expect(page.getByRole("heading", { level: 1, name: /El registro de jornada/i })).toBeVisible();
   });
 });

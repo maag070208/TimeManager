@@ -91,7 +91,7 @@ y el seed trunca. El arnés se niega a correr contra una BD que no sea local
 
 ## Resultado de la corrida final (2026-11-05)
 
-Suite completa con el runner serializado: **72/72 tests en 19 specs**.
+Suite completa con el runner serializado: **73/73 tests en 19 specs**.
 
 | Spec | Tests | Cubre |
 |---|---|---|
@@ -112,7 +112,7 @@ Suite completa con el runner serializado: **72/72 tests en 19 specs**.
 | `client-routes.spec.ts` | 7 | rutas por cliente (`/#/acme/...`), guards, legado y plataforma |
 | `mi-jornada.spec.ts` | 2 | portal del trabajador (cliente) y Mi jornada oculta/regresada en plataforma |
 | `mi-jornada.mobile.spec.ts` | 1 | portal en teléfono: usable y sin desbordes horizontales |
-| `landing.spec.ts` | 1 | landing pública: bento, toggle claro/oscuro, planes, FAQ y acceso al login |
+| `landing.spec.ts` | 2 | landing pública: bento, toggle con persistencia al recargar, planes, FAQ, acceso al login y vuelta desde el login |
 | `landing.mobile.spec.ts` | 1 | landing en teléfono: sin desbordes y planes apilados |
 
 Pendiente como **manual (M)**: hardware real (estación DS-K1F600U, reloj físico),
