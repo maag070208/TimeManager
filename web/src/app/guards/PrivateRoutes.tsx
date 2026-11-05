@@ -1,6 +1,6 @@
 import { ITLayout, ITSidebarProps, ITToast, type ITNavigationItem } from "@axzydev/axzy_ui_system";
 import { useEffect, useState, useCallback, type ReactNode } from "react";
-import { FaHouseUser, FaUserTie, FaCog } from "react-icons/fa";
+import { LuHouse, LuUsers, LuSettings, LuCalendarCheck } from "react-icons/lu";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -21,9 +21,11 @@ import symbolUrl from "@shared/assets/brand/timemanager-symbol-for-light-bg.svg"
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {
-  start: <FaHouseUser size={14} />,
-  hr: <FaUserTie size={14} />,
-  settings: <FaCog size={14} />,
+  start: <LuHouse size={14} />,
+  // Portal del trabajador: sin icono quedaba un círculo vacío en el riel.
+  myWorkday: <LuCalendarCheck size={14} />,
+  hr: <LuUsers size={14} />,
+  settings: <LuSettings size={14} />,
 };
 
 export default function PrivateRoutes() {
@@ -137,7 +139,15 @@ export default function PrivateRoutes() {
 
   // Plataforma sin cliente elegido: solo su consola, roles y avisos. Las
   // pantallas de cliente mezclarían datos de todos los clientes (F1A-10).
-  if (platformWithoutClient && !(PLATFORM_PATHS as readonly string[]).includes(location.pathname)) {
+  // `platformWithoutClient` se calcula con la sesión persistida: tras un
+  // reload, el usuario del login aún no trae `tenant`/permisos hasta que
+  // responde `/auth/me`. No redirigir en ese estado o un cliente acabaría
+  // expulsado a la consola de plataforma.
+  if (
+    user?.permissions !== undefined &&
+    platformWithoutClient &&
+    !(PLATFORM_PATHS as readonly string[]).includes(location.pathname)
+  ) {
     return <Navigate to="/" replace />;
   }
 
@@ -168,6 +178,8 @@ export default function PrivateRoutes() {
 
   const canView = (screen: AppScreen): boolean =>
     isScreenVisible(permissions, screen, user?.role) &&
+    // Mi jornada es personal: el personal de plataforma no tiene expediente.
+    !(screen.id === "myWorkday" && !user?.tenant) &&
     (!platformWithoutClient || !screen.path || (PLATFORM_PATHS as readonly string[]).includes(screen.path));
 
   const toSubItem = (screen: AppScreen) => ({

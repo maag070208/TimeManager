@@ -109,3 +109,9 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - NOM-037 (teletrabajo): registro de teletrabajadores, política de desconexión y checklist del lugar de trabajo.
 - Pantalla web del historial de ajustes de checada para RH (el trabajador ya tiene portal en `/mi-jornada`).
 - Las correcciones de un **marcaje remoto** aún no tienen ajuste ligado (el ajuste referencia checadas del reloj): por ahora el trabajador reporta la discrepancia a RH y el registro remoto es inmutable; evaluar `PunchAdjustment` polimórfico o tabla de ajuste remoto.
+
+## Portal del trabajador (UX)
+
+- `/#/mi-jornada` es **solo para sesiones de cliente** (guarda `TenantOnly`); el personal de plataforma no lo ve en el menú y la ruta lo regresa a su inicio. En modo rutas por cliente vive en `/#/<slug>/mi-jornada`.
+- El portal es responsive: resumen de entrada/salida en dos tarjetas, formularios y botones a ancho completo en móvil, listas y checklist que se apilan. El menú lateral usa un icono propio (`LuCalendarCheck`) para la pantalla.
+- La hidratación de `/auth/me` no expulsa a un cliente de su ruta: los guards esperan a que la sesión tenga `tenant` y permisos antes de redirigir.

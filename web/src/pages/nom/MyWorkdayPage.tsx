@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   ITBadget,
   ITButton,
@@ -11,7 +11,15 @@ import {
   ITTextarea,
 } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
-import { LuCalendarCheck, LuClock, LuMapPin, LuRefreshCw } from "react-icons/lu";
+import {
+  LuCalendarCheck,
+  LuClock,
+  LuLaptop,
+  LuLogIn,
+  LuLogOut,
+  LuMapPin,
+  LuRefreshCw,
+} from "react-icons/lu";
 import type { MyPunch, PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
@@ -27,6 +35,16 @@ const timeOf = (iso: string): string =>
 
 const dateOf = (iso: string): string =>
   new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+
+const sameDay = (iso: string): boolean =>
+  new Date(iso).toDateString() === new Date().toDateString();
+
+const CardHeader = ({ icon, title }: { icon: ReactNode; title: string }) => (
+  <ITFlex align="center" gap={2} className="min-w-0">
+    <span className="text-slate-500">{icon}</span>
+    <ITText className="truncate font-bold">{title}</ITText>
+  </ITFlex>
+);
 
 /**
  * Portal del trabajador (F2-07/F2-08): marcaje remoto (home office/campo),
@@ -44,17 +62,16 @@ export default function MyWorkdayPage() {
   const [reason, setReason] = useState("");
   const [answers, setAnswers] = useState<Record<string, "YES" | "NO">>({});
 
-  const todayPunches = useMemo(
-    () =>
-      fx.punches.filter(
-        (row) => new Date(row.occurredAt).toDateString() === new Date().toDateString()
-      ),
-    [fx.punches]
-  );
-  const lastRemote = useMemo(
-    () => todayPunches.find((row) => row.source === "REMOTE") ?? null,
+  const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
+  const entry = useMemo(() => todayPunches.find((row) => row.type === "ENTRY") ?? null, [todayPunches]);
+  const exit = useMemo(
+    () => [...todayPunches].reverse().find((row) => row.type === "EXIT") ?? null,
     [todayPunches]
   );
+  const open = useMemo(() => {
+    const last = todayPunches[0];
+    return !!last && last.type === "ENTRY";
+  }, [todayPunches]);
   const telework = fx.telework;
   const checklistItems = telework?.checklistTemplate.items ?? [];
 
@@ -78,22 +95,46 @@ export default function MyWorkdayPage() {
     if (ok) setAnswers({});
   };
 
+  const summary = (label: string, icon: ReactNode, row: MyPunch | null) => (
+    <ITCard contentClassName="!p-4">
+      <ITFlex direction="column" gap={1}>
+        <ITFlex align="center" gap={2} className="text-slate-500">
+          {icon}
+          <ITText muted className="!text-[11px] font-semibold uppercase tracking-wide">
+            {label}
+          </ITText>
+        </ITFlex>
+        <ITText className="!text-2xl font-extrabold tabular-nums">
+          {row ? timeOf(row.occurredAt) : "--:--"}
+        </ITText>
+        <ITText muted className="!text-[11px]">
+          {row ? tr(SOURCE_LABEL[row.source]) : "—"}
+        </ITText>
+      </ITFlex>
+    </ITCard>
+  );
+
   return (
     <ITPage
       title={t("title")}
       description={t("description")}
       icon={<LuCalendarCheck size={20} />}
-      maxWidth="4xl"
+      maxWidth="3xl"
       actions={
-        <ITButton variant="outlined" color="secondary" size="lg" onClick={() => void fx.refresh()}>
+        <ITButton
+          variant="outlined"
+          color="secondary"
+          className="w-full sm:w-auto"
+          onClick={() => void fx.refresh()}
+        >
           <LuRefreshCw size={14} className="mr-1" />
           {t("refresh")}
         </ITButton>
       }
     >
-      <ITFlex direction="column" gap={4} className="pb-12">
+      <div className="flex flex-col gap-4 pb-12">
         {fx.error && (
-          <ITText className="rounded-md border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700">
+          <ITText className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700">
             {fx.error}
           </ITText>
         )}
@@ -102,13 +143,18 @@ export default function MyWorkdayPage() {
           <ContentSkeleton />
         ) : (
           <>
+            {/* Resumen de hoy: en móvil caben las dos tarjetas lado a lado. */}
+            <div className="grid grid-cols-2 gap-3">
+              {summary(t("punch.entry"), <LuLogIn size={14} />, entry)}
+              {summary(t("punch.exit"), <LuLogOut size={14} />, exit)}
+            </div>
+
             {/* Marcaje del día */}
-            <ITCard contentClassName="!p-5">
+            <ITCard contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
-                <ITFlex align="center" gap={2}>
-                  <LuClock size={16} />
-                  <ITText className="font-bold">{t("punch.title")}</ITText>
-                  {lastRemote?.type === "ENTRY" && (
+                <ITFlex align="center" justify="between" gap={2} className="min-w-0">
+                  <CardHeader icon={<LuClock size={16} />} title={t("punch.title")} />
+                  {open && (
                     <ITBadget color="warning" size="sm">
                       {t("punch.open")}
                     </ITBadget>
@@ -117,7 +163,8 @@ export default function MyWorkdayPage() {
                 <ITText muted className="!text-[12px]">
                   {t("punch.hint")}
                 </ITText>
-                <ITFlex gap={2} wrap="wrap" align="end">
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <ITSelect
                     name="punchMode"
                     label={t("punch.mode")}
@@ -135,22 +182,28 @@ export default function MyWorkdayPage() {
                     label={t("punch.note")}
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
-                    className="min-w-[220px] flex-1"
                   />
-                  <label className="flex items-center gap-2 text-[12px] text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={withGeo}
-                      onChange={(event) => setWithGeo(event.target.checked)}
-                    />
-                    <LuMapPin size={12} />
+                </div>
+
+                <label className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-[12px] text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={withGeo}
+                    onChange={(event) => setWithGeo(event.target.checked)}
+                  />
+                  <span className="flex items-center gap-1.5">
+                    <LuMapPin size={13} />
                     {t("punch.shareLocation")}
-                  </label>
-                </ITFlex>
-                <ITFlex gap={2} wrap="wrap">
+                  </span>
+                </label>
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <ITButton
                     variant="filled"
                     color="primary"
+                    className="w-full"
+                    disabled={fx.busy}
                     onClick={() => void doPunch("ENTRY")}
                   >
                     {t("punch.entry")}
@@ -158,11 +211,13 @@ export default function MyWorkdayPage() {
                   <ITButton
                     variant="outlined"
                     color="secondary"
+                    className="w-full"
+                    disabled={fx.busy}
                     onClick={() => void doPunch("EXIT")}
                   >
                     {t("punch.exit")}
                   </ITButton>
-                </ITFlex>
+                </div>
                 <ITText muted className="!text-[11px]">
                   {t("punch.privacy")}
                 </ITText>
@@ -170,56 +225,57 @@ export default function MyWorkdayPage() {
             </ITCard>
 
             {/* Mis marcajes */}
-            <ITCard contentClassName="!p-5">
+            <ITCard contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
-                <ITText className="font-bold">{t("punches.title")}</ITText>
-                <ITFlex gap={2} wrap="wrap">
-                  <label className="flex flex-col gap-1 text-[12px] text-slate-600">
+                <CardHeader icon={<LuCalendarCheck size={16} />} title={t("punches.title")} />
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex min-w-0 flex-col gap-1 text-[12px] text-slate-600">
                     {t("punches.from")}
                     <input
                       type="date"
                       value={fx.from}
                       onChange={(event) => fx.setFrom(event.target.value)}
-                      className="rounded-md border border-slate-200 px-2 py-1.5 text-[13px]"
+                      className="w-full min-w-0 rounded-md border border-slate-200 px-2 py-2 text-[13px]"
                     />
                   </label>
-                  <label className="flex flex-col gap-1 text-[12px] text-slate-600">
+                  <label className="flex min-w-0 flex-col gap-1 text-[12px] text-slate-600">
                     {t("punches.to")}
                     <input
                       type="date"
                       value={fx.to}
                       onChange={(event) => fx.setTo(event.target.value)}
-                      className="rounded-md border border-slate-200 px-2 py-1.5 text-[13px]"
+                      className="w-full min-w-0 rounded-md border border-slate-200 px-2 py-2 text-[13px]"
                     />
                   </label>
-                </ITFlex>
+                </div>
+
                 {fx.punches.length === 0 ? (
                   <ITText muted>{t("punches.empty")}</ITText>
                 ) : (
                   <ITFlex direction="column" gap={2}>
                     {fx.punches.map((row) => (
-                      <ITFlex
+                      <div
                         key={row.id}
-                        align="center"
-                        justify="between"
-                        gap={2}
-                        className="rounded-md border border-slate-100 px-3 py-2"
+                        className="flex flex-col gap-2 rounded-lg border border-slate-100 p-3 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <ITFlex align="center" gap={2} className="min-w-0">
+                        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                           <ITBadget color={row.source === "REMOTE" ? "info" : "gray"} size="sm">
                             {tr(SOURCE_LABEL[row.source])}
                           </ITBadget>
                           <ITText className="!text-[13px]">{dateOf(row.occurredAt)}</ITText>
-                          <ITText className="font-semibold !text-[13px]">{timeOf(row.occurredAt)}</ITText>
+                          <ITText className="font-semibold tabular-nums !text-[13px]">
+                            {timeOf(row.occurredAt)}
+                          </ITText>
                           <ITText muted className="!text-[12px]">
                             {row.type ? tr(row.type === "ENTRY" ? "punches.entry" : "punches.exit") : t("punches.noType")}
                           </ITText>
-                        </ITFlex>
+                        </div>
                         {row.source === "CLOCK" && (
                           <ITButton
                             variant="outlined"
                             color="secondary"
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={() => {
                               setSelectedPunch(row.id);
                               setReason("");
@@ -228,13 +284,13 @@ export default function MyWorkdayPage() {
                             {t("punches.report")}
                           </ITButton>
                         )}
-                      </ITFlex>
+                      </div>
                     ))}
                   </ITFlex>
                 )}
 
                 {selectedPunch && (
-                  <ITFlex direction="column" gap={2} className="rounded-md bg-slate-50 p-3">
+                  <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
                     <ITTextarea
                       name="reason"
                       label={t("discrepancy.reason")}
@@ -242,30 +298,43 @@ export default function MyWorkdayPage() {
                       onChange={(value) => setReason(value)}
                       rows={2}
                     />
-                    <ITFlex gap={2}>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <ITButton
                         variant="filled"
                         color="primary"
+                        className="w-full"
                         disabled={reason.trim().length < 5}
                         onClick={() => void submitDiscrepancy()}
                       >
                         {t("discrepancy.send")}
                       </ITButton>
-                      <ITButton variant="outlined" color="secondary" onClick={() => setSelectedPunch(null)}>
+                      <ITButton
+                        variant="outlined"
+                        color="secondary"
+                        className="w-full"
+                        onClick={() => setSelectedPunch(null)}
+                      >
                         {t("cancel")}
                       </ITButton>
-                    </ITFlex>
-                  </ITFlex>
+                    </div>
+                  </div>
                 )}
               </ITFlex>
             </ITCard>
 
             {/* Teletrabajo */}
-            <ITCard contentClassName="!p-5">
+            <ITCard contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
-                <ITText className="font-bold">{t("telework.title")}</ITText>
+                <CardHeader icon={<LuLaptop size={16} />} title={t("telework.title")} />
                 {!telework || !telework.registration ? (
-                  <ITText muted>{t("telework.notRegistered")}</ITText>
+                  <div className="flex flex-col items-start gap-3 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm">
+                      <LuLaptop size={18} />
+                    </span>
+                    <ITText muted className="!text-[12px]">
+                      {t("telework.notRegistered")}
+                    </ITText>
+                  </div>
                 ) : (
                   <>
                     <ITFlex align="center" gap={2} wrap="wrap">
@@ -277,20 +346,20 @@ export default function MyWorkdayPage() {
                       </ITText>
                     </ITFlex>
 
-                    <ITFlex direction="column" gap={1}>
-                      <ITText className="font-semibold !text-[13px]">{t("telework.policyTitle")}</ITText>
-                      <ITText className="whitespace-pre-line !text-[12px]">
-                        {telework.policy.teleworkPolicy ?? t("telework.noPolicy")}
-                      </ITText>
-                      <ITText className="font-semibold !text-[13px]">{t("telework.disconnectTitle")}</ITText>
-                      <ITText className="whitespace-pre-line !text-[12px]">
-                        {telework.policy.disconnectPolicy ?? t("telework.noPolicy")}
-                      </ITText>
-                      <ITText className="font-semibold !text-[13px]">{t("telework.privacyTitle")}</ITText>
-                      <ITText className="whitespace-pre-line !text-[12px]">
-                        {telework.policy.privacyNotice ?? t("telework.noPolicy")}
-                      </ITText>
-                    </ITFlex>
+                    <div className="flex flex-col gap-3 rounded-lg bg-slate-50 p-3">
+                      {[
+                        { title: t("telework.policyTitle"), body: telework.policy.teleworkPolicy },
+                        { title: t("telework.disconnectTitle"), body: telework.policy.disconnectPolicy },
+                        { title: t("telework.privacyTitle"), body: telework.policy.privacyNotice },
+                      ].map((section) => (
+                        <div key={section.title} className="min-w-0">
+                          <ITText className="font-semibold !text-[13px]">{section.title}</ITText>
+                          <ITText className="whitespace-pre-line !text-[12px]">
+                            {section.body ?? t("telework.noPolicy")}
+                          </ITText>
+                        </div>
+                      ))}
+                    </div>
 
                     {!telework.consentCurrent && (
                       <ITFlex align="center" gap={2} wrap="wrap">
@@ -301,6 +370,7 @@ export default function MyWorkdayPage() {
                           variant="filled"
                           color="primary"
                           size="sm"
+                          className="w-full sm:w-auto"
                           onClick={() => void fx.acceptPolicy()}
                         >
                           {t("telework.accept")}
@@ -308,15 +378,18 @@ export default function MyWorkdayPage() {
                       </ITFlex>
                     )}
 
-                    <ITFlex direction="column" gap={2} className="rounded-md border border-slate-100 p-3">
+                    <div className="flex flex-col gap-3 rounded-lg border border-slate-100 p-3">
                       <ITText className="font-semibold !text-[13px]">{t("telework.checklistTitle")}</ITText>
                       <ITText muted className="!text-[11px]">
                         {t("telework.checklistHint")}
                       </ITText>
                       {checklistItems.map((key) => (
-                        <ITFlex key={key} align="center" justify="between" gap={2}>
+                        <div
+                          key={key}
+                          className="flex flex-col gap-2 border-b border-slate-100 pb-2 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                        >
                           <ITText className="!text-[12px]">{tr(`checklist.items.${key}`)}</ITText>
-                          <ITFlex gap={1}>
+                          <div className="flex shrink-0 gap-1">
                             <ITButton
                               size="sm"
                               variant={answers[key] === "YES" ? "filled" : "outlined"}
@@ -333,14 +406,15 @@ export default function MyWorkdayPage() {
                             >
                               {t("checklist.no")}
                             </ITButton>
-                          </ITFlex>
-                        </ITFlex>
+                          </div>
+                        </div>
                       ))}
-                      <ITFlex gap={2}>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <ITButton
                           variant="filled"
                           color="primary"
                           size="sm"
+                          className="w-full sm:w-auto"
                           disabled={checklistItems.some((key) => !answers[key])}
                           onClick={() => void submitChecklist(telework.lastChecklist ? "PERIODIC" : "INITIAL")}
                         >
@@ -351,15 +425,15 @@ export default function MyWorkdayPage() {
                             {t("telework.lastChecklist")}: {dateOf(telework.lastChecklist.completedAt)}
                           </ITText>
                         )}
-                      </ITFlex>
-                    </ITFlex>
+                      </div>
+                    </div>
                   </>
                 )}
               </ITFlex>
             </ITCard>
           </>
         )}
-      </ITFlex>
+      </div>
     </ITPage>
   );
 }

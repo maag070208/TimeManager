@@ -38,7 +38,7 @@ export default defineConfig({
     locale: "es-MX",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "chromium", testIgnore: /.*\.mobile\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
     {
       name: "mobile",
       testMatch: /.*\.mobile\.spec\.ts/,

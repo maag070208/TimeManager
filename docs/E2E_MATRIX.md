@@ -91,7 +91,7 @@ y el seed trunca. El arnés se niega a correr contra una BD que no sea local
 
 ## Resultado de la corrida final (2026-11-05)
 
-Suite completa con el runner serializado: **67/67 tests en 15 specs**.
+Suite completa con el runner serializado: **70/70 tests en 17 specs**.
 
 | Spec | Tests | Cubre |
 |---|---|---|
@@ -110,6 +110,8 @@ Suite completa con el runner serializado: **67/67 tests en 15 specs**.
 | `agent-console.spec.ts` | 2 | token crear/rotar/revocar y cola de trabajos |
 | `nom-portal.spec.ts` | 3 | `/mi-jornada` staff, guard de `/teletrabajo`, administración NOM |
 | `client-routes.spec.ts` | 7 | rutas por cliente (`/#/acme/...`), guards, legado y plataforma |
+| `mi-jornada.spec.ts` | 2 | portal del trabajador (cliente) y Mi jornada oculta/regresada en plataforma |
+| `mi-jornada.mobile.spec.ts` | 1 | portal en teléfono: usable y sin desbordes horizontales |
 
 Pendiente como **manual (M)**: hardware real (estación DS-K1F600U, reloj físico),
 subida real de Excel y acciones destructivas de nómina que exigen datos de

@@ -34,6 +34,7 @@ import UserHistoryPage from "@pages/users/UserHistoryPage";
 import UserImportPage from "@pages/users/UserImportPage";
 import NotificationsPage from "@pages/notifications/NotificationsPage";
 import MyWorkdayPage from "@pages/nom/MyWorkdayPage";
+import TenantOnly from "./guards/TenantOnly";
 import TeleworkAdminPage from "@pages/nom/TeleworkAdminPage";
 import RolesPage from "@pages/roles/RolesPage";
 import PlansPage from "@pages/plans/PlansPage";
@@ -62,7 +63,7 @@ export default function App() {
           <Route path="/" element={<HomeRoute />} />
           <Route path="/home" element={<HomePage />} />
           {/* Portal del trabajador (NOM/F2-07): marcaje remoto, marcajes y teletrabajo. */}
-          <Route path="/mi-jornada" element={<MyWorkdayPage />} />
+          <Route path="/mi-jornada" element={<TenantOnly><MyWorkdayPage /></TenantOnly>} />
           <Route
             path="/teletrabajo"
             element={
