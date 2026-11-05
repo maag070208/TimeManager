@@ -28,6 +28,13 @@ export interface NomConfigDto {
   weekStartDay: number;
   weeklyLimitMinutes: number;
   retentionMonths: number | null;
+  remotePunchEnabled: boolean;
+  legal?: {
+    year: number;
+    weeklyLimitMinutes: number;
+    workdayLimitMinutes: number;
+    weeklyInfractionLimitMinutes?: number;
+  };
   attendanceDefaults: {
     entryToleranceMin: number;
     exitToleranceMin: number;
@@ -38,7 +45,17 @@ export interface NomConfigDto {
 
 export const nomApi = {
   getConfig: () => api.get<NomConfigDto>(`${base}/config`),
-  updateConfig: (input: { weekStartDay?: number; defaultEntryToleranceMin?: number; defaultExitToleranceMin?: number; defaultMealBreakMin?: number; defaultMinOvertimeMin?: number }) =>
+  updateConfig: (input: {
+    weekStartDay?: number;
+    defaultEntryToleranceMin?: number;
+    defaultExitToleranceMin?: number;
+    defaultMealBreakMin?: number;
+    defaultMinOvertimeMin?: number;
+    workdayLimitMinutes?: number;
+    weeklyLimitMinutes?: number;
+    retentionMonths?: number | null;
+    remotePunchEnabled?: boolean;
+  }) =>
     api.put<NomConfigDto>(`${base}/config`, input),
   myPunches: (params: { from?: string; to?: string; limit?: number } = {}) => {
     const qs = new URLSearchParams();

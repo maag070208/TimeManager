@@ -1,57 +1,78 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITButton, ITCard, ITInput, ITText, ITToast, ITSelect } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITCard, ITInput, ITPage, ITSelect, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import { LuSettings } from "react-icons/lu";
 import { Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import type { AppDispatch } from "@app/store";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@app/store";
 import { meThunk } from "@entities/user";
 import { nomApi, type NomConfigDto } from "@entities/nom";
-import { ITPage } from "@axzydev/axzy_ui_system";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-/** Configuración general del cliente: inicio de semana y accesos a horarios. */
+/** Configuración del cliente: semana, política de asistencia, límites y checada web. */
 export default function GeneralSettingsPage() {
-  const { t } = useTranslation("nom");
+  const { t } = useTranslation(["nom", "common"]);
   const dispatch = useDispatch<AppDispatch>();
-  const [weekStartDay, setWeekStartDay] = useState(3);
-  const [defaults, setDefaults] = useState({
-    entryToleranceMin: 10,
-    exitToleranceMin: 10,
-    mealBreakMin: 0,
-    minOvertimeMin: 60,
-  });
+  const tenant = useSelector((state: RootState) => state.auth.user?.tenant);
+  const [config, setConfig] = useState<NomConfigDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    weekStartDay: 3,
+    entryToleranceMin: 10,
+    exitToleranceMin: 10,
+    mealBreakMin: 0,
+    minOvertimeMin: 60,
+    workdayLimitMinutes: 720,
+    weeklyLimitMinutes: 2880,
+    retentionMonths: "",
+    remotePunchEnabled: true,
+  });
 
   useEffect(() => {
     nomApi
       .getConfig()
-      .then((config: NomConfigDto) => {
-        setWeekStartDay(config.weekStartDay ?? 3);
-        setDefaults(config.attendanceDefaults);
+      .then((next: NomConfigDto) => {
+        setConfig(next);
+        setForm({
+          weekStartDay: next.weekStartDay ?? 3,
+          entryToleranceMin: next.attendanceDefaults?.entryToleranceMin ?? 10,
+          exitToleranceMin: next.attendanceDefaults?.exitToleranceMin ?? 10,
+          mealBreakMin: next.attendanceDefaults?.mealBreakMin ?? 0,
+          minOvertimeMin: next.attendanceDefaults?.minOvertimeMin ?? 60,
+          workdayLimitMinutes: next.workdayLimitMinutes ?? 720,
+          weeklyLimitMinutes: next.weeklyLimitMinutes ?? 2880,
+          retentionMonths: next.retentionMonths ? String(next.retentionMonths) : "",
+          remotePunchEnabled: next.remotePunchEnabled ?? true,
+        });
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."))
       .finally(() => setLoading(false));
   }, []);
+
+  const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
   const save = async () => {
     setSaving(true);
     setError(null);
     try {
       await nomApi.updateConfig({
-        weekStartDay,
-        defaultEntryToleranceMin: defaults.entryToleranceMin,
-        defaultExitToleranceMin: defaults.exitToleranceMin,
-        defaultMealBreakMin: defaults.mealBreakMin,
-        defaultMinOvertimeMin: defaults.minOvertimeMin,
+        weekStartDay: form.weekStartDay,
+        defaultEntryToleranceMin: form.entryToleranceMin,
+        defaultExitToleranceMin: form.exitToleranceMin,
+        defaultMealBreakMin: form.mealBreakMin,
+        defaultMinOvertimeMin: form.minOvertimeMin,
+        workdayLimitMinutes: form.workdayLimitMinutes,
+        weeklyLimitMinutes: form.weeklyLimitMinutes,
+        retentionMonths: form.retentionMonths ? Number(form.retentionMonths) : null,
+        remotePunchEnabled: form.remotePunchEnabled,
       });
-      // Refresca la sesión para que la semana nueva aplique en toda la app.
       await dispatch(meThunk()).unwrap().catch(() => undefined);
-      setToast(t("config.weekStartSaved"));
+      setToast("Configuración guardada.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
     } finally {
@@ -59,86 +80,92 @@ export default function GeneralSettingsPage() {
     }
   };
 
+  const legal = config?.legal;
+
   return (
     <ITPage
-      title={t("config.title")}
-      description={t("config.description")}
+      title="Configuración del cliente"
+      description="Define cómo opera tu empresa: semana, horarios, retardos, límites legales y checada web."
       icon={<LuSettings size={20} />}
-      maxWidth="2xl"
+      maxWidth="3xl"
     >
       <div className="flex flex-col gap-4 pb-12">
         {error && <ITAlert variant="error">{error}</ITAlert>}
+
         <ITCard contentClassName="!p-5">
-          <div className="flex flex-col gap-3">
-            <div>
-              <ITText className="font-bold">{t("config.weekStartTitle")}</ITText>
-              <ITText muted className="mt-1 block !text-[12px]">{t("config.weekStartHint")}</ITText>
-            </div>
-            <div className="max-w-xs">
-              <ITSelect
-                name="weekStartDay"
-                label={t("config.weekStartLabel")}
-                value={String(weekStartDay)}
-                onChange={(event) => setWeekStartDay(Number(event.target.value))}
-                options={DAYS.map((day, index) => ({ value: String(index), label: day }))}
-              />
-            </div>
-            <div>
-              <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading}>
-                {t("config.save")}
-              </ITButton>
-            </div>
+          <ITText className="font-bold">Operación</ITText>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ITSelect
+              name="weekStartDay"
+              label="Primer día de la semana"
+              value={String(form.weekStartDay)}
+              onChange={(event) => set("weekStartDay", Number(event.target.value))}
+              options={DAYS.map((day, index) => ({ value: String(index), label: day }))}
+            />
+            <ITInput
+              name="timezone"
+              label="Zona horaria"
+              value={tenant?.timezone ?? "—"}
+              disabled
+              onChange={() => undefined}
+            />
           </div>
+          <ITText muted className="mt-2 block !text-[11.5px]">
+            La semana aplica a horarios, pre-nómina, tiempo extra, asistencia y bitácoras.
+          </ITText>
         </ITCard>
 
         <ITCard contentClassName="!p-5">
-          <div className="flex flex-col gap-3">
-            <div>
-              <ITText className="font-bold">{t("config.attendanceTitle")}</ITText>
-              <ITText muted className="mt-1 block !text-[12px]">{t("config.attendanceHint")}</ITText>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <ITInput
-                name="defaultEntryToleranceMin"
-                label={t("config.entryTolerance")}
-                type="number"
-                value={String(defaults.entryToleranceMin)}
-                onChange={(event) => setDefaults((prev) => ({ ...prev, entryToleranceMin: Number(event.target.value) }))}
-              />
-              <ITInput
-                name="defaultExitToleranceMin"
-                label={t("config.exitTolerance")}
-                type="number"
-                value={String(defaults.exitToleranceMin)}
-                onChange={(event) => setDefaults((prev) => ({ ...prev, exitToleranceMin: Number(event.target.value) }))}
-              />
-              <ITInput
-                name="defaultMealBreakMin"
-                label={t("config.mealBreak")}
-                type="number"
-                value={String(defaults.mealBreakMin)}
-                onChange={(event) => setDefaults((prev) => ({ ...prev, mealBreakMin: Number(event.target.value) }))}
-              />
-              <ITInput
-                name="defaultMinOvertimeMin"
-                label={t("config.minOvertime")}
-                type="number"
-                value={String(defaults.minOvertimeMin)}
-                onChange={(event) => setDefaults((prev) => ({ ...prev, minOvertimeMin: Number(event.target.value) }))}
-              />
-            </div>
+          <ITText className="font-bold">Política de asistencia (horarios nuevos)</ITText>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ITInput name="entryToleranceMin" label="Tolerancia de entrada (min)" type="number" value={String(form.entryToleranceMin)} onChange={(e) => set("entryToleranceMin", Number(e.target.value))} />
+            <ITInput name="exitToleranceMin" label="Tolerancia de salida (min)" type="number" value={String(form.exitToleranceMin)} onChange={(e) => set("exitToleranceMin", Number(e.target.value))} />
+            <ITInput name="mealBreakMin" label="Comida (min)" type="number" value={String(form.mealBreakMin)} onChange={(e) => set("mealBreakMin", Number(e.target.value))} />
+            <ITInput name="minOvertimeMin" label="Mínimo de tiempo extra (min)" type="number" value={String(form.minOvertimeMin)} onChange={(e) => set("minOvertimeMin", Number(e.target.value))} />
           </div>
-        </ITCard>
-
-        <ITCard contentClassName="!p-5">
-          <ITText className="font-bold">{t("config.retentionTitle")}</ITText>
-          <ITText muted className="mt-1 block !text-[12px]">{t("config.retentionText")}</ITText>
-          <Link to="/schedules" className="mt-2 inline-block text-[12px] font-semibold text-slate-700 underline-offset-4 hover:underline">
-            {t("config.schedulesLink")} →
+          <Link to="/schedules" className="mt-3 inline-block text-[12px] font-semibold underline-offset-4 hover:underline">
+            Configurar horarios por puesto →
           </Link>
         </ITCard>
-      </div>
 
+        <ITCard contentClassName="!p-5">
+          <ITText className="font-bold">Límites de jornada y retención</ITText>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ITInput name="workdayLimitMinutes" label="Máximo diario (min)" type="number" value={String(form.workdayLimitMinutes)} onChange={(e) => set("workdayLimitMinutes", Number(e.target.value))} />
+            <ITInput name="weeklyLimitMinutes" label="Máximo semanal (min)" type="number" value={String(form.weeklyLimitMinutes)} onChange={(e) => set("weeklyLimitMinutes", Number(e.target.value))} />
+          </div>
+          {legal && (
+            <ITText muted className="mt-2 block !text-[11.5px]">
+              Ley {legal.year}: {Math.round(legal.workdayLimitMinutes / 60)} h/día y {Math.round(legal.weeklyLimitMinutes / 60)} h/semana. Solo puedes configurar topes más estrictos.
+            </ITText>
+          )}
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ITInput name="retentionMonths" label="Retención de registros (meses, vacío = sin archivar)" type="number" value={form.retentionMonths} onChange={(e) => set("retentionMonths", e.target.value)} />
+            <ITSelect
+              name="remotePunchEnabled"
+              label="Checada desde la web"
+              value={form.remotePunchEnabled ? "true" : "false"}
+              onChange={(event) => set("remotePunchEnabled", event.target.value === "true")}
+              options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]}
+            />
+          </div>
+        </ITCard>
+
+        <ITCard contentClassName="!p-5">
+          <ITText className="font-bold">Más configuración</ITText>
+          <div className="mt-2 flex flex-wrap gap-4 text-[12px] font-semibold underline-offset-4">
+            <Link to="/hr/leave" className="hover:underline">Vacaciones y tipos de permiso →</Link>
+            <Link to="/teletrabajo" className="hover:underline">Teletrabajo NOM-037 →</Link>
+            <Link to="/schedules/overtime/approval" className="hover:underline">Tiempo extra →</Link>
+          </div>
+        </ITCard>
+
+        <div>
+          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading}>
+            {t("common:actions.save", { defaultValue: "Guardar configuración" })}
+          </ITButton>
+        </div>
+      </div>
       {toast && <ITToast message={toast} type="success" position="bottom-center" duration={2500} onClose={() => setToast(null)} />}
     </ITPage>
   );
