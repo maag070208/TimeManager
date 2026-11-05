@@ -133,10 +133,13 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
   - Hecho cuando: aplica limpio sobre una BD vacía y sobre una copia con datos; el rollback deja el esquema igual al baseline.
   - Verificado en Postgres 16 (Docker): aplica vacía y con datos; backfill correcto (ADMIN/SUPPORT → NULL, resto → demo); únicos por cliente, únicos parciales de plataforma, PK compuesta, FK y RESTRICT probados; inserción sin contexto falla ruidosamente; rollback con drift cero vs baseline; drift hacia adelante = solo los 25 FK y 3 únicos parciales (intencionales, FK solo en SQL).
 
-- [ ] **F1A-03 Contexto de tenant + extensión Prisma.** Nuevo `api/src/core/tenancy/` con:
+- [x] **F1A-03 Contexto de tenant + extensión Prisma.** Nuevo `api/src/core/tenancy/` con:
   - `context.ts`: `AsyncLocalStorage<{ tenantId: string | null; platform: boolean }>`, `runWithTenant`, `currentTenantId`, `requireTenantId`.
   - `extension.ts`: función **pura** `scopeArgs(model, operation, args, tenantId)` + `$extends({ query: { $allModels: { $allOperations } } })` registrada en `core/config/database.ts`. Agrega `tenantId` a `where` (find*, count, aggregate, groupBy, update*, delete*, upsert) y a `data` (create, createMany, upsert.create). Sin contexto o plataforma sin cliente elegido: no toca nada.
   - Lista de modelos de cliente en un solo lugar (`TENANT_MODELS`).
+  - **Bug de ALS encontrado en la prueba funcional**: las PrismaPromise son perezosas y enganchan su cadena interna en el primer `.then` — si el callback devuelve la promesa cruda, el primer await ocurre fuera del scope y se pierde el tenant. `runWithTenant` envuelve en async y hace el primer await dentro del contexto. También se corrigió `scopeArgs`: `upsert` tenía su propia rama pero caía primero en `READ_OPS` y el `create` quedaba sin `tenantId`.
+  - Incluye adelantado de F1A-05: los `findUnique` por campo que dejó de ser único se cambiaron a `findFirst` (la extensión los filtra) y las mutaciones de `TimeClockEmployee` usan el compuesto `tenantId_employeeNumber` con `requireTenantId()`. `prisma generate` ya regenerado; `pnpm typecheck` y `pnpm lint` en verde (0 errores).
+  - Prueba funcional E2E en Docker (BD limpia, ambas migraciones): 9/9 — aislamiento en findMany/findFirst/count, anti-hijack del where, inyección en create/createMany/upsert, updateMany filtrado, modelo de plataforma intacto y falla ruidosa sin contexto.
   - Hecho cuando: pruebas unitarias de F1A-08 pasan.
 
 - [ ] **F1A-04 Auth.**

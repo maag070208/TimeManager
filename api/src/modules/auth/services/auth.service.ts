@@ -17,7 +17,8 @@ export class AuthService {
   constructor(private readonly db: PrismaClient = prismaClient) {}
 
   async login(username: string, password: string): Promise<LoginResponse> {
-    const user = await this.db.user.findUnique({
+    // F1A-04 agregará el filtro por slug de cliente; findFirst por mientras.
+    const user = await this.db.user.findFirst({
       where: { username },
       include: { extraRoles: { select: { role: true } } },
     });

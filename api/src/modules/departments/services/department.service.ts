@@ -80,7 +80,7 @@ export class DepartmentService {
   }
 
   async create(data: DepartmentCreateInput) {
-    const existing = await this.db.department.findUnique({ where: { name: data.name } });
+    const existing = await this.db.department.findFirst({ where: { name: data.name } });
     if (existing) throw new HttpError(409, "DEPARTMENT_NAME_TAKEN");
     return this.db.department.create({ data: { name: data.name.toUpperCase() } });
   }

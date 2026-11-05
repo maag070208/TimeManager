@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { tenancyExtension } from "@core/tenancy";
 
 /**
  * `users.name` guarda solo el primer nombre; el nombre completo se arma con
@@ -80,4 +81,6 @@ const extended = base.$extends({
   },
 } as never);
 
-export const prismaClient = extended as unknown as PrismaClient;
+export const prismaClient = (extended as unknown as PrismaClient).$extends(
+  tenancyExtension() as never
+) as unknown as PrismaClient;

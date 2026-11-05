@@ -287,7 +287,7 @@ export class TimeClockService {
   async register(input: TimeClockInput, actorId?: string): Promise<TimeClockDeviceStatus> {
     const url = normalizeUrl(input.url);
     const client = this.client(url, TIMEOUT_INTERACTIVE_MS);
-    const sameUrl = await this.db.timeClock.findUnique({ where: { url } });
+    const sameUrl = await this.db.timeClock.findFirst({ where: { url } });
     if (sameUrl) throw this.duplicate(sameUrl);
 
     const info = await this.connect(client, url);

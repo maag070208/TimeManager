@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { requireTenantId } from "@core/tenancy";
 import { ci, filterEnum, filterId, filterText, type ITDataTableFetchParams } from "@core/utils/table";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import type {
@@ -154,9 +155,10 @@ export class TimeClockEmployeesService {
     const user = await this.db.user.findUnique({ where: { id: userId }, select: userSelect });
     if (!user) throw new HttpError(404, "USER_NOT_FOUND");
 
+    const tenantId = requireTenantId();
     await this.db.timeClockEmployee.upsert({
-      where: { employeeNumber },
-      create: { employeeNumber, userId, linkedById: actorId ?? null },
+      where: { tenantId_employeeNumber: { tenantId, employeeNumber } },
+      create: { employeeNumber, userId, linkedById: actorId ?? null, tenantId },
       update: { userId, linkedById: actorId ?? null },
     });
     await this.audit?.({
@@ -172,11 +174,13 @@ export class TimeClockEmployeesService {
   }
 
   async unlinkEmployee(employeeNumber: string, actorId?: string): Promise<{ employeeNumber: string }> {
-    const link = await this.db.timeClockEmployee.findUnique({ where: { employeeNumber } });
+    const link = await this.db.timeClockEmployee.findFirst({ where: { employeeNumber } });
     if (!link) {
       throw new HttpError(404, "TIME_CLOCK_LINK_NOT_FOUND", { employeeNumber });
     }
-    await this.db.timeClockEmployee.delete({ where: { employeeNumber } });
+    await this.db.timeClockEmployee.delete({
+      where: { tenantId_employeeNumber: { tenantId: requireTenantId(), employeeNumber } },
+    });
     await this.audit?.({
       action: "TIME_CLOCK_UNLINKED",
       entityType: "TimeClockEmployee",
@@ -199,6 +203,7 @@ export class TimeClockEmployeesService {
         employeeNumber: f.employeeNumber,
         userId: f.suggestion!.userId,
         linkedById: actorId ?? null,
+        tenantId: requireTenantId(),
       })),
       skipDuplicates: true,
     });

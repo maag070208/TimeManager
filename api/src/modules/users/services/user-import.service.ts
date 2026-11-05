@@ -40,7 +40,7 @@ export class UserImportService {
       }
 
       const username = row.username.trim().toLowerCase();
-      const exists = await this.db.user.findUnique({ where: { username } });
+      const exists = await this.db.user.findFirst({ where: { username } });
       if (exists) {
         result.skipped.push({ row: rowNumber, username, reason: t("userImport.usernameExists") });
         continue;

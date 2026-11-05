@@ -57,7 +57,7 @@ export class PayrollReviewService {
   async state(weekStart: string) {
     const week = toUtcDate(weekStart);
     const [closure, reviews] = await Promise.all([
-      this.db.payrollWeekClosure.findUnique({
+      this.db.payrollWeekClosure.findFirst({
         where: { weekStart: week },
         include: { closedBy: personName, reopenedBy: personName },
       }),
@@ -169,21 +169,23 @@ export class PayrollReviewService {
     }
 
     const snapshot = input.snapshot as Prisma.InputJsonValue | undefined;
-    await this.db.payrollWeekClosure.upsert({
-      where: { weekStart: week },
-      create: {
-        weekStart: week,
-        closedById: actorId ?? null,
-        snapshot,
-      },
-      update: {
-        closedById: actorId ?? null,
-        closedAt: new Date(),
-        reopenedById: null,
-        reopenedAt: null,
-        snapshot,
-      },
-    });
+    const closure = await this.db.payrollWeekClosure.findFirst({ where: { weekStart: week } });
+    if (closure) {
+      await this.db.payrollWeekClosure.update({
+        where: { id: closure.id },
+        data: {
+          closedById: actorId ?? null,
+          closedAt: new Date(),
+          reopenedById: null,
+          reopenedAt: null,
+          snapshot,
+        },
+      });
+    } else {
+      await this.db.payrollWeekClosure.create({
+        data: { weekStart: week, closedById: actorId ?? null, snapshot },
+      });
+    }
 
     await this.audit?.({
       action: "PAYROLL_WEEK_CLOSED",
@@ -199,13 +201,13 @@ export class PayrollReviewService {
   /** Reabre una semana cerrada (la fila queda con el sello de reapertura). */
   async reopen(actorId: string | undefined, input: { weekStart: string }) {
     const week = toUtcDate(input.weekStart);
-    const closure = await this.db.payrollWeekClosure.findUnique({ where: { weekStart: week } });
+    const closure = await this.db.payrollWeekClosure.findFirst({ where: { weekStart: week } });
     if (!closure || closure.reopenedAt !== null) {
       throw new HttpError(409, "PAYROLL_NOT_CLOSED", { week: dateKeyOf(week) });
     }
 
     await this.db.payrollWeekClosure.update({
-      where: { weekStart: week },
+      where: { id: closure.id },
       data: { reopenedById: actorId ?? null, reopenedAt: new Date() },
     });
 

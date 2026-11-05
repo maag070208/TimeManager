@@ -428,7 +428,7 @@ export class TimeClockPeopleService {
     const person = people.find((p) => p.employeeNumber === employeeNumber);
     if (!person) throw new HttpError(404, "TIME_CLOCK_PERSON_NOT_FOUND", { employeeNumber });
     const [faces, fingers] = await Promise.all([client.faceRecords(employeeNumber), client.fingerprints(employeeNumber)]);
-    const link = await this.db.timeClockEmployee.findUnique({
+    const link = await this.db.timeClockEmployee.findFirst({
       where: { employeeNumber },
       select: { status: true, user: { select: { id: true, name: true, active: true } } },
     });

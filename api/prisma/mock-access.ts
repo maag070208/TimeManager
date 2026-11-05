@@ -22,6 +22,11 @@ import "dotenv/config";
 
 const prisma = new PrismaClient();
 
+// Tenant demo (misma constante que api/src/core/tenancy/models.ts). Este script
+// usa el cliente Prisma crudo (sin la extensión de tenancy), así que el
+// tenantId se pasa explícito en cada escritura.
+const DEMO_TENANT_ID = "3f8b2c1a-9d4e-4a7b-8c1d-2e5f6a7b8c9d";
+
 // Offset de América/Mexico_City: UTC-6 fijo (sin DST desde 2022). Los horarios
 // "de pared" se generan contra ese offset para que el reporte (que resuelve la
 // ventana en esa zona) los atribuya al día correcto.
@@ -76,17 +81,19 @@ function assertLocalDatabase() {
 async function upsertSites(): Promise<Site[]> {
   const out: Site[] = [];
   for (const s of SITES) {
-    const site = await prisma.site.upsert({
-      where: { code: s.code },
-      update: {
-        name: s.name,
-        latitude: s.latitude,
-        longitude: s.longitude,
-        radiusMeters: s.radiusMeters,
-        active: true,
-      },
-      create: { ...s, active: true },
-    });
+    const existing = await prisma.site.findFirst({ where: { code: s.code } });
+    const site = existing
+      ? await prisma.site.update({
+          where: { id: existing.id },
+          data: {
+            name: s.name,
+            latitude: s.latitude,
+            longitude: s.longitude,
+            radiusMeters: s.radiusMeters,
+            active: true,
+          },
+        })
+      : await prisma.site.create({ data: { ...s, active: true, tenantId: DEMO_TENANT_ID } });
     out.push(site);
   }
   return out;
@@ -127,6 +134,7 @@ async function main() {
 
   const now = new Date();
   const mkRecord = (i: number) => ({
+    tenantId: DEMO_TENANT_ID,
     type: "MANUAL" as const,
     locationSource: "MANUAL" as const,
     method: "MANUAL" as const,

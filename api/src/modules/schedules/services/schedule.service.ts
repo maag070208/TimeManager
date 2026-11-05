@@ -64,7 +64,7 @@ export class ScheduleService {
   }
 
   async create(data: ScheduleCreateInput) {
-    const dup = await this.db.schedule.findUnique({ where: { name: data.name } });
+    const dup = await this.db.schedule.findFirst({ where: { name: data.name } });
     if (dup) throw new HttpError(409, "SCHEDULE_NAME_TAKEN");
 
     return this.db.schedule.create({
@@ -86,7 +86,7 @@ export class ScheduleService {
     if (!schedule) throw new HttpError(404, "SCHEDULE_NOT_FOUND");
 
     if (data.name && data.name !== schedule.name) {
-      const dup = await this.db.schedule.findUnique({ where: { name: data.name } });
+      const dup = await this.db.schedule.findFirst({ where: { name: data.name } });
       if (dup && dup.id !== id) throw new HttpError(409, "SCHEDULE_NAME_TAKEN");
     }
 

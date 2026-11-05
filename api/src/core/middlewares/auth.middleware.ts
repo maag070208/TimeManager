@@ -3,6 +3,7 @@ import { verifyToken, isRefreshToken, type JwtPayload } from "@core/utils/securi
 import { HttpError } from "./error.middleware";
 import { prismaClient } from "@core/config/database";
 import { scopeOf, isPermission } from "@core/permissions";
+import { runWithTenant } from "@core/tenancy";
 import { logger } from "@core/utils/logger";
 
 declare global {
@@ -54,6 +55,7 @@ export const authenticate = (
         id: true,
         active: true,
         role: true,
+        tenantId: true,
         departmentId: true,
         extraRoles: { select: { role: true } },
         permissionGrants: {
@@ -80,7 +82,10 @@ export const authenticate = (
           expiresAt: grant.expiresAt,
         })),
       };
-      next();
+      // Todo lo que sigue corre dentro del contexto del cliente del usuario:
+      // la extensión de Prisma filtra/inyecta tenantId solo en este ámbito.
+      // F1A-04 completa esto (login por slug, X-Tenant-Id de plataforma).
+      runWithTenant(user.tenantId, () => next(), user.tenantId === null);
     })
     .catch(next);
 };

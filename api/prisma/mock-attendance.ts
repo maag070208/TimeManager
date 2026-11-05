@@ -23,13 +23,18 @@
  */
 import "dotenv/config";
 import { randomUUID } from "node:crypto";
-import { PrismaClient, type PunchMethod } from "@prisma/client";
+import type { PunchMethod } from "@prisma/client";
+import { prismaClient } from "@core/config/database";
+import { DEMO_TENANT_ID, runWithTenant } from "@core/tenancy";
 import { hashPassword } from "@core/utils/security";
 import { localDateKey, resolveTimezoneWithConfig, startOfLocalDay } from "@core/utils/timezone";
 import { createSchedulesModule } from "@modules/schedules";
 import { OvertimeService } from "@modules/overtime/services/overtime.service";
 
-const prisma = new PrismaClient();
+// Cliente extendido (extensión de tenancy): todo el script corre dentro del
+// contexto del tenant demo, así que las lecturas quedan filtradas por tenant y
+// las escrituras reciben tenantId automáticamente.
+const prisma = prismaClient;
 
 const DEPARTMENT = "RECEPCIÓN DEMO";
 const CLOCK_SERIAL = "DEMO-CLOCK-01";
@@ -187,7 +192,7 @@ async function main() {
       },
     });
     people.push({ userId: user.id, profile: p });
-    await prisma.timeClockEmployee.create({ data: { employeeNumber: clockNumber, userId: user.id } });
+    await prisma.timeClockEmployee.create({ data: { employeeNumber: clockNumber, userId: user.id, tenantId: DEMO_TENANT_ID } });
     if (p.schedule) {
       await prisma.scheduleAssignment.create({
         data: { userId: user.id, scheduleId: schedules[p.schedule], validFrom: new Date(`${addDays(firstDay, -7)}T00:00:00.000Z`) },
@@ -262,9 +267,11 @@ async function main() {
   );
 }
 
-main()
-  .catch((err) => {
-    console.error(err);
-    process.exitCode = 1;
-  })
-  .finally(() => prisma.$disconnect());
+runWithTenant(DEMO_TENANT_ID, () =>
+  main()
+    .catch((err) => {
+      console.error(err);
+      process.exitCode = 1;
+    })
+    .finally(() => prisma.$disconnect())
+);

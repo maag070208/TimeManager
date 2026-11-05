@@ -17,7 +17,7 @@ export class DocumentTypeService {
   }
 
   async create(data: DocumentTypeCreateInput) {
-    const existing = await this.db.documentType.findUnique({ where: { name: data.name } });
+    const existing = await this.db.documentType.findFirst({ where: { name: data.name } });
     if (existing) throw new HttpError(409, "DOCUMENT_TYPE_NAME_TAKEN");
 
     return this.db.documentType.create({
@@ -30,7 +30,7 @@ export class DocumentTypeService {
     if (!type) throw new HttpError(404, "DOCUMENT_TYPE_NOT_FOUND");
 
     if (data.name) {
-      const dup = await this.db.documentType.findUnique({ where: { name: data.name } });
+      const dup = await this.db.documentType.findFirst({ where: { name: data.name } });
       if (dup && dup.id !== id) throw new HttpError(409, "DOCUMENT_TYPE_NAME_TAKEN");
     }
 

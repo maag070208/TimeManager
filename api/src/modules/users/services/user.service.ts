@@ -148,18 +148,18 @@ export class UserService {
    */
   async availability(query: { field: "username" | "email" | "employeeNumber"; value: string; exceptId?: string }) {
     const where = { username: { username: query.value }, email: { email: query.value }, employeeNumber: { employeeNumber: query.value } }[query.field];
-    const found = await this.db.user.findUnique({ where, select: { id: true } });
+    const found = await this.db.user.findFirst({ where, select: { id: true } });
     return { available: !found || found.id === query.exceptId };
   }
 
   async create(data: UserCreateInput, actorId?: string) {
-    const exists = await this.db.user.findUnique({ where: { username: data.username } });
+    const exists = await this.db.user.findFirst({ where: { username: data.username } });
     if (exists) {
       throw new HttpError(409, "USERNAME_TAKEN");
     }
 
     if (data.employeeNumber) {
-      const empExists = await this.db.user.findUnique({
+      const empExists = await this.db.user.findFirst({
         where: { employeeNumber: data.employeeNumber },
       });
       if (empExists) {
@@ -168,7 +168,7 @@ export class UserService {
     }
 
     if (data.email) {
-      const emailExists = await this.db.user.findUnique({
+      const emailExists = await this.db.user.findFirst({
         where: { email: data.email },
       });
       if (emailExists) {

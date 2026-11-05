@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { requireTenantId } from "@core/tenancy";
 import { logger } from "@core/utils/logger";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import { IsapiClient } from "./isapi.client";
@@ -110,7 +111,10 @@ export class TimeClockRosterService {
         }
         for (const change of plan.changes) {
           const { employeeNumber, event: _event, ...data } = change;
-          await tx.timeClockEmployee.update({ where: { employeeNumber }, data });
+          await tx.timeClockEmployee.update({
+            where: { tenantId_employeeNumber: { tenantId: requireTenantId(), employeeNumber } },
+            data,
+          });
         }
         await tx.timeClockRosterRun.create({
           data: {
@@ -273,7 +277,7 @@ export class TimeClockRosterService {
     actorId: string,
     input: { categoryId: string; reason: string; notifyUser: boolean }
   ) {
-    const link = await this.db.timeClockEmployee.findUnique({
+    const link = await this.db.timeClockEmployee.findFirst({
       where: { employeeNumber },
       select: { userId: true, status: true },
     });
@@ -290,7 +294,7 @@ export class TimeClockRosterService {
 
     await this.deactivateUser(link.userId, actorId, input);
     await this.db.timeClockEmployee.update({
-      where: { employeeNumber },
+      where: { tenantId_employeeNumber: { tenantId: requireTenantId(), employeeNumber } },
       data: { status: "ACTIVE", missingRuns: 0, missingSince: null },
     });
     await this.audit?.({
@@ -313,7 +317,7 @@ export class TimeClockRosterService {
   }
 
   async createCategory(input: { key: string; name: string }, actorId: string) {
-    const taken = await this.db.removalCategory.findUnique({ where: { key: input.key }, select: { id: true } });
+    const taken = await this.db.removalCategory.findFirst({ where: { key: input.key }, select: { id: true } });
     if (taken) throw new HttpError(409, "REMOVAL_CATEGORY_KEY_TAKEN", { key: input.key });
     const created = await this.db.removalCategory.create({
       data: { key: input.key, name: input.name },
@@ -352,7 +356,7 @@ export class TimeClockRosterService {
 
   /** Descarta la baja pendiente sin motivo (R15). */
   async dismissRemoval(employeeNumber: string, actorId: string) {
-    const link = await this.db.timeClockEmployee.findUnique({
+    const link = await this.db.timeClockEmployee.findFirst({
       where: { employeeNumber },
       select: { status: true },
     });
@@ -361,7 +365,7 @@ export class TimeClockRosterService {
       throw new HttpError(409, "TIME_CLOCK_REMOVAL_NOT_PENDING", { employeeNumber });
     }
     await this.db.timeClockEmployee.update({
-      where: { employeeNumber },
+      where: { tenantId_employeeNumber: { tenantId: requireTenantId(), employeeNumber } },
       data: { status: "ACTIVE", missingRuns: 0, missingSince: null },
     });
     await this.audit?.({
