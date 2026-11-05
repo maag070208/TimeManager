@@ -4,7 +4,11 @@ import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { hashPassword } from "@core/utils/security";
 import { DEFAULT_TIMEZONE } from "@core/utils/timezone";
-import { runWithTenant, seedTenantTemplateCatalogs } from "@core/tenancy";
+import { forgetTenantBrand, runWithTenant, seedTenantTemplateCatalogs } from "@core/tenancy";
+import { webLoginUrl } from "@core/config/web-url";
+import { systemLanguage } from "@core/i18n";
+import { enqueueEmail } from "@core/services/email-queue";
+import { tenantWelcomeEmail } from "@core/services/email-templates";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import type {
   TenantCreateInput,
@@ -125,12 +129,35 @@ export class TenantService {
     }, true);
 
     const catalogs = await seedTenantTemplateCatalogs(tenant.id, this.db);
+    const welcomeSent = await this.sendWelcome(tenant, input, generated);
     return {
       tenant: toView(tenant, 1),
       admin,
+      welcomeEmail: welcomeSent ? input.admin.email! : null,
       ...(generated ? { temporaryPassword: generated } : {}),
       catalogs,
     };
+  }
+
+  /**
+   * Bienvenida al administrador del cliente (si tiene correo): entrada por su
+   * subdominio, usuario y contraseña provisional. Se encola en el contexto del
+   * cliente para que la bitácora de correo sea suya.
+   */
+  private async sendWelcome(tenant: Tenant, input: TenantCreateInput, temporaryPassword?: string): Promise<boolean> {
+    const to = input.admin.email;
+    if (!to) return false;
+    const { subject, html } = tenantWelcomeEmail({
+      language: await systemLanguage(),
+      company: tenant.name,
+      name: input.admin.name,
+      username: input.admin.username,
+      tempPassword: temporaryPassword ?? input.admin.password,
+      loginUrl: webLoginUrl(tenant.slug),
+    });
+    return runWithTenant(tenant.id, () =>
+      enqueueEmail({ to, subject, html, action: "tenant.create", entityType: "Tenant", entityId: tenant.id })
+    );
   }
 
   async update(id: string, input: TenantUpdateInput, actor: Actor): Promise<TenantView> {
@@ -147,6 +174,7 @@ export class TenantService {
           employeeLimit: input.employeeLimit,
         },
       });
+      forgetTenantBrand(id);
       await this.audit?.({
         action: previous.status !== updated.status
           ? (updated.status === "SUSPENDED" ? "TENANT_SUSPENDED" : "TENANT_REACTIVATED")

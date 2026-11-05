@@ -649,6 +649,23 @@ export const es = {
     },
   },
   emails: {
+    tagline: "Control de asistencia",
+    signIn: "Entrar a TimeManager",
+    tenantWelcome: {
+      subject: "{{company}} ya está en TimeManager",
+      title: "Tu cuenta está lista",
+      preview: "Entra y deja lista la asistencia de {{company}}.",
+      body: "Hola {{name}}, {{company}} ya tiene su espacio en TimeManager. Con esta cuenta administras a tu personal, sus horarios y sus checadas.",
+      cardTitle: "Tus datos de acceso",
+      signInUrl: "Entrada",
+      passwordHint: "La contraseña es provisional: al entrar se te pedirá cambiarla.",
+      stepsTitle: "Primeros pasos",
+      steps: {
+        staff: "Da de alta a tu personal (uno por uno o con un Excel).",
+        schedules: "Crea los horarios y asígnalos.",
+        clock: "Vincula tu reloj checador.",
+      },
+    },
     rosterAlert: {
       subject: "Padrón del reloj: revisión pendiente",
       title: "Padrón del reloj",
@@ -659,7 +676,7 @@ export const es = {
       suspicious: "Un reloj perdió muchas personas: no se generaron bajas",
       hint: "Revisa Recursos Humanos → Padrón del reloj para aplicar o descartar cada baja.",
     },
-    footer: "Mensaje automático del sistema · Puerto Nuevo Hotel y Villas",
+    footer: "Mensaje automático de TimeManager · No respondas a este correo.",
     greeting: "Hola {{name}},",
     fields: {
       authorizedBy: "Autorizado por",
@@ -681,15 +698,15 @@ export const es = {
       username: "Usuario",
     },
     welcome: {
-      subject: "[Puerto Nuevo] Bienvenido al sistema de Cartas Responsivas",
+      subject: "Tu cuenta de %%TM_COMPANY%% en TimeManager",
       title: "Bienvenido al sistema",
-      preview: "Tu cuenta en el sistema de Cartas Responsivas está lista.",
+      preview: "Tu cuenta para consultar tu asistencia está lista.",
       cardTitle: "Credenciales de acceso",
-      body: "Hola {{name}}, se creó tu cuenta en el sistema de Cartas Responsivas de Puerto Nuevo.",
-      hint: "Te recomendamos cambiar tu contraseña la primera vez que ingreses.",
+      body: "Hola {{name}}, se creó tu cuenta en TimeManager para consultar tu asistencia, horarios y expediente.",
+      hint: "Al entrar por primera vez se te pedirá cambiar la contraseña.",
     },
     welcomeAdmin: {
-      subject: "[Puerto Nuevo] Nuevo empleado: {{name}}",
+      subject: "Nuevo empleado: {{name}}",
       title: "Nuevo empleado dado de alta",
       preview: "{{name}} fue dado de alta en el sistema.",
       cardTitle: "Datos del empleado",
@@ -697,7 +714,7 @@ export const es = {
       noEmail: "sin email",
     },
     documentUploaded: {
-      subject: "[Puerto Nuevo] Documento cargado a tu expediente: {{document}}",
+      subject: "Documento cargado a tu expediente: {{document}}",
       title: "Documento cargado",
       preview: "Nuevo documento en el expediente personal.",
       cardTitle: "Detalle del documento",
@@ -707,12 +724,12 @@ export const es = {
       downloadHint: "Si no puedes descargarlo, revisa las notificaciones del sistema o contacta a administración.",
     },
     documentUploadedAdmin: {
-      subject: "[Puerto Nuevo] {{uploader}} cargó {{document}} al expediente de {{name}}",
+      subject: "{{uploader}} cargó {{document}} al expediente de {{name}}",
       title: "Documento cargado al expediente",
       preview: "{{document}} se cargó al expediente de {{name}}.",
     },
     deactivated: {
-      subject: "[Puerto Nuevo] Tu cuenta fue dada de baja",
+      subject: "Tu cuenta fue dada de baja",
       title: "Tu cuenta fue dada de baja",
       preview: "Hola {{name}}, te informamos sobre la baja de tu cuenta.",
       reasonTitle: "Motivo de la baja",
@@ -720,13 +737,13 @@ export const es = {
       hint: "Si consideras que se trata de un error, contacta al administrador para reactivar tu cuenta.",
     },
     deactivatedAdmin: {
-      subject: "[Puerto Nuevo] {{name}} fue dado de baja por {{actor}}",
+      subject: "{{name}} fue dado de baja por {{actor}}",
       title: "Baja de empleado",
       preview: "{{name}} fue dado de baja por {{actor}}.",
       hint: "Este es un aviso automático. La baja ya quedó registrada en el sistema.",
     },
     reactivated: {
-      subject: "[Puerto Nuevo] Tu cuenta fue reactivada",
+      subject: "Tu cuenta fue reactivada",
       title: "Tu cuenta fue reactivada",
       preview: "Hola {{name}}, tu cuenta está activa de nuevo.",
       statusTitle: "Estado de la cuenta",
@@ -736,35 +753,18 @@ export const es = {
       hint: "Si no reconoces esta acción, contacta al administrador.",
     },
     reactivatedAdmin: {
-      subject: "[Puerto Nuevo] {{name}} fue reactivado por {{actor}}",
+      subject: "{{name}} fue reactivado por {{actor}}",
       title: "Reactivación de empleado",
       preview: "{{name}} fue reactivado por {{actor}}.",
       hint: "Este es un aviso automático. La reactivación ya quedó registrada en el sistema.",
     },
     employeeRegistration: {
-      subject: "[Puerto Nuevo] Alta de personal: {{name}}",
+      subject: "Alta de personal: {{name}}",
       title: "Alta de personal",
       preview: "{{name}} fue dado de alta.",
       body: "Se dio de alta a {{name}} en el sistema.",
       documents: "Documentación adjunta",
       noDocuments: "Sin documentos adjuntos",
-    },
-    ticketCreated: {
-      subject: "Nuevo ticket: {{title}}",
-      body: "Se creó el ticket {{title}}.",
-    },
-    ticketComment: {
-      subject: "Nuevo comentario: {{title}}",
-      body: "{{author}} comentó en {{title}}:",
-    },
-    taskAssigned: {
-      subject: "Nueva tarea: {{title}}",
-      body: "Se te asignó una tarea en el ticket {{ticket}}.",
-    },
-    purchaseOrder: {
-      title: "Orden de compra {{number}}",
-      preview: "Orden de compra para {{supplier}}",
-      hint: "El PDF de la orden va adjunto a este correo.",
     },
   },
 };

@@ -82,7 +82,9 @@
         "hint": "The password is shown only now. They'll be asked to change it on first sign-in.",
         "copy": "Copy details",
         "copied": "Copied",
-        "close": "Done"
+        "close": "Done",
+        "emailed": "We also emailed these details to {{email}}.",
+        "notEmailed": "No email on file: share these details yourself."
       }
     }
   },

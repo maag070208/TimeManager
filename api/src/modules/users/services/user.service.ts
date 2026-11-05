@@ -27,6 +27,8 @@ import type {
   UserUpdateInput,
   DeactivateUserInput,
 } from "../models/dto/user.dto";
+import { webLoginUrl } from "@core/config/web-url";
+import { currentTenantId, tenantBrand } from "@core/tenancy";
 
 const userSelect = {
   id: true,
@@ -250,6 +252,7 @@ export class UserService {
         name: created.name,
         username: created.username,
         tempPassword: data.password,
+        loginUrl: webLoginUrl((await tenantBrand(currentTenantId()))?.slug ?? null),
       });
       void enqueueEmail({
         to: created.email,

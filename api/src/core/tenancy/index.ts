@@ -10,3 +10,4 @@ export { scopeArgs } from "./scope";
 export { tenancyExtension } from "./extension";
 export { forEachActiveTenant, activeTenants, type TenantRef } from "./iterate";
 export { seedTenantTemplateCatalogs } from "./catalogs";
+export { tenantBrand, forgetTenantBrand, type TenantBrand } from "./brand";

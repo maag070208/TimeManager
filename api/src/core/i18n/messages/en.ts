@@ -647,6 +647,23 @@ export const en: Messages = {
     },
   },
   emails: {
+    tagline: "Attendance tracking",
+    signIn: "Sign in to TimeManager",
+    tenantWelcome: {
+      subject: "{{company}} is now on TimeManager",
+      title: "Your account is ready",
+      preview: "Sign in and get {{company}}'s attendance ready.",
+      body: "Hello {{name}}, {{company}} now has its own space on TimeManager. With this account you manage your staff, their schedules and their punches.",
+      cardTitle: "Your sign-in details",
+      signInUrl: "Sign-in",
+      passwordHint: "The password is temporary: you'll be asked to change it when you sign in.",
+      stepsTitle: "First steps",
+      steps: {
+        staff: "Add your staff (one by one or with an Excel file).",
+        schedules: "Create schedules and assign them.",
+        clock: "Link your time clock.",
+      },
+    },
     rosterAlert: {
       subject: "Clock roster: review pending",
       title: "Clock roster",
@@ -657,7 +674,7 @@ export const en: Messages = {
       suspicious: "A clock lost many people: no removals were created",
       hint: "Review Human Resources → Clock roster to apply or dismiss each removal.",
     },
-    footer: "Automatic system message · Puerto Nuevo Hotel y Villas",
+    footer: "Automatic message from TimeManager · Please don't reply to this email.",
     greeting: "Hello {{name}},",
     fields: {
       authorizedBy: "Authorized by",
@@ -679,15 +696,15 @@ export const en: Messages = {
       username: "Username",
     },
     welcome: {
-      subject: "[Puerto Nuevo] Welcome to the Custody Letters system",
+      subject: "Your %%TM_COMPANY%% account on TimeManager",
       title: "Welcome to the system",
-      preview: "Your account in the Custody Letters system is ready.",
+      preview: "Your account to check your attendance is ready.",
       cardTitle: "Sign-in credentials",
-      body: "Hello {{name}}, your account in the Puerto Nuevo Custody Letters system was created.",
-      hint: "We recommend changing your password the first time you sign in.",
+      body: "Hello {{name}}, your TimeManager account was created so you can check your attendance, schedules and records.",
+      hint: "You'll be asked to change your password the first time you sign in.",
     },
     welcomeAdmin: {
-      subject: "[Puerto Nuevo] New employee: {{name}}",
+      subject: "New employee: {{name}}",
       title: "New employee registered",
       preview: "{{name}} was registered in the system.",
       cardTitle: "Employee details",
@@ -695,7 +712,7 @@ export const en: Messages = {
       noEmail: "no email",
     },
     documentUploaded: {
-      subject: "[Puerto Nuevo] Document uploaded to your file: {{document}}",
+      subject: "Document uploaded to your file: {{document}}",
       title: "Document uploaded",
       preview: "New document in your personal file.",
       cardTitle: "Document details",
@@ -705,12 +722,12 @@ export const en: Messages = {
       downloadHint: "If you can't download it, check the system notifications or contact the administration.",
     },
     documentUploadedAdmin: {
-      subject: "[Puerto Nuevo] {{uploader}} uploaded {{document}} to {{name}}'s file",
+      subject: "{{uploader}} uploaded {{document}} to {{name}}'s file",
       title: "Document uploaded to the file",
       preview: "{{document}} was uploaded to {{name}}'s file.",
     },
     deactivated: {
-      subject: "[Puerto Nuevo] Your account was deactivated",
+      subject: "Your account was deactivated",
       title: "Your account was deactivated",
       preview: "Hello {{name}}, we are informing you that your account was deactivated.",
       reasonTitle: "Deactivation reason",
@@ -718,13 +735,13 @@ export const en: Messages = {
       hint: "If you think this is a mistake, contact the administrator to reactivate your account.",
     },
     deactivatedAdmin: {
-      subject: "[Puerto Nuevo] {{name}} was deactivated by {{actor}}",
+      subject: "{{name}} was deactivated by {{actor}}",
       title: "Employee deactivation",
       preview: "{{name}} was deactivated by {{actor}}.",
       hint: "This is an automatic notice. The deactivation is already recorded in the system.",
     },
     reactivated: {
-      subject: "[Puerto Nuevo] Your account was reactivated",
+      subject: "Your account was reactivated",
       title: "Your account was reactivated",
       preview: "Hello {{name}}, your account is active again.",
       statusTitle: "Account status",
@@ -734,35 +751,18 @@ export const en: Messages = {
       hint: "If you don't recognize this action, contact the administrator.",
     },
     reactivatedAdmin: {
-      subject: "[Puerto Nuevo] {{name}} was reactivated by {{actor}}",
+      subject: "{{name}} was reactivated by {{actor}}",
       title: "Employee reactivation",
       preview: "{{name}} was reactivated by {{actor}}.",
       hint: "This is an automatic notice. The reactivation is already recorded in the system.",
     },
     employeeRegistration: {
-      subject: "[Puerto Nuevo] New hire: {{name}}",
+      subject: "New hire: {{name}}",
       title: "New hire",
       preview: "{{name}} was registered.",
       body: "{{name}} was registered in the system.",
       documents: "Attached documents",
       noDocuments: "No attached documents",
-    },
-    ticketCreated: {
-      subject: "New ticket: {{title}}",
-      body: "The ticket {{title}} was created.",
-    },
-    ticketComment: {
-      subject: "New comment: {{title}}",
-      body: "{{author}} commented on {{title}}:",
-    },
-    taskAssigned: {
-      subject: "New task: {{title}}",
-      body: "You were assigned a task on the ticket {{ticket}}.",
-    },
-    purchaseOrder: {
-      title: "Purchase order {{number}}",
-      preview: "Purchase order for {{supplier}}",
-      hint: "The order's PDF is attached to this email.",
     },
   },
 };

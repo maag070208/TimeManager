@@ -70,6 +70,8 @@ export const TenantCreatedSchema = z
     admin: z.object({ id: z.string(), username: z.string() }),
     /** Solo cuando la generó el API: no se vuelve a mostrar. */
     temporaryPassword: z.string().optional(),
+    /** Correo al que se encoló la bienvenida; `null` si el administrador no tiene correo. */
+    welcomeEmail: z.string().nullable(),
     catalogs: z.object({ removalCategories: z.number().int(), documentTypes: z.number().int() }),
   })
   .openapi("TenantCreated");

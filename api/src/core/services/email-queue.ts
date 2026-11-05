@@ -1,6 +1,7 @@
 import type { EmailLog } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
-import { runWithTenant } from "@core/tenancy";
+import { currentTenantId, runWithTenant, tenantBrand } from "@core/tenancy";
+import { EMAIL_COMPANY_TOKEN } from "@core/services/email-templates";
 import { env } from "@core/config/env.config";
 import {
   getNotificationRecipients,
@@ -43,6 +44,12 @@ export interface EnqueueEmailInput {
   entityId?: string;
 }
 
+const escapeHtml = (value: string): string =>
+  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+/** Quienes reciben los avisos de RH dentro de un cliente. */
+const CLIENT_NOTICE_ROLES = ["CLIENT_ADMIN", "HUMAN_RESOURCES"];
+
 const serializeTo = (to: string | string[]): string =>
   Array.isArray(to) ? to.join(", ") : to;
 
@@ -58,11 +65,15 @@ const serializeTo = (to: string | string[]): string =>
 export const enqueueEmail = async (input: EnqueueEmailInput): Promise<boolean> => {
   if (!(await isEmailSendingEnabled())) return true;
   try {
+    // El encabezado y el asunto llevan el nombre del cliente del contexto.
+    const company = (await tenantBrand(currentTenantId()))?.name ?? "TimeManager";
+    const withCompany = (text: string, escape: boolean) =>
+      text.split(EMAIL_COMPANY_TOKEN).join(escape ? escapeHtml(company) : company);
     await prismaClient.emailLog.create({
       data: {
         to: serializeTo(input.to),
-        subject: input.subject,
-        html: input.html,
+        subject: withCompany(input.subject, false),
+        html: withCompany(input.html, true),
         attachments: input.attachments?.length ? (input.attachments as unknown as object) : undefined,
         action: input.action,
         entityType: input.entityType,
@@ -79,16 +90,28 @@ export const enqueueEmail = async (input: EnqueueEmailInput): Promise<boolean> =
 };
 
 /**
- * Encola el correo de "registro" dirigido a los NOTIFICATION_EMAILS del
- * catálogo (`sys_config` → `EMAIL_NOTIFICATION_RECIPIENTS`, fallback env).
+ * Encola un aviso de RH (altas, bajas, documentos).
+ *
+ * - Dentro de un cliente: a sus `CLIENT_ADMIN` y `HUMAN_RESOURCES` activos con
+ *   correo. Nunca a la lista global: sería mandarle datos de un cliente a otro.
+ * - En plataforma: a `NOTIFICATION_EMAILS` (`sys_config` → `EMAIL_NOTIFICATION_RECIPIENTS`, fallback env).
+ *
  * Los destinatarios se resuelven AHORA y quedan congelados en `to`: el worker
- * envía exactamente a esa lista (con `skipStakeholders: true`), sin re-resolver
- * el catálogo al momento del envío.
+ * envía exactamente a esa lista (con `skipStakeholders: true`).
  */
 export const enqueueNotificationEmail = async (
   input: Omit<EnqueueEmailInput, "to">
 ): Promise<boolean> => {
-  const recipients = await getNotificationRecipients();
+  const recipients = currentTenantId()
+    ? (
+        await prismaClient.user.findMany({
+          where: { active: true, email: { not: null }, OR: [{ role: { in: CLIENT_NOTICE_ROLES } }, { extraRoles: { some: { role: { in: CLIENT_NOTICE_ROLES } } } }] },
+          select: { email: true },
+        })
+      )
+        .map((u) => u.email!.trim())
+        .filter(Boolean)
+    : await getNotificationRecipients();
   if (recipients.length === 0) return true;
   return enqueueEmail({ ...input, to: recipients });
 };

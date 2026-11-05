@@ -208,7 +208,8 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 
 - [x] **F3-01** Consola de plataforma (web, solo ADMIN/SUPPORT): lista de clientes, plan, estado, uso (empleados activos, checadas/día, relojes).
   - Implementado en `/` sin cliente elegido (`pages/home/PlatformHomePage`, `features/tenant/tenants-console`): totales, búsqueda y filtro por estado, subdominio, personas activas / límite, plan, alta, **Entrar** (opera como el cliente) y **Suspender/Reactivar** con confirmación. Falta en uso: checadas/día y relojes (requiere agregarlos a `GET /tenants`).
-- [ ] **F3-02** Alta de cliente guiada: tenant + `CLIENT_ADMIN` + catálogos plantilla + correo de bienvenida.
+- [x] **F3-02** Alta de cliente guiada: tenant + `CLIENT_ADMIN` + catálogos plantilla + correo de bienvenida.
+  - Hecho: correo de bienvenida al `CLIENT_ADMIN` (`tenantWelcomeEmail`) con su entrada, usuario, contraseña provisional y primeros pasos; el diálogo avisa si se envió.
   - Hecho: diálogo "Nuevo cliente" (subdominio sugerido desde el nombre, zona horaria, límite, plan, administrador) que al terminar muestra entrada, usuario y contraseña provisional una sola vez, con botón de copiar. Falta: correo de bienvenida.
 - [ ] **F3-03** "Entrar como cliente" para soporte, con auditoría.
 - [ ] **F3-04** Límites por plan (`employeeLimit`, relojes) aplicados en altas y en la consola.
@@ -243,6 +244,7 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [x] **L-09** `User.company` (texto libre, muere con D2 en favor de `tenantId`): borrado del schema, DTOs/entities/mappers/services de `users` y `hr`, y de la web (hero, tipos). La migración F1A-02 debe incluir el `DROP COLUMN`.
 - [ ] **L-10** `Notification.ticketId` + canal Ably `tickets:` + referencias en `appEvents`, `useAblyNotifications` y DTO de `dashboard` (residuo de tickets).
 - [ ] **L-11** `AuditLog.deviceId`/`deviceCode` (residuo del audit de inventario): DTO/entity/mapper de `audit` + writers del `AuditLogger`.
+- [x] **L-17** Correos: marca TimeManager (colores, logo PNG, remitente, textos sin "Puerto Nuevo"/"Cartas Responsivas", `charset=utf-8`), nombre del cliente en encabezado y asunto, botón de entrada por subdominio y avisos de RH dentro del cliente (ya no a la lista global). Fuera las plantillas de tickets, tareas y órdenes de compra. Pendiente del usuario: verificar `axzy.dev` en Resend (hoy 403).
 - [x] **L-14** Un solo indicador de carga: el esqueleto de `ITPage`. Página completa → `<ITPage loading>`; bloque dentro de página o diálogo → `ContentSkeleton` (`shared/ui/content-skeleton`, mismo esqueleto). Fuera `LottieLoader`, el `ITLoader` de contenido y `TicState kind="loading"` (20 pantallas). Los botones conservan su `loading`.
 - [x] **L-15** Inicio del cliente (`/`, `features/home/client-overview`): primeros pasos (personal, horarios, asignación, reloj), asistencia de hoy, personal, expedientes, tiempo extra de la semana y pendientes de configuración; cada bloque según permiso y con su propio esqueleto/error. Antes `/` mandaba a `/employees`.
 - [x] **L-16** `PanelCard` apilaba título y descripción en fila (se veían pegados en todas las tarjetas); el logo de la barra superior repetía "TimeManager".

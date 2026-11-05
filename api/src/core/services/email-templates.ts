@@ -3,9 +3,10 @@
  * `sys_config.LANGUAGE`). HTML con escape de variables dinámicas para evitar
  * XSS por contenido controlado por el usuario.
  *
- * Diseño alineado con `web/src/shared/pdf/theme.ts#PDF_COLORS` (banda azul
- * `#0a4560`, acento `#5fb8dd`, cards con borde superior). Outlook-safe:
- * solo `<table>`/`<tr>`/`<td>` con estilos inline — nada de flex/grid.
+ * Marca TimeManager (banda azul marino `#1D2636`, acento ámbar `#F2A93B`) con
+ * el nombre del cliente en el encabezado (`EMAIL_COMPANY_TOKEN`, lo resuelve la
+ * cola al encolar). Outlook-safe: solo `<table>`/`<tr>`/`<td>` con estilos
+ * inline — nada de flex/grid.
  */
 
 import { formatDateTime, t, type Language } from "@core/i18n";
@@ -19,11 +20,11 @@ const escapeHtml = (value: string): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-// Paleta espejada de web/src/shared/pdf/theme.ts → PDF_COLORS.
+// Paleta de marca (tokens `--tm-*` de la web).
 const EMAIL_COLORS = {
-  band: "#0a4560",
-  bandAccent: "#5fb8dd",
-  bandSubtitle: "#bfe0f0",
+  band: "#1D2636",
+  bandAccent: "#F2A93B",
+  bandSubtitle: "#AEB8CC",
   ink: "#0f172a",
   muted: "#64748b",
   light: "#f1f5f9",
@@ -41,11 +42,17 @@ const EMAIL_COLORS = {
 type CardVariant = "default" | "danger" | "success" | "warning";
 
 /**
- * CID del logo inline de Puerto Nuevo. El HTML de cada template referencia
+ * CID del logo inline de TimeManager. El HTML de cada template referencia
  * `<img src="cid:EMAIL_LOGO_CID">`; `mail.ts` adjunta el PNG con ese `cid`,
  * porque Gmail/Outlook descartan las imágenes `data:` URI.
  */
-export const EMAIL_LOGO_CID = "puerto-nuevo-logo";
+export const EMAIL_LOGO_CID = "timemanager-logo";
+
+/**
+ * Marcador del nombre del cliente en asunto y encabezado. `enqueueEmail` lo
+ * reemplaza por el cliente del contexto (o "TimeManager" en plataforma).
+ */
+export const EMAIL_COMPANY_TOKEN = "%%TM_COMPANY%%";
 
 const CARD_VARIANT_STYLES: Record<CardVariant, { bg: string; border: string }> = {
   default: { bg: EMAIL_COLORS.light, border: EMAIL_COLORS.band },
@@ -91,6 +98,11 @@ const layoutEmail = ({ language, title, preview, content }: LayoutInput): string
   return `
 <!doctype html>
 <html lang="${language}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(title)}</title>
+  </head>
   <body style="margin:0;padding:0;background:${EMAIL_COLORS.pageBg};font-family:Arial,Helvetica,sans-serif;color:${EMAIL_COLORS.ink};">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${EMAIL_COLORS.pageBg};padding:24px 0;">
       <tr>
@@ -102,12 +114,12 @@ const layoutEmail = ({ language, title, preview, content }: LayoutInput): string
               <td style="background:${EMAIL_COLORS.band};padding:18px 28px;">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                   <tr>
-                    <td valign="vertical" width="48" style="width:48px;">
-                      <img src="cid:${EMAIL_LOGO_CID}" alt="Puerto Nuevo" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:50%;background:${EMAIL_COLORS.white};border:0;outline:none;text-decoration:none;"/>
+                    <td valign="middle" width="48" style="width:48px;">
+                      <img src="cid:${EMAIL_LOGO_CID}" alt="TimeManager" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:10px;border:0;outline:none;text-decoration:none;"/>
                     </td>
-                    <td valign="vertical" style="padding-left:12px;">
-                      <div style="font-size:16px;font-weight:700;color:${EMAIL_COLORS.white};line-height:1.2;">Puerto Nuevo Hotel y Villas</div>
-                      <div style="font-size:11px;color:${EMAIL_COLORS.bandSubtitle};text-transform:uppercase;letter-spacing:0.6px;margin-top:2px;">[Puerto Nuevo]</div>
+                    <td valign="middle" style="padding-left:12px;">
+                      <div style="font-size:16px;font-weight:700;color:${EMAIL_COLORS.white};line-height:1.2;">${EMAIL_COMPANY_TOKEN}</div>
+                      <div style="font-size:11px;color:${EMAIL_COLORS.bandSubtitle};text-transform:uppercase;letter-spacing:0.6px;margin-top:2px;">${escapeHtml(t("emails.tagline", {}, language))}</div>
                     </td>
                   </tr>
                 </table>
@@ -164,6 +176,12 @@ const hint = (text: string, margin = "8px 0 0 0"): string =>
 
 const strong = (value: string): string => `<strong>${escapeHtml(value)}</strong>`;
 
+/** Botón de acción (enlace con estilo de botón, seguro en Outlook). */
+const button = (href: string, label: string, margin = "16px 0 0 0"): string => `
+        <p style="margin:${margin};">
+          <a href="${escapeHtml(href)}" style="display:inline-block;background:${EMAIL_COLORS.band};color:${EMAIL_COLORS.white};font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;padding:12px 20px;">${escapeHtml(label)}</a>
+        </p>`;
+
 interface EmailContent {
   subject: string;
   html: string;
@@ -195,6 +213,8 @@ export interface WelcomeEmailInput {
   name: string;
   username: string;
   tempPassword: string;
+  /** Entrada del cliente (subdominio); sin ella el correo no lleva botón. */
+  loginUrl?: string | null;
   /**
    * Versión detallada para admin/HR. Omite la contraseña temporal y agrega
    * metadata del empleado (rol, departamento, fecha de alta).
@@ -247,6 +267,7 @@ export const welcomeEmail = (input: WelcomeEmailInput): EmailContent => {
         fieldRow(f("username"), username, { strong: true, first: true }),
         fieldRow(f("tempPassword"), input.tempPassword, { strong: true }),
       ])}
+      ${input.loginUrl ? button(input.loginUrl, t("emails.signIn", {}, lng)) : ""}
       ${hint(t("emails.welcome.hint", {}, lng))}
     `,
   });
@@ -514,55 +535,6 @@ export const employeeRegistrationEmail = (input: EmployeeRegistrationEmailInput)
   };
 };
 
-// --- Tickets: avisos cortos (sin layout), con el contenido del usuario escapado.
-
-export const ticketCreatedEmail = (
-  lng: Language,
-  ticket: { title: string; description: string }
-): EmailContent => ({
-  subject: t("emails.ticketCreated.subject", { title: ticket.title }, lng),
-  html: `<p>${t("emails.ticketCreated.body", { title: strong(ticket.title) }, lng)}</p><p>${escapeHtml(ticket.description)}</p>`,
-});
-
-export const ticketCommentEmail = (
-  lng: Language,
-  input: { ticketTitle: string; author: string; text: string }
-): EmailContent => ({
-  subject: t("emails.ticketComment.subject", { title: input.ticketTitle }, lng),
-  html: `<p>${t("emails.ticketComment.body", { author: strong(input.author), title: strong(input.ticketTitle) }, lng)}</p><p>${escapeHtml(input.text)}</p>`,
-});
-
-export const taskAssignedEmail = (
-  lng: Language,
-  input: { ticketTitle: string; taskTitle: string }
-): EmailContent => ({
-  subject: t("emails.taskAssigned.subject", { title: input.taskTitle }, lng),
-  html: `<p>${t("emails.taskAssigned.body", { ticket: strong(input.ticketTitle) }, lng)}</p><p>${escapeHtml(input.taskTitle)}</p>`,
-});
-
-export interface PurchaseOrderEmailInput {
-  language: Language;
-  number: string;
-  supplier: string;
-  /** Mensaje libre capturado por el usuario. */
-  message: string;
-}
-
-/**
- * Cuerpo del correo de la orden de compra al proveedor: el mensaje libre del
- * usuario (escapado) dentro del layout institucional. El PDF viaja adjunto.
- */
-export const purchaseOrderEmail = ({ language: lng, number, supplier, message }: PurchaseOrderEmailInput): string =>
-  layoutEmail({
-    language: lng,
-    title: t("emails.purchaseOrder.title", { number }, lng),
-    preview: t("emails.purchaseOrder.preview", { supplier }, lng),
-    content: `
-      ${paragraph(escapeHtml(message).replace(/\n/g, "<br/>"))}
-      ${hint(t("emails.purchaseOrder.hint", {}, lng))}
-    `,
-  });
-
 export interface RosterAlertEmailInput {
   language: Language;
   pending: number;
@@ -596,3 +568,44 @@ export const rosterAlertEmail = (input: RosterAlertEmailInput): EmailContent => 
   };
 };
 
+
+export interface TenantWelcomeEmailInput {
+  language: Language;
+  company: string;
+  name: string;
+  username: string;
+  tempPassword?: string;
+  loginUrl?: string | null;
+}
+
+/** Al administrador de un cliente nuevo: su entrada, usuario, contraseña provisional y primeros pasos. */
+export const tenantWelcomeEmail = (input: TenantWelcomeEmailInput): EmailContent => {
+  const { language: lng } = input;
+  const f = (key: keyof typeof FIELD_KEYS) => t(FIELD_KEYS[key], {}, lng);
+  const rows = [
+    ...(input.loginUrl ? [fieldRow(t("emails.tenantWelcome.signInUrl", {}, lng), input.loginUrl.replace(/^https?:\/\//, ""), { first: true })] : []),
+    fieldRow(f("username"), input.username, { strong: true, first: !input.loginUrl }),
+    ...(input.tempPassword ? [fieldRow(f("tempPassword"), input.tempPassword, { strong: true })] : []),
+  ];
+  const steps = (["emails.tenantWelcome.steps.staff", "emails.tenantWelcome.steps.schedules", "emails.tenantWelcome.steps.clock"] as const)
+    .map((key) => `<li style="margin:0 0 4px 0;">${escapeHtml(t(key, {}, lng))}</li>`)
+    .join("");
+  const body = `
+    ${paragraph(t("emails.tenantWelcome.body", { name: strong(input.name), company: strong(input.company) }, lng))}
+    ${card({
+      title: t("emails.tenantWelcome.cardTitle", {}, lng),
+      content: `${fieldTable(rows)}${input.loginUrl ? button(input.loginUrl, t("emails.signIn", {}, lng), "12px 0 0 0") : ""}${hint(t("emails.tenantWelcome.passwordHint", {}, lng))}`,
+    })}
+    <p style="margin:16px 0 6px 0;font-weight:700;">${escapeHtml(t("emails.tenantWelcome.stepsTitle", {}, lng))}</p>
+    <ol style="margin:0;padding-left:20px;font-size:14px;line-height:1.55;color:${EMAIL_COLORS.ink};">${steps}</ol>
+  `;
+  return {
+    subject: t("emails.tenantWelcome.subject", { company: input.company }, lng),
+    html: layoutEmail({
+      language: lng,
+      title: t("emails.tenantWelcome.title", {}, lng),
+      preview: t("emails.tenantWelcome.preview", { company: input.company }, lng),
+      content: body,
+    }),
+  };
+};

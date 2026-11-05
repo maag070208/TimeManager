@@ -30,7 +30,7 @@ export default function CreateTenantDialog({ isOpen, onClose, onCreated }: Props
     fx.errors[key] ? tr(`platform.create.errors.${fx.errors[key]}`) : undefined;
 
   if (fx.created) {
-    const { tenant, admin, temporaryPassword } = fx.created;
+    const { tenant, admin, temporaryPassword, welcomeEmail } = fx.created;
     const copy = async () => {
       try {
         await navigator.clipboard.writeText(
@@ -57,6 +57,9 @@ export default function CreateTenantDialog({ isOpen, onClose, onCreated }: Props
           )}
         </dl>
         <ITText className="mt-3 block text-xs text-slate-500">{t("platform.create.done.hint")}</ITText>
+        <ITText className="mt-1 block text-xs text-slate-500">
+          {welcomeEmail ? t("platform.create.done.emailed", { email: welcomeEmail }) : t("platform.create.done.notEmailed")}
+        </ITText>
         <div className="mt-5 flex justify-end gap-2">
           <ITButton variant="outlined" color="secondary" onClick={copy}>
             <span className="flex items-center gap-1.5">

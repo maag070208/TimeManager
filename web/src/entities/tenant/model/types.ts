@@ -31,6 +31,8 @@ export interface TenantCreated {
   tenant: Tenant;
   admin: { id: string; username: string };
   temporaryPassword?: string;
+  /** Correo al que se encoló la bienvenida; `null` si el administrador no tiene correo. */
+  welcomeEmail: string | null;
   catalogs: { removalCategories: number; documentTypes: number };
 }
 

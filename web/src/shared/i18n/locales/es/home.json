@@ -82,7 +82,9 @@
         "hint": "La contraseña solo se muestra ahora. Al entrar por primera vez se le pedirá cambiarla.",
         "copy": "Copiar datos",
         "copied": "Copiado",
-        "close": "Listo"
+        "close": "Listo",
+        "emailed": "También le enviamos estos datos a {{email}}.",
+        "notEmailed": "No tiene correo: compártele estos datos tú."
       }
     }
   },

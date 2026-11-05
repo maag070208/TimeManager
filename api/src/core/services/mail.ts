@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import type * as nodemailer from "nodemailer";
-import { LOGO_PUERTO_NUEVO_BASE64 } from "@core/assets/logoPuertoNuevo";
+import { LOGO_TIMEMANAGER_PNG_BASE64 } from "@core/assets/logoTimeManager";
 import { env } from "@core/config/env.config";
 import { EMAIL_LOGO_CID } from "@core/services/email-templates";
 import type { SysConfigService } from "@modules/config/services/sys-config.service";
@@ -19,11 +19,10 @@ export interface EmailAttachment {
   cid?: string;
 }
 
-const logoSrc = LOGO_PUERTO_NUEVO_BASE64.replace(/^data:image\/png;base64,/, "");
 
 const logoAttachment = (): EmailAttachment => ({
-  filename: "puerto-nuevo-logo.png",
-  content: Buffer.from(logoSrc, "base64"),
+  filename: "timemanager-logo.png",
+  content: Buffer.from(LOGO_TIMEMANAGER_PNG_BASE64, "base64"),
   contentType: "image/png",
   inline: true,
   cid: EMAIL_LOGO_CID,
@@ -225,7 +224,7 @@ export const sendEmail = async (input: {
       const fromAddr =
         env.RESEND_FROM_EMAIL ?? env.SMTP_FROM ?? env.SMTP_USER ?? "noreply@axzy.dev";
       // Resend espera un header "From" con formato "Nombre <correo@dominio>".
-      const fromHeader = fromAddr.includes("<") ? fromAddr : `Puerto Nuevo <${fromAddr}>`;
+      const fromHeader = fromAddr.includes("<") ? fromAddr : `TimeManager <${fromAddr}>`;
       const { error } = await resend.emails.send({
         from: fromHeader,
         to: recipients,
