@@ -2,6 +2,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@core/config/env.config";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { currentTenantId } from "@core/tenancy/context";
 
 /**
  * S3 del expediente (fotos y documentos). El bucket DEBE ser privado: aquí no
@@ -33,6 +34,26 @@ const client = configured
 /** Vida de las URLs de descarga firmadas (10 min). */
 export const OBJECT_URL_EXPIRES_IN = 600;
 
+/**
+ * Clave con prefijo del cliente (F1B-05): `tenant/<id>/<key>`. Aísla los
+ * archivos en el bucket aunque un `storageKey` se filtre entre clientes.
+ * Idempotente (no duplica el prefijo) y sin contexto de cliente devuelve la
+ * clave tal cual (compatibilidad con objetos históricos y workers globales).
+ */
+export const tenantStoragePrefix = (tenantId: string | null = currentTenantId()): string | null =>
+  tenantId ? `tenant/${tenantId}/` : null;
+
+export const scopedObjectKey = (
+  key: string,
+  tenantId: string | null = currentTenantId()
+): string => {
+  const normalized = key.replace(/^\/+/, "");
+  const prefix = tenantStoragePrefix(tenantId);
+  if (!prefix) return normalized;
+  if (normalized.startsWith(prefix)) return normalized;
+  return `${prefix}${normalized}`;
+};
+
 const requireStorage = (): { client: S3Client; bucket: string } => {
   if (!client || !env.AWS_BUCKET_NAME) {
     throw new HttpError(503, "STORAGE_NOT_CONFIGURED");
@@ -44,7 +65,7 @@ export const uploadObject = async (key: string, body: Buffer, contentType: strin
   const { client: s3, bucket } = requireStorage();
   await s3.send(new PutObjectCommand({
     Bucket: bucket,
-    Key: key,
+    Key: scopedObjectKey(key),
     Body: body,
     ContentType: contentType,
   }));
@@ -53,7 +74,7 @@ export const uploadObject = async (key: string, body: Buffer, contentType: strin
 /** Lee el objeto con credenciales IAM (nunca por URL pública). */
 export const downloadObject = async (key: string) => {
   const { client: s3, bucket } = requireStorage();
-  const result = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  const result = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: scopedObjectKey(key) }));
   if (!result.Body) throw new HttpError(404, "FILE_NOT_FOUND");
   return Buffer.from(await result.Body.transformToByteArray());
 };
@@ -68,5 +89,5 @@ export const signedObjectUrl = async (
   expiresIn: number = OBJECT_URL_EXPIRES_IN
 ): Promise<string> => {
   const { client: s3, bucket } = requireStorage();
-  return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn });
+  return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: scopedObjectKey(key) }), { expiresIn });
 };

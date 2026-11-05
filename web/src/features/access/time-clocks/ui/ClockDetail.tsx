@@ -7,7 +7,7 @@ import {
   ITGrid,
   ITText,
 } from "@axzydev/axzy_ui_system";
-import { FaArrowLeft, FaPen, FaRedo, FaTrashAlt } from "react-icons/fa";
+import { FaArrowLeft, FaPen, FaPlug, FaRedo, FaTrashAlt } from "react-icons/fa";
 import {
   CLOCK_STATUS_COLOR,
   clockStatus,
@@ -52,8 +52,18 @@ interface Props {
  * se lee; nada de aquí le cambia nada al equipo.
  */
 export default function ClockDetail({ fx, clock, config, onBack }: Props) {
-  const { t, loadConfig, openEdit, setRetirementTarget } = fx;
+  const {
+    t,
+    loadConfig,
+    openEdit,
+    setRetirementTarget,
+    testConnection,
+    syncNow,
+    syncingNow,
+    connectionTests,
+  } = fx;
   const status = clockStatus(clock);
+  const connection = connectionTests[clock.clockSerial];
 
   return (
     <ITFlex direction="column" gap={4}>
@@ -102,6 +112,36 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
               </ITText>
             </ITFlex>
           </ITButton>
+          <ITButton
+            variant="outlined"
+            color="primary"
+            size="sm"
+            disabled={connection?.state === "testing"}
+            onClick={() => void testConnection(clock.clockSerial)}
+          >
+            <ITFlex align="center" gap={1}>
+              <FaPlug size={11} />
+              <ITText className="font-bold text-[11px]">
+                {connection?.state === "testing"
+                  ? t("clocks.actions.testingConnection")
+                  : t("clocks.actions.testConnection")}
+              </ITText>
+            </ITFlex>
+          </ITButton>
+          <ITButton
+            variant="filled"
+            color="primary"
+            size="sm"
+            disabled={syncingNow}
+            onClick={() => void syncNow()}
+          >
+            <ITFlex align="center" gap={1}>
+              <FaRedo size={11} />
+              <ITText className="font-bold text-[11px]">
+                {syncingNow ? t("clocks.actions.syncingNow") : t("clocks.actions.syncNow")}
+              </ITText>
+            </ITFlex>
+          </ITButton>
           <ITButton variant="outlined" color="secondary" size="sm" onClick={() => openEdit(clock)}>
             <ITFlex align="center" gap={1}>
               <FaPen size={10} />
@@ -136,6 +176,16 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
             value={clock.syncedAt ? formatDateTime(clock.syncedAt) : t("status.empty")}
           />
           <Datum label={t("clocks.sync.number")} value={number(clock.lastSerialNo)} />
+          {connection?.state === "ok" && (
+            <ITText className="text-[11.5px] font-semibold text-[var(--color-success)]">
+              {t("clocks.connection.ok", { serial: connection.detail ?? clock.clockSerial })}
+            </ITText>
+          )}
+          {connection?.state === "error" && (
+            <ITText className="text-[11.5px] font-semibold text-[var(--color-error)]">
+              {connection.detail ?? t("clocks.errors.connection")}
+            </ITText>
+          )}
         </Section>
       </ITCard>
 

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate, requiresAnyPermission, requiresPermission } from "@core/middlewares/auth.middleware";
+import { HttpError } from "@core/middlewares/error.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import {
@@ -19,6 +20,8 @@ import {
   TimeClockReportQuerySchema,
   TimeClockReportResponseSchema,
   TimeClockStatusSchema,
+  ClockApiKeySchema,
+  ClockIngestDto,
   TimeClockLinkDto,
   TimeClockRosterSchema,
   TimeClockRosterRunResultSchema,
@@ -28,8 +31,39 @@ import type { TimeClockController } from "../controllers/time-clock.controller";
 
 const bearer = [{ bearerAuth: [] }];
 
+/** Solo personal de plataforma (usuarios sin cliente). */
+const requiresPlatform = (req: { user?: { tenantId?: string | null } }, _res: unknown, next: () => void): void => {
+  if (req.user?.tenantId) throw new HttpError(403, "INSUFFICIENT_PERMISSIONS");
+  next();
+};
+
 export const createTimeClockRouter = (controller: TimeClockController): Router => {
   const router = Router();
+
+  registerPath({
+    method: "get",
+    path: "/time-clock/fingerprint-station/config",
+    tags: ["TimeClock"],
+    summary: "Get the fingerprint station config (platform only)",
+    description:
+      "Devuelve la configuración efectiva del scope pedido (`tenantId` opcional). " +
+      "La contraseña nunca se devuelve: solo `hasPassword`.",
+    security: bearer,
+    parameters: [{ in: "query", name: "tenantId", required: false, schema: { type: "string", format: "uuid" } }],
+    responses: { 200: { description: "Station config" }, 403: { description: "Not platform staff" } },
+  });
+
+  registerPath({
+    method: "put",
+    path: "/time-clock/fingerprint-station/config",
+    tags: ["TimeClock"],
+    summary: "Create/update the fingerprint station config (platform only)",
+    description:
+      "Sin `tenantId` edita el default de plataforma (estación central); con `tenantId` " +
+      "crea el override del cliente (estación en sitio). `clear` borra el scope.",
+    security: bearer,
+    responses: { 200: { description: "Station config" }, 400: { description: "Invalid config" }, 403: { description: "Not platform staff" } },
+  });
 
   registerPath({
     method: "post",
@@ -132,6 +166,34 @@ export const createTimeClockRouter = (controller: TimeClockController): Router =
       200: { description: "Descartada" },
       404: { description: "No vinculado" },
       409: { description: "No tiene baja pendiente" },
+    },
+  });
+
+  registerPath({
+    method: "post",
+    path: "/time-clock/ingest",
+    tags: ["Time clock"],
+    summary:
+      "Ingesta directa de checadas desde el reloj con su API key (serial + key ligada al cliente; 202)",
+    security: [],
+    request: { body: { required: true, content: { "application/json": { schema: ClockIngestDto } } } },
+    responses: {
+      202: { description: "{ clockSerial, received, saved }" },
+      400: { description: "Invalid punches" },
+      401: { description: "Invalid clock API key" },
+    },
+  });
+
+  registerPath({
+    method: "post",
+    path: "/time-clock/clocks/{serial}/key",
+    tags: ["Time clock"],
+    summary: "Generate/rotate the clock API key for direct ingestion (shown only once)",
+    security: bearer,
+    parameters: [{ in: "path", name: "serial", required: true, schema: { type: "string" } }],
+    responses: {
+      201: { description: "New API key (only shown once)", content: { "application/json": { schema: ClockApiKeySchema } } },
+      404: { description: "Not registered" },
     },
   });
 
@@ -280,6 +342,9 @@ export const createTimeClockRouter = (controller: TimeClockController): Router =
     },
   });
 
+  // Ingesta directa del reloj: autenticada con la API key del equipo, no con JWT.
+  router.post("/ingest", asyncHandler(controller.ingestClockPunches));
+
   router.use(authenticate);
 
   router.post("/query", requiresPermission("time_clock.view"), asyncHandler(controller.table));
@@ -288,6 +353,7 @@ export const createTimeClockRouter = (controller: TimeClockController): Router =
   router.post("/sync", requiresPermission("time_clock.sync"), asyncHandler(controller.sync));
 
   router.post("/clocks", requiresPermission("time_clocks.manage"), asyncHandler(controller.registerClock));
+  router.post("/clocks/:serial/key", requiresPermission("time_clocks.manage"), asyncHandler(controller.rotateClockApiKey));
   router.patch("/clocks/:serial", requiresPermission("time_clocks.manage"), asyncHandler(controller.updateClock));
   router.delete("/clocks/:serial", requiresPermission("time_clocks.manage"), asyncHandler(controller.retireClock));
   router.get("/clocks/:serial/settings", requiresAnyPermission(["time_clocks.manage", "time_clock.write"]), asyncHandler(controller.clockSettings));
@@ -309,6 +375,20 @@ export const createTimeClockRouter = (controller: TimeClockController): Router =
   router.get("/employees/:userId/clock-status", requiresAnyPermission(["time_clocks.manage", "time_clock.write"]), asyncHandler(controller.employeeClockStatus));
   // Lector de huellas (estación de enrolamiento): solo estado y captura de prueba; no guarda nada.
   router.get("/fingerprint-station", requiresAnyPermission(["time_clocks.manage", "time_clock.write"]), asyncHandler(controller.fingerprintStationInfo));
+  // F1B-12: configuración de la estación (plataforma). El enrolamiento usa la
+  // estación efectiva: override del cliente → central → `.env`.
+  router.get(
+    "/fingerprint-station/config",
+    requiresPlatform,
+    requiresPermission("time_clocks.manage"),
+    asyncHandler(controller.fingerprintStationConfigGet)
+  );
+  router.put(
+    "/fingerprint-station/config",
+    requiresPlatform,
+    requiresPermission("time_clocks.manage"),
+    asyncHandler(controller.fingerprintStationConfigSave)
+  );
   router.post("/fingerprint-station/test", requiresPermission("time_clocks.manage"), asyncHandler(controller.fingerprintStationTest));
   router.get("/employees/:userId/fingerprint/status", requiresAnyPermission(["time_clocks.manage", "time_clock.write"]), asyncHandler(controller.fingerprintStatus));
   router.post("/employees/:userId/fingerprint/capture", requiresPermission("time_clock.write"), asyncHandler(controller.fingerprintCapture));

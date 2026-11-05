@@ -4,7 +4,8 @@ Envío de correos (Nodemailer/Resend) con bitácora (`EmailLog`), reintento y ca
 
 ## Endpoints
 
-`POST /logs/query` (bitácora paginada), `POST /logs/:id/retry`, `POST /logs/:id/cancel`.
+`POST /mail/logs/query` (bitácora paginada), `POST /mail/logs/:id/retry`, `POST /mail/logs/:id/cancel`.
+Las tres exigen sesión de plataforma (ADMIN) y `system.configure`.
 
 ## Modelos
 
@@ -12,7 +13,9 @@ Envío de correos (Nodemailer/Resend) con bitácora (`EmailLog`), reintento y ca
 
 ## Permisos
 
-`system.configure`.
+`system.configure` **y** usuario de plataforma (sin `tenantId`). La bitácora de envíos es del panel de soporte:
+una excepción de permiso a un usuario de cliente no debe abrirla (defensa en profundidad F1A-12, guard
+`requiresPlatform`).
 
 ## Dependencias
 

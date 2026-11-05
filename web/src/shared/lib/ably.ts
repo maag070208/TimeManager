@@ -3,11 +3,13 @@ import * as Ably from "ably";
 import { api } from "@shared/api/client";
 
 /**
- * Notificaciones en vivo por Ably (F1C-02). El navegador no recibe la app key:
- * pide al API un TokenRequest firmado con `clientId` propio y capability de
- * suscripción solo sobre `user:<id>`. Sin Ably configurado en el servidor la app
- * sigue funcionando; solo se pierden las notificaciones en vivo (la campanita se
- * actualiza al recargar).
+ * Notificaciones en vivo por Ably (F1C-02 + F1B-05). El navegador no recibe la
+ * app key: pide al API un TokenRequest firmado con `clientId` propio y capability
+ * de suscripción solo a sus canales. Con cliente, el canal es
+ * `tenant:<tenantId>:user:<userId>`; el de plataforma sin cliente sigue usando
+ * `user:<id>`. Sin Ably configurado en el servidor la app sigue funcionando;
+ * solo se pierden las notificaciones en vivo (la campanita se actualiza al
+ * recargar).
  */
 let ablyClient: Ably.Realtime | null = null;
 let ablyClientId: string | undefined;

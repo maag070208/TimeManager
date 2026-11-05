@@ -254,8 +254,6 @@
     "yesterday": "Yesterday",
     "family": {
       "all": "All",
-      "equipment": "Inventory",
-      "tickets": "Tickets",
       "account": "Account",
       "other": "Other"
     },

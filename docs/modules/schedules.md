@@ -5,7 +5,7 @@ El motor de cálculo del sistema: define horarios, los asigna a empleados y conv
 ## Qué hace
 
 - **Horarios**: CRUD de `Schedule` con días (`ScheduleDay`).
-- **Asignaciones**: `ScheduleAssignment` por empleado con vigencia (`validFrom`); consulta y baja.
+- **Asignaciones**: `ScheduleAssignment` por empleado con vigencia (`validFrom`); consulta y baja. Si un día tiene varias asignaciones vigentes encimadas (una corrección/reasignación hacia atrás que no cerró a la anterior), el horario del día se resuelve con la que **entró en vigor al final** (empate: la capturada después y el id), nunca con la más antigua.
 - **Asistencia calculada**: `computeWorkday` deriva retardo, horas extra y faltas cruzando el horario asignado con checadas (`POST /attendance/time-clock`) o eventos de acceso (`POST /attendance/access`). `POST /weekly-attendance` para la vista semanal.
 - **Tiempo extra calculado**: `POST /overtime/query` y `POST /overtime/export` (lo que alimenta la aprobación en `overtime`).
 - **Cierre de nómina**: revisión por departamento (`PayrollDepartmentReview`), cierre y reapertura de semana (`PayrollWeekClosure`).
@@ -23,6 +23,15 @@ El motor de cálculo del sistema: define horarios, los asigna a empleados y conv
 ## Modelos
 
 `Schedule`, `ScheduleDay`, `ScheduleAssignment`, `PayrollWeekClosure`, `PayrollDepartmentReview`.
+
+## Cálculo de jornada (`computeWorkday`)
+
+Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Horas extra; vive en `services/workday-rules.ts` y recibe el día local, las sesiones del reloj, el horario vigente y la zona del cliente.
+
+- **Retardo** (`lateMin`): primera entrada del día contra la entrada programada del primer tramo; solo cuenta si supera `entryToleranceMin`. Se expresa en minutos (359 = "5:59"); llegar antes nunca genera retardo negativo. Un día de descanso, un día sin `ScheduleDay` o una persona sin horario asignado **no inventa** retardo.
+- **Tiempo extra**: lo trabajado después de la salida programada del último tramo (o de la salida del turno + 24 h si cruza medianoche), menos `exitToleranceMin` y si alcanza `minOvertimeMin`. En descanso cuenta todo lo trabajado; sin horario no se calcula (se marca `withoutSchedule`).
+- **Faltante** (`missingMin`): lo programado menos lo trabajado, solo si hubo checada.
+- **Asignación del día**: `scheduleOn` elige la asignación vigente; con vigencias encimadas gana la más reciente (ver "Qué hace"). El caso **DEMO-911** ("Retardo 5:59 h" con entrada 14:58 y turno Vespertino 15:00) era esto: se comparaba contra un Matutino 09:00 de una asignación vieja que nunca se cerró. Resuelto en F2-05; regresión en `workday-rules.test.ts` y `tests/integration/schedules-late.flow.test.ts`.
 
 ## Permisos
 
@@ -42,4 +51,4 @@ El motor de cálculo del sistema: define horarios, los asigna a empleados y conv
 - El cálculo es CPU-bound y por cliente: candidato a cola de trabajos (job por tenant/semana) cuando crezca el volumen.
 - Reglas de jornada (tope 12 h diarias, 46 h en 2027, reducción a 40 h en 2030) deben ser **configurables por tenant** (cada cliente puede tener reglas distintas mientras la ley lo permita).
 - El cierre de nómina es la frontera de integración: en SaaS, exportar por cliente (API/webhook) en vez de acoplar a una nómina interna.
-- **Bug conocido**: retardo mal calculado en pantalla (caso DEMO-911) — revisar `computeWorkday` y la asignación vigente antes de vender el reporte.
+- **Resuelto (F2-05)**: el retardo mal calculado de DEMO-911 venía de la resolución de la asignación (ganaba la vigencia más antigua) y ya usa la más reciente; el cálculo en sí (`computeWorkday`) siempre estuvo bien.

@@ -108,6 +108,9 @@ Los roles viven en BD (tabla `roles`) y la UI se gobierna por permisos (`useCan`
 - Lista (con `hr.records` sale del expediente; si no, de las cuentas), alta,
   edición de perfil (foto, datos, documentos), baja/reactivación, historial,
   importación Excel, actas administrativas y catálogo de tipos de documento.
+- Pestaña **Actividad** de la ficha: `GET /hr/:id/overview` (`hr.records`) con
+  documentos cargados/faltantes, checadas de los últimos 30 días, actas del año
+  y horario vigente. Ya no depende de tickets, tareas ni inventario.
 - `/users/*` redirige a su equivalente en `/employees/*`.
 
 ### 5. Departamentos y subáreas

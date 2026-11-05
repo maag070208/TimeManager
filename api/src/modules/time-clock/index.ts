@@ -6,18 +6,9 @@ import { TimeClockEmployeesService } from "./services/time-clock-employees.servi
 import { TimeClockReportService } from "./services/time-clock-report.service";
 import { TimeClockRosterService, type RosterAlerts, type UserDeactivator } from "./services/time-clock-roster.service";
 import { TimeClockInspectService } from "./services/time-clock-inspect.service";
-import { TimeClockPeopleService, type FingerprintStation } from "./services/time-clock-people.service";
-
-/**
- * Estación de enrolamiento de huellas por red (DS-K1F600U). Se configura con variables de
- * entorno; sin ellas la captura de huellas no está disponible.
- */
-const stationFromEnv = (): FingerprintStation | null => {
-  const url = process.env.FINGERPRINT_STATION_URL;
-  const user = process.env.FINGERPRINT_STATION_USER;
-  const pass = process.env.FINGERPRINT_STATION_PASS;
-  return url && user && pass ? { url, user, pass } : null;
-};
+import { TimeClockPeopleService } from "./services/time-clock-people.service";
+import { FingerprintStationService } from "./services/fingerprint-station.service";
+import { currentTenantId } from "@core/tenancy";
 import { envClockCredentials } from "./services/clock-credentials";
 import { TimeClockSummaryService } from "./services/time-clock-summary.service";
 import { TimeClockController } from "./controllers/time-clock.controller";
@@ -35,6 +26,9 @@ export interface TimeClockModuleDeps {
 }
 
 export const createTimeClockModule = (deps: TimeClockModuleDeps = {}) => {
+  // Estación de huellas (F1B-12): override del cliente → default de plataforma
+  // → `.env`. Se resuelve en cada uso, no al arrancar.
+  const station = new FingerprintStationService(prismaClient);
   // Fallback de desarrollo/E2E: cada reloj usa sus credenciales guardadas en BD
   // (F1B-10) y solo recurre a este par del `.env` si no tiene las suyas.
   const credentials = envClockCredentials();
@@ -49,14 +43,25 @@ export const createTimeClockModule = (deps: TimeClockModuleDeps = {}) => {
     credentials,
     deps.audit,
     process.env.TIME_CLOCK_WRITE_ENABLED === "true",
-    stationFromEnv()
+    null,
+    () => station.resolve(currentTenantId())
   );
   const summaryService = new TimeClockSummaryService(prismaClient, credentials);
-  const controller = new TimeClockController(service, report, employees, roster, inspect, people, summaryService);
+  const controller = new TimeClockController(
+    service,
+    report,
+    employees,
+    roster,
+    inspect,
+    people,
+    summaryService,
+    station
+  );
   return {
     router: createTimeClockRouter(controller),
     service,
     roster,
+    station,
     /** Sincronización periódica con los relojes; la arranca el runtime de workers. */
     startWorker: () => {
       const stopSync = service.startWorker(env.TIME_CLOCK_SYNC_INTERVAL_MS);

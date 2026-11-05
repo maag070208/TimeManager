@@ -23,11 +23,32 @@ export interface ITDataTableFetchParams {
     key: string;
     direction: "asc" | "desc";
   };
+  /**
+   * Paginación por cursor (F4-02): clave opaca del último renglón de la página
+   * anterior. Compatible con `page`: si viene, la página offset se ignora.
+   */
+  cursor?: string;
 }
+
+/** Valor opaco de cursor: JSON del último renglón, en base64url. */
+export const encodeCursor = (value: unknown): string =>
+  Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
+
+/** Decodifica un cursor; `null` si está corrupto (el llamador cae a offset). */
+export const decodeCursor = <T = unknown>(cursor: string | undefined): T | null => {
+  if (!cursor) return null;
+  try {
+    return JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as T;
+  } catch {
+    return null;
+  }
+};
 
 export interface ITDataTableResponse<T> {
   data: T[];
   total: number;
+  /** Siguiente cursor (solo cuando la consulta soporta paginación por cursor). */
+  nextCursor?: string | null;
 }
 
 /** Respuesta de tabla paginada: `{ data, total }` (compat) + metadatos de
@@ -46,7 +67,8 @@ export interface ITDataTableResponseWithPagination<T> extends ITDataTableRespons
 export const paginatedTable = <T>(
   params: ITDataTableFetchParams,
   data: T[],
-  total: number
+  total: number,
+  nextCursor?: string | null
 ): ITDataTableResponseWithPagination<T> => {
   const page = params.page;
   const limit = params.limit;
@@ -61,6 +83,7 @@ export const paginatedTable = <T>(
     limit,
     hasPreviousPage: page > 1,
     hasNextPage: page < totalPages,
+    ...(nextCursor !== undefined ? { nextCursor } : {}),
   };
 };
 
@@ -119,7 +142,9 @@ export const parseTableParams = (body: unknown): ITDataTableFetchParams => {
     }
   }
 
-  return { page, limit, filters, sort: parseSort(b.sort) };
+  const cursor = typeof b.cursor === "string" && b.cursor.trim() !== "" ? b.cursor.trim() : undefined;
+
+  return { page, limit, filters, sort: parseSort(b.sort), ...(cursor ? { cursor } : {}) };
 };
 
 /** Filtro Prisma "contains" case-insensitive (para campos de texto). */

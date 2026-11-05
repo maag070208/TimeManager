@@ -4,6 +4,8 @@ Agregaciones read-only para las pantallas de inicio: cada endpoint pide su permi
 
 ## Endpoints
 
+El resumen del ERP (`GET /summary` con devices/materialOutputs/inventory) se retiró en L-21 por no tener modelo ni consumidor; el DTO de Swagger asociado también.
+
 `GET /hr-records` (expedientes), `GET /people` (personal), `GET /attendance-today` (asistencia del día), `GET /overtime-week` (tiempo extra de la semana), `GET /setup-gaps` (pendientes de configuración del reloj).
 
 ## Permisos

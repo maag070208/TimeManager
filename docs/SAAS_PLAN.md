@@ -170,7 +170,7 @@ Estado de partida (2026-11-04): BD de Railway recién migrada con el baseline, s
 - **Migración de unicidades**: cambiar `username @unique` a compuesta requiere migración SQL a mano con backfill (regla del repo).
 - **Legal**: cada cliente es responsable de sus avisos de privacidad y consentimientos (biometría/geolocalización); el producto debe proveer las plantillas y el registro de consentimiento por tenant.
 - **Requisitos STPS sin publicar**: formato de exportación oficial, retención e integridad siguen "por validar" — diseñar con margen (ver `RH_MODULO_STANDALONE.md` §8).
-- **Bugs a resolver antes de vender**: retardo mal calculado (caso DEMO-911) en `schedules/computeWorkday`.
+- **Resuelto (F2-05)**: retardo mal calculado del caso DEMO-911; era la resolución de la asignación de horario (ganaba la vigencia más antigua). `computeWorkday` estaba bien; ver `docs/modules/schedules.md`.
 - **Frontend heredado**: menú y rutas de tickets, inventario, cocina y guardia ya se quitaron (2026-11-04); queda limpiar `notificationRoute` y carpetas vacías del API.
 
 ---

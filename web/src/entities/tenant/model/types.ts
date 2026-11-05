@@ -8,6 +8,10 @@ export interface TenantInfo {
   slug: string;
   name: string;
   timezone: string;
+  /** Branding (F3-05). `null` = marca TimeManager. */
+  brandColor?: string | null;
+  /** Logo del cliente como data URL. */
+  logoDataUrl?: string | null;
 }
 
 /** Ficha del cliente resumida por el plan contratado. */
@@ -19,6 +23,7 @@ export type TenantPlan = Pick<
 /** Cliente de la plataforma (`GET /tenants`, solo ADMIN/SUPPORT). */
 export interface Tenant extends TenantInfo {
   status: TenantStatus;
+  emailFrom: string | null;
   planId: string | null;
   plan: TenantPlan | null;
   employeeLimit: number | null;

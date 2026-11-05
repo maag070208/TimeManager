@@ -276,7 +276,11 @@
       "confirmRegistration": "Add",
       "connecting": "Connecting…",
       "confirmRetirement": "Remove",
-      "save": "Save"
+      "save": "Save",
+      "testConnection": "Test connection",
+      "testingConnection": "Testing…",
+      "syncNow": "Sync now",
+      "syncingNow": "Syncing…"
     },
     "sync": {
       "title": "Sync",
@@ -328,18 +332,25 @@
     "toasts": {
       "registration": "{{name}} added: it is already pulling its punches",
       "retirement": "{{name}} removed",
-      "edited": "{{name}} updated"
+      "edited": "{{name}} updated",
+      "connectionOk": "Connection to the clock succeeded",
+      "syncNow": "Sync started: new punches will arrive in seconds"
     },
     "errors": {
       "status": "Could not read the clocks status",
       "config": "Could not read the clock configuration",
       "registration": "Could not add the clock",
       "retirement": "Could not remove the clock",
-      "edit": "Could not update the clock"
+      "edit": "Could not update the clock",
+      "connection": "Could not connect to the clock",
+      "sync": "Could not start the sync"
     },
     "write": {
       "label": "Allow writing to this clock",
       "hint": "When on, the system can add, remove and register fingerprints on this clock. When off, the clock is read-only for the system."
+    },
+    "connection": {
+      "ok": "Connection OK · {{serial}}"
     }
   },
   "history": {

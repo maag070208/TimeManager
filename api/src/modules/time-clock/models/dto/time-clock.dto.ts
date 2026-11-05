@@ -110,6 +110,7 @@ export const TimeClockDeviceSchema = registry.register(
     /** Usuario efectivo (del reloj o fallback del `.env`); la contraseña nunca se devuelve. */
     username: z.string().nullable(),
     hasCredentials: z.boolean(),
+    apiKeyPrefix: z.string().nullable(),
     model: z.string().nullable(),
     lastSerialNo: z.number().int(),
     syncedAt: z.string().nullable(),
@@ -183,6 +184,34 @@ export const TimeClockUpdateDto = registry.register(
     )
 );
 export type TimeClockUpdate = z.infer<typeof TimeClockUpdateDto>;
+
+/** `POST /time-clock/ingest`: checadas que sube el propio reloj con su API key. */
+export const ClockIngestPunchSchema = z.object({
+  serialNo: z.number().int().min(1),
+  employeeNumber: z.string().trim().min(1).max(64),
+  name: z.string().trim().max(128).optional(),
+  minor: z.number().int().min(1),
+  occurredAt: z.string().trim().min(10).max(40),
+});
+
+export const ClockIngestDto = registry.register(
+  "ClockIngestInput",
+  z.object({
+    serial: z.string().trim().min(1).max(64),
+    punches: z.array(ClockIngestPunchSchema).min(1).max(1000),
+  })
+);
+export type ClockIngestInput = z.infer<typeof ClockIngestDto>;
+
+export const ClockApiKeySchema = registry.register(
+  "ClockApiKey",
+  z.object({
+    clockSerial: z.string(),
+    apiKey: z.string(),
+    prefix: z.string(),
+    createdAt: z.string(),
+  })
+);
 
 export const TimeClockConfigSchema = registry.register(
   "TimeClockConfig",
@@ -390,3 +419,16 @@ export const TimeClockReportExportResponseSchema = registry.register(
     summary: AccessReportSummarySchema,
   })
 );
+
+// ── F1B-12: estación de huellas configurable (solo plataforma) ──────────────
+export const FingerprintStationConfigDto = z
+  .object({
+    /** `null`/ausente = default de plataforma; uuid = override del cliente. */
+    tenantId: z.string().uuid().nullish(),
+    url: z.string().trim().url("FINGERPRINT_STATION_INVALID_URL").optional(),
+    username: z.string().trim().min(1).max(120).optional(),
+    password: z.string().min(1).max(200).optional(),
+    /** Borra la configuración del scope y vuelve al fallback. */
+    clear: z.boolean().optional(),
+  })
+  .strip();

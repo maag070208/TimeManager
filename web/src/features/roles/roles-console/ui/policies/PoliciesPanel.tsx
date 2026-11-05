@@ -85,11 +85,13 @@ export default function PoliciesPanel({ policies, onTest, notify }: Props) {
           <FaLightbulb size={12} className="mt-0.5 shrink-0 text-amber-500" />
           <ITText className="text-[11px] leading-relaxed text-amber-900">{t("policies.explainer")}</ITText>
         </div>
-        <ITButton variant="filled" color="primary" size="sm" onClick={() => openNew(null)}>
-          <ITText as="span" className="flex items-center gap-1.5 text-[11px] font-bold">
-            <FaPlus size={10} /> {t("policies.new")}
-          </ITText>
-        </ITButton>
+        {data.actions.length > 0 && (
+          <ITButton variant="filled" color="primary" size="sm" onClick={() => openNew(null)}>
+            <ITText as="span" className="flex items-center gap-1.5 text-[11px] font-bold">
+              <FaPlus size={10} /> {t("policies.new")}
+            </ITText>
+          </ITButton>
+        )}
       </ITFlex>
 
       {grouped.map(({ key, action, rules }) => (

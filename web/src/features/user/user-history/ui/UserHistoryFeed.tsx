@@ -1,47 +1,22 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { ITBentoFeed } from "@axzydev/axzy_ui_system";
-import {
-  LuArrowLeftRight,
-  LuClipboardCheck,
-  LuClock,
-  LuMessageSquare,
-  LuTicket,
-  LuUserCheck,
-  LuUserPlus,
-  LuUserX,
-} from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { LuClock, LuUserCheck, LuUserX } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
-import { useCan } from "@entities/user";
 import { formatDate } from "@shared/i18n";
 import { formatTimeInTZ } from "@shared/utils/dates";
 import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
 import { TicState } from "@shared/ui/tic";
-import {
-  FAMILY_LABEL_KEY,
-  HISTORY_FAMILIES,
-  dayKey,
-  familyOf,
-  historyHref,
-  historyStats,
-} from "../model/history";
+import { FAMILY_LABEL_KEY, HISTORY_FAMILIES, dayKey, familyOf, historyStats } from "../model/history";
 import type { HistoryEntry, HistoryFamily, HistoryFamilyKey } from "../model/types";
 
 /** Ícono de línea por tipo de evento (el API manda el `type`, no el ícono). */
 const TYPE_ICON: Record<string, ReactNode> = {
-  LOAN_CUSTODIAN: <LuClipboardCheck size={13} />,
-  MOVEMENT: <LuArrowLeftRight size={13} />,
-  TICKET_CREATED: <LuTicket size={13} />,
-  TICKET_ASSIGNED: <LuUserPlus size={13} />,
-  TICKET_COMMENT: <LuMessageSquare size={13} />,
   USER_DEACTIVATED: <LuUserX size={13} />,
   USER_REACTIVATED: <LuUserCheck size={13} />,
 };
 
 /** Tono del cuadro del ícono: el kit solo ofrece estos tres en el feed. */
 const TONE_BY_FAMILY: Record<HistoryFamilyKey, "success" | "violet" | "neutral"> = {
-  equipment: "success",
-  tickets: "violet",
   account: "neutral",
   other: "neutral",
 };
@@ -49,7 +24,7 @@ const TONE_BY_FAMILY: Record<HistoryFamilyKey, "success" | "violet" | "neutral">
 interface FeedGroup {
   key: string;
   label: string;
-  items: { id: string; icon: ReactNode; title: string; meta: string; tone: "success" | "violet" | "neutral"; href?: string }[];
+  items: { id: string; icon: ReactNode; title: string; meta: string; tone: "success" | "violet" | "neutral" }[];
 }
 
 interface Props {
@@ -59,14 +34,10 @@ interface Props {
 /**
  * Historial de la cuenta como feed agrupado por día (plantilla P9): píldoras por
  * familia de evento cuando hay más de una, filas con el cuadro del tipo y los
- * estados vacíos de Tic. Los tickets y los préstamos abren su detalle
- * cuando la sesión tiene el permiso de esa pantalla.
+ * estados vacíos de Tic.
  */
 export default function UserHistoryFeed({ history }: Props) {
   const { t } = useTranslation("users");
-  const navigate = useNavigate();
-  const canViewTickets = useCan("tickets.view");
-  const canViewLoans = useCan("loans.view");
   const [family, setFamily] = useState<HistoryFamily>("all");
 
   const stats = useMemo(() => historyStats(history), [history]);
@@ -106,13 +77,8 @@ export default function UserHistoryFeed({ history }: Props) {
       title: entry.title,
       meta: [formatTimeInTZ(entry.timestamp), entry.detail].filter(Boolean).join(" · "),
       tone: TONE_BY_FAMILY[familyOf(entry.type)],
-      href: historyHref(entry, { tickets: canViewTickets, loans: canViewLoans }),
     });
   }
-
-  const handleItemClick = (item: { href?: string }) => {
-    if (item.href) navigate(item.href);
-  };
 
   return (
     <div className={`mt-2 flex min-h-0 flex-1 flex-col gap-2.5 ${groups.length === 0 ? "justify-center" : ""}`}>
@@ -126,7 +92,7 @@ export default function UserHistoryFeed({ history }: Props) {
           description={history.length === 0 ? t("history.emptyHint") : t("history.noResultsHint")}
         />
       ) : (
-        <ITBentoFeed groups={groups} maxHeight={430} onItemClick={handleItemClick} />
+        <ITBentoFeed groups={groups} maxHeight={430} />
       )}
     </div>
   );

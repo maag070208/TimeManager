@@ -86,3 +86,31 @@ y el seed trunca. El arnés se niega a correr contra una BD que no sea local
 | Ably por token | `ably.flow.test.ts` | A |
 | Estación de huellas física | Requiere hardware | M |
 | Correos reales | Requieren proveedor (Resend/SMTP) | M |
+
+---
+
+## Resultado de la corrida final (2026-11-05)
+
+Suite completa con el runner serializado: **67/67 tests en 15 specs**.
+
+| Spec | Tests | Cubre |
+|---|---|---|
+| `auth.spec.ts` | 4 | login plataforma/cliente, contraseña mala, staff sin slug |
+| `home.spec.ts` | 4 | consola de plataforma, inicio de cliente, gating por rol |
+| `personal.spec.ts` | 13 | lista, búsqueda/filtros, menú, cuenta con URL propia, alta, baja/reactivación, rutas viejas, puesto, eliminación, import, RH |
+| `personal.mobile.spec.ts` | 1 | Personal en viewport móvil |
+| `notifications.spec.ts` | 2 | bandeja y marcado leído con persistencia |
+| `departments.spec.ts` | 5 | lista, alta, detalle/subárea, edición, baja suave, subáreas |
+| `schedules.spec.ts` | 4 | lista, alta por asistente, edición, asignación |
+| `overtime-payroll.spec.ts` | 3 | tiempo extra admin/RH y pre-nómina con periodos |
+| `time-clocks.spec.ts` | 6 | lista, dashboard, personas, inspección, escritura on/off, alta contra mock |
+| `access-time-clock.spec.ts` | 5 | resumen, entradas/salidas, padrón, empleados, conciliación |
+| `roles.spec.ts` | 3 | matriz, "Agregar rol" filtrado con cliente y completo en plataforma |
+| `tenants.spec.ts` | 5 | listado, suspender/reactivar, alta con correo, planes, entrar como cliente |
+| `agent-console.spec.ts` | 2 | token crear/rotar/revocar y cola de trabajos |
+| `nom-portal.spec.ts` | 3 | `/mi-jornada` staff, guard de `/teletrabajo`, administración NOM |
+| `client-routes.spec.ts` | 7 | rutas por cliente (`/#/acme/...`), guards, legado y plataforma |
+
+Pendiente como **manual (M)**: hardware real (estación DS-K1F600U, reloj físico),
+subida real de Excel y acciones destructivas de nómina que exigen datos de
+semanas completas.

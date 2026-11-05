@@ -1,6 +1,7 @@
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { PunchMethod, type TimeClock, type Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
-import { currentTenantId, forEachActiveTenant } from "@core/tenancy";
+import { currentTenantId, forEachActiveTenant, runWithTenant } from "@core/tenancy";
 import { assertCanAddClock } from "@core/plans";
 import { paginatedQuery } from "@core/db/table";
 import { HttpError } from "@core/middlewares/error.middleware";
@@ -145,6 +146,17 @@ const normalizeUrl = (value: string): string => {
   return url.origin;
 };
 
+/** Hash SHA-256 de la API key del reloj (nunca se guarda en claro). */
+const hashClockApiKey = (apiKey: string): string =>
+  createHash("sha256").update(apiKey, "utf8").digest("hex");
+
+/** Comparación de hashes en tiempo constante. */
+const safeEqualHex = (a: string, b: string): boolean => {
+  const left = Buffer.from(a, "hex");
+  const right = Buffer.from(b, "hex");
+  return left.length === right.length && timingSafeEqual(left, right);
+};
+
 /** Credenciales capturadas en el alta: o vienen las dos o ninguna. */
 const ownCredentialsOf = (input: { username?: string; password?: string }): TimeClockCredentials | null => {
   if (input.username === undefined && input.password === undefined) return null;
@@ -262,6 +274,30 @@ export class TimeClockService {
         select: punchSelect,
         page: params.page,
         limit: params.limit,
+        // Cursor solo con el orden por defecto (occurredAt desc, serialNo desc, id asc).
+        ...(!params.sort
+          ? {
+              cursor: {
+                value: params.cursor,
+                where: (value: unknown) => {
+                  const c = value as { o: string; s: number; i: string };
+                  const occurredAt = new Date(c.o);
+                  return {
+                    OR: [
+                      { occurredAt: { lt: occurredAt } },
+                      { occurredAt, serialNo: { lt: c.s } },
+                      { occurredAt, serialNo: c.s, id: { gt: c.i } },
+                    ],
+                  };
+                },
+                from: (row: PunchRow) => ({
+                  o: row.occurredAt.toISOString(),
+                  s: row.serialNo,
+                  i: row.id,
+                }),
+              },
+            }
+          : {}),
       }),
       this.db.timeClock.findMany({ select: { serialNumber: true, name: true } }),
     ]);
@@ -402,6 +438,78 @@ export class TimeClockService {
       metadata: { url: clock.url, name: clock.name },
     });
     return { clockSerial: serial };
+  }
+
+  // ── API key del reloj (F1B-06, ingesta directa) ─────────────────────────
+
+  /**
+   * Genera/rota la API key del reloj. Se devuelve en claro UNA vez; en BD solo
+   * queda el hash SHA-256. La key ata serial + key + cliente: el reloj puede
+   * subir sus checadas sin las credenciales de administración.
+   */
+  async rotateApiKey(
+    serial: string,
+    actorId?: string
+  ): Promise<{ clockSerial: string; apiKey: string; prefix: string; createdAt: Date }> {
+    const clock = await this.findRegisteredClock(serial);
+    const apiKey = `tmc_${randomBytes(32).toString("base64url")}`;
+    const prefix = apiKey.slice(0, 12);
+    const createdAt = new Date();
+    await this.db.timeClock.update({
+      where: { serialNumber: serial },
+      data: { apiKeyHash: hashClockApiKey(apiKey), apiKeyPrefix: prefix, apiKeyCreatedAt: createdAt },
+    });
+    await this.audit?.({
+      action: "TIME_CLOCK_API_KEY_ROTATED",
+      entityType: "TimeClock",
+      entityId: serial,
+      userId: actorId,
+      metadata: { prefix, name: clock.name },
+    });
+    return { clockSerial: serial, apiKey, prefix, createdAt };
+  }
+
+  /** Reloj dueño de una key válida; 401 si no existe o no coincide. */
+  async clockByApiKey(serial: string, apiKey: string): Promise<TimeClock> {
+    const clock = await this.db.timeClock.findUnique({ where: { serialNumber: serial } });
+    if (!clock || !clock.apiKeyHash || !safeEqualHex(clock.apiKeyHash, hashClockApiKey(apiKey))) {
+      throw new HttpError(401, "INVALID_CLOCK_KEY");
+    }
+    return clock;
+  }
+
+  /**
+   * Ingesta directa de checadas desde el equipo (`POST /time-clock/ingest`).
+   * Idempotente por `@@unique(clockSerial, serialNo)`: reintentos del reloj no
+   * duplican. Corre en el contexto del cliente dueño del reloj.
+   */
+  async ingestPunches(
+    serial: string,
+    apiKey: string,
+    punches: Array<{ serialNo: number; employeeNumber: string; name?: string; minor: number; occurredAt: string }>
+  ): Promise<{ clockSerial: string; received: number; saved: number }> {
+    const clock = await this.clockByApiKey(serial, apiKey);
+    return runWithTenant(clock.tenantId, async () => {
+      const data = punches
+        .map((p) => toPunch(clock.serialNumber, {
+          major: 5,
+          minor: p.minor,
+          serialNo: p.serialNo,
+          time: p.occurredAt,
+          employeeNoString: p.employeeNumber,
+          name: p.name,
+        }))
+        .filter((row): row is Prisma.TimeClockPunchCreateManyInput => row !== null);
+      const saved = data.length === 0 ? 0 : (await this.db.timeClockPunch.createMany({ data, skipDuplicates: true })).count;
+      if (saved > 0) {
+        await this.db.timeClock.update({
+          where: { serialNumber: clock.serialNumber },
+          data: { syncedAt: new Date() },
+        });
+        logger.info(`[time-clock] ${clock.name ?? clock.serialNumber}: ${saved} punches ingested with its API key`);
+      }
+      return { clockSerial: clock.serialNumber, received: punches.length, saved };
+    });
   }
 
   /**
@@ -888,6 +996,7 @@ export class TimeClockService {
         writeEnabled: r.writeEnabled,
         username: credentials?.user ?? r.username ?? null,
         hasCredentials: credentials !== null,
+        apiKeyPrefix: r.apiKeyPrefix ?? null,
         model: r.model,
         lastSerialNo: r.lastSerialNo,
         syncedAt: r.syncedAt,

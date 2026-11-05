@@ -69,6 +69,12 @@ model Tenant {
   /// Override explícito del límite de personal del plan (soporte excepcional).
   employeeLimit Int?
 
+  // Branding por cliente (F3-05): color de acento, logo (data URL) y remitente
+  // de correo propio. `null` = se usa la marca TimeManager / Resend del .env.
+  brandColor  String?
+  logoDataUrl String?
+  emailFrom   String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -248,18 +254,18 @@ model User {
   payrollReviews       PayrollDepartmentReview[] @relation("PayrollDepartmentReviewer")
 
   // NOM: correcciones de checadas (F2-01) y alertas de límite de jornada (F2-03).
-  punchAdjustmentsRequested PunchAdjustment[]  @relation("PunchAdjustmentRequester")
-  punchAdjustmentsDecided   PunchAdjustment[]  @relation("PunchAdjustmentDecider")
-  nomSettingsUpdated        NomSettings[]      @relation("NomSettingsUpdater")
+  punchAdjustmentsRequested PunchAdjustment[]   @relation("PunchAdjustmentRequester")
+  punchAdjustmentsDecided   PunchAdjustment[]   @relation("PunchAdjustmentDecider")
+  nomSettingsUpdated        NomSettings[]       @relation("NomSettingsUpdater")
   workdayLimitAlerts        WorkdayLimitAlert[]
 
   // Marcaje remoto y NOM-037 teletrabajo (F2-07/F2-08).
-  remotePunches              RemotePunch[]           @relation("RemotePunchUser")
-  teleworkRegistrations      TeleworkRegistration[]  @relation("TeleworkRegistrationUser")
+  remotePunches                RemotePunch[]          @relation("RemotePunchUser")
+  teleworkRegistrations        TeleworkRegistration[] @relation("TeleworkRegistrationUser")
   createdTeleworkRegistrations TeleworkRegistration[] @relation("TeleworkRegistrationCreator")
-  teleworkChecklists         TeleworkChecklist[]     @relation("TeleworkChecklistUser")
-  outOfHoursContacts         OutOfHoursContact[]     @relation("OutOfHoursContactUser")
-  createdOutOfHoursContacts  OutOfHoursContact[]     @relation("OutOfHoursContactCreator")
+  teleworkChecklists           TeleworkChecklist[]    @relation("TeleworkChecklistUser")
+  outOfHoursContacts           OutOfHoursContact[]    @relation("OutOfHoursContactUser")
+  createdOutOfHoursContacts    OutOfHoursContact[]    @relation("OutOfHoursContactCreator")
 
   @@unique([tenantId, username])
   @@unique([tenantId, email])
@@ -732,6 +738,12 @@ model TimeClock {
   /// Contraseña del reloj cifrada con AES-256-GCM (`core/utils/crypto`).
   /// Nunca se devuelve ni se registra en claro.
   passwordEncrypted String?
+  /// API key del equipo para ingesta directa de checadas (F1B-06). Solo se
+  /// guarda el hash SHA-256; la key en claro se muestra una vez al rotarla.
+  apiKeyHash        String?
+  /// Prefijo visible (`tmc_xxxx…`) para identificar la key en soporte.
+  apiKeyPrefix      String?
+  apiKeyCreatedAt   DateTime?
   model             String?
   lastSerialNo      Int                    @default(0)
   syncedAt          DateTime?
@@ -1260,29 +1272,29 @@ model PunchAdjustment {
 /// global de `sys_config` (o el default legal calculado, p. ej. tope semanal
 /// por año: 46 h 2027→2029, 40 h desde 2030).
 model NomSettings {
-  tenantId            String   @id
-  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId             String    @id
+  tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   /// Tope de jornada diaria (ordinaria + extra). Default legal: 12 h = 720.
-  workdayLimitMinutes Int?
+  workdayLimitMinutes  Int?
   /// Tope semanal. `null` = calcular por año (46 h 2027-2029, 40 h desde 2030).
-  weeklyLimitMinutes  Int?
+  weeklyLimitMinutes   Int?
   /// Meses que un registro queda activo antes de archivarse. `null`/0 = sin archivado.
-  retentionMonths     Int?
+  retentionMonths      Int?
   /// ¿Se permite el marcaje remoto (app/web) para este cliente? (F2-07)
-  remotePunchEnabled  Boolean  @default(true)
+  remotePunchEnabled   Boolean   @default(true)
   /// Política de teletrabajo editable por cliente (NOM-037 / F2-08).
-  teleworkPolicy      String?
+  teleworkPolicy       String?
   /// Política de desconexión digital (NOM-037 / F2-08).
-  disconnectPolicy    String?
+  disconnectPolicy     String?
   /// Aviso de privacidad editable por cliente (validación legal fuera del sistema).
-  privacyNotice       String?
+  privacyNotice        String?
   /// Versiones que el trabajador acepta (consentimiento).
-  policyVersion       Int      @default(1)
-  privacyNoticeVersion Int     @default(1)
-  policiesUpdatedAt   DateTime?
-  updatedById         String?
-  updatedBy           User?    @relation("NomSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
-  updatedAt           DateTime @updatedAt
+  policyVersion        Int       @default(1)
+  privacyNoticeVersion Int       @default(1)
+  policiesUpdatedAt    DateTime?
+  updatedById          String?
+  updatedBy            User?     @relation("NomSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt            DateTime  @updatedAt
 
   @@map("nom_settings")
 }
@@ -1323,19 +1335,19 @@ model WorkdayLimitAlert {
 /// dispositivo por cliente: en BD solo vive su hash SHA-256, es revocable
 /// (`active = false`) y rotable (`POST /agent/token`).
 model Agent {
-  id         String    @id @default(uuid())
+  id         String     @id @default(uuid())
   tenantId   String
   /// Nombre para reconocerlo en soporte (p. ej. "PC recepción").
   name       String
   /// SHA-256 hex del token de dispositivo; el token en claro solo se muestra al crearlo/rotarlo.
-  tokenHash  String    @unique
+  tokenHash  String     @unique
   /// Versión instalada de TimeManagerAgent, reportada por el propio agente.
   version    String?
-  active     Boolean   @default(true)
+  active     Boolean    @default(true)
   lastSeenAt DateTime?
   lastSyncAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   jobs       AgentJob[]
 
   @@index([tenantId])
@@ -1415,23 +1427,23 @@ enum RemoteWorkMode {
 /// la geolocalización es OPCIONAL y se guarda solo en este registro, en el
 /// momento del marcaje (no hay rastreo continuo). Append-only por trigger.
 model RemotePunch {
-  id                 String          @id @default(uuid())
-  tenantId           String          @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
-  userId             String
-  user               User            @relation("RemotePunchUser", fields: [userId], references: [id], onDelete: Restrict)
-  type               RemotePunchType
-  workMode           RemoteWorkMode  @default(REMOTO)
+  id                String          @id @default(uuid())
+  tenantId          String          @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId            String
+  user              User            @relation("RemotePunchUser", fields: [userId], references: [id], onDelete: Restrict)
+  type              RemotePunchType
+  workMode          RemoteWorkMode  @default(REMOTO)
   /// Hora autoritativa (servidor). El reloj del dispositivo no manda.
-  occurredAt         DateTime        @default(now())
+  occurredAt        DateTime        @default(now())
   /// Hora reportada por el cliente, solo auditoría (reintentos offline).
-  clientReportedAt   DateTime?
-  latitude           Float?
-  longitude          Float?
-  gpsAccuracyMeters  Float?
-  note               String?
+  clientReportedAt  DateTime?
+  latitude          Float?
+  longitude         Float?
+  gpsAccuracyMeters Float?
+  note              String?
   /// Idempotencia del cliente: un reintento de red no duplica el marcaje.
-  clientEventId      String?         @unique
-  createdAt          DateTime        @default(now())
+  clientEventId     String?         @unique
+  createdAt         DateTime        @default(now())
 
   @@index([tenantId])
   @@index([userId, occurredAt])
@@ -1459,25 +1471,25 @@ enum TeleworkStatus {
 /// consentimiento del trabajador sobre la política y el aviso de privacidad
 /// vigentes (versiones) y el domicilio de teletrabajo (opcional, dato sensible).
 model TeleworkRegistration {
-  id                  String        @id @default(uuid())
-  tenantId            String        @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
-  userId              String
-  user                User          @relation("TeleworkRegistrationUser", fields: [userId], references: [id], onDelete: Cascade)
-  mode                TeleworkMode  @default(REMOTO)
-  status              TeleworkStatus @default(ACTIVE)
+  id                    String         @id @default(uuid())
+  tenantId              String         @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId                String
+  user                  User           @relation("TeleworkRegistrationUser", fields: [userId], references: [id], onDelete: Cascade)
+  mode                  TeleworkMode   @default(REMOTO)
+  status                TeleworkStatus @default(ACTIVE)
   /// Domicilio donde se ejecuta el teletrabajo (opcional; dato sensible).
-  homeAddress         String?
-  startedAt           DateTime      @default(now())
-  endedAt             DateTime?
+  homeAddress           String?
+  startedAt             DateTime       @default(now())
+  endedAt               DateTime?
   /// Consentimiento de política/aviso (NOM-037 / LFPDPPP); versión aceptada.
-  consentAcceptedAt   DateTime?
-  consentPolicyVersion     Int?
-  consentPrivacyVersion    Int?
-  notes               String?
-  createdById         String?
-  createdBy           User?         @relation("TeleworkRegistrationCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  consentAcceptedAt     DateTime?
+  consentPolicyVersion  Int?
+  consentPrivacyVersion Int?
+  notes                 String?
+  createdById           String?
+  createdBy             User?          @relation("TeleworkRegistrationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 
   checklists TeleworkChecklist[]
 
@@ -1523,19 +1535,40 @@ enum OutOfHoursContactChannel {
 /// Control de comunicaciones fuera de jornada (NOM-037 / desconexión): el
 /// cliente marca un contacto fuera del horario y se avisa a la persona.
 model OutOfHoursContact {
-  id                String                   @id @default(uuid())
-  tenantId          String                   @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
-  userId            String
-  user              User                     @relation("OutOfHoursContactUser", fields: [userId], references: [id], onDelete: Cascade)
-  contactedAt       DateTime
-  channel           OutOfHoursContactChannel
-  reason            String
-  notifiedEmployee  Boolean                  @default(false)
-  createdById       String?
-  createdBy         User?                    @relation("OutOfHoursContactCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt         DateTime                 @default(now())
+  id               String                   @id @default(uuid())
+  tenantId         String                   @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId           String
+  user             User                     @relation("OutOfHoursContactUser", fields: [userId], references: [id], onDelete: Cascade)
+  contactedAt      DateTime
+  channel          OutOfHoursContactChannel
+  reason           String
+  notifiedEmployee Boolean                  @default(false)
+  createdById      String?
+  createdBy        User?                    @relation("OutOfHoursContactCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt        DateTime                 @default(now())
 
   @@index([tenantId, contactedAt])
   @@index([userId, contactedAt])
   @@map("out_of_hours_contacts")
+}
+
+// ---------------------------------------------------------------------------
+// F1B-12 — Estación de huellas configurable (central o en sitio)
+// ---------------------------------------------------------------------------
+
+/// Configuración de la estación de enrolamiento de huellas (DS-K1F600U).
+/// Una fila por alcance: `tenantId = null` es el default de plataforma y una
+/// fila con `tenantId` es el override de ese cliente (estación en sitio).
+/// La contraseña se guarda cifrada (AES-256-GCM) y nunca se devuelve.
+model FingerprintStationConfig {
+  id                String   @id @default(uuid())
+  /// `null` = configuración de plataforma; con valor = override del cliente.
+  tenantId          String?  @unique
+  url               String
+  username          String
+  passwordEncrypted String
+  updatedById       String?
+  updatedAt         DateTime @updatedAt
+
+  @@map("fingerprint_station_configs")
 }

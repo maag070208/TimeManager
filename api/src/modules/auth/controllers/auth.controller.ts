@@ -12,6 +12,12 @@ export class AuthController {
     res.json(result);
   };
 
+  /** Branding público del cliente (login): nombre/color/logo, sin sesión. */
+  branding = async (req: Request, res: Response) => {
+    const tenant = typeof req.query.tenant === "string" ? req.query.tenant : undefined;
+    res.json(await this.service.branding(tenant));
+  };
+
   refresh = async (req: Request, res: Response) => {
     const { refreshToken } = RefreshInputSchema.parse(req.body);
     res.json(await this.service.refresh(refreshToken));

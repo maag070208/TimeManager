@@ -16,7 +16,7 @@ Expediente completo del empleado: datos personales y fiscales, foto, documentos,
 
 | Grupo | Rutas |
 |---|---|
-| Expediente | `POST /query`, `GET /stats`, `GET /:id`, `PATCH /:id/profile`, `POST /:id/photo`, `PUT /:id/discounts`, `POST /assignment` |
+| Expediente | `POST /query`, `GET /stats`, `GET /:id`, `GET /:id/overview`, `PATCH /:id/profile`, `POST /:id/photo`, `PUT /:id/discounts`, `POST /assignment` |
 | Foto | `GET /:id/photo/raw?token=<firma>` (credencial firmada de corta vida, sin `authenticate`; ver abajo) |
 | Documentos | `GET/POST /:id/documents`, `DELETE /:id/documents/:docId`, `GET /:id/documents/:docId/download` |
 | Catálogos | `GET/POST/PATCH/DELETE /catalogs/document-types|genders|blood-types` (las escrituras exigen `catalogs.manage`, **solo plataforma** desde L-07) |

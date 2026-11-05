@@ -121,7 +121,7 @@ Mantener solo permisos de RH: `time_clock.view`, `time_clock.write`, `time_clock
 
 ## 8. Riesgos y pendientes conocidos
 
-- **Retardo mal calculado en pantalla**: el caso de Alberto Navarro (DEMO-911) muestra "Retardo 5:59 h" con entrada a las 14:58. Con su turno vespertino de datos de prueba (15:00) no debería haber retardo. Hay que revisar qué horario tiene asignado hoy antes de vender el reporte de retardos.
+- **Retardo (DEMO-911) — resuelto (F2-05)**: el caso de Alberto Navarro mostraba "Retardo 5:59 h" con entrada a las 14:58 y turno vespertino 15:00. La causa era la resolución de la asignación de horario: con vigencias encimadas ganaba la más antigua (un Matutino 09:00) y la checada se comparaba contra ese turno (359 min). Ahora gana la asignación que entró en vigor al final; regresión en `workday-rules.test.ts` y `tests/integration/schedules-late.flow.test.ts`.
 - **Requisitos normativos no publicados**: el formato de datos, la retención y la integridad aún no están definidos en las disposiciones de la STPS. Diseñar con margen para cambios.
 - **Dependencia de `schedules`**: sin ese módulo no hay asistencia, retardo ni horas extra. No se puede vender "solo checadas" si el cliente quiere esos reportes; hay que incluirlo.
 - **Geolocalización y biometría** son datos personales sensibles; el producto debe pedir consentimiento antes de activarlos.

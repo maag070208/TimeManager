@@ -19,7 +19,15 @@ El navegador **no** recibe la app key. `GET /notifications/ably-token` (solo `au
 - `ttl` = 1 h; Ably pide un token nuevo con `authCallback` al vencer.
 - Si falta la key o el SDK no puede firmar → `503` con código `ABLY_NOT_CONFIGURED` / `ABLY_TOKEN_FAILED`.
 
-El API publica en `user:<id>` el evento `NOTIFICATION` (`api/src/core/services/ably.ts`, `broadcastToUser`). La web (`web/src/shared/lib/ably.ts`) usa `authCallback` con el cliente axios autenticado y `clientId`; si el endpoint responde 503 desactiva el tiempo real y la app sigue funcionando (la campanita se actualiza al recargar).
+El API publica el evento `NOTIFICATION` en el canal con espacio de cliente
+`tenant:<tenantId>:user:<userId>` y, durante la transición (F1B-05), también en
+el histórico `user:<id>` (`api/src/core/services/ably.ts`, `broadcastToUser`).
+La web (`web/src/shared/lib/ably.ts` + `useAblyNotifications`) usa `authCallback`
+con el cliente axios autenticado y `clientId`; se suscribe a
+`tenant:<tenantId>:user:<userId>` cuando la sesión tiene cliente y a `user:<id>`
+solo para el personal de plataforma sin cliente. Si el endpoint responde 503
+desactiva el tiempo real y la app sigue funcionando (la campanita se actualiza al
+recargar).
 
 ## Frontend
 

@@ -119,7 +119,7 @@ export default function PrivateRoutes() {
     };
   }, [token, user, dispatch]);
 
-  useAblyNotifications(user?.id, handleNewNotification);
+  useAblyNotifications(user?.id, user?.tenant?.id, handleNewNotification);
 
   if (!token) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -221,8 +221,15 @@ export default function PrivateRoutes() {
     // Marca: en el riel colapsado solo el símbolo; al expandirse (hover o
     // cuando el kit lo abre) aparece el nombre junto al logo.
     brand: {
-      logo: <img src={symbolUrl} alt="TimeManager" className="h-8 w-8 object-contain" />,
-      text: "TimeManager",
+      // Branding del cliente (F3-05): logo/name propios si la sesión los trae.
+      logo: (
+        <img
+          src={user?.tenant?.logoDataUrl ?? symbolUrl}
+          alt={user?.tenant?.name ?? "TimeManager"}
+          className="h-8 w-8 object-contain"
+        />
+      ),
+      text: user?.tenant?.name ?? "TimeManager",
     },
     // Panel flotante con la persona al pie (mismo lenguaje bento del resto).
     variant: "bento",

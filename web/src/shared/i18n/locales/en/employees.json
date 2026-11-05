@@ -43,49 +43,31 @@
       "loading": "Loading activity…",
       "error": "Could not load the activity",
       "kpi": {
-        "units": "Equipment on loan",
-        "unitsHint": "{{count}} custody letter(s)",
-        "letters": "Active letters",
-        "lettersHint": "in their name",
-        "tickets": "Open tickets",
-        "ticketsHint": "created or assigned",
-        "tasks": "Pending tasks",
-        "tasksHint": "not completed",
+        "documents": "Documents",
+        "documentsHint": "uploaded to their record",
+        "missing": "Missing documents",
+        "missingHint": "required and not uploaded",
+        "punches": "Punches (30 days)",
+        "punchesHint": "registered on the clock",
+        "disciplines": "Reports (12 months)",
+        "disciplinesHint": "filed against them",
         "none": "All clear"
       },
       "tabs": {
-        "loans": "Equipment on loan",
-        "kardex": "Kardex",
-        "tickets": "Tickets",
-        "tasks": "Tasks"
+        "documents": "Recent documents",
+        "punches": "Latest punches"
       },
-      "status": {
-        "OPEN": "Open",
-        "IN_PROGRESS": "In progress",
-        "IN_REVIEW": "In review",
-        "CLOSED": "Closed",
-        "COMPLETED": "Completed",
-        "PENDING": "Pending",
-        "ACTIVE": "Active",
-        "PARTIAL": "Partial",
-        "RETURNED": "Returned",
-        "CANCELLED": "Cancelled"
+      "schedule": "Current schedule",
+      "noSchedule": "No schedule assigned",
+      "method": {
+        "FACE": "Face",
+        "FINGERPRINT": "Fingerprint",
+        "CARD": "Card",
+        "OTHER": "Other"
       },
-      "kardex": {
-        "LOAN": "Loan",
-        "RETURN": "Return"
-      },
-      "relation": {
-        "CREATED": "Created by them",
-        "ASSIGNED": "Assigned to this person"
-      },
-      "returnedCount": "{{count}} returned",
-      "due": "due {{date}}",
       "empty": {
-        "loans": "No equipment on loan.",
-        "kardex": "No equipment movements.",
-        "tickets": "No tickets.",
-        "tasks": "No tasks."
+        "documents": "No documents uploaded.",
+        "punches": "No punches registered."
       }
     },
     "loadingTitle": "Loading…",

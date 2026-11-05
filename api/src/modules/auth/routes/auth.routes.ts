@@ -81,6 +81,7 @@ export const createAuthRouter = (controller: AuthController): Router => {
     },
   });
 
+  router.get("/branding", asyncHandler(controller.branding));
   router.post("/login", asyncHandler(controller.login));
   router.post("/refresh", asyncHandler(controller.refresh));
   router.get("/me", authenticate, asyncHandler(controller.me));

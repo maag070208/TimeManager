@@ -100,6 +100,19 @@ arrancar el worker). Jobs periódicos (los programa el líder, idempotente):
 
 `QUEUE_ENABLED=false` desactiva pg-boss (solo desarrollo).
 
+## 3.1 Aislamiento por cliente de archivos y realtime (F1B-05)
+
+- **S3**: todas las claves pasan por `scopedObjectKey` → `tenant/<tenantId>/…`
+  (subida, descarga y URL firmada). Es idempotente y deja pasar claves
+  históricas cuando no hay contexto; una clave de otro cliente no se puede leer
+  con el contexto actual. El bucket sigue siendo privado.
+- **Ably**: las notificaciones se publican en `tenant:<tenantId>:user:<userId>`
+  (y temporalmente también en `user:<userId>`); `broadcastToTenant` usa
+  `tenant:<tenantId>:broadcast`. El **TokenRequest** emitido al navegador
+  incluye la capability de suscripción a AMBOS canales del usuario cuando tiene
+  cliente (`tenant:<id>:user:<id>` + `user:<id>`) y solo `user:<id>` para
+  plataforma sin cliente; nunca canales de otros usuarios/clientes ni publish.
+
 ## 4. Conexiones: PgBouncer (F1B-07)
 
 Regla: **réplicas × `connection_limit` ≤ 70% del máximo de conexiones de la BD**.
@@ -163,3 +176,80 @@ Migración `20261108001000_high_volume_indexes`:
 
 Particionado por mes y retención quedan para cuando una tabla pase de ~50M
 filas (ver ARQUITECTURA §2).
+
+## 8. Respaldo y restore por cliente (F4-04)
+
+`api/scripts/tenant-backup.ts` exporta **el slice completo de un cliente** sin
+detener el API: la fila de `tenants`, **todas** las tablas con `tenantId`
+(descubiertas en vivo de `pg_attribute`, hoy 39, así una tabla nueva entra sola),
+las filas de catálogos globales que el cliente referencia (p. ej. `plans`,
+`roles`) en `prerequisites/`, y opcionalmente (`--s3`) los archivos del
+expediente del bucket privado. El respaldo es un directorio con `manifest.json`
+(conteo + `sha256` por tabla), `data/*.json`, `prerequisites/*.json` y `files/`.
+
+```bash
+# desde api/
+# Exportar (admite la nube; usa DATABASE_URL o --database-url)
+node --require ts-node/register/transpile-only \
+     --require tsconfig-paths/register scripts/tenant-backup.ts \
+     export --tenant=acme --out=/srv/backups/acme-2026-11-05 [--s3]
+
+# Restaurar en una BD limpia (solo local salvo --allow-remote)
+node ... scripts/tenant-backup.ts restore --in=/srv/backups/acme-2026-11-05 \
+     --database-url=postgresql://postgres:test@127.0.0.1:55433/tm_restore \
+     [--s3] [--allow-remote]
+
+# Verificar que una BD coincide con el respaldo (no escribe)
+node ... scripts/tenant-backup.ts verify --in=/srv/backups/acme-2026-11-05 \
+     --database-url=postgresql://postgres:test@127.0.0.1:55433/tm_restore
+```
+
+- Restaura primero catálogos globales y luego tablas en orden de FKs; al final
+  compara conteos y hashes y sale con código ≠ 0 si algo difiere. Aborta si la BD
+  destino ya tiene datos de ese cliente (salvo `--replace`, destructivo).
+- **Runbook de restore real**: BD nueva vacía + `prisma migrate deploy` →
+  restaurar → `verify` → apuntar el API a esa BD. No restaurar encima de la BD
+  productiva sin respaldo completo previo.
+- **NOM / checadas append-only**: borrar el slice de un cliente con checadas
+  requiere `--bypass-triggers` (`session_replication_role = replica`, superusuario
+  o dueño de tablas). En producción, preferir restaurar en BD limpia.
+- **RLS**: exportar con un rol `BYPASSRLS` (workers/migraciones) o el export verá
+  0 filas; el restore escribe con el rol de migraciones.
+- Datos sensibles: cifrar el directorio del respaldo y limitar acceso. Para S3,
+  `--s3` copia los objetos del cliente, pero el bucket debe respaldarse aparte
+  (versioning + lifecycle).
+- **Ensayo real (2026-11-05)**: `scripts/tenant-backup.rehearse.ts` sembró un
+  cliente con datos representativos, exportó **17 filas / 39 tablas**, borró el
+  slice (0 filas) y restauró en la BD origen y en una **BD limpia** (`tm_test_restore`)
+  con conteos y hashes idénticos, en **0.8 s**; `verify` reconfirmó las 39 tablas.
+- Frecuencia sugerida: export diario por cliente (o `pg_dump` completo como
+  respaldo primario), restore de ensayo semanal y export total antes de
+  migraciones/cutover.
+
+## 9. Prueba de carga (F4-05)
+
+Scripts de carga en `api/load/` (detalle y comandos en `api/load/README.md`):
+
+| Escenario | Script k6 | Umbral |
+|---|---|---|
+| Login | `load/k6/login.js` | error < 1 %, p95 < 1000 ms |
+| Dashboards concurrentes | `load/k6/dashboards.js` | error < 1 %, p95 < 800 ms |
+| Ingesta de checadas por lote (agente) | `load/k6/agent-punches.js` | error < 1 %, p95 < 800 ms |
+
+`load/smoke.mjs` es un smoke de Node sin dependencias (lo que corre en este
+equipo, porque no hay k6 instalado) con los mismos escenarios y umbrales.
+`load/server.ts` arranca el API de carga **sin workers** y con el catálogo de
+permisos sembrado; `scripts/load-seed.ts` siembra la BD dedicada `tm_test_load`.
+
+**Evidencia del smoke local (2026-11-05)**, API en `127.0.0.1:4020`,
+concurrencia 5: login 30 reqs p50 505.1 / p95 609.6 ms; dashboards 60 reqs p50
+13.8 / p95 78.7 ms; ingesta del agente 20 lotes de 25 checadas p50 25.9 / p95
+44.1 ms; total 110 reqs, 0 errores, p95 global 599.7 ms, p99 609.6 ms, ~179 req/s.
+El login (bcrypt) domina la latencia; la ingesta está holgada frente a las 5,000
+checadas/10 min del objetivo, pendiente de probar con volumen real de un cliente
+grande.
+
+El job manual del CI es `.github/workflows/load-test.yml` (`workflow_dispatch`):
+Postgres 16, migraciones, seed, API en 4020, smoke y, con `scenario=k6`, los tres
+escenarios k6. Nunca corre en push.
+

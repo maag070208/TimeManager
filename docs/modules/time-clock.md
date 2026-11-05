@@ -17,6 +17,7 @@ El módulo más grande del sistema (47 rutas). Gestiona los relojes físicos tip
 |---|---|
 | Checadas | `POST /query`, `POST /import`, `POST /sync`, `GET /summary`, `GET /status` |
 | Relojes | `POST /clocks`, `PATCH/DELETE /clocks/:serial`, `GET /clocks/:serial/settings|events|inspect/*` |
+| Estación de huellas | `GET/PUT /fingerprint-station/config` (solo plataforma), `GET /fingerprint-station`, `POST /fingerprint-station/test` |
 | Personas | `GET /people/unified`, `GET/POST /clocks/:serial/people`, `GET/PATCH/DELETE /clocks/:serial/people/:employeeNo`, tarjetas y fotos |
 | Empleados | `POST /employees/query`, `POST /employees/link-suggested`, `GET /employees/:userId/clock-status`, alta/baja en reloj (`clock-alta*`, `clock-baja-all`), huella (`fingerprint/*`) |
 | Roster | `GET /roster`, `POST /roster/run` |
@@ -25,7 +26,7 @@ El módulo más grande del sistema (47 rutas). Gestiona los relojes físicos tip
 
 ## Modelos
 
-`TimeClock` (reloj físico/serie; `username` + `passwordEncrypted` desde F1B-10), `TimeClockPunch` (checada), `TimeClockEmployee` (vínculo reloj↔usuario), `TimeClockSyncEvent` (bitácora de sync), `TimeClockRosterRun` + `TimeClockRosterEntry` (cargas), `RemovalCategory` (catálogo de bajas).
+`TimeClock` (reloj físico/serie; `username` + `passwordEncrypted` desde F1B-10), `FingerprintStationConfig` (estación de huellas por alcance), `TimeClockPunch` (checada), `TimeClockEmployee` (vínculo reloj↔usuario), `TimeClockSyncEvent` (bitácora de sync), `TimeClockRosterRun` + `TimeClockRosterEntry` (cargas), `RemovalCategory` (catálogo de bajas).
 
 ## Credenciales del reloj (F1B-10)
 
@@ -38,6 +39,30 @@ Cada reloj se conecta con **su propio** usuario y contraseña, no con un par glo
 - **Fallback de desarrollo/E2E**: si el reloj no tiene credenciales propias se usa el par global `TIME_CLOCK_USER/PASS` (o los viejos `CHECADOR_USER/PASS`). La precedencia es siempre reloj → `.env`; `503 TIME_CLOCK_NOT_CONFIGURED` solo aparece cuando no hay ni credenciales del reloj ni del `.env`. El alta sin credenciales propias también usa el fallback.
 - `POST /time-clock/sync` prueba las credenciales del reloj antes de responder: si el equipo las rechaza devuelve `502 TIME_CLOCK_INVALID_CREDENTIALS` al instante (un reloj caído sigue respondiendo 202 y el fallo queda en su bitácora).
 - Migración: `api/prisma/migrations/20261106000000_clock_credentials/migration.sql` (`ALTER TABLE time_clocks ADD COLUMN ...`), con rollback en la misma carpeta. Backfill: los relojes ya dados de alta no necesitan cambios; siguen con el par global hasta que se les capturen las suyas.
+
+## API key del reloj (F1B-06)
+
+Además del usuario/contraseña de administración (para la sync de solo lectura),
+cada reloj puede tener una **API key para ingesta directa** de checadas:
+
+- `POST /time-clock/clocks/:serial/key` (permiso `time_clocks.manage`) genera o
+  rota la key. Se muestra **una sola vez**; en BD solo queda el hash SHA-256
+  (`apiKeyHash`, único), el prefijo visible (`apiKeyPrefix`) y la fecha.
+- `POST /time-clock/ingest` (sin JWT) recibe `{ serial, punches[] }` y se
+  autentica con `X-Clock-Key: tmc_…` (o `Authorization: Bearer`). La fila
+  `TimeClock` ata serial + key + `tenantId`: la ingesta corre en el contexto del
+  cliente dueño y es idempotente por `@@unique(clockSerial, serialNo)`.
+- Errores: `401 INVALID_CLOCK_KEY` si la key no existe/está revocada o es de
+  otro serial. Rate limit compartido con `/query|/sync|/import`.
+- Convive con la sync por pull: si el reloj sube por ingesta directa, no hace
+  falta habilitar además la sync de ese equipo (el cursor no se modifica).
+
+## Estación de huellas (F1B-12)
+
+- `FingerprintStationConfig` guarda una fila por alcance: `tenantId = null` es la **estación central** de TimeManager y una fila con `tenantId` es el **override del cliente** (estación instalada en su sitio). La contraseña va cifrada (AES-256-GCM) y la API nunca la devuelve.
+- Resolución en cada captura: override del cliente → estación central → `FINGERPRINT_STATION_*` del `.env` (fallback de desarrollo/E2E). No hace falta reiniciar: `GET /time-clock/fingerprint-station` informa `{configured, url, source, hasPassword}` del cliente en contexto.
+- Edición **solo plataforma** (`time_clocks.manage` + usuario sin cliente): `GET/PUT /time-clock/fingerprint-station/config` con `tenantId` opcional (omitido = central) y `clear` para borrar el override. `POST /fingerprint-station/test` captura un dedo con la estación efectiva y descarta la plantilla.
+- El enrolamiento (`POST /employees/:userId/fingerprint/capture|apply`) usa la estación efectiva; funciona igual con estación central o en sitio.
 
 ## Permisos
 

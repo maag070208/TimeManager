@@ -137,4 +137,25 @@ describe("rutas de plataforma", () => {
     const config = await api("GET", "/sys-config", { token: platform.token });
     expectStatus(config, 200, "configuración de plataforma");
   });
+
+  test("la bitácora de correos también exige usuario de plataforma", async () => {
+    const body = { page: 1, limit: 10 };
+
+    for (const [method, path] of [
+      ["POST", "/mail/logs/query"],
+      ["POST", "/mail/logs/no-existe/retry"],
+      ["POST", "/mail/logs/no-existe/cancel"],
+    ] as const) {
+      await expectError(
+        await api(method, path, { token: clientAdmin.token, body }),
+        403,
+        "INSUFFICIENT_PERMISSIONS",
+        `bitácora de correos con excepción (${path})`
+      );
+    }
+
+    const logs = await api("POST", "/mail/logs/query", { token: platform.token, body });
+    expectStatus(logs, 200, "bitácora de correos de plataforma");
+    assert.ok(Array.isArray(logs.body?.data), "devuelve la tabla paginada");
+  });
 });

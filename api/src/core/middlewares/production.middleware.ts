@@ -54,7 +54,7 @@ export const queryRateLimiter = rateLimit({
 /** Aplica el tope de consultas solo a las rutas que terminan en `/query` o `/sync`. */
 export const queryPathsRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
   const path = req.path;
-  if (path.endsWith("/query") || path.endsWith("/sync") || path.endsWith("/import")) {
+  if (path.endsWith("/query") || path.endsWith("/sync") || path.endsWith("/import") || path.endsWith("/ingest")) {
     queryRateLimiter(req, res, next);
     return;
   }

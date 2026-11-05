@@ -40,7 +40,8 @@ interface TokenRequestBody {
 const expectTokenRequestFor = (
   response: { body: unknown },
   userId: string,
-  label: string
+  label: string,
+  tenantId: string | null
 ): TokenRequestBody => {
   assert.ok(response.body && typeof response.body === "object", `${label}: cuerpo JSON`);
   const body = response.body as TokenRequestBody;
@@ -54,10 +55,12 @@ const expectTokenRequestFor = (
   assert.equal(body.ttl, 3_600_000, `${label}: TTL de 1 hora`);
 
   const capability = JSON.parse(String(body.capability)) as Record<string, string[]>;
+  const expected: Record<string, string[]> = { [`user:${userId}`]: ["subscribe"] };
+  if (tenantId) expected[`tenant:${tenantId}:user:${userId}`] = ["subscribe"];
   assert.deepEqual(
     capability,
-    { [`user:${userId}`]: ["subscribe"] },
-    `${label}: capability restringida a subscribe en el canal propio`
+    expected,
+    `${label}: capability de subscribe en el canal propio (y el del cliente si aplica)`
   );
   return body;
 };
@@ -72,7 +75,7 @@ describe("GET /notifications/ably-token", () => {
     const session = await clientSession("CLIENT_STAFF");
     const response = await api("GET", "/notifications/ably-token", { token: session.token });
     expectStatus(response, 200, "token de Ably del empleado");
-    expectTokenRequestFor(response, session.user.id, "empleado");
+    expectTokenRequestFor(response, session.user.id, "empleado", session.tenant!.id);
   });
 
   test("cada usuario solo puede suscribirse a su canal, sin publish", async () => {
@@ -81,11 +84,19 @@ describe("GET /notifications/ably-token", () => {
 
     const response = await api("GET", "/notifications/ably-token", { token: second.token });
     expectStatus(response, 200, "token de Ably del segundo usuario");
-    const body = expectTokenRequestFor(response, second.user.id, "segundo usuario");
+    const body = expectTokenRequestFor(response, second.user.id, "segundo usuario", second.tenant!.id);
 
     const capability = JSON.parse(String(body.capability)) as Record<string, string[]>;
-    assert.deepEqual(Object.keys(capability), [`user:${second.user.id}`]);
+    const tenant = second.tenant!.id;
+    assert.deepEqual(
+      Object.keys(capability).sort(),
+      [`user:${second.user.id}`, `tenant:${tenant}:user:${second.user.id}`].sort()
+    );
     assert.ok(!capability[`user:${first.user.id}`], "no puede escuchar a otro usuario");
+    assert.ok(
+      !capability[`tenant:${tenant}:user:${first.user.id}`],
+      "no puede escuchar a otro usuario del mismo cliente"
+    );
     for (const operations of Object.values(capability)) {
       assert.deepEqual(operations, ["subscribe"], "sin publish ni presence");
     }
@@ -95,7 +106,7 @@ describe("GET /notifications/ably-token", () => {
     const session = await platformSession("ADMIN");
     const response = await api("GET", "/notifications/ably-token", { token: session.token });
     expectStatus(response, 200, "token de Ably del ADMIN de plataforma");
-    expectTokenRequestFor(response, session.user.id, "ADMIN de plataforma");
+    expectTokenRequestFor(response, session.user.id, "ADMIN de plataforma", null);
   });
 
   test("sin app key en el servidor responde 503 ABLY_NOT_CONFIGURED", async () => {

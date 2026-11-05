@@ -1,6 +1,6 @@
 import { useMemo, type CSSProperties } from "react";
 import { ITBentoDonut, ITBentoGrid, ITBentoTile, ITBentoWaves, ITPage, ITText, ITFlex } from "@axzydev/axzy_ui_system";
-import { LuCalendarDays, LuChartPie, LuHistory, LuPackage, LuShieldCheck, LuTicket, LuUserCog, LuUserRound } from "react-icons/lu";
+import { LuCalendarDays, LuChartPie, LuHistory, LuShieldCheck, LuUserCog, LuUserRound } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -117,30 +117,6 @@ export default function UserHistoryPage() {
           caption={tt("history.events")}
         >
           <UserHeaderCard user={user} />
-        </ITBentoTile>
-
-        <ITBentoTile
-          tone={counts.tickets > 0 ? "mint" : "plain"}
-          cols={3}
-          rows={2}
-          icon={<LuTicket size={15} />}
-          label={tt(FAMILY_LABEL_KEY.tickets)}
-          value={<Num value={counts.tickets} />}
-          caption={tt("history.share", { pct: pct(counts.tickets) })}
-        >
-          {counts.tickets > 0 && <ITBentoWaves level={counts.tickets / total} color="var(--color-success)" />}
-        </ITBentoTile>
-
-        <ITBentoTile
-          tone={counts.equipment > 0 ? "sun" : "plain"}
-          cols={3}
-          rows={2}
-          icon={<LuPackage size={15} />}
-          label={tt(FAMILY_LABEL_KEY.equipment)}
-          value={<Num value={counts.equipment} />}
-          caption={tt("history.share", { pct: pct(counts.equipment) })}
-        >
-          {counts.equipment > 0 && <ITBentoWaves level={counts.equipment / total} color="var(--color-warning)" />}
         </ITBentoTile>
 
         <ITBentoTile

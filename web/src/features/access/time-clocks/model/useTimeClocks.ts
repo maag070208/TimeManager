@@ -53,6 +53,35 @@ export const useTimeClocks = () => {
   const [retirementTarget, setRetirementTarget] = useState<TimeClockDevice | null>(null);
   const [retiring, setRetiring] = useState(false);
 
+  // Aprovisionamiento guiado (F3-07): prueba de conexión por reloj y sync manual.
+  const [connectionTests, setConnectionTests] = useState<
+    Record<string, { state: "testing" | "ok" | "error"; detail?: string }>
+  >({});
+  const [syncingNow, setSyncingNow] = useState(false);
+
+  /** Conecta con el reloj (lectura de identidad) y reporta el resultado. */
+  const testConnection = useCallback(
+    async (serial: string) => {
+      setConnectionTests((c) => ({ ...c, [serial]: { state: "testing" } }));
+      try {
+        const overview = await timeClockApi.inspectOverview(serial);
+        setConnectionTests((c) => ({
+          ...c,
+          [serial]: { state: "ok", detail: overview.device?.serialNumber ?? undefined },
+        }));
+        setToast(t("clocks.toasts.connectionOk"));
+        return true;
+      } catch (e) {
+        setConnectionTests((c) => ({
+          ...c,
+          [serial]: { state: "error", detail: messageOf(e, t("clocks.errors.connection")) },
+        }));
+        return false;
+      }
+    },
+    [t]
+  );
+
   const loadStatus = useCallback(async () => {
     try {
       setStatus(await timeClockApi.status());
@@ -64,6 +93,22 @@ export const useTimeClocks = () => {
   useEffect(() => {
     void loadStatus();
   }, [loadStatus]);
+
+  /** Dispara la sincronización de los relojes (misma ruta que el worker). */
+  const syncNow = useCallback(async () => {
+    setSyncingNow(true);
+    setError(null);
+    try {
+      await timeClockApi.sync();
+      setToast(t("clocks.toasts.syncNow"));
+      await loadStatus();
+    } catch (e) {
+      setError(messageOf(e, t("clocks.errors.sync")));
+    } finally {
+      setSyncingNow(false);
+    }
+  }, [loadStatus, t]);
+
 
   const syncing = status?.inProgress != null;
   useEffect(() => {
@@ -169,6 +214,11 @@ export const useTimeClocks = () => {
   };
 
   return {
+    connectionTests,
+    testConnection,
+    syncNow,
+    syncingNow,
+    syncing,
     t,
     status,
     configs,

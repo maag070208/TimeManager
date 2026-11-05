@@ -63,8 +63,8 @@ export class AccessController {
 
   table = async (req: Request, res: Response): Promise<void> => {
     const params = parseTableParams(req.body);
-    const { data, total } = await this.service.table(params);
-    res.json(paginatedTable(params, data, total));
+    const { data, total, nextCursor } = await this.service.table(params);
+    res.json(paginatedTable(params, data, total, nextCursor));
   };
 
   stats = async (req: Request, res: Response): Promise<void> => {

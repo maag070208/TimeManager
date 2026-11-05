@@ -4,7 +4,7 @@ Login por usuario/contraseña con JWT, refresh de token, sesión actual y cambio
 
 ## Endpoints
 
-`POST /login`, `POST /refresh`, `GET /me` (sesión), `POST /change-password`.
+`POST /login`, `GET /branding` (público, branding del cliente para login), `POST /refresh`, `GET /me` (sesión), `POST /change-password`.
 
 ## Modelos
 

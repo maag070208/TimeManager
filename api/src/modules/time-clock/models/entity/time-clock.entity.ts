@@ -234,6 +234,8 @@ export interface TimeClockDeviceStatus {
   username: string | null;
   /** Hay usuario y contraseña utilizables (propias o fallback del `.env`). La contraseña NUNCA sale. */
   hasCredentials: boolean;
+  /** Prefijo visible de la API key de ingesta directa (`null` si no tiene). */
+  apiKeyPrefix: string | null;
   model: string | null;
   lastSerialNo: number;
   syncedAt: Date | null;

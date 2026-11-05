@@ -15,7 +15,6 @@
   "filters": {
     "all": "Todas",
     "unread": "Sin leer",
-    "tickets": "Tickets",
     "people": "Personal",
     "alerts": "Alertas"
   }

@@ -29,7 +29,6 @@ export default function NotificationsPage() {
   const filters: FilterPillItem<NotificationFilter>[] = [
     { id: "all", label: tt("filters.all"), count: fx.counts.all },
     { id: "unread", label: tt("filters.unread"), count: fx.counts.unread },
-    { id: "tickets", label: tt("filters.tickets"), count: fx.counts.tickets },
     { id: "people", label: tt("filters.people"), count: fx.counts.people },
     { id: "alerts", label: tt("filters.alerts"), count: fx.counts.alerts },
   ];

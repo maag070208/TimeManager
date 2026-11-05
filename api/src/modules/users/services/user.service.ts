@@ -218,6 +218,20 @@ export class UserService {
       select: userSelect as never,
       page: params.page,
       limit: params.limit,
+      // Cursor solo con el orden por defecto (createdAt desc, id desc).
+      ...(!params.sort
+        ? {
+            cursor: {
+              value: params.cursor,
+              where: (value: unknown) => {
+                const c = value as { c: string; i: string };
+                const at = new Date(c.c);
+                return { OR: [{ createdAt: { lt: at } }, { createdAt: at, id: { lt: c.i } }] };
+              },
+              from: (row: { createdAt: Date; id: string }) => ({ c: row.createdAt.toISOString(), i: row.id }),
+            },
+          }
+        : {}),
     });
   }
 

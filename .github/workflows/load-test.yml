@@ -1,0 +1,123 @@
+name: Load test (manual)
+
+# F4-05: prueba de carga manual (no corre en push). Levanta un Postgres 16
+# local, migra, siembra datos de carga, arranca el API en 4020 y corre el smoke
+# de Node; con scenario=k6 instala k6 y corre los tres escenarios con umbrales.
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Qué correr"
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - k6
+      vus:
+        description: "VUs para k6 (default 10)"
+        required: false
+        default: "10"
+      duration:
+        description: "Duración para k6 (default 20s)"
+        required: false
+        default: "20s"
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: tm_test_load
+        ports:
+          - 55433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tm_test_load"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://postgres:test@127.0.0.1:55433/tm_test_load
+      JWT_SECRET: load-test-jwt-secret-no-usar-en-produccion
+      PORT: "4020"
+      NODE_ENV: test
+      EMAIL_DRY_RUN: "true"
+      TIME_CLOCK_USER: mock
+      TIME_CLOCK_PASS: mock-pass-123
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.16.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm --filter timemanager-api prisma:generate
+
+      - name: Migrate load database
+        working-directory: api
+        run: npx prisma migrate deploy
+
+      - name: Seed load data
+        working-directory: api
+        run: |
+          node --require ts-node/register/transpile-only \
+               --require tsconfig-paths/register scripts/load-seed.ts
+
+      - name: Start API
+        working-directory: api
+        run: |
+          nohup node --require ts-node/register/transpile-only \
+                      --require tsconfig-paths/register load/server.ts \
+                      > /tmp/load-api.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:4020/api/v1/health >/dev/null 2>&1; then
+              echo "API lista"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "El API no arrancó"; tail -80 /tmp/load-api.log; exit 1
+
+      - name: Smoke (Node, sin k6)
+        run: node load/smoke.mjs
+
+      - uses: grafana/setup-k6-action@v1
+        if: ${{ inputs.scenario == 'k6' }}
+
+      - name: k6 login
+        if: ${{ inputs.scenario == 'k6' }}
+        run: |
+          set -a; source load/.env.load; set +a
+          VUS=${{ inputs.vus }} DURATION=${{ inputs.duration }} k6 run load/k6/login.js
+
+      - name: k6 dashboards
+        if: ${{ inputs.scenario == 'k6' }}
+        run: |
+          set -a; source load/.env.load; set +a
+          VUS=${{ inputs.vus }} DURATION=${{ inputs.duration }} k6 run load/k6/dashboards.js
+
+      - name: k6 agent punches
+        if: ${{ inputs.scenario == 'k6' }}
+        run: |
+          set -a; source load/.env.load; set +a
+          VUS=${{ inputs.vus }} DURATION=${{ inputs.duration }} k6 run load/k6/agent-punches.js
+
+      - name: API log on failure
+        if: failure()
+        run: tail -120 /tmp/load-api.log || true

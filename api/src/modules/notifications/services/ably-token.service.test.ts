@@ -19,10 +19,22 @@ const isHttpError = (status: number, code: string) => (error: unknown): boolean 
   return true;
 };
 
-test("la capability solo permite suscribirse al canal propio", () => {
-  assert.deepEqual(buildNotificationCapability("usr-1"), {
+test("sin cliente (plataforma): solo el canal propio histórico", () => {
+  assert.deepEqual(buildNotificationCapability("usr-1", null), {
     "user:usr-1": ["subscribe"],
   });
+});
+
+test("con cliente (F1B-05): canal con prefijo de tenant + canal histórico", () => {
+  assert.deepEqual(buildNotificationCapability("usr-1", "tenant-a"), {
+    "user:usr-1": ["subscribe"],
+    "tenant:tenant-a:user:usr-1": ["subscribe"],
+  });
+  // Nunca incluye canales de otros usuarios ni de otros clientes.
+  const capability = buildNotificationCapability("usr-1", "tenant-a");
+  assert.equal(Object.keys(capability).includes("tenant:tenant-b:user:usr-1"), false);
+  assert.equal(Object.keys(capability).includes("user:usr-2"), false);
+  for (const operations of Object.values(capability)) assert.deepEqual(operations, ["subscribe"]);
 });
 
 test("TokenRequest firmado en local: clientId, capability y TTL corto", async () => {
@@ -30,6 +42,7 @@ test("TokenRequest firmado en local: clientId, capability y TTL corto", async ()
 
   assert.equal(request.keyName, "fakeapp.fakekey");
   assert.equal(request.clientId, "usr-1");
+  // Sin contexto de cliente en el test: solo el canal histórico.
   assert.deepEqual(capabilityOf(request), { "user:usr-1": ["subscribe"] });
   assert.equal(request.ttl, ABLY_TOKEN_TTL_MS);
   assert.equal(typeof request.timestamp, "number");
@@ -38,9 +51,17 @@ test("TokenRequest firmado en local: clientId, capability y TTL corto", async ()
 });
 
 test("el TTL es configurable", async () => {
-  const request = await createNotificationTokenRequest("usr-2", FAKE_KEY, 60_000);
+  const request = await createNotificationTokenRequest("usr-2", FAKE_KEY, 60_000, null);
   assert.equal(request.ttl, 60_000);
   assert.deepEqual(capabilityOf(request), { "user:usr-2": ["subscribe"] });
+});
+
+test("TokenRequest con cliente incluye el canal del tenant", async () => {
+  const request = await createNotificationTokenRequest("usr-2", FAKE_KEY, ABLY_TOKEN_TTL_MS, "tenant-a");
+  assert.deepEqual(capabilityOf(request), {
+    "user:usr-2": ["subscribe"],
+    "tenant:tenant-a:user:usr-2": ["subscribe"],
+  });
 });
 
 test("sin app key responde 503 ABLY_NOT_CONFIGURED", async () => {

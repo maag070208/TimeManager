@@ -65,8 +65,16 @@ export class TimeClockPeopleService {
     private readonly fallbackCredentials: TimeClockCredentials | null = null,
     private readonly audit?: AuditLogger,
     private readonly allowWrites = false,
-    private readonly station: FingerprintStation | null = null
+    private readonly station: FingerprintStation | null = null,
+    /** Resuelve la estación configurada en cada uso (F1B-12); gana sobre `station`. */
+    private readonly stationProvider: (() => Promise<FingerprintStation | null>) | null = null
   ) {}
+
+  /** Estación efectiva: configuración dinámica (BD) o la del constructor. */
+  private async stationOrNull(): Promise<FingerprintStation | null> {
+    if (this.stationProvider) return this.stationProvider();
+    return this.station;
+  }
 
   private readonly pendingCaptures = new Map<string, PendingCapture>();
   // Clave = serialNumber (PK global de TimeClock); byEmployee vive dentro de
@@ -331,7 +339,8 @@ export class TimeClockPeopleService {
    */
   async captureFingerprint(userId: string, serial: string, fingerNo: number, actorId: string) {
     const user = await this.userWithNumber(userId);
-    if (!this.station) throw new HttpError(503, "FINGERPRINT_STATION_NOT_CONFIGURED");
+    const station = await this.stationOrNull();
+    if (!station) throw new HttpError(503, "FINGERPRINT_STATION_NOT_CONFIGURED");
     const { client } = await this.clockFor(serial, false);
     const { people } = await this.readAll(client);
     if (!people.some((p) => p.employeeNumber === user.employeeNumber)) {
@@ -341,7 +350,7 @@ export class TimeClockPeopleService {
       throw new HttpError(409, "FINGERPRINT_LIMIT_REACHED", { max: MAX_FINGERS_PER_PERSON });
     }
     // La captura la hace la estación; el reloj no recibe nada en este paso.
-    const stationClient = new IsapiClient(this.station.url, this.station.user, this.station.pass);
+    const stationClient = new IsapiClient(station.url, station.user, station.pass);
     const capture = await this.stationCall(() => stationClient.captureFingerPrint(fingerNo));
     const now = Date.now();
     for (const [id, pending] of this.pendingCaptures) if (pending.expiresAt < now) this.pendingCaptures.delete(id);
@@ -360,8 +369,9 @@ export class TimeClockPeopleService {
   }
 
   /** Si hay estación de huellas configurada (no consulta nada; no toca ningún reloj). */
-  fingerprintStationInfo(): { configured: boolean; url: string | null } {
-    return { configured: this.station !== null, url: this.station?.url ?? null };
+  async fingerprintStationInfo(): Promise<{ configured: boolean; url: string | null }> {
+    const station = await this.stationOrNull();
+    return { configured: station !== null, url: station?.url ?? null };
   }
 
   /**
@@ -369,8 +379,9 @@ export class TimeClockPeopleService {
    * plantilla se descarta aquí mismo: no se guarda, no se aplica a ningún reloj y no se registra.
    */
   async testFingerprintStation(fingerNo: number) {
-    if (!this.station) throw new HttpError(503, "FINGERPRINT_STATION_NOT_CONFIGURED");
-    const stationClient = new IsapiClient(this.station.url, this.station.user, this.station.pass);
+    const station = await this.stationOrNull();
+    if (!station) throw new HttpError(503, "FINGERPRINT_STATION_NOT_CONFIGURED");
+    const stationClient = new IsapiClient(station.url, station.user, station.pass);
     const capture = await this.stationCall(() => stationClient.captureFingerPrint(fingerNo));
     return { fingerNo, quality: capture.quality, minQuality: MIN_FINGER_QUALITY, acceptable: capture.quality >= MIN_FINGER_QUALITY };
   }

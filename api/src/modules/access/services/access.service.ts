@@ -10,15 +10,7 @@ import { signedPhotoPath } from "@core/utils/security";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import { tenantTransaction } from "@core/tenancy";
-import {
-  ci,
-  filterDateRange,
-  filterEnum,
-  filterId,
-  orderByOf,
-  type ITDataTableFetchParams,
-  type ITDataTableResponse,
-} from "@core/utils/table";
+import { ci, filterDateRange, filterEnum, filterId, orderByOf, type ITDataTableFetchParams, type ITDataTableResponse, decodeCursor, encodeCursor } from "@core/utils/table";
 import {
   localDateKey,
   localDayRange,
@@ -351,19 +343,44 @@ export class AccessService {
     const { base, includeVoided } = await this.buildWhere(params.filters);
     const where: Prisma.AccessEventWhereInput = includeVoided ? base : { ...base, voidedAt: null };
 
-    const orderBy = orderByOf(
-      params.sort,
-      {
-        occurredAt: "occurredAt",
-        createdAt: "createdAt",
-        type: "type",
-        employeeNameSnapshot: "employeeNameSnapshot",
-        siteId: (direction: "asc" | "desc") => ({ site: { name: direction } }),
-        employeeId: "employeeNameSnapshot",
-        guardId: (direction: "asc" | "desc") => ({ guard: { name: direction } }),
-      },
-      [{ occurredAt: "desc" }]
-    );
+    const orderBy = [
+      ...orderByOf(
+        params.sort,
+        {
+          occurredAt: "occurredAt",
+          createdAt: "createdAt",
+          type: "type",
+          employeeNameSnapshot: "employeeNameSnapshot",
+          siteId: (direction: "asc" | "desc") => ({ site: { name: direction } }),
+          employeeId: "employeeNameSnapshot",
+          guardId: (direction: "asc" | "desc") => ({ guard: { name: direction } }),
+        },
+        [{ occurredAt: "desc" }]
+      ),
+      // Desempate estable (y llave del cursor).
+      { id: "desc" as const },
+    ];
+
+    // Paginación por cursor (F4-02) con el orden por defecto.
+    const cursorValue = params.cursor && !params.sort ? decodeCursor<{ o: string; i: string }>(params.cursor) : null;
+    if (cursorValue) {
+      const occurredAt = new Date(cursorValue.o);
+      const scopedWhere: Prisma.AccessEventWhereInput = {
+        AND: [where, { OR: [{ occurredAt: { lt: occurredAt } }, { occurredAt, id: { lt: cursorValue.i } }] }],
+      };
+      const data = await this.db.accessEvent.findMany({
+        where: scopedWhere,
+        include: eventInclude,
+        orderBy: orderBy as Prisma.AccessEventOrderByWithRelationInput[],
+        take: params.limit,
+      });
+      const last = data[data.length - 1];
+      const nextCursor =
+        last && data.length === params.limit
+          ? encodeCursor({ o: last.occurredAt.toISOString(), i: last.id })
+          : null;
+      return { data, total: 0, nextCursor };
+    }
 
     const [total, data] = await this.db.$transaction([
       this.db.accessEvent.count({ where }),
@@ -375,8 +392,13 @@ export class AccessService {
         take: params.limit,
       }),
     ]);
+    const last = data[data.length - 1];
+    const nextCursor =
+      !params.sort && last && data.length === params.limit
+        ? encodeCursor({ o: last.occurredAt.toISOString(), i: last.id })
+        : undefined;
 
-    return { data, total };
+    return { data, total, ...(nextCursor !== undefined ? { nextCursor } : {}) };
   }
 
   /** Conteos para los KPIs de la bitácora (respetan los mismos filtros). */

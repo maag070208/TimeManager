@@ -58,3 +58,31 @@ Cuando cierren los bloques F2-01..F2-04 + marcaje remoto + export STPS + límite
 recorrer esta tabla requisito por requisito y actualizar estado con evidencia
 (endpoint/pantalla/prueba), dejando en “pendiente legal” solo lo que depende de la
 autoridad o del cliente.
+
+---
+
+## Validación final (2026-11-05) — evidencia
+
+Corrida final del árbol: integración API **154/154** (43 suites), unit **83/83**,
+E2E **67/67**, `tsc` API+web y lint en 0. Base DEV de Railway migrada (14
+migraciones) y sembrada. La validación es **técnica**, no legal: no sustituye la
+opinión de asesor ni las disposiciones generales de la STPS.
+
+| # | Requisito | Evidencia en código | Estado |
+|---|---|---|---|
+| 1 | Registro electrónico inicio/fin, todas las modalidades | Reloj ISAPI (`time_clock_punches`), `access_events`, y **marcaje remoto** `remote_punches` con portal `/mi-jornada`; `POST /nom/me/punch` idempotente y secuencia validada | **Cubierto** |
+| 2 | Trazabilidad y correcciones documentadas | Triggers append-only + `PunchAdjustment` (motivo, valor anterior/nuevo, solicitante, aprobador) + `audit_logs`; `GET /nom/punches/:id/history` | **Cubierto** |
+| 3 | Acceso del trabajador a sus registros + discrepancia | `/mi-jornada` (marcajes propios de reloj/acceso/remoto), `GET /nom/me/punches`, `GET/POST /nom/me/discrepancies` | **Cubierto** |
+| 4 | Reportes para la STPS | `GET /nom/export/stps` CSV/JSON por periodo y persona, con SHA-256 y layout versionado (`stps-registro-jornada-v0`) | **Cubierto (v0)**; formato oficial pendiente de la STPS |
+| 5 | Límites de jornada y horas extra + alertas | `nom_settings` por cliente, 720 min/día, tope semanal por año (48 h <2027, 46 h 2027-2029, 40 h ≥2030), barrido con `computeWorkday` + `WorkdayLimitAlert` idempotente + aviso a RH | **Cubierto**; validar tope legal por año con asesor |
+| 6 | Horarios y desconexión (NOM-037) | `TeleworkRegistration`, `TeleworkChecklist` (inicial/periódico), `OutOfHoursContact` con aviso, políticas versionadas y consentimiento (`/nom/me/telework/accept`) | **Cubierto**; contenido/validez legal por cliente |
+| 7 | Conexión con nómina | Pre-nómina, cierres y decisiones de OT auditadas; aprobaciones consumidas por asistencia/nómina | **Cubierto**; integración con proveedor de nómina externo no aplica (export) |
+| 8 | Protección de datos personales | Fotos/documentos privados con token/presignado, Ably por token con capability mínima, RLS por tenant, roles por permiso, GPS solo al marcar | **Cubierto**; aviso de privacidad por cliente (texto editable) y validación legal |
+
+### Gaps que quedan fuera del sistema (acción del usuario/legal)
+
+- **Formato oficial STPS** y retención definitiva: dependen de las disposiciones generales que se publiquen para 2027.
+- **Contenido y validez legal** de la política de teletrabajo, desconexión y aviso de privacidad de cada cliente.
+- **Sello encadenado por lote** del export (hoy hash por export) si la autoridad lo exige.
+- **Cifrado adicional** de datos sensibles y consentimientos por cliente (modelo listo, texto y proceso legal pendientes).
+- **Precios, dominio (`axzy.dev`), bucket S3 privado y rotación de Ably**: acciones administrativas.

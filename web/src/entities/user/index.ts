@@ -8,4 +8,5 @@ export * from "./model/usePeopleOptions";
 export * from "./model/roles-catalog";
 export { default } from "./model/auth.slice";
 export { authApi } from "./api/userApi";
+export type { PublicBranding } from "./api/userApi";
 export { usersApi } from "./api/userApi";

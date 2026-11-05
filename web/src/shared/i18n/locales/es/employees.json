@@ -43,49 +43,31 @@
       "loading": "Cargando actividad…",
       "error": "No se pudo cargar la actividad",
       "kpi": {
-        "units": "Equipo prestado",
-        "unitsHint": "{{count}} carta(s) responsiva(s)",
-        "letters": "Cartas activas",
-        "lettersHint": "a su nombre",
-        "tickets": "Tickets abiertos",
-        "ticketsHint": "creados o asignados",
-        "tasks": "Tareas pendientes",
-        "tasksHint": "sin completar",
+        "documents": "Documentos",
+        "documentsHint": "cargados en su expediente",
+        "missing": "Documentos faltantes",
+        "missingHint": "obligatorios sin cargar",
+        "punches": "Checadas (30 días)",
+        "punchesHint": "registradas en el reloj",
+        "disciplines": "Actas (12 meses)",
+        "disciplinesHint": "levantadas a su nombre",
         "none": "Todo en orden"
       },
       "tabs": {
-        "loans": "Equipo prestado",
-        "kardex": "Kardex",
-        "tickets": "Tickets",
-        "tasks": "Tareas"
+        "documents": "Documentos recientes",
+        "punches": "Últimas checadas"
       },
-      "status": {
-        "OPEN": "Abierto",
-        "IN_PROGRESS": "En progreso",
-        "IN_REVIEW": "En revisión",
-        "CLOSED": "Cerrado",
-        "COMPLETED": "Completada",
-        "PENDING": "Pendiente",
-        "ACTIVE": "Activa",
-        "PARTIAL": "Parcial",
-        "RETURNED": "Devuelta",
-        "CANCELLED": "Cancelada"
+      "schedule": "Horario vigente",
+      "noSchedule": "Sin horario asignado",
+      "method": {
+        "FACE": "Rostro",
+        "FINGERPRINT": "Huella",
+        "CARD": "Tarjeta",
+        "OTHER": "Otro"
       },
-      "kardex": {
-        "LOAN": "Préstamo",
-        "RETURN": "Devolución"
-      },
-      "relation": {
-        "CREATED": "Lo creó",
-        "ASSIGNED": "Asignado a esta persona"
-      },
-      "returnedCount": "{{count}} devuelto(s)",
-      "due": "vence {{date}}",
       "empty": {
-        "loans": "No tiene equipo prestado.",
-        "kardex": "Sin movimientos de equipo.",
-        "tickets": "Sin tickets.",
-        "tasks": "Sin tareas."
+        "documents": "No tiene documentos cargados.",
+        "punches": "Sin checadas registradas."
       }
     },
     "loadingTitle": "Cargando…",

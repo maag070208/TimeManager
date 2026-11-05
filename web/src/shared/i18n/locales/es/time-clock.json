@@ -276,7 +276,11 @@
       "confirmRegistration": "Dar de alta",
       "connecting": "Conectando…",
       "confirmRetirement": "Dar de baja",
-      "save": "Guardar"
+      "save": "Guardar",
+      "testConnection": "Probar conexión",
+      "testingConnection": "Probando…",
+      "syncNow": "Sincronizar ahora",
+      "syncingNow": "Sincronizando…"
     },
     "sync": {
       "title": "Sincronización",
@@ -328,18 +332,25 @@
     "toasts": {
       "registration": "{{name}} dado de alta: ya está trayendo sus checadas",
       "retirement": "{{name}} dado de baja",
-      "edited": "{{name}} actualizado"
+      "edited": "{{name}} actualizado",
+      "connectionOk": "Conexión correcta con el reloj",
+      "syncNow": "Sincronización iniciada: las checadas nuevas llegarán en segundos"
     },
     "errors": {
       "status": "No se pudo leer el estado de los relojes",
       "config": "No se pudo leer la configuración del reloj",
       "registration": "No se pudo dar de alta el reloj",
       "retirement": "No se pudo dar de baja el reloj",
-      "edit": "No se pudo actualizar el reloj"
+      "edit": "No se pudo actualizar el reloj",
+      "connection": "No se pudo conectar con el reloj",
+      "sync": "No se pudo iniciar la sincronización"
     },
     "write": {
       "label": "Permitir escribir en este reloj",
       "hint": "Si está activo, el sistema puede dar de alta, dar de baja y registrar huellas en este reloj. Apagado, el reloj es de solo lectura para el sistema."
+    },
+    "connection": {
+      "ok": "Conexión correcta · {{serial}}"
     }
   },
   "history": {

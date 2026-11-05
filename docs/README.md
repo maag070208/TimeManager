@@ -10,6 +10,7 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 | [PLAN_IMPLEMENTACION.md](PLAN_IMPLEMENTACION.md) | Roadmap ejecutable: arquitectura objetivo, decisiones y tareas por fase con ID, archivos y criterio de "hecho" |
 | [SAAS_PLAN.md](SAAS_PLAN.md) | Plan de escalamiento a SaaS multi-cliente (multi-tenancy): decisiones, impacto por módulo y roadmap por fases |
 | [ARQUITECTURA.md](ARQUITECTURA.md) | Arquitectura de escalamiento: API stateless + workers, colas, índices y particionado de la BD, performance de la web |
+| [OPERACION_PRODUCCION.md](OPERACION_PRODUCCION.md) | Runbook de producción: procesos/workers, RLS, cola pg-boss, PgBouncer, observabilidad, respaldo/restore por cliente y prueba de carga |
 | [modules/](modules/README.md) | Ficha por módulo del sistema: qué hace, endpoints, modelos, permisos, frontend y notas multi-tenant |
 
 ## Convenciones

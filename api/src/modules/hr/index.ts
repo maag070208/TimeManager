@@ -5,6 +5,7 @@ import { DocumentTypeService } from "./services/document-type.service";
 import { HrCatalogService } from "./services/hr-catalog.service";
 import { DisciplinaryReportService } from "./services/disciplinary-report.service";
 import { EmployeeRecordsService } from "./services/employee-records.service";
+import { EmployeeOverviewService } from "./services/employee-overview.service";
 import { PersonalController } from "./controllers/hr.controller";
 import { createPersonalRouter } from "./routes/hr.routes";
 import type { NotificationPort } from "@modules/notifications";
@@ -16,6 +17,7 @@ export { DocumentTypeService } from "./services/document-type.service";
 export { HrCatalogService } from "./services/hr-catalog.service";
 export { DisciplinaryReportService } from "./services/disciplinary-report.service";
 export { EmployeeRecordsService, PROFILE_FIELDS } from "./services/employee-records.service";
+export { EmployeeOverviewService } from "./services/employee-overview.service";
 export type { EmployeeRecordGaps, RecordsSummary, ProfileField } from "./services/employee-records.service";
 
 type AuditLogger = AuditPort["createLog"];
@@ -37,7 +39,8 @@ export const createPersonalModule = (
   const catalogs = new HrCatalogService(prismaClient);
   const disciplinaryReports = new DisciplinaryReportService(prismaClient);
   const records = new EmployeeRecordsService(prismaClient, notifications);
-  const controller = new PersonalController(profiles, documents, documentTypes, catalogs, disciplinaryReports, records);
+  const overviews = new EmployeeOverviewService(prismaClient);
+  const controller = new PersonalController(profiles, documents, documentTypes, catalogs, disciplinaryReports, records, overviews);
   return { router: createPersonalRouter(controller), records };
 };
 

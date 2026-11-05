@@ -12,13 +12,12 @@ import {
   type Notification,
 } from "@entities/notification";
 
-export type NotificationFilter = "all" | "unread" | "tickets" | "people" | "alerts";
+export type NotificationFilter = "all" | "unread" | "people" | "alerts";
 
 /** Tipos de notificación que pertenecen a cada filtro temático. */
-const TYPES_BY_FILTER: Record<"tickets" | "people" | "alerts", readonly string[]> = {
-  tickets: ["COMMENT", "ASSIGNED", "TICKET_UPDATED", "TICKET_CREATED"],
+const TYPES_BY_FILTER: Record<"people" | "alerts", readonly string[]> = {
   people: ["USER_CREATED", "USER_DEACTIVATED", "EMPLOYEE_DOC_UPLOADED"],
-  alerts: ["INVENTORY_AUDIT", "KITCHEN_ALERTS"],
+  alerts: ["TIME_CLOCK_ROSTER", "WORKDAY_LIMIT"],
 };
 
 const matches = (n: Notification, filter: NotificationFilter): boolean => {
@@ -81,7 +80,6 @@ export const useNotificationsList = () => {
     () => ({
       all: items.length,
       unread: items.filter((n) => matches(n, "unread")).length,
-      tickets: items.filter((n) => matches(n, "tickets")).length,
       people: items.filter((n) => matches(n, "people")).length,
       alerts: items.filter((n) => matches(n, "alerts")).length,
     }),

@@ -20,6 +20,7 @@ import { DocumentTypeService } from "../services/document-type.service";
 import { HrCatalogService } from "../services/hr-catalog.service";
 import { DisciplinaryReportService } from "../services/disciplinary-report.service";
 import type { EmployeeRecordsService } from "../services/employee-records.service";
+import type { EmployeeOverviewService } from "../services/employee-overview.service";
 import { NotifyMissingRecordsDto } from "../models/dto/hr.dto";
 
 export class PersonalController {
@@ -29,7 +30,8 @@ export class PersonalController {
     private readonly documentTypes: DocumentTypeService,
     private readonly catalogs: HrCatalogService,
     private readonly disciplinaryReports: DisciplinaryReportService,
-    private readonly records: EmployeeRecordsService
+    private readonly records: EmployeeRecordsService,
+    private readonly overviews: EmployeeOverviewService
   ) {}
 
   table = async (req: Request, res: Response) => {
@@ -40,6 +42,10 @@ export class PersonalController {
 
   stats = async (_req: Request, res: Response) => {
     res.json(await this.profiles.stats());
+  };
+
+  overview = async (req: Request, res: Response) => {
+    res.json(await this.overviews.overview(req.params.id));
   };
 
   getOne = async (req: Request, res: Response) => {

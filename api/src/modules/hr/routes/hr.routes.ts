@@ -198,6 +198,19 @@ export const createPersonalRouter = (controller: PersonalController): Router => 
 
   registerPath({
     method: "get",
+    path: "/hr/{id}/overview",
+    tags: ["Personal"],
+    summary: "Employee activity summary: documents, punches, disciplinary reports and schedule (hr.records)",
+    security: [{ bearerAuth: [] }],
+    parameters: [{ in: "path", name: "id", required: true, schema: { type: "string" } }],
+    responses: {
+      200: { description: "Activity summary" },
+      404: { description: "No encontrado" },
+    },
+  });
+
+  registerPath({
+    method: "get",
     path: "/hr/{id}",
     tags: ["Personal"],
     summary: "Full employee record (ADMIN/HUMAN_RESOURCES)",
@@ -362,6 +375,9 @@ export const createPersonalRouter = (controller: PersonalController): Router => 
 
   router.post("/query", requiresPermission("hr.records"), asyncHandler(controller.table));
   router.get("/stats", requiresPermission("hr.records"), asyncHandler(controller.stats));
+  // Actividad del expediente: documentos/checadas/actas/horario (L-13). Lleva
+  // `/:id/` delante, así que no choca con la ruta de detalle.
+  router.get("/:id/overview", requiresPermission("hr.records"), asyncHandler(controller.overview));
 
   // Cartas/actas administrativas. Deben ir antes de "/:id".
   router.post("/disciplinary-reports/query", requiresPermission("hr.disciplinary_reports"), asyncHandler(controller.disciplinaryReportsTable));

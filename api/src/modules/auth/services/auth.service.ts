@@ -139,12 +139,41 @@ export class AuthService {
     });
   }
 
+  /**
+   * Branding público de un cliente para la pantalla de login (F3-05). No
+   * revela nada sensible: nombre, color y logo. Con un slug desconocido
+   * devuelve nulls (la UI usa la marca TimeManager).
+   */
+  async branding(tenantSlug?: string): Promise<{
+    slug: string | null;
+    name: string | null;
+    brandColor: string | null;
+    logoDataUrl: string | null;
+  }> {
+    const slug = (tenantSlug ?? "").trim().toLowerCase();
+    if (!slug) return { slug: null, name: null, brandColor: null, logoDataUrl: null };
+    const tenant = await this.db.tenant.findFirst({
+      where: { slug, status: "ACTIVE" },
+      select: { slug: true, name: true, brandColor: true, logoDataUrl: true },
+    });
+    return tenant ?? { slug: null, name: null, brandColor: null, logoDataUrl: null };
+  }
+
   async me(userId: string): Promise<AuthMe> {
     const user = await this.db.user.findUnique({
       where: { id: userId },
       include: {
         department: { select: { id: true, name: true } },
-        tenant: { select: { id: true, slug: true, name: true, timezone: true } },
+        tenant: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            timezone: true,
+            brandColor: true,
+            logoDataUrl: true,
+          },
+        },
         extraRoles: { select: { role: true } },
         permissionGrants: {
           where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },

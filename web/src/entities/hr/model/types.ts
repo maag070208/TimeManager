@@ -178,27 +178,23 @@ export interface EmployeeAssignmentInput {
   subareaId?: string | null;
 }
 
-/** Actividad de una persona en el sistema: equipo prestado, kardex, tickets y tareas. */
+/** Actividad de una persona (`GET /hr/:id/overview`): documentos, checadas, actas y horario. */
 export interface EmployeeOverview {
-  summary: { openTickets: number; pendingTasks: number };
-  /** Equipo prestado y kardex: `null` si la sesión no tiene `loans.view` (RH no lo ve). */
-  inventory: {
-    summary: { activeLoans: number; borrowedUnits: number };
-    loans: Array<{
-      id: string;
-      number: string;
-      date: string;
-      status: "ACTIVE" | "PARTIAL" | "RETURNED" | "CANCELLED";
-      items: Array<{ device: string; quantity: number; returned: number }>;
-    }>;
-    kardex: Array<{
-      type: "LOAN" | "RETURN";
-      date: string;
-      number: string;
-      loanNumber?: string;
-      items: Array<{ device: string; quantity: number; condition?: string }>;
-    }>;
-  } | null;
-  tickets: Array<{ id: string; title: string; status: "OPEN" | "IN_PROGRESS" | "CLOSED"; priority: string; createdAt: string; relation: "CREATED" | "ASSIGNED" }>;
-  tasks: Array<{ id: string; title: string; status: "PENDING" | "IN_PROGRESS" | "IN_REVIEW" | "COMPLETED"; dueDate: string | null; ticketId: string; ticketTitle: string }>;
+  employee: {
+    id: string;
+    name: string;
+    employeeNumber: string | null;
+    jobTitle: string | null;
+    department: string | null;
+    active: boolean;
+  };
+  summary: {
+    documents: number;
+    missingRequiredDocuments: number;
+    punchesLast30Days: number;
+    disciplinaryReportsLastYear: number;
+  };
+  schedule: { id: string; name: string; validFrom: string } | null;
+  documents: Array<{ id: string; name: string; type: string; uploadedAt: string }>;
+  punches: Array<{ id: string; occurredAt: string; method: string; clock: string | null }>;
 }

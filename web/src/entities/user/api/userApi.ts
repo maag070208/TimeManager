@@ -12,11 +12,23 @@ import type {
   UserRole,
 } from "../model/types";
 
+export interface PublicBranding {
+  slug: string | null;
+  name: string | null;
+  brandColor: string | null;
+  logoDataUrl: string | null;
+}
+
 export const authApi = {
   /** `tenant` = slug del subdominio; sin él, login de plataforma. */
   login: (username: string, password: string, tenant?: string | null) =>
     api.post<LoginResponse>(`/auth/login`, { username, password, ...(tenant ? { tenant } : {}) }),
   me: () => api.get<AuthMe>(`/auth/me`),
+  /** Branding público del cliente para la pantalla de login (sin sesión). */
+  branding: (tenant?: string | null) =>
+    api.get<PublicBranding>(
+      `/auth/branding${tenant ? `?tenant=${encodeURIComponent(tenant)}` : ""}`
+    ),
   /** Cambio de la propia contraseña (obligatorio si es provisional). */
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post<void>(`/auth/change-password`, { currentPassword, newPassword }),

@@ -13,7 +13,7 @@ export interface HistoryEntry {
  * no la familia, así que la clasificación vive aquí; un tipo nuevo cae en
  * `other` en vez de perderse.
  */
-export type HistoryFamily = "all" | "equipment" | "tickets" | "account" | "other";
+export type HistoryFamily = "all" | "account" | "other";
 
 /** Familia concreta (sin la píldora "todo"). */
 export type HistoryFamilyKey = Exclude<HistoryFamily, "all">;

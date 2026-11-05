@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, requiresPermission } from "@core/middlewares/auth.middleware";
+import { authenticate, requiresPermission, requiresPlatform } from "@core/middlewares/auth.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import { TableQuerySchema } from "@core/swagger/table.dto";
@@ -53,7 +53,10 @@ export const createEmailLogRoutes = (controller: EmailLogController): Router => 
     },
   });
 
-  router.use(authenticate);
+  // Bitácora de envíos del panel de plataforma (F1A-12): además de
+  // `system.configure` exige usuario sin cliente; una excepción de permiso a un
+  // usuario de cliente no debe abrirla.
+  router.use(authenticate, requiresPlatform);
   router.post("/logs/query", requiresPermission("system.configure"), asyncHandler(controller.table));
   router.post("/logs/:id/retry", requiresPermission("system.configure"), asyncHandler(controller.retry));
   router.post("/logs/:id/cancel", requiresPermission("system.configure"), asyncHandler(controller.cancel));

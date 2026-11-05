@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { HttpError } from "@core/middlewares/error.middleware";
 import { parseTableParams, paginatedTable } from "@core/utils/table";
 import { TimeClockService } from "../services/time-clock.service";
 import { TimeClockEmployeesService } from "../services/time-clock-employees.service";
@@ -7,9 +8,11 @@ import { TimeClockRosterService } from "../services/time-clock-roster.service";
 import { TimeClockInspectService } from "../services/time-clock-inspect.service";
 import { TimeClockPeopleService } from "../services/time-clock-people.service";
 import { TimeClockSummaryService } from "../services/time-clock-summary.service";
-import { ClockCardDto, ClockPersonCreateDto, ClockPersonUpdateDto, EmployeeClockAltaDto, FingerprintApplyDto, FingerprintCaptureDto, FingerprintStationTestDto, FingerprintStatusQuery } from "../models/dto/time-clock.dto";
+import { FingerprintStationService } from "../services/fingerprint-station.service";
+import { ClockCardDto, ClockPersonCreateDto, ClockPersonUpdateDto, EmployeeClockAltaDto, FingerprintApplyDto, FingerprintCaptureDto, FingerprintStationConfigDto, FingerprintStationTestDto, FingerprintStatusQuery } from "../models/dto/time-clock.dto";
 import { RemovalCategoryDto, RemovalCategoryUpdateDto, TimeClockRosterRemovalDto } from "../models/dto/time-clock.dto";
 import {
+  ClockIngestDto,
   TimeClockImportDto,
   TimeClockDto,
   TimeClockUpdateDto,
@@ -36,7 +39,8 @@ export class TimeClockController {
     private readonly rosterService: TimeClockRosterService,
     private readonly inspect: TimeClockInspectService,
     private readonly people: TimeClockPeopleService,
-    private readonly summaryService: TimeClockSummaryService
+    private readonly summaryService: TimeClockSummaryService,
+    private readonly station: FingerprintStationService
   ) {}
 
   summary = async (_req: Request, res: Response): Promise<void> => {
@@ -77,8 +81,20 @@ export class TimeClockController {
     res.json(await this.people.unifiedPeople());
   };
 
-  fingerprintStationInfo = async (_req: Request, res: Response): Promise<void> => {
-    res.json(this.people.fingerprintStationInfo());
+  fingerprintStationInfo = async (req: Request, res: Response): Promise<void> => {
+    // Vista del cliente en contexto: si no tiene estación propia, ve la central.
+    res.json(await this.station.info(req.user?.tenantId ?? null));
+  };
+
+  /** Config de la estación (solo plataforma): default y overrides por cliente. */
+  fingerprintStationConfigGet = async (req: Request, res: Response): Promise<void> => {
+    const tenantId = typeof req.query.tenantId === "string" && req.query.tenantId !== "" ? req.query.tenantId : null;
+    res.json(await this.station.info(tenantId));
+  };
+
+  fingerprintStationConfigSave = async (req: Request, res: Response): Promise<void> => {
+    const input = FingerprintStationConfigDto.parse(req.body);
+    res.json(await this.station.save(input, req.user!.id));
   };
 
   fingerprintStationTest = async (req: Request, res: Response): Promise<void> => {
@@ -153,8 +169,8 @@ export class TimeClockController {
 
   table = async (req: Request, res: Response): Promise<void> => {
     const params = parseTableParams(req.body);
-    const { data, total } = await this.service.table(params);
-    res.json(paginatedTable(params, data, total));
+    const { data, total, nextCursor } = await this.service.table(params);
+    res.json(paginatedTable(params, data, total, nextCursor));
   };
 
   status = async (_req: Request, res: Response): Promise<void> => {
@@ -176,6 +192,26 @@ export class TimeClockController {
   registerClock = async (req: Request, res: Response): Promise<void> => {
     const input = TimeClockDto.parse(req.body);
     res.status(201).json(await this.service.register(input, req.user?.id));
+  };
+
+  /** Genera/rota la API key del reloj para ingesta directa (F1B-06). */
+  rotateClockApiKey = async (req: Request, res: Response): Promise<void> => {
+    const data = await this.service.rotateApiKey(req.params.serial, req.user?.id);
+    res.status(201).json({ ...data, createdAt: data.createdAt.toISOString() });
+  };
+
+  /**
+   * Ingesta directa desde el reloj (`POST /time-clock/ingest`): sin JWT, con la
+   * API key del propio equipo. El contexto del cliente sale de la fila del reloj.
+   */
+  ingestClockPunches = async (req: Request, res: Response): Promise<void> => {
+    const input = ClockIngestDto.parse(req.body);
+    const header = req.headers.authorization;
+    const bearer = typeof header === "string" ? header.replace(/^Bearer\s+/i, "").trim() : "";
+    const custom = req.headers["x-clock-key"];
+    const apiKey = bearer || (typeof custom === "string" ? custom.trim() : "");
+    if (!apiKey) throw new HttpError(401, "INVALID_CLOCK_KEY");
+    res.status(202).json(await this.service.ingestPunches(input.serial, apiKey, input.punches));
   };
 
   updateClock = async (req: Request, res: Response): Promise<void> => {
