@@ -15,6 +15,7 @@
 export const APP_ROOT_PATHS: ReadonlySet<string> = new Set([
   "home",
   "login",
+  "landing",
   "mi-jornada",
   "teletrabajo",
   "users",

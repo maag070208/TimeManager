@@ -1,4 +1,5 @@
 import { ITAlert, ITButton, ITInput, ITToast, ITText } from "@axzydev/axzy_ui_system";
+import { Link } from "react-router-dom";
 import { LuLogIn, LuUser } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import "./login.css";
@@ -118,6 +119,11 @@ export default function LoginForm({
             <ITText as="span">{tt("login.footer")}</ITText>
             <ITText as="span" className="font-medium">v{__APP_VERSION__}</ITText>
           </footer>
+          <div className="mt-6 text-center">
+            <Link to="/landing" className="login-muted text-[12px] font-semibold underline-offset-4 hover:underline">
+              Conoce TimeManager
+            </Link>
+          </div>
         </div>
       </section>
 

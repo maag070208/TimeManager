@@ -182,3 +182,22 @@ Los roles viven en BD (tabla `roles`) y la UI se gobierna por permisos (`useCan`
 - i18n namespaces por dominio en `shared/i18n/locales/{es,en}/`.
 - Carga: `ITPage loading` para página completa, `ContentSkeleton` para bloques.
 - Sin comentarios en código salvo casos no obvios.
+
+## Landing pública (`/#/landing`)
+
+Página de marketing pública (sin sesión) con diseño **bento**, tema claro/oscuro
+(toggle persistido en `localStorage:tm-landing-theme`) y capturas reales del
+producto en `public/landing/*.jpg`.
+
+- Archivos: `src/pages/landing/LandingPage.tsx` + `landing.css`; ruta pública en
+  `app/App.tsx` (`/landing`, reservada en `APP_ROOT_PATHS` para que el slug del
+  cliente no la capture). Enlace “Conoce TimeManager” desde el login.
+- Secciones: hero, bento de producto (asistencia, personal, horarios, portal
+  móvil, reloj + agente, multi-cliente, cumplimiento), galería, agente,
+  planes 500/750/1000, FAQ y CTA.
+- Capturas: se generan con Playwright contra el stack E2E (`api/scripts/e2e-seed.ts`)
+  iniciando sesión como `acme.admin` / `acme.staff` / `e2e.admin` y guardando en
+  `public/landing/`. Para regenerarlas, repetir la captura con el runner
+  `node scripts/e2e-run.mjs <spec-de-captura> --project=chromium`.
+- E2E: `tests/e2e/landing.spec.ts` (tema, FAQ, planes, login) y
+  `tests/e2e/landing.mobile.spec.ts` (sin desbordes en móvil).

@@ -1,0 +1,189 @@
+/* Landing pública de TimeManager — bento moderno con temas claro/oscuro.
+   Los colores viven en variables para que el toggle sea instantáneo. */
+
+.tm-landing {
+  --lp-bg: #f3f5fa;
+  --lp-bg-soft: #e9edf6;
+  --lp-surface: #ffffff;
+  --lp-surface-2: #f7f9fd;
+  --lp-fg: #0d1526;
+  --lp-muted: #5a6579;
+  --lp-line: rgba(13, 21, 38, 0.09);
+  --lp-line-strong: rgba(13, 21, 38, 0.16);
+  --lp-accent: #f2a93b;
+  --lp-accent-ink: #8a5300;
+  --lp-navy: #1d2636;
+  --lp-navy-soft: #2b3a52;
+  --lp-shadow: 0 24px 60px -32px rgba(15, 23, 42, 0.35);
+  --lp-glow: rgba(242, 169, 59, 0.16);
+  color: var(--lp-fg);
+  background-color: var(--lp-bg);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.tm-landing[data-theme="dark"] {
+  --lp-bg: #080c14;
+  --lp-bg-soft: #0d1420;
+  --lp-surface: #101827;
+  --lp-surface-2: #0c1320;
+  --lp-fg: #f2f5fb;
+  --lp-muted: #98a4ba;
+  --lp-line: rgba(255, 255, 255, 0.09);
+  --lp-line-strong: rgba(255, 255, 255, 0.18);
+  --lp-accent: #f6b654;
+  --lp-accent-ink: #ffd997;
+  --lp-navy: #16203278;
+  --lp-navy-soft: #1c2a40;
+  --lp-shadow: 0 28px 70px -30px rgba(0, 0, 0, 0.8);
+  --lp-glow: rgba(242, 169, 59, 0.2);
+}
+
+.lp-grid-bg {
+  background-image:
+    radial-gradient(900px 520px at 78% -8%, var(--lp-glow), transparent 70%),
+    radial-gradient(700px 420px at 8% 8%, rgba(56, 104, 255, 0.08), transparent 70%),
+    linear-gradient(var(--lp-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lp-line) 1px, transparent 1px);
+  background-size: auto, auto, 56px 56px, 56px 56px;
+  background-position: center top;
+}
+
+.lp-card {
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-line);
+  border-radius: 28px;
+  box-shadow: var(--lp-shadow);
+}
+
+.lp-card-soft {
+  background: var(--lp-surface-2);
+  border: 1px solid var(--lp-line);
+  border-radius: 24px;
+}
+
+.lp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--lp-line);
+  background: var(--lp-surface);
+  color: var(--lp-muted);
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.lp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--lp-fg);
+  color: var(--lp-bg);
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.lp-btn-primary:hover { transform: translateY(-1px); opacity: 0.92; }
+
+.lp-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--lp-line-strong);
+  background: transparent;
+  color: var(--lp-fg);
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background-color 0.15s ease;
+}
+.lp-btn-ghost:hover { background: var(--lp-surface-2); }
+
+.lp-accent { color: var(--lp-accent); }
+.lp-muted { color: var(--lp-muted); }
+
+/* Ventana de navegador para las capturas */
+.lp-browser {
+  border: 1px solid var(--lp-line-strong);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--lp-surface);
+  box-shadow: var(--lp-shadow);
+}
+.lp-browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--lp-surface-2);
+  border-bottom: 1px solid var(--lp-line);
+}
+.lp-browser-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--lp-line-strong);
+}
+.lp-browser-url {
+  flex: 1;
+  margin-left: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--lp-line);
+  background: var(--lp-surface);
+  color: var(--lp-muted);
+  font-size: 11px;
+  padding: 4px 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Teléfono para el portal del trabajador */
+.lp-phone {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin-inline: auto;
+  border: 1px solid var(--lp-line-strong);
+  border-radius: 38px;
+  padding: 10px;
+  background: var(--lp-surface-2);
+  box-shadow: var(--lp-shadow);
+}
+.lp-phone::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--lp-fg);
+  opacity: 0.85;
+  z-index: 2;
+}
+.lp-phone img {
+  border-radius: 30px;
+  display: block;
+  width: 100%;
+}
+
+.lp-faq summary {
+  cursor: pointer;
+  list-style: none;
+}
+.lp-faq summary::-webkit-details-marker { display: none; }
+.lp-faq summary svg { transition: transform 0.2s ease; }
+.lp-faq[open] summary svg { transform: rotate(180deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-landing * { transition: none !important; }
+}

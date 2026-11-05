@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { tenantRouteFromLocation } from "@shared/api/tenant";
 import LoginPage from "@pages/auth/LoginPage";
+import LandingPage from "@pages/landing/LandingPage";
 import HomePage from "@pages/home/HomePage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
@@ -58,6 +59,8 @@ export default function App() {
       <TenantRouteGate />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+      {/* Landing pública (marketing); el inicio de la app sigue en "/" tras login. */}
+      <Route path="/landing" element={<LandingPage />} />
 
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<HomeRoute />} />
