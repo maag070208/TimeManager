@@ -58,7 +58,6 @@ export interface PersonalProfile {
   active: boolean;
   jobTitle?: string | null;
   employeeNumber?: string | null;
-  company?: string | null;
   department?: { id: string; name: string } | null;
   subarea?: { id: string; name: string } | null;
 

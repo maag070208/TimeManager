@@ -10,7 +10,6 @@ export const userToDto = (entity: UserEntity): User => ({
   active: entity.active,
   jobTitle: entity.jobTitle,
   employeeNumber: entity.employeeNumber,
-  company: entity.company,
   departmentId: entity.departmentId,
   department: entity.department,
   subareaId: entity.subareaId,

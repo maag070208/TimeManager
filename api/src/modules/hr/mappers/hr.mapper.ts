@@ -24,7 +24,6 @@ export const personalProfileToDto = (entity: PersonalProfileEntity): PersonalPro
   active: entity.active,
   jobTitle: entity.jobTitle,
   employeeNumber: entity.employeeNumber,
-  company: entity.company,
   department: entity.department,
   subarea: entity.subarea,
 

@@ -11,7 +11,6 @@ export interface UserEntity {
   active: boolean;
   jobTitle: string | null;
   employeeNumber: string | null;
-  company: string | null;
   departmentId: string | null;
   department?: { id: string; name: string } | null;
   subareaId: string | null;

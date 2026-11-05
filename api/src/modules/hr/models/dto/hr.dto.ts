@@ -104,7 +104,6 @@ export const PersonalProfileSchema = z
     active: z.boolean(),
     jobTitle: z.string().nullish(),
     employeeNumber: z.string().nullish(),
-    company: z.string().nullish(),
     department: z.object({ id: z.string(), name: z.string() }).nullish(),
     subarea: z.object({ id: z.string(), name: z.string() }).nullish(),
 

@@ -21,7 +21,6 @@ export const UserSchema = z
     active: z.boolean(),
     jobTitle: z.string().nullish(),
     employeeNumber: z.string().nullish(),
-    company: z.string().nullish(),
     departmentId: z.string().nullish(),
     department: z.object({ id: z.string(), name: z.string() }).nullish(),
     subareaId: z.string().nullish(),
@@ -66,7 +65,6 @@ export const UserCreateDto = z
     roles: z.array(RoleSchema).optional(),
     jobTitle: z.string().optional(),
     employeeNumber: z.string().optional(),
-    company: z.string().optional(),
     departmentId: z.string().optional(),
     subareaId: z.string().optional(),
   })
@@ -92,7 +90,6 @@ export const UserUpdateDto = z
     active: z.boolean().optional(),
     jobTitle: z.string().optional(),
     employeeNumber: z.string().optional(),
-    company: z.string().optional(),
     departmentId: z.string().nullable().optional(),
     subareaId: z.string().nullable().optional(),
   })

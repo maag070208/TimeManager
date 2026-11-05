@@ -219,6 +219,11 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [ ] **L-05** `web/Dockerfile` copia `nginx.conf` y `render-config.sh`, que no existen en el repo.
 - [ ] **L-06** `web/docs/MODULES.md` desactualizado (rutas y componentes que ya no existen).
 - [ ] **L-07** Catálogos `Gender`/`BloodType` son de plataforma: quitarle `catalogs.manage` sobre ellos a `CLIENT_ADMIN`.
+- [x] **L-08** Enums huérfanos del ERP sin modelos ni referencias: `MaterialOutputReason`, `DeviceUnitStatus`, `MovementType`, `MovementStatus`, `LoanStatus`, `ItemCondition`, `TicketStatus`, `TicketPriority`, `AssignmentStatus` (borrados del schema).
+- [x] **L-09** `User.company` (texto libre, muere con D2 en favor de `tenantId`): borrado del schema, DTOs/entities/mappers/services de `users` y `hr`, y de la web (hero, tipos). La migración F1A-02 debe incluir el `DROP COLUMN`.
+- [ ] **L-10** `Notification.ticketId` + canal Ably `tickets:` + referencias en `appEvents`, `useAblyNotifications` y DTO de `dashboard` (residuo de tickets).
+- [ ] **L-11** `AuditLog.deviceId`/`deviceCode` (residuo del audit de inventario): DTO/entity/mapper de `audit` + writers del `AuditLogger`.
+- [ ] **L-12** `DepartmentTicketSchema` en el DTO de `departments` y grupo `tickets` en el DTO de `dashboard`.
 
 ---
 

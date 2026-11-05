@@ -23,75 +23,6 @@ enum DisciplinaryReason {
   OTHER
 }
 
-enum MaterialOutputReason {
-  DAMAGED
-  OBSOLETE
-  LOST
-  OTHER
-}
-
-// Estado de una unidad física de inventario.
-enum DeviceUnitStatus {
-  AVAILABLE
-  ON_LOAN
-  DAMAGED
-  IN_MAINTENANCE
-  RETIRED
-}
-
-// Tipos de movimiento de inventario (cabecera + detalles).
-enum MovementType {
-  STOCK_IN
-  LOAN
-  RETURN
-  RETIREMENT
-  TRANSFER
-  ADJUSTMENT_IN
-  ADJUSTMENT_OUT
-  MAINTENANCE_IN
-  MAINTENANCE_OUT
-  REVERSAL
-}
-
-enum MovementStatus {
-  ACTIVE
-  CANCELLED
-}
-
-enum LoanStatus {
-  ACTIVE
-  PARTIAL
-  RETURNED
-  CANCELLED
-}
-
-enum ItemCondition {
-  GOOD
-  FAIR
-  POOR
-  BROKEN
-}
-
-enum TicketStatus {
-  OPEN
-  IN_PROGRESS
-  CLOSED
-}
-
-enum TicketPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum AssignmentStatus {
-  PENDING
-  IN_PROGRESS
-  IN_REVIEW
-  COMPLETED
-}
-
 // Control de acceso (entradas/salidas de personal con credencial).
 enum AccessEventType {
   ENTRY
@@ -196,7 +127,6 @@ model User {
   active             Boolean          @default(true)
   jobTitle           String?
   employeeNumber     String?
-  company            String?
 
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
