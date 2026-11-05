@@ -438,6 +438,7 @@ export const es = {
     INVALID_REVERSAL: "La solicitud de regreso necesita un motivo",
     REVERSAL_NOT_FOUND: "Solicitud de regreso no encontrada",
     REVERSAL_ALREADY_DECIDED: "Esa solicitud de regreso ya fue decidida",
+    TELEWORK_POLICY_SECTIONS_MISSING: "La política de teletrabajo debe incluir todas las secciones obligatorias: {{missing}}",
     INVALID_WEEKLY_LIMIT: "El límite semanal debe estar entre {{min}} y {{max}} minutos",
     WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",
     INVALID_RETENTION_MONTHS: "La retención debe estar entre {{min}} y {{max}} meses (vacío desactiva el archivado)",

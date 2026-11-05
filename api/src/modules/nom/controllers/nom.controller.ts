@@ -110,6 +110,11 @@ export class NomController {
 
 
 
+  teleworkPolicyTemplate = async (_req: Request, res: Response) => {
+    const { teleworkPolicyTemplate } = await import("../services/nom-settings.service");
+    res.json({ template: teleworkPolicyTemplate(), sections: ["horario", "desconexión", "riesgos", "equipo", "lactancia", "reversibilidad"] });
+  };
+
   updateTeleworkDetails = async (req: Request, res: Response) => {
     const body = req.body ?? {};
     res.json(

@@ -34,6 +34,7 @@ export const createNomRouter = (controller: NomController): Router => {
   // NOM-037 (RH): política/desconexión/aviso de privacidad, teletrabajadores,
   // checklists y comunicaciones fuera de jornada.
   router.get("/telework/policy", canRead, asyncHandler(controller.getTeleworkPolicy));
+  router.get("/telework/policy/template", canRead, asyncHandler(controller.teleworkPolicyTemplate));
   router.put("/telework/policy", canWrite, asyncHandler(controller.updateTeleworkPolicy));
   router.get("/telework/registrations", canRead, asyncHandler(controller.listTeleworkRegistrations));
   router.post("/telework/registrations", canWrite, asyncHandler(controller.registerTelework));

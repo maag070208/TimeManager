@@ -644,12 +644,24 @@ describe("F2-08 NOM-037 teletrabajo", () => {
     const updatedPolicy = await api("PUT", "/nom/telework/policy", {
       token: hr.token,
       body: {
-        teleworkPolicy: "Política de teletrabajo: horario, equipo y lugar seguro.",
+        teleworkPolicy:
+          "Política de teletrabajo: horario y distribución; desconexión digital; " +
+          "riesgos ergonómicos; equipo de trabajo; lactancia; reversibilidad a presencial.",
         disconnectPolicy: "Desconexión digital fuera de la jornada laboral.",
         privacyNotice: "Aviso de privacidad: datos de jornada y ubicación solo al marcar.",
       },
     });
     expectStatus(updatedPolicy, 200, "política actualizada");
+
+    const template = await api("GET", "/nom/telework/policy/template", { token: hr.token });
+    expectStatus(template, 200, "plantilla de política NOM-037");
+    assert.ok(String(template.body?.template).includes("Desconexión digital"));
+
+    const incompletePolicy = await api("PUT", "/nom/telework/policy", {
+      token: hr.token,
+      body: { teleworkPolicy: "Política de teletrabajo: horario y equipo." },
+    });
+    expectError(incompletePolicy, 400, "TELEWORK_POLICY_SECTIONS_MISSING", "política sin secciones");
     assert.equal(updatedPolicy.body?.policyVersion, 2, "incrementa versión de política");
     assert.equal(updatedPolicy.body?.privacyNoticeVersion, 2, "incrementa versión del aviso");
 

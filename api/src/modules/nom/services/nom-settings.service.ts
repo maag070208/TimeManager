@@ -10,6 +10,41 @@ import type {
   TeleworkPolicyUpdateInput,
 } from "../models/entity/nom.entity";
 
+/** Secciones mínimas de la política de teletrabajo (NOM-037 5.2). */
+export const TELEWORK_POLICY_SECTIONS = [
+  "horario",
+  "desconexion",
+  "riesgos",
+  "equipo",
+  "lactancia",
+  "reversibilidad",
+] as const;
+
+const normalizeText = (value: string): string =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+/** Plantilla base con las secciones obligatorias de la política (NOM-037 5.2). */
+export const teleworkPolicyTemplate = (): string => `## 1. Horario y distribución de la jornada
+Horario pactado, distribución semanal y pausas, sin exceder los máximos legales.
+
+## 2. Desconexión digital
+Derecho a la desconexión fuera de la jornada; el sistema difiere avisos no urgentes.
+
+## 3. Riesgos ergonómicos y psicosociales
+Riesgos identificados, medidas preventivas y canal de reporte.
+
+## 4. Equipo de trabajo
+Equipo de cómputo y ergonómico entregado, con acuse de recibo.
+
+## 5. Lactancia
+Facilidades de lactancia conforme a la LFT (dos reposos o reducción de jornada).
+
+## 6. Reversibilidad a presencial
+Procedimiento y plazos para solicitar el regreso al centro de trabajo.`;
+
 /** Claves globales de `sys_config` que sirven de default de plataforma. */
 export const NOM_WORKDAY_LIMIT_CONFIG_KEY = "NOM_WORKDAY_LIMIT_MINUTES";
 export const NOM_WEEKLY_LIMIT_CONFIG_KEY = "NOM_WEEKLY_LIMIT_MINUTES";
@@ -257,6 +292,14 @@ export class NomSettingsService {
   ): Promise<NomConfig> {
     const previous = await this.resolve(tenantId);
     const current = await this.db.nomSettings.findUnique({ where: { tenantId } });
+
+    if (input.teleworkPolicy != null) {
+      const normalized = normalizeText(input.teleworkPolicy);
+      const missing = TELEWORK_POLICY_SECTIONS.filter((section) => !normalized.includes(section));
+      if (missing.length > 0) {
+        throw new HttpError(400, "TELEWORK_POLICY_SECTIONS_MISSING", { missing });
+      }
+    }
 
     const policyChanged =
       (input.teleworkPolicy !== undefined && input.teleworkPolicy !== (current?.teleworkPolicy ?? null)) ||

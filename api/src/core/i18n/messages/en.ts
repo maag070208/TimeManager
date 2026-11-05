@@ -440,6 +440,7 @@ export const en: Messages = {
     INVALID_REVERSAL: "The reversal request needs a reason",
     REVERSAL_NOT_FOUND: "Reversal request not found",
     REVERSAL_ALREADY_DECIDED: "That reversal request was already decided",
+    TELEWORK_POLICY_SECTIONS_MISSING: "The telework policy must include all mandatory sections: {{missing}}",
     INVALID_WEEKLY_LIMIT: "The weekly limit must be between {{min}} and {{max}} minutes",
     WEEKLY_LEDGER_NOT_FOUND: "Weekly overtime ledger not found",
     INVALID_RETENTION_MONTHS: "Retention must be between {{min}} and {{max}} months (empty disables archiving)",

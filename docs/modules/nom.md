@@ -152,4 +152,5 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **Validación del checklist por la Comisión de Seguridad e Higiene**: `POST /nom/telework/checklists/:id/validate` con resultado APTO/NO_APTO, validador y fecha. Un **NO_APTO bloquea el marcaje remoto** (`TELEWORK_WORKPLACE_NOT_APPROVED`).
 - **Equipo entregado** (`telework_equipment_deliveries`) con acuse del trabajador y hash; **capacitación anual** con vencimiento; **avisos escritos** del trabajador y **reversibilidad a presencial** con decisión auditada.
 - Endpoints de RH y de autoservicio (`/nom/me/telework/...`); todo con RLS por cliente.
-- Pendiente F4: política con secciones obligatorias (plantilla), retención de evidencias, desconexión del propio sistema (diferir notificaciones) y capacitación con alertas automáticas.
+- **Política con secciones obligatorias (5.2):** `PUT /nom/telework/policy` rechaza 400 `TELEWORK_POLICY_SECTIONS_MISSING` si falta horario, desconexión, riesgos, equipo, lactancia o reversibilidad; `GET /nom/telework/policy/template` entrega la plantilla base.
+- Pendiente F4: retención/export del expediente NOM-037, desconexión del propio sistema (diferir notificaciones al teletrabajador fuera de jornada) y alertas automáticas de capacitación por vencer.
