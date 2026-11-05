@@ -16,10 +16,27 @@ import type { AuthMe, LoginResponse } from "../models/dto/auth.dto";
 export class AuthService {
   constructor(private readonly db: PrismaClient = prismaClient) {}
 
-  async login(username: string, password: string): Promise<LoginResponse> {
-    // F1A-04 agregará el filtro por slug de cliente; findFirst por mientras.
+  /**
+   * Login multi-tenant (F1A-04). `tenantSlug` es el subdominio/cliente:
+   * - Con slug: el cliente debe existir y estar ACTIVE; el usuario se busca
+   *   por `(tenantId, username)`.
+   * - Sin slug: solo usuarios de plataforma (`tenantId IS NULL`: ADMIN/SUPPORT).
+   * Un slug inexistente responde 401 genérico (no revela qué clientes hay).
+   */
+  async login(username: string, password: string, tenantSlug?: string): Promise<LoginResponse> {
+    let tenantId: string | null = null;
+    if (tenantSlug) {
+      const slug = tenantSlug.trim().toLowerCase();
+      const tenant = await this.db.tenant.findFirst({ where: { slug } });
+      if (!tenant) throw new HttpError(401, "INVALID_CREDENTIALS");
+      if (tenant.status !== "ACTIVE") {
+        throw new HttpError(403, "TENANT_SUSPENDED", {}, tenant.name);
+      }
+      tenantId = tenant.id;
+    }
+
     const user = await this.db.user.findFirst({
-      where: { username },
+      where: { username, tenantId },
       include: { extraRoles: { select: { role: true } } },
     });
     if (!user) throw new HttpError(401, "INVALID_CREDENTIALS");
@@ -40,12 +57,13 @@ export class AuthService {
       role: entity.role,
       roles: entity.roles,
       departmentId: entity.departmentId,
+      tenantId: entity.tenantId,
     };
     const token = signToken(payload);
 
     return {
       token,
-      refreshToken: signRefreshToken({ id: entity.id, username: entity.username }),
+      refreshToken: signRefreshToken({ id: entity.id, username: entity.username, tenantId: entity.tenantId }),
       user: entityToAuthUserDto(entity),
     };
   }
@@ -62,7 +80,11 @@ export class AuthService {
       where: { id: payload.id },
       include: { extraRoles: { select: { role: true } } },
     });
-    if (!user || !user.active) throw new HttpError(401, "INVALID_SESSION");
+    // El tenant de la BD manda: si al usuario lo movieron de cliente (o su
+    // sesión era de otro tenant), el refresh no sirve.
+    if (!user || !user.active || user.tenantId !== (payload.tenantId ?? null)) {
+      throw new HttpError(401, "INVALID_SESSION");
+    }
 
     const entity = userToEntity(user);
     const accessPayload: JwtPayload = {
@@ -71,11 +93,12 @@ export class AuthService {
       role: entity.role,
       roles: entity.roles,
       departmentId: entity.departmentId,
+      tenantId: entity.tenantId,
     };
     return {
       token: signToken(accessPayload),
       // Rotación: cada refresh entrega uno nuevo.
-      refreshToken: signRefreshToken({ id: entity.id, username: entity.username }),
+      refreshToken: signRefreshToken({ id: entity.id, username: entity.username, tenantId: entity.tenantId }),
     };
   }
 
@@ -116,6 +139,7 @@ export class AuthService {
       where: { id: userId },
       include: {
         department: { select: { id: true, name: true } },
+        tenant: { select: { id: true, slug: true, name: true, timezone: true } },
         extraRoles: { select: { role: true } },
         permissionGrants: {
           where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },

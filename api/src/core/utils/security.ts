@@ -12,6 +12,8 @@ export interface JwtPayload {
   /** Roles adicionales (multi-rol). */
   roles?: string[];
   departmentId?: string | null;
+  /** Cliente del usuario; `null`/ausente = usuario de plataforma. */
+  tenantId?: string | null;
   /** Excepciones de permiso vigentes (Fase 2). */
   exceptions?: Array<{
     permission: string;
@@ -43,11 +45,13 @@ export const verifyToken = (token: string): JwtPayload => {
 export interface RefreshPayload {
   id: string;
   username: string;
+  /** Cliente contra el que se emitió; el de la BD manda al renovar. */
+  tenantId?: string | null;
   type: "refresh";
 }
 
 /** Firma un refresh token de vida larga (endurecimiento: access corto + refresh). */
-export const signRefreshToken = (payload: { id: string; username: string }): string => {
+export const signRefreshToken = (payload: { id: string; username: string; tenantId?: string | null }): string => {
   const opts: SignOptions = {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN as SignOptions["expiresIn"],
   };

@@ -14,6 +14,7 @@ export const userToEntity = (
   role: user.role,
   roles: [user.role, ...(user.extraRoles ?? []).map((r) => r.role)],
   departmentId: user.departmentId,
+  tenantId: user.tenantId,
   active: user.active,
   password: user.password,
   mustChangePassword: user.mustChangePassword,
@@ -34,6 +35,7 @@ export const entityToAuthUserDto = (entity: AuthUserEntity): AuthUser => ({
 export const userToAuthMeDto = (
   user: User & {
     department: { id: string; name: string } | null;
+    tenant?: { id: string; slug: string; name: string; timezone: string } | null;
     extraRoles?: Array<{ role: string }>;
     permissionGrants?: Array<{ permission: string; scope: PermissionScope; expiresAt: Date | null }>;
   },
@@ -43,6 +45,7 @@ export const userToAuthMeDto = (
   employeeNumber: user.employeeNumber,
   jobTitle: user.jobTitle,
   department: user.department,
+  tenant: user.tenant ?? null,
   photoUrl: user.photoKey ? `/hr/${user.id}/photo/raw` : null,
   permissions: permissionsOf({
     id: user.id,

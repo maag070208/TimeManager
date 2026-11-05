@@ -8,6 +8,8 @@ export interface AuthUserEntity {
   /** Roles efectivos: principal + adicionales. */
   roles: string[];
   departmentId: string | null;
+  /** Cliente del usuario; `null` = plataforma. */
+  tenantId: string | null;
   active: boolean;
   password: string;
   /** Contraseña provisional: la web obliga a cambiarla antes de usar el sistema. */

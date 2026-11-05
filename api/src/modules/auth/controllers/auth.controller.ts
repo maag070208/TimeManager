@@ -7,8 +7,8 @@ export class AuthController {
   constructor(private readonly service: AuthService) {}
 
   login = async (req: Request, res: Response) => {
-    const { username, password } = LoginInputSchema.parse(req.body);
-    const result = await this.service.login(username, password);
+    const { username, password, tenant } = LoginInputSchema.parse(req.body);
+    const result = await this.service.login(username, password, tenant);
     res.json(result);
   };
 

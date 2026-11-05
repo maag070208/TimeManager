@@ -48,8 +48,8 @@ export const authenticate = (
     throw new HttpError(401, "INVALID_TOKEN");
   }
 
-  prismaClient.user
-    .findUnique({
+  void (async () => {
+    const user = await prismaClient.user.findUnique({
       where: { id: payload.id },
       select: {
         id: true,
@@ -57,37 +57,71 @@ export const authenticate = (
         role: true,
         tenantId: true,
         departmentId: true,
+        tenant: { select: { id: true, status: true } },
         extraRoles: { select: { role: true } },
         permissionGrants: {
           where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
           select: { permission: true, scope: true, expiresAt: true },
         },
       },
-    })
-    .then((user) => {
-      if (!user || !user.active) {
-        next(new HttpError(401, "INVALID_SESSION"));
+    });
+    if (!user || !user.active) {
+      next(new HttpError(401, "INVALID_SESSION"));
+      return;
+    }
+    // El token debe pertenecer al mismo cliente que el usuario en la BD: si lo
+    // movieron de tenant (o es un token de otro cliente), la sesión no sirve.
+    if ((payload.tenantId ?? null) !== user.tenantId) {
+      next(new HttpError(401, "INVALID_SESSION"));
+      return;
+    }
+    // Cliente suspendido: se corta en caliente, aunque el token siga vigente.
+    if (user.tenant && user.tenant.status !== "ACTIVE") {
+      next(new HttpError(403, "TENANT_SUSPENDED"));
+      return;
+    }
+
+    // El rol y el departamento frescos de la base mandan sobre los claims del
+    // JWT: un cambio de rol o de área aplica en la siguiente petición.
+    req.user = {
+      ...payload,
+      role: user.role,
+      roles: [user.role, ...user.extraRoles.map((r) => r.role)],
+      departmentId: user.departmentId,
+      exceptions: user.permissionGrants.map((grant) => ({
+        permission: grant.permission,
+        scope: grant.scope,
+        expiresAt: grant.expiresAt,
+      })),
+    };
+
+    // Qué cliente gobierna el resto de la petición:
+    // - Personal de cliente: siempre su propio tenant (X-Tenant-Id se ignora).
+    // - Plataforma (ADMIN/SUPPORT): su contexto es de plataforma salvo que
+    //   venga `X-Tenant-Id` con un cliente válido y ACTIVE (suplantación
+    //   administrativa para soporte). Un header inválido se rechaza, no se ignora.
+    let tenantId = user.tenantId;
+    const platform = user.tenantId === null;
+    const headerTenant = req.headers["x-tenant-id"];
+    if (typeof headerTenant === "string" && headerTenant.trim() !== "") {
+      if (!platform || (user.role !== "ADMIN" && user.role !== "SUPPORT")) {
+        next(new HttpError(403, "TENANT_HEADER_FORBIDDEN"));
         return;
       }
-      // El rol y el departamento frescos de la base mandan sobre los claims del
-      // JWT: un cambio de rol o de área aplica en la siguiente petición.
-      req.user = {
-        ...payload,
-        role: user.role,
-        roles: [user.role, ...user.extraRoles.map((r) => r.role)],
-        departmentId: user.departmentId,
-        exceptions: user.permissionGrants.map((grant) => ({
-          permission: grant.permission,
-          scope: grant.scope,
-          expiresAt: grant.expiresAt,
-        })),
-      };
-      // Todo lo que sigue corre dentro del contexto del cliente del usuario:
-      // la extensión de Prisma filtra/inyecta tenantId solo en este ámbito.
-      // F1A-04 completa esto (login por slug, X-Tenant-Id de plataforma).
-      runWithTenant(user.tenantId, () => next(), user.tenantId === null);
-    })
-    .catch(next);
+      const target = await prismaClient.tenant.findFirst({
+        where: { id: headerTenant.trim() },
+        select: { id: true, status: true },
+      });
+      if (!target || target.status !== "ACTIVE") {
+        next(new HttpError(400, "INVALID_TENANT_HEADER"));
+        return;
+      }
+      tenantId = target.id;
+    }
+    // Todo lo que sigue corre dentro del contexto elegido: la extensión de
+    // Prisma filtra/inyecta tenantId solo en este ámbito.
+    runWithTenant(tenantId, () => next(), platform).catch((err) => next(err));
+  })().catch(next);
 };
 
 /**

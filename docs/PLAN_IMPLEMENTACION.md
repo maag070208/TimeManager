@@ -142,11 +142,13 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
   - Prueba funcional E2E en Docker (BD limpia, ambas migraciones): 9/9 — aislamiento en findMany/findFirst/count, anti-hijack del where, inyección en create/createMany/upsert, updateMany filtrado, modelo de plataforma intacto y falla ruidosa sin contexto.
   - Hecho cuando: pruebas unitarias de F1A-08 pasan.
 
-- [ ] **F1A-04 Auth.**
+- [x] **F1A-04 Auth.**
   - `POST /auth/login` acepta `tenant` (slug). Con slug: busca `(tenantId, username)`; sin slug: solo usuarios con `tenantId IS NULL`. Cliente suspendido → 403.
   - JWT y refresh incluyen `tenantId`. `/auth/me` devuelve `tenant { id, slug, name, timezone }`.
   - `authenticate`: toma `tenantId` fresco de la BD, valida estado y abre `runWithTenant` para el resto de la petición. `X-Tenant-Id` solo se acepta para `ADMIN`/`SUPPORT` (validado contra `tenants`).
   - Archivos: `api/src/modules/auth/*`, `api/src/core/middlewares/auth.middleware.ts`, `api/src/core/utils/security.ts`.
+  - Implementado: relación `User.tenant`/`Tenant.users` en schema (el FK ya existía en BD; sin migración). Refresh valida que el tenant del token coincida con el de la BD (si movieron al usuario de cliente, la sesión muere). `authenticate` corta en caliente si el cliente se suspende, rechaza el header `X-Tenant-Id` de usuarios de cliente (403) y el de plataforma con tenant inválido/suspendido (400). Nuevos códigos i18n `TENANT_SUSPENDED`, `TENANT_HEADER_FORBIDDEN`, `INVALID_TENANT_HEADER`.
+  - Prueba funcional en Docker (fixture: admin plataforma + usuarios demo/acme-suspendido): **19/19** — login con/sin slug, slug inexistente, suspendido, refresh con rotación y con tenant ajeno, `/auth/me`, y 7 casos del middleware (contexto correcto, JWT ≠ BD, header prohibido/inválido/válido, plataforma sin header, suspensión en caliente).
 
 - [ ] **F1A-05 Servicios y workers.**
   - Reemplazar `findUnique` por campos que dejaron de ser únicos (`username`, `name`, `key`, `url`, `weekStart`, `employeeNumber`) por su único compuesto o `findFirst`.

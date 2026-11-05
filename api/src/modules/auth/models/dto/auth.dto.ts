@@ -17,6 +17,18 @@ export const AuthUserSchema = z
 
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 
+/** Cliente de la plataforma, tal como lo ve la sesión. */
+export const TenantInfoSchema = z
+  .object({
+    id: z.string(),
+    slug: z.string(),
+    name: z.string(),
+    timezone: z.string(),
+  })
+  .openapi("TenantInfo");
+
+export type TenantInfo = z.infer<typeof TenantInfoSchema>;
+
 /** Alcance efectivo de un permiso (ver ROLES_Y_PERMISOS.md §2). */
 export const ScopeSchema = z
   .enum(["NONE", "OWN", "AREA", "ALL"])
@@ -36,6 +48,8 @@ export const AuthMeSchema = AuthUserSchema.extend({
   employeeNumber: z.string().nullable(),
   jobTitle: z.string().nullable(),
   department: z.object({ id: z.string(), name: z.string() }).nullable(),
+  /** Cliente del usuario; `null` = usuario de plataforma (ADMIN/SUPPORT). */
+  tenant: TenantInfoSchema.nullable(),
   photoUrl: z.string().nullable(),
   permissions: z.record(z.string(), ScopeSchema),
   language: z.enum(LANGUAGES),
@@ -47,6 +61,12 @@ export const LoginInputSchema = z
   .object({
     username: z.string().min(1),
     password: z.string().min(1),
+    /**
+     * Slug del cliente (subdominio). Obligatorio para el personal de un
+     * cliente; si no viene, solo pueden entrar usuarios de plataforma
+     * (ADMIN/SUPPORT, sin cliente).
+     */
+    tenant: z.string().min(1).optional(),
   })
   .openapi("LoginInput");
 
@@ -85,6 +105,7 @@ export const RefreshResponseSchema = z
 export type RefreshResponse = z.infer<typeof RefreshResponseSchema>;
 
 registry.register("AuthUser", AuthUserSchema);
+registry.register("TenantInfo", TenantInfoSchema);
 registry.register("PermissionScope", ScopeSchema);
 registry.register("AuthMe", AuthMeSchema);
 registry.register("LoginInput", LoginInputSchema);

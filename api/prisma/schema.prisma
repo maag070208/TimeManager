@@ -69,6 +69,8 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  users User[]
+
   @@map("tenants")
 }
 
@@ -112,6 +114,7 @@ model User {
   /// La unicidad de username/email/employeeNumber es por cliente; la de los de
   /// plataforma la da un índice único parcial creado en la migración.
   tenantId           String?
+  tenant             Tenant?          @relation(fields: [tenantId], references: [id])
   username           String
   email              String?
   password           String
