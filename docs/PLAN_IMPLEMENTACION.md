@@ -127,10 +127,11 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
   - Archivos: `api/prisma/schema.prisma`.
   - Hecho cuando: `prisma validate` y `prisma format` limpios.
 
-- [ ] **F1A-02 Migración SQL a mano** `api/prisma/migrations/20261105000000_tenancy/migration.sql` (+ `rollback.sql`).
+- [x] **F1A-02 Migración SQL a mano** `api/prisma/migrations/20261105000000_tenancy/migration.sql` (+ `rollback.sql`).
   - Base: `prisma migrate diff --from-schema-datamodel <schema de HEAD> --to-schema-datamodel prisma/schema.prisma --script` (sin shadow DB; **nunca** usar `DATABASE_URL` como shadow).
   - Editar a mano: crear `tenants` → insertar tenant `demo` → `ADD COLUMN` nullable → backfill a `demo` (usuarios: solo los que no son `ADMIN`/`SUPPORT`) → `SET NOT NULL` → FKs `ON DELETE RESTRICT` → únicos compuestos + **índices únicos parciales** `WHERE "tenantId" IS NULL` para usuarios de plataforma → `DEFAULT current_setting(...)`.
   - Hecho cuando: aplica limpio sobre una BD vacía y sobre una copia con datos; el rollback deja el esquema igual al baseline.
+  - Verificado en Postgres 16 (Docker): aplica vacía y con datos; backfill correcto (ADMIN/SUPPORT → NULL, resto → demo); únicos por cliente, únicos parciales de plataforma, PK compuesta, FK y RESTRICT probados; inserción sin contexto falla ruidosamente; rollback con drift cero vs baseline; drift hacia adelante = solo los 25 FK y 3 únicos parciales (intencionales, FK solo en SQL).
 
 - [ ] **F1A-03 Contexto de tenant + extensión Prisma.** Nuevo `api/src/core/tenancy/` con:
   - `context.ts`: `AsyncLocalStorage<{ tenantId: string | null; platform: boolean }>`, `runWithTenant`, `currentTenantId`, `requireTenantId`.
