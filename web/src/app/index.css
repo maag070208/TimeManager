@@ -1,0 +1,443 @@
+@layer theme, base, axzy-ui-system, components, utilities;
+
+@import "tailwindcss";
+@import "@axzydev/axzy_ui_system/dist/index.css" layer(axzy-ui-system);
+
+@source "../node_modules/@axzydev/axzy_ui_system/src/**/*.{ts,tsx}";
+
+:root {
+  --layout-bg: #f1f5f9;
+}
+
+/* Forzar que el modal sea más ancho para que quepan las 2 columnas */
+.it-dialog-panel {
+  width: min(94vw, 900px) !important;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+/* Chat de Nuevo Ticket: entradas animadas de mensajes y opciones. */
+@keyframes agent-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes agent-bubble {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.agent-pop {
+  animation: agent-pop 0.28s ease-out both;
+}
+
+.agent-bubble {
+  animation: agent-bubble 0.25s ease-out both;
+}
+
+/* Entrada de las tarjetas del tablero: suben y aparecen en cascada. */
+@keyframes bento-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.bento-rise,
+.bento-stagger > * {
+  animation: bento-rise 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.bento-stagger > *:nth-child(2) { animation-delay: 70ms; }
+.bento-stagger > *:nth-child(3) { animation-delay: 140ms; }
+.bento-stagger > *:nth-child(4) { animation-delay: 210ms; }
+.bento-stagger > *:nth-child(5) { animation-delay: 280ms; }
+.bento-stagger > *:nth-child(6) { animation-delay: 350ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bento-rise,
+  .bento-stagger > * {
+    animation: none;
+  }
+}
+
+/* Olas de fondo de un indicador: dos capas que se mecen en sentidos opuestos y a
+   distinta velocidad, con respiración de opacidad, para que el sistema se sienta
+   vivo aun con los datos ya cargados (decorativo). */
+@keyframes wave-sway-a {
+  from {
+    transform: translate3d(-26px, 4px, 0) rotate(-0.6deg);
+  }
+  to {
+    transform: translate3d(26px, -4px, 0) rotate(0.6deg);
+  }
+}
+
+@keyframes wave-sway-b {
+  from {
+    transform: translate3d(30px, -3px, 0) rotate(0.5deg);
+  }
+  to {
+    transform: translate3d(-30px, 3px, 0) rotate(-0.5deg);
+  }
+}
+
+@keyframes wave-alpha-a {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes wave-alpha-b {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+
+.wave-layer-a {
+  animation:
+    wave-sway-a 9s ease-in-out infinite alternate,
+    wave-alpha-a 5.5s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.wave-layer-b {
+  animation:
+    wave-sway-b 13s ease-in-out infinite alternate,
+    wave-alpha-b 7s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+/* Punto final de una línea de tendencia: late suave, como una lectura viva. */
+@keyframes spark-dot {
+  from {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+}
+
+.spark-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spark-dot 2.8s ease-in-out infinite alternate;
+}
+
+/* Ícono de un panel: flota un par de píxeles, casi imperceptible. */
+@keyframes icon-breathe {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+.icon-breathe {
+  animation: icon-breathe 5s ease-in-out infinite alternate;
+}
+
+/* La perilla del arco respira despacio, como un indicador vivo. */
+@keyframes gauge-knob-breath {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+.gauge-knob {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gauge-knob-breath 3.6s ease-in-out infinite alternate;
+}
+
+/* Punto "En vivo": anillo que se expande y se apaga. */
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.live-dot {
+  animation: live-pulse 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-layer-a,
+  .wave-layer-b,
+  .gauge-knob,
+  .spark-dot,
+  .icon-breathe,
+  .live-dot {
+    animation: none;
+  }
+}
+
+/* Emojis de temporada que caen dentro del panel de ayuda de Langostín. */
+@keyframes help-fall {
+  to {
+    transform: translateY(620px) rotate(220deg);
+  }
+}
+
+.help-fall {
+  animation-name: help-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .help-fall {
+    display: none;
+  }
+}
+
+/* Alta de ticket desde el bot: la confirmación “entra” con un pop breve. */
+@keyframes ticket-sent-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ticket-sent-pop {
+  animation: ticket-sent-pop 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes ticket-sent-check {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ticket-sent-check {
+  animation: ticket-sent-check 300ms ease-out 120ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-sent-pop,
+  .ticket-sent-check {
+    animation: none;
+  }
+}
+
+/* Fila del ticket recién creado: entra deslizando y con un verde que se apaga.
+   El tinte va por `box-shadow` inset en las CELDAS: pintarlas por background no
+   se ve, porque la tabla ya trae su propio fondo y tapaba el destello. */
+@keyframes ticket-row-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ticket-row-tint {
+  0% {
+    box-shadow: inset 0 0 0 120px color-mix(in srgb, var(--color-success) 30%, transparent);
+  }
+  45% {
+    box-shadow: inset 0 0 0 120px color-mix(in srgb, var(--color-success) 22%, transparent);
+  }
+  100% {
+    box-shadow: inset 0 0 0 120px transparent;
+  }
+}
+
+.ticket-row-flash tbody tr:first-child {
+  animation: ticket-row-in 380ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+
+.ticket-row-flash tbody tr:first-child > td {
+  animation: ticket-row-tint 2.6s ease-out both;
+}
+
+.ticket-row-flash tbody tr:first-child > td:first-child {
+  box-shadow:
+    inset 3px 0 0 var(--color-success),
+    inset 0 0 0 120px color-mix(in srgb, var(--color-success) 22%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-row-flash tbody tr:first-child,
+  .ticket-row-flash tbody tr:first-child > td {
+    animation: none;
+    box-shadow: inset 0 0 0 120px color-mix(in srgb, var(--color-success) 12%, transparent);
+  }
+}
+
+/* Guía del tablero: una tarjeta fantasma que viaja de una columna a la otra. */
+@keyframes kanban-guide-move {
+  0%, 15% {
+    transform: translateX(0) rotate(0deg);
+  }
+  45% {
+    transform: translateX(10px) rotate(-2deg) scale(1.02);
+  }
+  60%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+@keyframes kanban-guide-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 0%, transparent);
+  }
+}
+
+@keyframes kanban-guide-arrow {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateX(5px);
+    opacity: 1;
+  }
+}
+
+.kanban-guide-card {
+  animation: kanban-guide-move 2.4s cubic-bezier(0.3, 1.2, 0.4, 1) infinite;
+}
+
+.kanban-guide-col {
+  border-radius: 16px;
+  padding: 8px 10px;
+}
+
+.kanban-guide-target {
+  animation: kanban-guide-pulse 1.8s ease-out infinite;
+}
+
+.kanban-guide-arrow {
+  animation: kanban-guide-arrow 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kanban-guide-card,
+  .kanban-guide-target,
+  .kanban-guide-arrow {
+    animation: none;
+  }
+}
+
+/* La tira del mosaico ya se distingue por su tono y su color.
+   Sin contorno ni anillo: la cifra activa ya se ve en las pestañas, y el
+   anillo se leía como un borde (negro o del color del texto) sobre el mosaico. */
+.it-bento-statstrip__item,
+.it-bento-statstrip__item:hover,
+.it-bento-statstrip__item:focus-visible,
+.it-bento-statstrip__item.is-on {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.it-bento-statstrip__item:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px;
+}
+
+/* Riel del sidebar en bento: el icono (y su estado activo) se centra en la
+   tarjeta. El kit lo corrige en 1.8.14; mientras, se aplica aquí para el riel
+   de 72 px (la clase cambia a 248 px al expandir, así que el texto no se mueve). */
+aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* El anillo de foco del navegador se veía como un círculo azul sobre el activo. */
+aside > div[class*="rounded-[26px]"] [role="button"]:focus {
+  outline: none;
+}
+
+aside > div[class*="rounded-[26px]"] [role="button"]:focus-visible {
+  outline: 2px solid var(--color-primary, #0d5777);
+  outline-offset: -2px;
+}
+
+/* Riel del sidebar (72 px): logo que quepa centrado y renglones circulares,
+   para que el estado activo quede exactamente detrás del icono. */
+aside.w-\[72px\] > div[class*="rounded-[26px]"] img {
+  max-width: 40px;
+  max-height: 40px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  margin-inline: auto;
+}
+
+aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] {
+  width: 40px;
+  height: 40px;
+  margin-inline: auto;
+  border-radius: 9999px;
+}
+
+/* En el riel la navegación no deja relleno lateral: así el renglón circular
+   queda exactamente al centro de la tarjeta. */
+aside.w-\[72px\] > div[class*="rounded-[26px]"] nav {
+  padding-inline: 8px;
+}
+
+/* Riel: el icono también se centra dentro del renglón (el contenedor interno
+   es `w-full` y lo dejaba pegado a la izquierda). */
+aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
+  justify-content: center;
+}

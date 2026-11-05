@@ -1,0 +1,136 @@
+{
+  "title": "Reporte de entradas y salidas",
+  "description": "Entradas y salidas por persona, con horas e incidencias del periodo.",
+  "periods": {
+    "DAY": "Diaria",
+    "WEEK": "Semanal",
+    "FORTNIGHT": "Quincenal",
+    "MONTH": "Mensual"
+  },
+  "periodTabs": {
+    "DAY": "Hoy",
+    "WEEK": "Semanal",
+    "FORTNIGHT": "Quincenal",
+    "MONTH": "Mensual"
+  },
+  "dayColumn": {
+    "WEEK": "Semana",
+    "FORTNIGHT": "Quincena",
+    "MONTH": "Mes"
+  },
+  "views": {
+    "ALL": "Todos",
+    "INCIDENTS": "Con incidencia",
+    "ON_SITE": "En sitio",
+    "WITHOUT_RECORDS": "Sin registros"
+  },
+  "filters": {
+    "date": "Fecha",
+    "previous": "Periodo anterior",
+    "next": "Periodo siguiente",
+    "department": "Departamento",
+    "allDepartments": "Todos los departamentos",
+    "employee": "Buscar empleado",
+    "employeePlaceholder": "Nombre o número de empleado",
+    "includeInactive": "Incluir bajas"
+  },
+  "tiles": {
+    "onSite": "En sitio ahora",
+    "onSiteHint": "en turno",
+    "withRecords": "Con registros",
+    "ofTotal": "de {{total}}",
+    "withoutRecords": "Sin registros",
+    "viewWho": "Ver quiénes",
+    "allRecorded": "Todos registraron",
+    "hours": "Horas totales",
+    "hoursHint": "del periodo",
+    "incidents": "Incidencias",
+    "allClear": "Todo en orden"
+  },
+  "counts": {
+    "late_one": "{{count}} retardo",
+    "late_other": "{{count}} retardos",
+    "absences_one": "{{count}} falta",
+    "absences_other": "{{count}} faltas",
+    "withoutExit_one": "{{count}} sin salida",
+    "withoutExit_other": "{{count}} sin salida",
+    "withoutEntry_one": "{{count}} sin entrada",
+    "withoutEntry_other": "{{count}} sin entrada"
+  },
+  "kpis": {
+    "withRecords": "Personas con registros",
+    "withoutRecords": "Personas sin registros",
+    "inside": "Personas en sitio",
+    "workedHours": "Horas totales",
+    "incidents": "Incidencias"
+  },
+  "dayStatus": {
+    "ATTENDED": "Asistió",
+    "LATE": "Retardo",
+    "ABSENCE": "Falta",
+    "REST": "Descanso",
+    "PENDING": "Pendiente",
+    "NO_INFO": "Sin horario"
+  },
+  "legend": {
+    "neutral": "Pendiente / descanso"
+  },
+  "focus": {
+    "entry": "Entrada",
+    "exit": "Salida",
+    "entryToday": "Entrada hoy",
+    "exitToday": "Salida hoy"
+  },
+  "state": {
+    "withoutExit": "Sin salida",
+    "withoutEntry": "Sin entrada",
+    "late": "Retardo {{time}} h",
+    "onSite": "En sitio",
+    "closed": "Turno cerrado",
+    "absence": "Falta",
+    "rest": "Descanso",
+    "pending": "Pendiente",
+    "noInfo": "Sin registro",
+    "noIncidents": "Sin incidencias",
+    "noRecords": "Sin registros"
+  },
+  "table": {
+    "title": "Empleados · {{count}}"
+  },
+  "status": {
+    "inactive": "Baja"
+  },
+  "columns": {
+    "employee": "Empleado",
+    "department": "Departamento",
+    "jobTitle": "Puesto",
+    "status": "Estado",
+    "entry": "Primera entrada",
+    "exit": "Última salida",
+    "hours": "Horas",
+    "date": "Fecha",
+    "incident": "Incidencia"
+  },
+  "incidents": {
+    "ENTRY_WITHOUT_EXIT": "Entrada sin salida",
+    "EXIT_WITHOUT_ENTRY": "Salida sin entrada",
+    "OPEN_ENTRY": "En sitio",
+    "NONE": "Sin incidencia"
+  },
+  "noDepartment": "Sin departamento",
+  "unlinked": "Sin vincular",
+  "actions": {
+    "exportPdf": "PDF",
+    "exportCsv": "Exportar CSV"
+  },
+  "errors": {
+    "load": "No se pudo generar el reporte"
+  },
+  "pdf": {
+    "title": "Reporte de Entradas y Salidas",
+    "timezone": "Zona horaria",
+    "totalPeople": "Personas",
+    "totalHours": "Horas",
+    "totalIncidents": "Incidencias"
+  }
+}

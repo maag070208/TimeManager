@@ -1,0 +1,321 @@
+{
+  "title": "Langostin",
+  "description": "Puerto Nuevo's mascot: every animation and the scenes where it lives.",
+  "state": {
+    "empty": {
+      "title": "Nothing here yet",
+      "description": "Records will show up in this spot once there are any."
+    },
+    "noResults": {
+      "title": "No results",
+      "description": "Try another search or remove a filter."
+    },
+    "forbidden": {
+      "title": "You don't have access",
+      "description": "Ask whoever manages the system for access if you need it."
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "We couldn't load the data. Please try again in a moment."
+    },
+    "offline": {
+      "title": "You're offline",
+      "description": "Check your network; we'll retry when it's back."
+    },
+    "loading": {
+      "title": "Loading…",
+      "description": "One moment, I'm fetching the data."
+    }
+  },
+  "guide": {
+    "label": "Langostin, form guide",
+    "default": "I'll keep you company while you fill in the form.",
+    "close": "Close guide",
+    "saving": "Saving…",
+    "saved": "Done, saved.",
+    "error": "Check the highlighted fields before saving."
+  },
+  "confirm": {
+    "title": "Continue?",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "kpis": {
+    "anims": "Animations",
+    "animsHint": "The mascot's gestures and poses",
+    "scenes": "Scenes",
+    "scenesHint": "Backdrops where the mascot lives",
+    "selected": "Picked animation"
+  },
+  "stage": {
+    "title": "Scene",
+    "description": "Pick a scene and an animation: the mascot is drawn on top of the backdrop.",
+    "showMascot": "Show mascot",
+    "sceneLabel": "Scene",
+    "animLabel": "Animation"
+  },
+  "animsSection": {
+    "title": "Animations",
+    "description": "Tap an animation to see it in the scene above.",
+    "search": "Search animation…",
+    "noResults": "No results"
+  },
+  "scenesSection": {
+    "title": "Scenes",
+    "description": "The eight backdrops, from the island to the server room.",
+    "footer": "The backdrop and the mascot are drawn in a 64x40 px canvas, with no images and no dependencies."
+  },
+  "scenes": {
+    "suggested": "Suggested",
+    "hotel": {
+      "name": "Hotel",
+      "idea": "Home and welcome"
+    },
+    "isla": {
+      "name": "Island",
+      "idea": "Waiting screen, vacations"
+    },
+    "navidad": {
+      "name": "Christmas",
+      "idea": "Holiday season"
+    },
+    "playa": {
+      "name": "Beach",
+      "idea": "Summer"
+    },
+    "alberca": {
+      "name": "Pool",
+      "idea": "Hotel areas"
+    },
+    "cuarto": {
+      "name": "Room",
+      "idea": "Guest rooms, nothing happening"
+    },
+    "sistemas": {
+      "name": "Systems",
+      "idea": "Tickets, techs and maintenance"
+    },
+    "noche": {
+      "name": "Night",
+      "idea": "Night shift, campfire"
+    }
+  },
+  "groups": {
+    "basics": "Basics",
+    "help": "Messages and help",
+    "states": "States",
+    "work": "Work",
+    "fun": "Fun",
+    "season": "Season"
+  },
+  "anims": {
+    "idle": {
+      "name": "Idle",
+      "hint": "The usual quiet pose."
+    },
+    "wave": {
+      "name": "Wave",
+      "hint": "Lifts a claw to say hello."
+    },
+    "work": {
+      "name": "Work",
+      "hint": "Types on the computer."
+    },
+    "ok": {
+      "name": "Ok",
+      "hint": "A happy hop with confetti."
+    },
+    "err": {
+      "name": "Error",
+      "hint": "An alarmed wince with SSHHS."
+    },
+    "think": {
+      "name": "Think",
+      "hint": "Looks up, with a thought bubble."
+    },
+    "point": {
+      "name": "Point",
+      "hint": "Points at the next option."
+    },
+    "help": {
+      "name": "Help",
+      "hint": "Shows the question mark icon."
+    },
+    "info": {
+      "name": "Info",
+      "hint": "Shows the information icon."
+    },
+    "success": {
+      "name": "Success",
+      "hint": "Green check bubble."
+    },
+    "warn": {
+      "name": "Warning",
+      "hint": "Yellow warning triangle."
+    },
+    "notify": {
+      "name": "Notify",
+      "hint": "A bell that swings."
+    },
+    "search": {
+      "name": "Search",
+      "hint": "Magnifying glass in hand."
+    },
+    "idea": {
+      "name": "Idea",
+      "hint": "A lit light bulb."
+    },
+    "loading": {
+      "name": "Loading",
+      "hint": "Spinning loader ring."
+    },
+    "empty": {
+      "name": "Empty",
+      "hint": "No results: grey dots."
+    },
+    "sleep": {
+      "name": "Sleep",
+      "hint": "Floating Zzz."
+    },
+    "offline": {
+      "name": "Offline",
+      "hint": "Crossed-out cloud."
+    },
+    "lock": {
+      "name": "Locked",
+      "hint": "A closed padlock."
+    },
+    "404": {
+      "name": "Not found",
+      "hint": "Magnifying glass with a 404."
+    },
+    "assigned": {
+      "name": "Assigned",
+      "hint": "Assigned ticket."
+    },
+    "fixing": {
+      "name": "Fixing",
+      "hint": "Spinning tool."
+    },
+    "urgent": {
+      "name": "Urgent",
+      "hint": "Turns red and warns."
+    },
+    "resolved": {
+      "name": "Resolved",
+      "hint": "White resolved bubble."
+    },
+    "upload": {
+      "name": "Upload",
+      "hint": "Upload arrow."
+    },
+    "love": {
+      "name": "Love",
+      "hint": "Floating heart."
+    },
+    "thanks": {
+      "name": "Thanks",
+      "hint": "A toast and sparkles."
+    },
+    "dance": {
+      "name": "Dance",
+      "hint": "Dances side to side."
+    },
+    "birthday": {
+      "name": "Birthday",
+      "hint": "Party hat and confetti."
+    },
+    "coffee": {
+      "name": "Coffee",
+      "hint": "A steaming cup."
+    },
+    "eat": {
+      "name": "Eat",
+      "hint": "Eats the snack."
+    },
+    "key": {
+      "name": "Key",
+      "hint": "Takes out the key."
+    },
+    "bell": {
+      "name": "Bell",
+      "hint": "Rings the bell."
+    },
+    "beach": {
+      "name": "Beach",
+      "hint": "Sunglasses and sun."
+    },
+    "christmas": {
+      "name": "Christmas",
+      "hint": "Santa hat."
+    },
+    "halloween": {
+      "name": "Halloween",
+      "hint": "Pumpkin skull."
+    }
+  },
+  "help": {
+    "name": "Langostín",
+    "online": "Online",
+    "restart": "Start over",
+    "close": "Close help",
+    "open": "Open Langostín help",
+    "title": "Langostín help",
+    "contextLabel": "You are in:",
+    "onThisScreen": "On this screen",
+    "placeholder": "Tell me what you need…",
+    "hint": "Need help? You are in {{screen}}",
+    "context": "You are in {{screen}}. {{explain}}",
+    "going": "Sure, taking you to {{screen}}.",
+    "unknown": "I don't have that answer. I can take you to the screen, or if something is broken, please raise a ticket.",
+    "goTo": "Go to…",
+    "surprise": "Surprise me",
+    "greet": "Celebrate",
+    "switchRole": "Change the role used for explanations",
+    "pause": "Coffee break ☕",
+    "hello": "Hi! How can I help?",
+    "back": "Back to help",
+    "ticketTitle": "New ticket with Langostín",
+    "createTicket": "Create ticket here",
+    "agentTicket": "New ticket",
+    "ticketOffer": "I can create the new ticket myself, right here. Shall we?",
+    "ticketOfferBubble": "New ticket? I can create it right here.",
+    "later": "Not now",
+    "agentTask": "Create task here",
+    "taskOffer": "I can create a task for any of these tickets, without leaving the board. Shall we?",
+    "taskOfferBubble": "New task? I can create it right here.",
+    "agentEmployee": "Find a person",
+    "agentEmployeeForm": "Fill it from here",
+    "agentAct": "New report here",
+    "actOfferBubble": "A new disciplinary report? I can start it right here.",
+    "agentSchedule": "Create schedule",
+    "scheduleOfferBubble": "A new schedule? I can put it together right here.",
+    "agentScheduleEdit": "Edit schedule"
+  },
+  "season": {
+    "halloween": {
+      "name": "Halloween and Day of the Dead",
+      "greeting": "Happy Halloween! 🎃 Watch out for the inventory ghosts."
+    },
+    "navidad": {
+      "name": "Christmas",
+      "greeting": "Happy holidays! 🎄 May every ticket come back closed."
+    },
+    "verano": {
+      "name": "Baja summer",
+      "greeting": "Hey there! 🏖️ Sun and beach today, but work first."
+    },
+    "amor": {
+      "name": "Valentine's Day",
+      "greeting": "Happy Valentine's! 💘"
+    },
+    "patrias": {
+      "name": "Mexican Independence",
+      "greeting": "¡Viva México! 🇲🇽 Taco break later?"
+    },
+    "ano": {
+      "name": "New Year",
+      "greeting": "Happy New Year! 🎉 Make it a great one."
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "list": {
+    "title": "Areas",
+    "description": "Sub-locations inside each department (e.g. Kiosk inside A&B)",
+    "breadcrumb": "Areas",
+    "new": "New area",
+    "create": "Create",
+    "newPlaceholder": "E.g. KIOSK",
+    "departmentPlaceholder": "Select a department",
+    "colName": "AREA",
+    "colDepartment": "DEPARTMENT",
+    "inactive": "inactive",
+    "editName": "Edit name",
+    "reactivate": "Reactivate",
+    "delete": "Delete area",
+    "editTitle": "Edit area",
+    "editPlaceholder": "Area name",
+    "deleteForever": "Delete permanently",
+    "deleteActive": "Delete {{name}}? It will be deactivated; if it has linked users it cannot be deleted.",
+    "deleteForeverMsg": "Permanently delete {{name}}? This action cannot be undone."
+  }
+}

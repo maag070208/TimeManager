@@ -1,0 +1,224 @@
+{
+  "title": "Payroll",
+  "description": "hours worked and overtime by department.",
+  "breadcrumb": "Payroll",
+  "weekPill": "Week of {{range}}",
+  "tabs": {
+    "week": "Week",
+    "history": "Closing history"
+  },
+  "history": {
+    "title": "Closing history",
+    "empty": "No closed weeks yet.",
+    "week": "Week",
+    "people": "People",
+    "worked": "Hours",
+    "approved": "OT appr.",
+    "absences": "Absences",
+    "closedBy": "Closed by",
+    "closedAt": "Closed at",
+    "status": "Status",
+    "closed": "Closed",
+    "reopened": "Reopened",
+    "reopenedTooltip": "Reopened by {{name}} · {{date}}",
+    "detailSubtitle": "Closed by {{name}} · {{date}}",
+    "noSnapshot": "This closing has no department snapshot.",
+    "pdfTitle": "Payroll closing"
+  },
+  "filters": {
+    "week": "Week",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "thisWeek": "This week",
+    "department": "Department",
+    "allDepartments": "All departments",
+    "search": "Search employee",
+    "searchPlaceholder": "Name or number"
+  },
+  "range": "From {{from}} to {{to}}",
+  "timezone": "Time zone: {{tz}}",
+  "columns": {
+    "code": "Code",
+    "employee": "Employee",
+    "department": "Department",
+    "schedule": "Schedule",
+    "day": "Day",
+    "status": "Status",
+    "entry": "In",
+    "exit": "Out",
+    "workedTime": "W.T",
+    "hours": "Hrs",
+    "overtime": "OT",
+    "week": "Week",
+    "approved": "OT appr.",
+    "absences": "Absences",
+    "incomplete": "Incomplete punches",
+    "missing": "Missing",
+    "shift": "Shift",
+    "total": "Total"
+  },
+  "view": {
+    "label": "View",
+    "summary": "Summary",
+    "detail": "Detailed"
+  },
+  "status": {
+    "WORKED": "Worked",
+    "OVERTIME": "Overtime",
+    "ABSENCE": "Absence",
+    "INCOMPLETE": "Incomplete punch",
+    "REST": "Day off",
+    "REST_WORKED": "Day off worked",
+    "NO_INFO": "No information",
+    "FUTURE": "Upcoming"
+  },
+  "statusShort": {
+    "ABSENCE": "Absence",
+    "REST": "Day off",
+    "NO_INFO": "N/A",
+    "FUTURE": ""
+  },
+  "approval": {
+    "APPROVED": "Approved",
+    "PENDING": "Not approved",
+    "REJECTED": "Rejected"
+  },
+  "kpis": {
+    "people": "People",
+    "worked": "Hours worked",
+    "overtime": "Calculated OT",
+    "approved": "Approved OT",
+    "notApproved": "Not approved OT",
+    "absences": "Absences",
+    "incomplete": "Incomplete punches"
+  },
+  "legend": "Legend",
+  "withoutSchedule": "No schedule: no overtime",
+  "noExit": "no exit",
+  "noEntry": "no entry",
+  "notices": {
+    "title": "Week notices",
+    "subtitle": "Things worth checking before closing the week."
+  },
+  "unlinked": "Not linked to the time clock",
+  "unlinkedHint": "{{count}} person(s) not linked to the time clock: their days show no information. Link them in Access control → Time clock employees.",
+  "withoutScheduleHint": "{{count}} person(s) without an assigned schedule: no overtime is calculated for them.",
+  "tooltip": {
+    "shift": "Schedule: {{shift}}",
+    "noShift": "No schedule that day",
+    "scheduled": "Scheduled: {{hours}}",
+    "worked": "Worked: {{hours}}",
+    "missing": "Missing: {{hours}}",
+    "sessions": "Punches",
+    "incident": "Incident: {{incident}}",
+    "approvedMinutes": "Approved: {{hours}}"
+  },
+  "incidents": {
+    "ENTRY_WITHOUT_EXIT": "entry without exit",
+    "EXIT_WITHOUT_ENTRY": "exit without entry",
+    "OPEN_ENTRY": "on site"
+  },
+  "empty": "No staff for this week and filters",
+  "loadError": "Could not load the report",
+  "exportPdf": "PDF",
+  "exportExcel": "Excel",
+  "exporting": "Generating…",
+  "pdf": {
+    "title": "Puerto Nuevo · Weekly payroll",
+    "company": "Puerto Nuevo Baja Hotel y Villas",
+    "department": "Department",
+    "week": "Week",
+    "view": "View",
+    "generatedAt": "Generated on {{date}}"
+  },
+  "sheetName": "Payroll",
+  "hoursShort": "h",
+  "context": {
+    "people": "{{linked}} of {{total}} linked to a clock",
+    "worked": "of {{scheduled}} scheduled",
+    "overtime": "of {{worked}} worked",
+    "approved": "{{pct}}% of calculated",
+    "absences": "of {{total}} people"
+  },
+  "charts": {
+    "extraByDay": "Overtime by day",
+    "extraByDepartment": "Overtime by department",
+    "dayNote": "The day with the most overtime was {{day}}: {{hours}} h.",
+    "noExtra": "No overtime calculated this week.",
+    "weekTitle": "Overtime this week",
+    "total": "{{hours}} h total"
+  },
+  "emptyHint": "Try another week or clear the filters.",
+  "short": {
+    "linked": "{{linked}} on clock",
+    "scheduled": "{{hours}} scheduled",
+    "worked": "{{hours}} worked",
+    "calculated": "{{pct}}% of calculated",
+    "people": "of {{total}} people"
+  },
+  "reportTitle": "Weekly report",
+  "detailTitle": "Detail by person",
+  "exportPdfFull": "Export PDF",
+  "exportExcelFull": "Export Excel",
+  "steps": {
+    "attendance": "Attendance",
+    "attendanceOk": "Absences and late arrivals justified",
+    "attendancePending": "{{count}} absences to justify",
+    "overtime": "Overtime",
+    "overtimeNone": "0 to approve",
+    "overtimePending": "{{hours}} h to approve",
+    "review": "Review departments",
+    "reviewCaption": "{{done}} of {{total}} reviewed",
+    "close": "Close and export",
+    "closeCaption": "Pending",
+    "closeDone": "Closed"
+  },
+  "cards": {
+    "people": "People with punches",
+    "peopleCaption": "of {{total}} on clock",
+    "worked": "Hours worked",
+    "workedCaption": "this week",
+    "approved": "Approved overtime",
+    "approvedCaption": "{{hours}} h to approve",
+    "absences": "Unjustified absences",
+    "goToAttendance": "Go to Attendance"
+  },
+  "deptTable": {
+    "department": "Department",
+    "people": "People",
+    "normalHours": "Regular hours",
+    "extraHours": "Overtime",
+    "absences": "Absences",
+    "review": "Review",
+    "reviewed": "Reviewed",
+    "pending": "To review",
+    "reviewedTooltip": "Reviewed by {{name}} · {{date}} ({{how}})",
+    "reviewedBulk": "mark all",
+    "reviewedSingle": "one by one",
+    "detail": "View detail",
+    "reviewAll": "Mark all as reviewed",
+    "note": "The review is saved per week with who did it; the closing keeps a snapshot of the figures."
+  },
+  "deptDetail": {
+    "subtitle": "{{count}} people this week"
+  },
+  "reviewAllDialog": {
+    "title": "Mark all as reviewed?",
+    "message": "All {{count}} departments will be marked as reviewed. You can unmark any of them from its detail.",
+    "confirm": "Yes, mark all",
+    "cancel": "Cancel"
+  },
+  "review": {
+    "mark": "Mark as reviewed",
+    "unmark": "Unmark"
+  },
+  "close": {
+    "note": "\"Close payroll\" is enabled once every department is reviewed.",
+    "allReviewed": "All departments are reviewed: you can close the week.",
+    "button": "Close payroll",
+    "reopen": "Reopen",
+    "closed": "Payroll closed. You can reopen it if needed.",
+    "closedBy": "Payroll closed by {{name}} · {{date}}. You can reopen it if needed.",
+    "disabled": "Departments still pending review"
+  }
+}

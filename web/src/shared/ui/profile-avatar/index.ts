@@ -1,0 +1,1 @@
+export { default as ProfileAvatar, type ProfileAvatarProps } from "./ui/ProfileAvatar";

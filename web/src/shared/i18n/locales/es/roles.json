@@ -1,0 +1,593 @@
+{
+  "title": "Roles, permisos y políticas",
+  "description": "Define qué puede hacer cada rol y revisa el acceso de cualquier persona.",
+  "tabs": {
+    "access": "Acceso por persona",
+    "catalog": "Catálogo",
+    "policies": "Políticas",
+    "roles": "Roles",
+    "matrix": "Comparar roles",
+    "activity": "Actividad"
+  },
+  "scope": {
+    "NONE": "Ninguno",
+    "OWN": "Propio",
+    "AREA": "Área",
+    "ALL": "Todo"
+  },
+  "scopePlain": {
+    "NONE": "Sin permiso",
+    "OWN": "Solo lo suyo",
+    "AREA": "Su área",
+    "ALL": "Todo"
+  },
+  "role": {
+    "ADMIN": "ADMIN",
+    "MANAGER": "GERENTE",
+    "AREA_HEAD": "JEFE DE ÁREA",
+    "EMPLOYEE": "EMPLEADO",
+    "HUMAN_RESOURCES": "RECURSOS HUMANOS",
+    "CHEF": "CHEF",
+    "GUARD": "GUARDIA"
+  },
+  "matrix": {
+    "permission": "Permiso",
+    "sensitive": "Sensible",
+    "inactive": "Inactivo",
+    "changeCount": "{{count}} cambios pendientes",
+    "changeCount_one": "{{count}} cambio pendiente",
+    "changeCount_other": "{{count}} cambios pendientes",
+    "searchPlaceholder": "Buscar permiso por nombre, clave o módulo…",
+    "noResults": "No hay permisos que coincidan con la búsqueda",
+    "adminLocked": "El ADMIN no puede quedarse sin administrar roles y permisos",
+    "saving": "Guardando...",
+    "saved": "Cambios guardados. Los usuarios de esos roles lo verán al recargar o volver a la ventana.",
+    "discard": "Descartar",
+    "granted": "Sí"
+  },
+  "access": {
+    "newRole": "Nuevo rol",
+    "systemRole": "Base",
+    "inactiveRole": "Inactivo"
+  },
+  "roleDialog": {
+    "newTitle": "Nuevo rol",
+    "editTitle": "Editar rol",
+    "key": "Clave interna",
+    "keyHint": "MAYÚSCULAS y guion bajo. Se usa en el sistema y no se puede cambiar después.",
+    "staff": "Lleva expediente de personal",
+    "staffHint": "Quien tenga este rol aparece en checador, pre nómina y horas extra.",
+    "saving": "Guardando...",
+    "cancel": "Cancelar",
+    "updated": "Rol actualizado",
+    "deleteTitle": "Eliminar rol",
+    "deleteConfirm": "¿Eliminar el rol \"{{role}}\"? Esta acción no se puede deshacer.",
+    "deleted": "Rol eliminado",
+    "systemLocked": "Es un rol base: su nombre no se puede cambiar.",
+    "errors": {
+      "key": "Usa MAYÚSCULAS, dígitos y guion bajo, empezando con letra",
+      "name": "Escribe el nombre del rol",
+      "keyTaken": "Ya existe un rol con esa clave",
+      "copy": "Elige el rol del que se copian los permisos"
+    },
+    "duplicateTitle": "Duplicar rol",
+    "copyName": "{{name}} (copia)",
+    "duplicated": "Rol duplicado con sus permisos",
+    "nameQuestion": "¿Cómo se llama el rol?",
+    "nameHint": "El nombre que verán todos, por ejemplo el puesto.",
+    "namePlaceholder": "Ej. Auxiliar de almacén",
+    "keyPreview": "Clave interna:",
+    "descriptionQuestion": "¿Para qué es? (opcional)",
+    "descriptionPlaceholder": "Ej. Recibe mercancía y registra entradas del almacén.",
+    "startQuestion": "¿Con qué permisos empieza?",
+    "startBlank": "Sin permisos",
+    "startBlankHint": "Empiezas de cero y marcas lo que necesita.",
+    "startCopy": "Copiar de otro rol",
+    "startCopyHint": "Arranca igual que un rol parecido y luego lo ajustas.",
+    "copyPlaceholder": "Elige el rol a copiar…",
+    "copyOption": "{{name}} ({{count}} permisos)",
+    "groupQuestion": "¿En qué grupo va? (opcional)",
+    "groupHint": "Solo sirve para ordenar la lista de roles.",
+    "groupPlaceholder": "Ej. Operación",
+    "moreOptions": "Más opciones",
+    "order": "Orden en la lista",
+    "orderHint": "Los números menores aparecen primero.",
+    "saveChanges": "Guardar cambios",
+    "create": "Crear rol",
+    "createdNext": "Rol creado. Ahora elige qué puede hacer."
+  },
+  "help": {
+    "open": "Ayuda",
+    "title": "Cómo funciona el control de acceso",
+    "intro": "Cada petición pasa por tres filtros. Aquí administras el segundo (qué puede hacer cada rol) y el tercero (reglas de contexto).",
+    "scopeTitle": "Alcance de datos",
+    "scopeIntro": "Algunos permisos (los que muestran un botón de ajustes) además definen sobre qué datos aplican:",
+    "scopeOwnExample": "Solo lo suyo: por ejemplo, únicamente sus propios tickets o tareas.",
+    "scopeAreaExample": "Su área: lo de las personas de su departamento.",
+    "scopeAllExample": "Todo: toda la empresa.",
+    "scopeNote": "Al marcar uno de estos permisos se aplica el alcance más prudente; puedes ajustarlo con el botón de ajustes que aparece junto a la casilla.",
+    "appliesTitle": "A quién le aplica",
+    "appliesBody": "El cambio es para todo el rol: cada persona con ese rol lo verá cuando su sesión se actualice (al recargar o volver a la ventana). Tu propia sesión no cambia salvo que tengas ese rol.",
+    "layers": {
+      "identity": {
+        "title": "Identidad",
+        "body": "La sesión es válida y la cuenta está activa."
+      },
+      "rbac": {
+        "title": "Permiso (RBAC)",
+        "body": "Alguno de sus roles (o una excepción) le da el permiso de la acción, con su alcance."
+      },
+      "abac": {
+        "title": "Contexto (ABAC)",
+        "body": "Las políticas revisan el registro: estado, monto, quién lo creó. La primera que casa decide."
+      }
+    },
+    "rolesTitle": "Roles y multi-rol",
+    "rolesBody": "Un rol agrupa permisos de un puesto. Una persona tiene un rol principal y puede tener roles adicionales: recibe la suma de todos (gana el alcance mayor). Ej.: RH + Inventario = lo de ambos.",
+    "exceptionsTitle": "Excepciones por persona",
+    "exceptionsBody": "Para una sola persona, una excepción reemplaza lo que dicen sus roles en un permiso (lo sube, lo baja o lo quita), con motivo y vencimiento. Se administran en la ficha del usuario.",
+    "tips": {
+      "leastPrivilege": "Menor privilegio: empieza con \"Solo lectura\" y concede solo lo que el puesto necesita.",
+      "duplicate": "Para un puesto parecido a otro, usa Duplicar y ajusta; no edites un rol base para un caso particular.",
+      "sod": "Segregación de funciones: quien crea una orden no debería aprobarla; eso lo cuidan las políticas.",
+      "test": "Antes de cerrar, prueba con \"¿Puede…?\" en Acceso por persona."
+    }
+  },
+  "catalog": {
+    "title": "Catálogo de permisos",
+    "subtitle": "Los permisos del sistema. No se borran: se desactivan.",
+    "new": "Nuevo permiso",
+    "createTitle": "Nuevo permiso",
+    "editTitle": "Editar permiso",
+    "sensitive": "Sensible",
+    "notSensitive": "No sensible",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "activate": "Activar",
+    "deactivate": "Desactivar",
+    "activated": "Permiso activado",
+    "deactivated": "Permiso desactivado",
+    "created": "Permiso creado correctamente",
+    "updated": "Permiso actualizado correctamente",
+    "saveError": "No se pudo guardar el permiso",
+    "saving": "Guardando...",
+    "columns": {
+      "key": "Clave",
+      "module": "Módulo",
+      "name": "Nombre",
+      "scopes": "Alcances",
+      "sensitive": "Sensible",
+      "sortOrder": "Orden",
+      "active": "Estado"
+    },
+    "fields": {
+      "key": "Clave (modulo.accion)",
+      "sortOrder": "Orden"
+    },
+    "errors": {
+      "key": "La clave debe tener el formato modulo.accion (minúsculas, dígitos y guion bajo)",
+      "module": "El módulo es obligatorio",
+      "name": "El nombre es obligatorio",
+      "scopes": "Selecciona al menos un alcance",
+      "sortOrder": "El orden debe ser un entero mayor o igual a 0"
+    },
+    "wizard": {
+      "name": "¿Cómo se llama el permiso?",
+      "nameHint": "Escríbelo como una acción: lo que la persona podrá hacer.",
+      "namePlaceholder": "Ej. Exportar reportes",
+      "descriptionPlaceholder": "Qué permite exactamente (opcional)",
+      "module": "¿En qué módulo va?",
+      "modulePlaceholder": "Ej. Reportes",
+      "scope": "¿Cómo se concede?",
+      "scopeHint": "Elige si es un simple sí/no o si depende de qué registros puede tocar.",
+      "yesNo": "Sí o no",
+      "yesNoHint": "Lo tiene o no lo tiene. Ej. exportar reportes.",
+      "ownAreaAll": "Lo suyo, su área o todo",
+      "ownAreaAllHint": "Ej. ver tickets: solo los suyos, los de su departamento o todos.",
+      "areaAll": "Su área o todo",
+      "areaAllHint": "Ej. ver checadas: las de su departamento o las de todos.",
+      "custom": "Personalizado",
+      "sensitive": "Permiso sensible",
+      "sensitiveHint": "Da control sobre seguridad o datos delicados: se marca para revisarlo dos veces y solo ADMIN lo otorga como excepción.",
+      "technical": "Datos técnicos",
+      "keyHint": "modulo.accion en minúsculas. Es la clave que usa el código; no se puede cambiar.",
+      "create": "Crear permiso"
+    }
+  },
+  "policies": {
+    "new": "Nueva política",
+    "newTitle": "Nueva política",
+    "editTitle": "Editar política",
+    "edit": "Editar",
+    "inactive": "Inactiva",
+    "priorityHint": "Menor número = se evalúa antes. La primera regla que casa decide; si ninguna casa, se permite (el permiso ya lo autorizó).",
+    "addCondition": "Agregar condición",
+    "noConditions": "Sin condiciones: la regla aplica siempre (a quien le toque).",
+    "deleteTitle": "Eliminar política",
+    "deleteConfirm": "¿Eliminar la política \"{{name}}\"?",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "created": "Política creada",
+    "updated": "Política actualizada",
+    "deleted": "Política eliminada",
+    "loadError": "No se pudieron cargar las políticas",
+    "saveError": "No se pudo guardar la política",
+    "effect": {
+      "ALLOW": "Permitir",
+      "DENY": "Negar"
+    },
+    "operator": {
+      "eq": "es igual a",
+      "neq": "es distinto de",
+      "gt": "es mayor que",
+      "gte": "es mayor o igual que",
+      "lt": "es menor que",
+      "lte": "es menor o igual que",
+      "in": "está en",
+      "not_in": "no está en",
+      "is_empty": "está vacío",
+      "is_not_empty": "no está vacío"
+    },
+    "fields": {
+      "description": "Descripción",
+      "active": "Activa"
+    },
+    "errors": {
+      "condition": "Completa el valor de cada condición",
+      "roles": "Elige al menos un rol o marca \"A todos\""
+    },
+    "if": "Si",
+    "always": "Siempre",
+    "and": "y",
+    "ref": {
+      "userId": "la misma persona",
+      "departmentId": "su departamento",
+      "role": "su rol"
+    },
+    "addRule": "Regla",
+    "pickValue": "Elige…",
+    "removeCondition": "Quitar condición",
+    "wizard": {
+      "action": "¿Para qué acción?",
+      "actionHint": "La regla se revisa cuando alguien con el permiso intenta hacer esto.",
+      "effect": "¿Qué debe pasar?",
+      "deny": "Bloquear",
+      "denyHint": "No se deja hacer la acción, aunque el rol tenga el permiso.",
+      "allow": "Dejar pasar",
+      "allowHint": "Se permite y ya no se revisan las reglas que siguen (útil como excepción).",
+      "when": "¿Cuándo?",
+      "whenHint": "Condiciones sobre el registro. Si pones varias, se deben cumplir todas.",
+      "who": "¿A quién aplica?",
+      "everyone": "A todos",
+      "everyoneHint": "Cualquier persona que tenga el permiso.",
+      "someRoles": "Solo a algunos roles",
+      "someRolesHint": "Elige los roles a los que aplica.",
+      "preview": "Así queda la regla",
+      "name": "Nombre de la regla (opcional)",
+      "nameHint": "Si lo dejas vacío, se usa el que ves sugerido.",
+      "order": "Orden de revisión",
+      "activeHint": "Una regla inactiva se conserva pero no se revisa."
+    },
+    "isRole": "es",
+    "or": "o",
+    "verdict": {
+      "ALLOW": "puede",
+      "DENY": "no puede"
+    },
+    "explainer": "Las reglas ponen condiciones a un permiso que el rol ya tiene. Ejemplo: aunque un gerente pueda aprobar órdenes de compra, no puede aprobar las que él mismo creó. Se revisan de arriba a abajo y la primera que aplica decide.",
+    "story": {
+      "whoCan": "Quien pueda",
+      "otherwise": "En cualquier otro caso → puede (basta con el permiso de su rol).",
+      "noRules": "Sin reglas: basta con el permiso de su rol."
+    },
+    "moveUp": "Revisar antes",
+    "moveDown": "Revisar después",
+    "turnOn": "Activar regla",
+    "turnOff": "Desactivar regla"
+  },
+  "errors": {
+    "load": "Error al cargar los permisos",
+    "saveMatrix": "Error al guardar la matriz",
+    "create": "Error al crear el permiso",
+    "update": "Error al actualizar el permiso",
+    "toggle": "Error al cambiar el estado del permiso",
+    "createRole": "Error al crear el rol",
+    "updateRole": "Error al actualizar el rol",
+    "deleteRole": "Error al eliminar el rol",
+    "members": "Error al cargar las personas",
+    "addMember": "No se pudo agregar el rol",
+    "removeMember": "No se pudo quitar el rol",
+    "access": "No se pudo cargar el acceso de la persona",
+    "simulate": "No se pudo ejecutar la prueba"
+  },
+  "verb": {
+    "view": "Ver",
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "other": "Acción de negocio"
+  },
+  "level": {
+    "FULL": "Completo",
+    "PARTIAL": "Parcial",
+    "READ": "Solo lectura",
+    "NONE": "Sin acceso"
+  },
+  "bulk": {
+    "all": "Todo",
+    "read": "Solo lectura",
+    "none": "Nada"
+  },
+  "editor": {
+    "unsaved": "Sin guardar",
+    "filter": {
+      "all": "Todos",
+      "granted": "Concedidos",
+      "missing": "Sin conceder",
+      "sensitive": "Sensibles"
+    },
+    "expandAll": "Abrir todos",
+    "collapseAll": "Cerrar todos"
+  },
+  "matrixView": {
+    "allModules": "Todos los módulos",
+    "onlyDiff": "Solo diferencias",
+    "legend": {
+      "yes": "Sí"
+    },
+    "hint": "Clic en una celda para conceder, subir el alcance o quitar.",
+    "openRole": "Abrir el rol",
+    "toggleRole": "Mostrar u ocultar este rol"
+  },
+  "roleList": {
+    "search": "Buscar rol…",
+    "noModule": "Sin módulo",
+    "permissions_one": "{{count}} permiso",
+    "permissions_other": "{{count}} permisos",
+    "pick": "Elige un rol de la lista."
+  },
+  "roleDetail": {
+    "noDescription": "Sin descripción.",
+    "edit": "Editar",
+    "duplicate": "Duplicar",
+    "more": "Más acciones",
+    "activate": "Activar rol",
+    "deactivate": "Desactivar rol",
+    "activated": "Rol activado",
+    "deactivated": "Rol desactivado",
+    "activateConfirm": "¿Activar el rol \"{{role}}\"? Sus permisos vuelven a aplicar a quien lo tenga.",
+    "deactivateConfirm": "¿Desactivar el rol \"{{role}}\"? Sus {{count}} persona(s) dejan de recibir sus permisos de inmediato.",
+    "deleteBlocked": "Eliminar (lo tienen {{count}})",
+    "tabs": {
+      "permissions": "Permisos",
+      "members": "Personas",
+      "screens": "Pantallas",
+      "policies": "Políticas"
+    }
+  },
+  "members": {
+    "addLabel": "Agregar persona a este rol",
+    "addPlaceholder": "Busca por nombre o usuario…",
+    "roleInactive": "El rol está desactivado",
+    "add": "Agregar",
+    "addHint": "Se agrega como rol adicional: la persona conserva su rol principal y suma los permisos de este.",
+    "added": "Rol {{role}} agregado",
+    "removed": "Rol quitado a {{name}}",
+    "search": "Buscar persona…",
+    "empty": "Nadie tiene este rol todavía.",
+    "primary": "principal",
+    "extra": "adicional",
+    "inactive": "Inactivo",
+    "exceptions_one": "{{count}} excepción",
+    "exceptions_other": "{{count}} excepciones",
+    "viewAccess": "Ver acceso",
+    "remove": "Quitar",
+    "removeTitle": "Quitar rol adicional",
+    "removeConfirm": "¿Quitar el rol {{role}} a {{name}}? Deja de recibir sus permisos de inmediato."
+  },
+  "screens": {
+    "menuOf": "Menú de {{role}}",
+    "menuEmpty": "No vería ninguna sección del menú.",
+    "empty": "Con estos permisos no vería ninguna pantalla.",
+    "canSee": "La ve",
+    "hidden_one": "{{count}} pantalla oculta para este acceso.",
+    "hidden_other": "{{count}} pantallas ocultas para este acceso."
+  },
+  "rolePolicies": {
+    "intro": "Reglas de contexto (ABAC) que aplican a este rol. Solo se evalúan si el rol tiene el permiso de la acción.",
+    "empty": "No hay políticas que apliquen a este rol.",
+    "evaluated": "Se evalúa",
+    "notReached": "No llega: el rol no tiene el permiso"
+  },
+  "changes": {
+    "summary_one": "{{count}} cambio sin guardar en {{roles}} rol(es)",
+    "summary_other": "{{count}} cambios sin guardar en {{roles}} rol(es)",
+    "review": "Revisar y guardar",
+    "title": "Revisar cambios",
+    "sensitive_one": "Concedes {{count}} permiso sensible ({{names}}). Revísalo dos veces.",
+    "sensitive_other": "Concedes {{count}} permisos sensibles ({{names}}). Revísalos dos veces.",
+    "applies": "Las personas lo verán al recargar o volver a la ventana; la API lo aplica desde la siguiente petición.",
+    "headline_one": "Vas a cambiar {{count}} permiso en {{roles}} rol(es). Le llega a {{people}} persona(s).",
+    "headline_other": "Vas a cambiar {{count}} permisos en {{roles}} rol(es). Le llega a {{people}} persona(s).",
+    "roleImpact_one": "{{count}} cambio · {{people}} persona(s)",
+    "roleImpact_other": "{{count}} cambios · {{people}} persona(s)",
+    "keepEditing": "Seguir editando",
+    "confirm": "Guardar cambios"
+  },
+  "explorer": {
+    "search": "Buscar persona…",
+    "allRoles": "Todos los roles",
+    "showInactive": "Incluir inactivos",
+    "emptyTitle": "Elige una persona",
+    "emptyBody": "Verás sus roles, lo que puede hacer en cada módulo y de dónde le viene cada permiso, las pantallas que ve y podrás probar cualquier acción.",
+    "openProfile": "Abrir ficha",
+    "howResolved": "Acceso efectivo = excepción vigente > el mayor alcance de sus roles > sin permiso. Lo calcula la API con las mismas reglas que aplica en cada petición.",
+    "until": "vence {{date}}",
+    "rolesLabel": "Roles:",
+    "addRole": "Agregar rol",
+    "removeRole": "Quitar este rol",
+    "section": {
+      "permissions": "Qué puede hacer",
+      "screens": "Pantallas que ve"
+    },
+    "questionPlaceholder": "¿Qué quieres saber si {{name}} puede hacer? Ej. crear usuarios",
+    "view": {
+      "can": "Puede ({{count}})",
+      "cannot": "No puede ({{count}})",
+      "all": "Todo"
+    },
+    "nothingCan": "Esta persona no tiene ningún permiso.",
+    "nothingCannot": "Esta persona puede hacer todo.",
+    "can": "Puede",
+    "cannot": "No puede",
+    "pending": "Pendiente de guardar",
+    "hasRules": "Con reglas",
+    "hasRulesHint": "Esta acción tiene reglas de contexto: pruébala con un caso.",
+    "source": {
+      "exception": "Excepción solo para esta persona",
+      "exceptionRemoved": "Se le quitó solo a esta persona (excepción)",
+      "none": "Ninguno de sus roles lo tiene",
+      "byRole": "Por su rol"
+    },
+    "fix": {
+      "give": "Dar acceso",
+      "remove": "Quitar",
+      "grantRole": "Dárselo a todo el rol {{role}} (afecta a {{count}} persona(s))",
+      "grantPerson": "Dárselo solo a {{name}}…",
+      "revokeRole": "Quitárselo a todo el rol {{role}} (afecta a {{count}} persona(s))",
+      "revokePerson": "Quitárselo solo a {{name}}…",
+      "scopePerson": "Cambiar el alcance solo para {{name}}…",
+      "clearException": "Quitar la excepción",
+      "clearTitle": "Quitar excepción",
+      "clearConfirm": "\"{{permission}}\" de {{name}} volverá a depender solo de sus roles.",
+      "cleared": "Excepción quitada",
+      "pendingToast": "Cambio pendiente en el rol {{role}}: revísalo y guárdalo en la barra de abajo."
+    }
+  },
+  "simulator": {
+    "title": "¿Puede…? — probador de acceso",
+    "subtitle": "Revisa en tres pasos lo mismo que revisa el sistema: identidad, permiso del rol y reglas de contexto.",
+    "personPlaceholder": "Busca una persona…",
+    "permissionPlaceholder": "Busca un permiso…",
+    "context": "Datos del registro (opcional)",
+    "noValue": "Sin dato",
+    "self": "La misma persona",
+    "other": "Otra persona",
+    "yes": "Sí",
+    "no": "No",
+    "running": "Probando…",
+    "allowed": "Permitido",
+    "denied": "Denegado",
+    "allowedDetail": "Puede \"{{permission}}\" con alcance: {{scope}}.",
+    "deniedDetail": "No puede \"{{permission}}\".",
+    "steps": {
+      "identity": "Identidad",
+      "rbac": "Permiso (RBAC)",
+      "abac": "Contexto (ABAC)"
+    },
+    "identity": {
+      "active": "Cuenta activa: puede iniciar sesión.",
+      "inactive": "Cuenta inactiva: no puede iniciar sesión."
+    },
+    "rbac": {
+      "inactivePermission": "El permiso está desactivado en el catálogo: nadie lo tiene.",
+      "exception": "Lo decide una excepción para esta persona (gana sobre sus roles):",
+      "grantedBy": "Se lo da:",
+      "noRole": "Ninguno de sus roles ({{roles}}) lo tiene."
+    },
+    "abac": {
+      "notEvaluated": "No se evalúa: la petición ya se detuvo antes.",
+      "noRules": "La acción no tiene reglas de contexto: se permite.",
+      "noneMatched": "Ninguna regla casa: se permite (el permiso ya lo autorizó).",
+      "decidedBy": "Decide la regla \"{{name}}\":"
+    },
+    "howToGrant": "Para darlo: concédelo a uno de sus roles (pestaña Roles o Matriz), agrégale un rol que lo tenga, o crea una excepción en su ficha.",
+    "trace": {
+      "title": "Traza de las reglas (en orden de prioridad)",
+      "appliesToRole": "aplica a su rol",
+      "notForRole": "no aplica a su rol",
+      "matches": "casa",
+      "decides": "DECIDE",
+      "noMatch": "no casa",
+      "actual": "valor"
+    },
+    "test": "Probar",
+    "who": "¿Quién?",
+    "what": "¿Qué quiere hacer?",
+    "contextHint": "Solo si la acción tiene reglas: monto, estado, quién la creó…",
+    "pickBoth": "Elige una persona y una acción para ver si puede hacerlo y por qué."
+  },
+  "activity": {
+    "subtitle": "Cambios de roles, permisos, políticas y excepciones, y los intentos de acceso denegados.",
+    "quick": {
+      "all": "Todo",
+      "denied": "Accesos denegados"
+    },
+    "columns": {
+      "date": "Fecha",
+      "action": "Acción",
+      "actor": "Quién",
+      "detail": "Detalle"
+    },
+    "copiedFrom": "copiado de {{role}}",
+    "deletedPolicy": "Política eliminada",
+    "followsRole": "según su rol",
+    "action": {
+      "ROLE_CREATED": "Rol creado",
+      "ROLE_UPDATED": "Rol editado",
+      "ROLE_DELETED": "Rol eliminado",
+      "ROLE_PERMISSIONS_UPDATED": "Permiso de rol",
+      "PERMISSION_CREATED": "Permiso creado",
+      "PERMISSION_UPDATED": "Permiso editado",
+      "POLICY_CREATED": "Política creada",
+      "POLICY_UPDATED": "Política editada",
+      "POLICY_DELETED": "Política eliminada",
+      "PERMISSION_EXCEPTION_SET": "Excepción otorgada",
+      "PERMISSION_EXCEPTION_REMOVED": "Excepción quitada",
+      "USER_ROLE_ADDED": "Rol asignado",
+      "USER_ROLE_REMOVED": "Rol retirado",
+      "ACCESS_DENIED": "Acceso denegado"
+    }
+  },
+  "exception": {
+    "grantTitle": "Dar acceso solo a {{name}}",
+    "revokeTitle": "Quitar acceso solo a {{name}}",
+    "grantIntro": "Es una excepción: no cambia su rol ni a las demás personas. Útil para cubrir a alguien o para un caso temporal.",
+    "revokeIntro": "Aunque su rol lo tenga, a {{name}} no le aplicará mientras siga la excepción.",
+    "scopeQuestion": "¿Sobre qué datos?",
+    "reasonQuestion": "¿Por qué? (opcional)",
+    "reasonHint": "Queda en la bitácora para que otros entiendan la excepción.",
+    "reasonPlaceholder": "Ej. Cubre las vacaciones del jefe de área",
+    "expiryQuestion": "¿Hasta cuándo?",
+    "expiry": {
+      "default": "Lo que diga la configuración",
+      "defaultHint": "Vence según la vigencia por defecto del sistema.",
+      "date": "Hasta una fecha",
+      "dateHint": "Elige el último día.",
+      "never": "Sin vencimiento",
+      "neverHint": "Hasta que alguien la quite."
+    },
+    "grantConfirm": "Dar acceso",
+    "revokeConfirm": "Quitar acceso",
+    "granted": "Listo: {{name}} ya tiene el acceso.",
+    "revoked": "Listo: a {{name}} se le quitó el acceso.",
+    "errors": {
+      "date": "Elige la fecha de vencimiento",
+      "save": "No se pudo guardar la excepción"
+    }
+  },
+  "summary": {
+    "roles": "Roles",
+    "rolesHint": "en el catálogo",
+    "permissions": "Permisos",
+    "permissionsHint": "en el catálogo",
+    "people": "Personas",
+    "peopleHint": "con acceso",
+    "policies": "Políticas",
+    "policiesHint": "reglas activas",
+    "peopleByRole": "Personas por rol",
+    "assignments": "{{assignments}} asignaciones · {{people}} personas",
+    "grantedHint": "concedidos",
+    "moreRoles": "+{{count}} roles más"
+  }
+}

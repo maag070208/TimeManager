@@ -1,0 +1,136 @@
+{
+  "title": "Entry and exit report",
+  "description": "Entry and exit per person, with hours and incidents for the period.",
+  "periods": {
+    "DAY": "Daily",
+    "WEEK": "Weekly",
+    "FORTNIGHT": "Fortnightly",
+    "MONTH": "Monthly"
+  },
+  "periodTabs": {
+    "DAY": "Today",
+    "WEEK": "Weekly",
+    "FORTNIGHT": "Fortnightly",
+    "MONTH": "Monthly"
+  },
+  "dayColumn": {
+    "WEEK": "Week",
+    "FORTNIGHT": "Fortnight",
+    "MONTH": "Month"
+  },
+  "views": {
+    "ALL": "All",
+    "INCIDENTS": "With incidents",
+    "ON_SITE": "On site",
+    "WITHOUT_RECORDS": "No records"
+  },
+  "filters": {
+    "date": "Date",
+    "previous": "Previous period",
+    "next": "Next period",
+    "department": "Department",
+    "allDepartments": "All departments",
+    "employee": "Search employee",
+    "employeePlaceholder": "Employee name or number",
+    "includeInactive": "Include inactive"
+  },
+  "tiles": {
+    "onSite": "On site now",
+    "onSiteHint": "on shift",
+    "withRecords": "With records",
+    "ofTotal": "of {{total}}",
+    "withoutRecords": "No records",
+    "viewWho": "See who",
+    "allRecorded": "Everyone clocked in",
+    "hours": "Total hours",
+    "hoursHint": "of the period",
+    "incidents": "Incidents",
+    "allClear": "All in order"
+  },
+  "counts": {
+    "late_one": "{{count}} late",
+    "late_other": "{{count}} late",
+    "absences_one": "{{count}} absence",
+    "absences_other": "{{count}} absences",
+    "withoutExit_one": "{{count}} without exit",
+    "withoutExit_other": "{{count}} without exit",
+    "withoutEntry_one": "{{count}} without entry",
+    "withoutEntry_other": "{{count}} without entry"
+  },
+  "kpis": {
+    "withRecords": "People with records",
+    "withoutRecords": "People without records",
+    "inside": "People on site",
+    "workedHours": "Total hours",
+    "incidents": "Incidents"
+  },
+  "dayStatus": {
+    "ATTENDED": "Attended",
+    "LATE": "Late",
+    "ABSENCE": "Absence",
+    "REST": "Rest day",
+    "PENDING": "Pending",
+    "NO_INFO": "No schedule"
+  },
+  "legend": {
+    "neutral": "Pending / rest day"
+  },
+  "focus": {
+    "entry": "Entry",
+    "exit": "Exit",
+    "entryToday": "Entry today",
+    "exitToday": "Exit today"
+  },
+  "state": {
+    "withoutExit": "No exit",
+    "withoutEntry": "No entry",
+    "late": "Late {{time}} h",
+    "onSite": "On site",
+    "closed": "Shift closed",
+    "absence": "Absence",
+    "rest": "Rest day",
+    "pending": "Pending",
+    "noInfo": "No record",
+    "noIncidents": "No incidents",
+    "noRecords": "No records"
+  },
+  "table": {
+    "title": "Employees · {{count}}"
+  },
+  "status": {
+    "inactive": "Inactive"
+  },
+  "columns": {
+    "employee": "Employee",
+    "department": "Department",
+    "jobTitle": "Position",
+    "status": "Status",
+    "entry": "First entry",
+    "exit": "Last exit",
+    "hours": "Hours",
+    "date": "Date",
+    "incident": "Incident"
+  },
+  "incidents": {
+    "ENTRY_WITHOUT_EXIT": "Entry without exit",
+    "EXIT_WITHOUT_ENTRY": "Exit without entry",
+    "OPEN_ENTRY": "On site",
+    "NONE": "No incident"
+  },
+  "noDepartment": "No department",
+  "unlinked": "Not linked",
+  "actions": {
+    "exportPdf": "PDF",
+    "exportCsv": "Export CSV"
+  },
+  "errors": {
+    "load": "Could not generate the report"
+  },
+  "pdf": {
+    "title": "Entry and Exit Report",
+    "timezone": "Time zone",
+    "totalPeople": "People",
+    "totalHours": "Hours",
+    "totalIncidents": "Incidents"
+  }
+}

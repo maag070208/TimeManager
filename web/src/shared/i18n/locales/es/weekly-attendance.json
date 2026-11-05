@@ -1,0 +1,224 @@
+{
+  "title": "Pre Nómina",
+  "description": "horas trabajadas y tiempo extra por departamento.",
+  "breadcrumb": "Pre Nómina",
+  "weekPill": "Semana {{range}}",
+  "tabs": {
+    "week": "Semana",
+    "history": "Historial de cierres"
+  },
+  "history": {
+    "title": "Historial de cierres",
+    "empty": "Todavía no hay semanas cerradas.",
+    "week": "Semana",
+    "people": "Personas",
+    "worked": "Horas",
+    "approved": "HE aprob.",
+    "absences": "Faltas",
+    "closedBy": "Cerrada por",
+    "closedAt": "Fecha de cierre",
+    "status": "Estado",
+    "closed": "Cerrada",
+    "reopened": "Reabierta",
+    "reopenedTooltip": "Reabierta por {{name}} · {{date}}",
+    "detailSubtitle": "Cerrada por {{name}} · {{date}}",
+    "noSnapshot": "Este cierre no guardó fotografía por departamento.",
+    "pdfTitle": "Cierre de pre-nómina"
+  },
+  "filters": {
+    "week": "Semana",
+    "previousWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "thisWeek": "Esta semana",
+    "department": "Departamento",
+    "allDepartments": "Todos los departamentos",
+    "search": "Buscar empleado",
+    "searchPlaceholder": "Nombre o número"
+  },
+  "range": "Del {{from}} al {{to}}",
+  "timezone": "Zona horaria: {{tz}}",
+  "columns": {
+    "code": "Cód.",
+    "employee": "Empleado",
+    "department": "Departamento",
+    "schedule": "Horario",
+    "day": "Día",
+    "status": "Estado",
+    "entry": "Entrada",
+    "exit": "Salida",
+    "workedTime": "T.T",
+    "hours": "Hrs",
+    "overtime": "HE",
+    "week": "Semana",
+    "approved": "HE aprob.",
+    "absences": "Faltas",
+    "incomplete": "Checadas incompletas",
+    "missing": "Faltante",
+    "shift": "Turno",
+    "total": "Total"
+  },
+  "view": {
+    "label": "Vista",
+    "summary": "Resumida",
+    "detail": "Detallada"
+  },
+  "status": {
+    "WORKED": "Trabajado",
+    "OVERTIME": "Horas extra",
+    "ABSENCE": "Falta",
+    "INCOMPLETE": "Checada incompleta",
+    "REST": "Descanso",
+    "REST_WORKED": "Descanso trabajado",
+    "NO_INFO": "Sin información",
+    "FUTURE": "Por venir"
+  },
+  "statusShort": {
+    "ABSENCE": "Falta",
+    "REST": "Descanso",
+    "NO_INFO": "S/I",
+    "FUTURE": ""
+  },
+  "approval": {
+    "APPROVED": "Aprobada",
+    "PENDING": "No aprobada",
+    "REJECTED": "Rechazada"
+  },
+  "kpis": {
+    "people": "Personas",
+    "worked": "Horas trabajadas",
+    "overtime": "HE calculadas",
+    "approved": "HE aprobadas",
+    "notApproved": "HE no aprobadas",
+    "absences": "Faltas",
+    "incomplete": "Checadas incompletas"
+  },
+  "legend": "Simbología",
+  "withoutSchedule": "Sin horario: no genera tiempo extra",
+  "noExit": "sin salida",
+  "noEntry": "sin entrada",
+  "notices": {
+    "title": "Avisos de la semana",
+    "subtitle": "Cosas que conviene revisar antes de cerrar la semana."
+  },
+  "unlinked": "Sin vínculo al reloj",
+  "unlinkedHint": "{{count}} persona(s) sin vínculo al reloj: sus días salen sin información. Vincúlalas en Control de acceso → Empleados del reloj.",
+  "withoutScheduleHint": "{{count}} persona(s) sin horario asignado: no se les calcula tiempo extra.",
+  "tooltip": {
+    "shift": "Horario: {{shift}}",
+    "noShift": "Sin horario ese día",
+    "scheduled": "Programado: {{hours}}",
+    "worked": "Trabajado: {{hours}}",
+    "missing": "Faltante: {{hours}}",
+    "sessions": "Checadas",
+    "incident": "Incidencia: {{incident}}",
+    "approvedMinutes": "Aprobado: {{hours}}"
+  },
+  "incidents": {
+    "ENTRY_WITHOUT_EXIT": "entrada sin salida",
+    "EXIT_WITHOUT_ENTRY": "salida sin entrada",
+    "OPEN_ENTRY": "en sitio"
+  },
+  "empty": "No hay personal para esta semana y filtros",
+  "loadError": "No se pudo cargar el reporte",
+  "exportPdf": "PDF",
+  "exportExcel": "Excel",
+  "exporting": "Generando…",
+  "pdf": {
+    "title": "Puerto Nuevo · Pre Nómina semanal",
+    "company": "Puerto Nuevo Baja Hotel y Villas",
+    "department": "Departamento",
+    "week": "Semana",
+    "view": "Vista",
+    "generatedAt": "Generado el {{date}}"
+  },
+  "sheetName": "Nómina",
+  "hoursShort": "h",
+  "context": {
+    "people": "{{linked}} de {{total}} vinculadas al reloj",
+    "worked": "de {{scheduled}} programadas",
+    "overtime": "de {{worked}} trabajadas",
+    "approved": "{{pct}}% de las calculadas",
+    "absences": "de {{total}} personas"
+  },
+  "charts": {
+    "extraByDay": "Horas extra por día",
+    "extraByDepartment": "Horas extra por departamento",
+    "dayNote": "El día con más tiempo extra fue el {{day}}: {{hours}} h.",
+    "noExtra": "No hay horas extra calculadas esta semana.",
+    "weekTitle": "Horas extra de la semana",
+    "total": "{{hours}} h en total"
+  },
+  "emptyHint": "Prueba con otra semana o quita los filtros.",
+  "short": {
+    "linked": "{{linked}} con reloj",
+    "scheduled": "{{hours}} programadas",
+    "worked": "{{hours}} trabajadas",
+    "calculated": "{{pct}}% de lo calculado",
+    "people": "de {{total}} personas"
+  },
+  "reportTitle": "Reporte semanal",
+  "detailTitle": "Detalle por persona",
+  "exportPdfFull": "Exportar PDF",
+  "exportExcelFull": "Exportar Excel",
+  "steps": {
+    "attendance": "Asistencia",
+    "attendanceOk": "Faltas y retardos justificados",
+    "attendancePending": "{{count}} faltas por justificar",
+    "overtime": "Tiempo extra",
+    "overtimeNone": "0 por aprobar",
+    "overtimePending": "{{hours}} h por aprobar",
+    "review": "Revisar departamentos",
+    "reviewCaption": "{{done}} de {{total}} revisados",
+    "close": "Cerrar y exportar",
+    "closeCaption": "Pendiente",
+    "closeDone": "Cerrada"
+  },
+  "cards": {
+    "people": "Personas con checadas",
+    "peopleCaption": "de {{total}} con reloj",
+    "worked": "Horas trabajadas",
+    "workedCaption": "en la semana",
+    "approved": "Horas extra aprobadas",
+    "approvedCaption": "{{hours}} h por aprobar",
+    "absences": "Faltas sin justificar",
+    "goToAttendance": "Ir a Asistencia"
+  },
+  "deptTable": {
+    "department": "Departamento",
+    "people": "Personas",
+    "normalHours": "Horas normales",
+    "extraHours": "Horas extra",
+    "absences": "Faltas",
+    "review": "Revisión",
+    "reviewed": "Revisado",
+    "pending": "Por revisar",
+    "reviewedTooltip": "Revisado por {{name}} · {{date}} ({{how}})",
+    "reviewedBulk": "marcar todo",
+    "reviewedSingle": "una por una",
+    "detail": "Ver detalle",
+    "reviewAll": "Marcar todo como revisado",
+    "note": "La revisión queda guardada por semana con quién la hizo; el cierre conserva la fotografía de las cifras."
+  },
+  "deptDetail": {
+    "subtitle": "{{count}} personas en la semana"
+  },
+  "reviewAllDialog": {
+    "title": "¿Marcar todos como revisados?",
+    "message": "Se marcarán los {{count}} departamentos como revisados. Puedes quitar la revisión de cualquiera desde su detalle.",
+    "confirm": "Sí, marcar todo",
+    "cancel": "Cancelar"
+  },
+  "review": {
+    "mark": "Marcar como revisado",
+    "unmark": "Quitar revisión"
+  },
+  "close": {
+    "note": "\"Cerrar pre-nómina\" se habilita cuando todos los departamentos están revisados.",
+    "allReviewed": "Todos los departamentos están revisados: ya puedes cerrar la semana.",
+    "button": "Cerrar pre-nómina",
+    "reopen": "Reabrir",
+    "closed": "Pre-nómina cerrada. Puedes reabrirla si hace falta.",
+    "closedBy": "Pre-nómina cerrada por {{name}} · {{date}}. Puedes reabrirla si hace falta.",
+    "disabled": "Faltan departamentos por revisar"
+  }
+}

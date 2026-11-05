@@ -1,0 +1,891 @@
+{
+  "title": "Punches",
+  "description": "Records from the Hikvision clocks. They are copied every 5 minutes.",
+  "status": {
+    "title": "Time clocks sync",
+    "readOnly": "Read-only: the API never changes the clocks' configuration.",
+    "states": {
+      "notConfigured": "Not configured",
+      "withoutClocks": "No clocks",
+      "paused": "Paused",
+      "running": "Syncing",
+      "error": "Offline",
+      "ok": "Up to date",
+      "pending": "Not synced"
+    },
+    "messages": {
+      "notConfigured": "The API has no clock user (CHECADOR_USER or TIME_CLOCK_USER): nothing is synced.",
+      "withoutClocks": "No time clocks have been added yet.",
+      "paused": "A clock rejected the password and its sync was paused. Update CHECADOR_PASS in the API and restart it.",
+      "running": "Syncing: {{readCount}} of {{total}} events reviewed · {{newCount}} new punches · {{remaining}} left",
+      "runningNoTotal": "Syncing: {{newCount}} new punches",
+      "error": "A clock failed on its last sync; see which one below.",
+      "pending": "The first sync has not finished yet."
+    },
+    "device": "Clock",
+    "punches": "Stored punches",
+    "lastPunch": "Last punch",
+    "lastSync": "Synced",
+    "empty": "—",
+    "offlineTitle": "The clock is not responding",
+    "offlineText": "Check that it is on and connected to the network. The punches are still stored in the clock and will be copied when it reconnects.",
+    "technical": "Technical details",
+    "retry": "Retry connection",
+    "lastRunAt": "Last attempt",
+    "readEvents": "Events reviewed",
+    "newPunches": "New punches",
+    "cursor": "Read serial",
+    "agoSeconds": "{{seconds}} s ago",
+    "agoMinutes": "{{minutes}} min ago",
+    "agoHours": "{{hours}} h {{minutes}} min ago",
+    "clock": {
+      "running": "{{readCount}} of {{total}} events reviewed · {{newCount}} new punches",
+      "runningNoTotal": "{{newCount}} new punches",
+      "paused": "Rejected the password: sync paused.",
+      "pending": "Its first sync has not finished yet."
+    },
+    "manage": "Manage clocks",
+    "onlyAccess": "Does not count for entries/exits"
+  },
+  "sync": {
+    "button": "Sync now",
+    "hint": "Pulls everything still missing from each clock (the full backlog). Runs in the background; you can keep using the system.",
+    "alreadyRunning": "Every clock is already syncing; wait for them to finish.",
+    "percent": "{{percent}}%",
+    "speed": "{{rate}} events/s",
+    "eta": "≈ {{eta}} left",
+    "toast": "Sync finished: {{count}} new punches"
+  },
+  "import": {
+    "button": "Import from clocks",
+    "running": "Importing…",
+    "hint": "Pulls every punch in the selected date range from all the clocks. It may take several minutes; you can keep using the system.",
+    "states": {
+      "running": "Importing",
+      "ok": "Import finished",
+      "error": "Import failed"
+    },
+    "progress": "{{from}} – {{to}} · {{readCount}} of {{total}} punches read · {{newCount}} new",
+    "progressNoTotal": "{{from}} – {{to}} · connecting to the clocks…",
+    "done": "{{from}} – {{to}} · {{newCount}} new punches out of {{readCount}} read",
+    "toast": "Import finished: {{count}} new punches"
+  },
+  "presets": {
+    "title": "Quick range",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "last7": "Last 7 days",
+    "custom": "Custom"
+  },
+  "filters": {
+    "title": "Filters",
+    "dateRange": "Date range",
+    "employee": "Search employee",
+    "employeePlaceholder": "Name or employee number...",
+    "method": "Method",
+    "allMethods": "Any method",
+    "clock": "Clock",
+    "allClocks": "All clocks",
+    "clear": "Clear filters"
+  },
+  "columns": {
+    "occurredAt": "Time",
+    "dateTime": "Date and time",
+    "employee": "Employee",
+    "method": "Method",
+    "clock": "Clock",
+    "serialNo": "Serial"
+  },
+  "table": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "punches": "{{count}} punches",
+    "updated": "Updated {{ago}}",
+    "range": "{{from}} – {{to}}"
+  },
+  "methods": {
+    "FACE": "Face",
+    "FINGERPRINT": "Fingerprint",
+    "CARD": "Card",
+    "OTHER": "Other"
+  },
+  "otherHint": "Not a valid punch (device code {{minor}}). It does not count for attendance.",
+  "actions": {
+    "exportCsv": "CSV",
+    "exporting": "Generating…"
+  },
+  "csv": {
+    "date": "Date",
+    "hour": "Time",
+    "employeeNumber": "Employee number",
+    "name": "Name",
+    "method": "Method",
+    "clock": "Clock",
+    "serialNo": "Device serial"
+  },
+  "errors": {
+    "status": "Could not load the time clock status",
+    "import": "Could not start the import",
+    "sync": "Could not start the sync",
+    "export": "Could not generate the CSV"
+  },
+  "report": {
+    "title": "Attendance",
+    "description": "Shifts built from the time clock punches and matched to each employee by their time clock number.",
+    "pdfTitle": "Entries and exits — Time clock",
+    "noEmployees": "The clock has no employees yet: punches cannot be matched to a person.",
+    "unlinkedNotice": "{{count}} of {{total}} clock employees are not linked to a person: their clock-ins show the clock name and the “Not linked” mark.",
+    "link": "Link"
+  },
+  "employees": {
+    "title": "Time clock employees",
+    "description": "Match each time clock number to its system user. The clock prefixes the area to the number (070562 = payroll 562), so the link is confirmed here.",
+    "kpis": {
+      "total": "In the clock",
+      "linkedCount": "Linked",
+      "withoutLink": "Not linked",
+      "registrationSuggestions": "Safe suggestions",
+      "hintTotal": "Numbers seen in their punches",
+      "hintLinked": "{{percent}}% of the clock's numbers",
+      "hintWithoutLink": "Their punches come out with no person",
+      "hintSuggestions": "They can be linked in one go",
+      "allGood": "All good"
+    },
+    "filters": {
+      "q": "Search",
+      "qPlaceholder": "Number or name (clock or system)...",
+      "status": "Status",
+      "all": "All",
+      "clear": "Clear filters"
+    },
+    "statuses": {
+      "LINKED": "Linked",
+      "UNLINKED": "Not linked",
+      "SUGGESTED": "With suggestion"
+    },
+    "columns": {
+      "number": "Clock number",
+      "name": "Name in the clock",
+      "status": "Status",
+      "punches": "Punches",
+      "lastPunch": "Last punch",
+      "user": "Linked to",
+      "actions": ""
+    },
+    "table": {
+      "title": "{{count}} numbers in the clock",
+      "titleUnknown": "Numbers in the clock"
+    },
+    "risk": {
+      "title": "{{count}} not linked",
+      "text": "Unlinked numbers do not build workdays: in the report they show up with the clock number and the \"Not linked\" mark. Review them so everyone has their entries and exits.",
+      "action": "See entries/exits"
+    },
+    "confidence": {
+      "HIGH": "Name and number match",
+      "MEDIUM": "Only the name matches"
+    },
+    "withoutLink": "Not linked",
+    "suggestion": "Suggestion",
+    "retirement": "Inactive in the system",
+    "actions": {
+      "accept": "Accept",
+      "linkEmployee": "Link",
+      "change": "Change",
+      "unlinkEmployee": "Unlink",
+      "linkSuggested": "Link {{count}} safe suggestions",
+      "cancel": "Cancel",
+      "save": "Link"
+    },
+    "dialog": {
+      "title": "Link number {{number}}",
+      "clock": "In the clock: {{name}}",
+      "user": "System user",
+      "userPlaceholder": "Search by name or number..."
+    },
+    "toasts": {
+      "linked": "{{number}} linked to {{name}}",
+      "unlinked": "{{number}} unlinked",
+      "suggested": "{{count}} employees linked"
+    },
+    "errors": {
+      "users": "Could not load the users",
+      "save": "Could not save the link"
+    }
+  },
+  "differences": {
+    "title": "Differences",
+    "open": "See differences",
+    "description": "Reconcile the clock numbers with the system's people. Pick a number and then who it belongs to; nothing is saved until you confirm.",
+    "readOnly": "Read-only: you lack the permission to link. You can see the differences, but not assign.",
+    "summary": "{{missing}} not linked · {{free}} people with no number in the clock",
+    "clock": {
+      "title": "From the clock",
+      "search": "Clock number or name",
+      "onlyMissing": "Only unlinked",
+      "empty": "No number left to link.",
+      "punches": "{{count}} punches"
+    },
+    "people": {
+      "title": "From the system",
+      "search": "Name or payroll number",
+      "onlyFree": "Only without a number",
+      "empty": "Everyone already has a number in the clock.",
+      "assigned": "Already on {{number}}"
+    },
+    "action": {
+      "assign": "Assign",
+      "change": "Change",
+      "unlink": "Unlink",
+      "cancel": "Cancel",
+      "pickClock": "Pick a clock number",
+      "pickPerson": "and then the person it belongs to",
+      "assignedWarning": "{{name}} is already assigned to {{number}}; it can also be assigned to this number."
+    },
+    "toasts": {
+      "linked": "{{number}} assigned to {{name}}",
+      "unlinked": "{{number}} unlinked"
+    },
+    "errors": {
+      "load": "Could not read the clock employees",
+      "people": "Could not load the system's people",
+      "save": "Could not save the link"
+    }
+  },
+  "clocks": {
+    "title": "Time clocks",
+    "description": "Add the time clocks and check their configuration and sync. The system only reads from the clocks.",
+    "readOnly": "Read-only: the system connects to the clocks to read their punches and configuration; it never changes anything on them. Only punches (face, fingerprint or card) are read, not door openings.",
+    "credentials": "It connects with the clock user and password configured in the API (the same for every clock).",
+    "notConfigured": "The API has no clock user: set CHECADOR_USER and CHECADOR_PASS (or TIME_CLOCK_USER and TIME_CLOCK_PASS) in the server's .env and recreate the container; it cannot connect to any clock.",
+    "empty": "No time clocks have been added yet.",
+    "usage": {
+      "countsAttendance": "Counts for entries/exits",
+      "onlyAccess": "Does not count for entries/exits",
+      "checkbox": "Counts for entries/exits",
+      "hint": "If it counts, its punches build the shifts together with the other clocks that count: the first punch of the shift is the entry and the last one the exit, whatever the clock (people may enter through one and leave through another). If it does not count, its punches are stored and shown in the table, but not used for entries/exits or overtime."
+    },
+    "actions": {
+      "registration": "Add a time clock",
+      "retirement": "Remove",
+      "edit": "Edit",
+      "update": "Read again",
+      "details": "View details",
+      "back": "Back to clocks",
+      "cancel": "Cancel",
+      "confirmRegistration": "Add",
+      "connecting": "Connecting…",
+      "confirmRetirement": "Remove",
+      "save": "Save"
+    },
+    "sync": {
+      "title": "Sync",
+      "punches": "Stored punches",
+      "lastPunch": "Last punch",
+      "lastSync": "Last sync",
+      "number": "Last event read"
+    },
+    "config": {
+      "title": "Clock configuration",
+      "hint": "Read live from the clock, without changing anything.",
+      "loading": "Reading from the clock…",
+      "name": "Name on the clock",
+      "model": "Model",
+      "serial": "Serial number",
+      "firmware": "Firmware",
+      "mac": "MAC",
+      "address": "Address",
+      "hour": "Clock time",
+      "mode": "Time setting",
+      "modes": {
+        "manual": "Manual",
+        "NTP": "Automatic (NTP)"
+      },
+      "people": "Enrolled people",
+      "peopleItem": "{{withFace}} with face · {{withFingerprint}} with fingerprint · {{withCard}} with card",
+      "inHour": "On time",
+      "inItemHour": "{{seconds}} s off the server",
+      "ahead": "{{time}} fast",
+      "behind": "{{time}} slow",
+      "driftHint": "Set the time on the clock itself (preferably with NTP). If the clocks disagree, an entry on one and an exit on another add or remove worked time.",
+      "readAt": "Read at {{hour}}"
+    },
+    "dialog": {
+      "registrationTitle": "Add a time clock",
+      "url": "Clock address",
+      "urlPlaceholder": "https://192.168.1.132",
+      "urlHint": "The IP or the address you open in the browser to log into the clock.",
+      "name": "Name (optional)",
+      "namePlaceholder": "e.g. Staff entrance",
+      "nameHint": "Leave it empty to use the name configured on the clock.",
+      "registrationNote": "The system connects to confirm the address and starts pulling its punches. It does not change the clock.",
+      "retirementTitle": "Remove {{name}}",
+      "retirementText": "It stops syncing. Its punches stay and, if you add it again, it resumes where it left off. It does not change the clock.",
+      "editTitle": "Edit {{name}}",
+      "nameEdit": "Name",
+      "editNote": "It only changes how the system uses this clock's punches. It does not change the clock."
+    },
+    "toasts": {
+      "registration": "{{name}} added: it is already pulling its punches",
+      "retirement": "{{name}} removed",
+      "edited": "{{name}} updated"
+    },
+    "errors": {
+      "status": "Could not read the clocks status",
+      "config": "Could not read the clock configuration",
+      "registration": "Could not add the clock",
+      "retirement": "Could not remove the clock",
+      "edit": "Could not update the clock"
+    },
+    "write": {
+      "label": "Allow writing to this clock",
+      "hint": "When on, the system can add, remove and register fingerprints on this clock. When off, the clock is read-only for the system."
+    }
+  },
+  "history": {
+    "open": "View sync history",
+    "title": "{{name}} history",
+    "refresh": "Refresh",
+    "empty": "No sync attempts recorded for this clock yet.",
+    "loadError": "The history could not be read; please try again.",
+    "attempts": "Successful attempts",
+    "failedCount": "{{count}} failed",
+    "failuresInARow": "Failures in a row",
+    "healthy": "The last attempt connected",
+    "checking": "Check the clock",
+    "lastOk": "Last connection",
+    "never": "Never",
+    "lastFail": "Last failure: {{at}}",
+    "lastError": "Last error",
+    "ok": "Connected",
+    "failed": "Failed",
+    "duration": "{{seconds}} s",
+    "read": "{{new}} new punches out of {{read}} events checked",
+    "hint": "The system only reads from the clocks. A failed attempt loses nothing: the device keeps the punches and the next round brings them.",
+    "triggers": {
+      "AUTO": "Automatic",
+      "MANUAL": "Sync all",
+      "IMPORT": "Import by range",
+      "REGISTER": "Clock registration"
+    }
+  },
+  "roster": {
+    "title": "Clock roster",
+    "description": "People on the clocks that count for entries and exits. What is on the clock is reviewed here; nobody is removed without a reason.",
+    "lastRun": "Last review: {{date}} · {{status}}",
+    "lastRunNone": "The roster has not been reviewed yet.",
+    "suspiciousBadge": "suspicious: no removals were created",
+    "okBadge": "no serious changes",
+    "noReadBadge": "no clock answered",
+    "run": "Review roster",
+    "running": "Reviewing…",
+    "loading": "Loading roster…",
+    "sections": {
+      "unlinked": "New on the clock",
+      "pending": "Removals waiting for a reason",
+      "reappeared": "Reappeared after a removal"
+    },
+    "empty": {
+      "unlinked": "No new unlinked people.",
+      "pending": "No pending removals.",
+      "reappeared": "Nobody reappeared."
+    },
+    "row": {
+      "number": "No. {{number}}",
+      "link": "Link",
+      "missingSince": "missing since {{date}}",
+      "reappearedAt": "reappeared on {{date}}",
+      "viewUser": "View user"
+    },
+    "form": {
+      "category": "Reason",
+      "reason": "Reason details",
+      "reasonHint": "At least {{min}} characters. Saved in the audit log.",
+      "dismiss": "Dismiss",
+      "apply": "Apply removal"
+    },
+    "errors": {
+      "load": "Could not load the roster.",
+      "run": "Could not review the roster. Try again.",
+      "remove": "Could not apply the removal.",
+      "dismiss": "Could not dismiss the removal."
+    },
+    "toast": {
+      "ran": "Roster reviewed.",
+      "suspicious": "Suspicious review: a clock lost many people. No removals were created.",
+      "removed": "Removal applied.",
+      "dismissed": "Pending removal dismissed."
+    }
+  },
+  "inspect": {
+    "title": "What the clock holds",
+    "description": "People, cards and events stored on the clock. Read-only: nothing on the device changes.",
+    "clock": "Clock",
+    "days": "Period",
+    "daysOption": "Last {{count}} day(s)",
+    "refresh": "Refresh",
+    "loading": "Reading the clock…",
+    "tabs": {
+      "overview": "Overview",
+      "users": "People",
+      "cards": "Cards",
+      "events": "Events"
+    },
+    "errors": {
+      "devices": "Could not load the clocks.",
+      "read": "Could not read the clock: {{detail}}"
+    },
+    "overview": {
+      "device": "Device",
+      "name": "Name",
+      "model": "Model",
+      "serial": "Serial",
+      "firmware": "Firmware",
+      "mac": "MAC",
+      "url": "Address",
+      "time": "Time",
+      "localTime": "Clock time",
+      "timeMode": "Mode",
+      "timeZone": "Time zone",
+      "counts": "Counts",
+      "people": "People",
+      "withFace": "With face",
+      "withFingerprint": "With fingerprint",
+      "withCard": "With card"
+    },
+    "users": {
+      "caption": "{{shown}} of {{total}} people",
+      "number": "Number",
+      "name": "Name",
+      "empty": "The clock has no people enrolled."
+    },
+    "cards": {
+      "caption": "{{shown}} of {{total}} cards",
+      "card": "Card",
+      "number": "Employee number",
+      "type": "Type",
+      "empty": "The clock has no cards."
+    },
+    "events": {
+      "caption": "{{shown}} of {{total}} events",
+      "time": "Date and time",
+      "type": "Type",
+      "number": "Number",
+      "name": "Name",
+      "empty": "No events in this period."
+    },
+    "minors": {
+      "face": "Face",
+      "fingerprint": "Fingerprint",
+      "card": "Card",
+      "failed": "Failed attempt",
+      "other": "Type {{minor}}"
+    }
+  },
+  "people": {
+    "view": {
+      "columns": {
+        "person": "Person",
+        "progress": "Progress"
+      },
+      "count": "{{count}} person(s) on the clock",
+      "title": "People on the clock",
+      "connected": "Clock connected",
+      "disconnected": "No response from the clock",
+      "refreshAll": "Refresh all",
+      "search": "Search by name or number…",
+      "empty": "Nobody matches the search.",
+      "progress": "{{done}} of {{total}}",
+      "metrics": {
+        "total": "People on the clock",
+        "face": "With face",
+        "fingerprint": "With fingerprint",
+        "card": "With card",
+        "missing": "{{count}} missing"
+      },
+      "chips": {
+        "face": "Face",
+        "fingerprint": "Fingerprint",
+        "card": "Card"
+      },
+      "filters": {
+        "all": "All",
+        "noFace": "No face",
+        "noFingerprint": "No fingerprint",
+        "noCard": "No card"
+      },
+      "more": "More actions"
+    },
+    "title": "Clock people",
+    "description": "Enroll, rename and remove people on the clock, and register or remove their cards. Every change WRITES to the clock.",
+    "warning": "Careful: changes are applied directly on the selected clock.",
+    "clock": "Clock",
+    "filter": "Search",
+    "filterPlaceholder": "Number or name",
+    "refresh": "Refresh",
+    "loading": "Reading the clock…",
+    "empty": "No people match.",
+    "noCards": "This person has no cards.",
+    "confirmRemove": "Remove from the clock?",
+    "form": {
+      "number": "Number",
+      "name": "Name",
+      "gender": "Gender",
+      "add": "Enroll",
+      "cardNo": "Card number"
+    },
+    "genders": {
+      "unknown": "Not specified",
+      "male": "Male",
+      "female": "Female"
+    },
+    "table": {
+      "number": "Number",
+      "name": "Name",
+      "cards": "Cards",
+      "cardsCount": "{{count}} card(s)",
+      "actions": "Actions",
+      "faces": "Face",
+      "fingerprints": "Fingerprints",
+      "yes": "Yes",
+      "no": "No",
+      "pending": "Reading…",
+      "none": "—"
+    },
+    "actions": {
+      "rename": "Rename",
+      "remove": "Remove",
+      "save": "Save",
+      "cancel": "Cancel",
+      "yes": "Yes, remove",
+      "no": "No",
+      "addCard": "Register card",
+      "removeCard": "Remove",
+      "view": "View record"
+    },
+    "toasts": {
+      "created": "Person enrolled on the clock.",
+      "renamed": "Name updated on the clock.",
+      "removed": "Person removed from the clock.",
+      "cardAdded": "Card registered.",
+      "cardRemoved": "Card removed."
+    },
+    "errors": {
+      "devices": "Could not load the clocks.",
+      "load": "Could not read the clock.",
+      "create": "Could not enroll.",
+      "rename": "Could not rename.",
+      "remove": "Could not remove.",
+      "addCard": "Could not register the card.",
+      "removeCard": "Could not remove the card."
+    },
+    "biometrics": {
+      "updated": "Biometrics at {{time}}",
+      "loading": "Reading faces and fingerprints from the clock…",
+      "refresh": "Refresh biometrics",
+      "error": "Could not read faces and fingerprints"
+    },
+    "confirm": {
+      "title": "Remove {{name}}",
+      "body": "{{name}} (number {{number}}) will be removed from the selected clock's memory, along with their cards. This action writes to the clock.",
+      "action": "Remove"
+    }
+  },
+  "panel": {
+    "title": "Clock panel",
+    "description": "Everything about the clock in one place: overview, people, events, camera and roster.",
+    "clock": "Clock",
+    "noClocks": "No clocks registered.",
+    "tabs": {
+      "overview": "Overview",
+      "people": "People",
+      "events": "Events",
+      "camera": "Camera",
+      "roster": "Roster",
+      "employees": "Employees",
+      "checkins": "Check-ins",
+      "clocks": "Manage"
+    },
+    "countsAttendance": "Counts for attendance",
+    "noAttendance": "Does not count for attendance",
+    "readAt": "Read at {{time}}",
+    "noRead": "No reading from the device",
+    "kpi": {
+      "device": "Device",
+      "people": "People",
+      "peopleHint": "enrolled on the clock",
+      "cards": "Cards",
+      "cardsHint": "people with a card",
+      "firmware": "Firmware"
+    }
+  },
+  "camera": {
+    "loading": "Loading camera…",
+    "noBrowser": "Your browser cannot play this video.",
+    "yes": "Yes",
+    "no": "No",
+    "noStreams": "The clock reports no video channels.",
+    "rtsp": {
+      "title": "This clock streams over RTSP",
+      "body": "Browsers do not play RTSP. To watch it here a media server (for example MediaMTX) is needed to convert it. Meanwhile, the path can be opened in VLC with its user."
+    },
+    "table": {
+      "stream": "Channel",
+      "name": "Name",
+      "transport": "Transport",
+      "resolution": "Resolution",
+      "enabled": "Enabled"
+    },
+    "errors": {
+      "read": "Could not read the clock camera."
+    }
+  },
+  "dashboard": {
+    "title": "Clock dashboard",
+    "description": "Status of each clock, alerts and today's check-ins.",
+    "refresh": "Refresh",
+    "loading": "Querying the clocks…",
+    "generatedAt": "Updated at {{time}}",
+    "noClocks": "No clocks registered.",
+    "alertsTitle": "Attention",
+    "never": "Never",
+    "counts": "Counts for attendance",
+    "noCounts": "Does not count for attendance",
+    "people": "People",
+    "cards": "Cards",
+    "punchesToday": "Check-ins today",
+    "lastSync": "Last sync",
+    "todayByHour": "Today's check-ins by hour",
+    "connection": {
+      "ONLINE": "Online",
+      "NO_RESPONSE": "No response",
+      "PAUSED_CREDENTIALS": "Credentials rejected",
+      "NOT_READ": "Not read"
+    },
+    "alerts": {
+      "linkNow": "View and link",
+      "NO_RESPONSE": "The clock does not respond",
+      "CREDENTIALS": "The clock rejected the credentials",
+      "SUSPICIOUS_ROSTER": "Suspicious roster review: no removals were created",
+      "PENDING_REMOVALS": "Removals waiting for a reason",
+      "REAPPEARED": "People who reappeared after a removal",
+      "UNLINKED": "Clock people not linked",
+      "SYNC_ERROR": "The last sync failed"
+    },
+    "kpi": {
+      "online": "Clocks online",
+      "onlineHint": "responding now",
+      "people": "People",
+      "peopleHint": "enrolled on the clocks",
+      "punches": "Check-ins today",
+      "punchesHint": "counting for attendance",
+      "alerts": "Alerts",
+      "alertsHint": "to resolve",
+      "allGood": "All good"
+    },
+    "unified": {
+      "title": "People on all clocks",
+      "search": "Search by number or name",
+      "refresh": "Refresh",
+      "empty": "Nobody matches the search",
+      "number": "Number",
+      "name": "Name",
+      "clocks": "Clocks",
+      "none": "—",
+      "clockError": "{{clock}} did not respond ({{code}})",
+      "count": "{{count}} of {{total}} people",
+      "hint": "Read-only view: shows on which clock each person is enrolled."
+    },
+    "reader": {
+      "title": "Fingerprint reader",
+      "hint": "Ask the person to place the finger on the reader and press Test. The fingerprint is not saved or applied to any clock.",
+      "finger": "Finger",
+      "test": "Test reader",
+      "testing": "Waiting for the finger…",
+      "notConfigured": "The fingerprint station is not configured. Set FINGERPRINT_STATION_URL, USER and PASS in the API.",
+      "station": "Station: {{url}}",
+      "quality": "Quality",
+      "min": "minimum {{min}}",
+      "acceptable": "Quality is enough to enroll this fingerprint.",
+      "low": "Low quality: ask for the finger again and clean the reader.",
+      "error": "The finger could not be read."
+    },
+    "sections": {
+      "status": "Status",
+      "people": "People",
+      "events": "Events",
+      "camera": "Camera",
+      "reader": "Fingerprint reader",
+      "clocks": "Clocks"
+    },
+    "clock": "Clock",
+    "personnel": {
+      "title": "Clock personnel",
+      "show": "Show personnel",
+      "refresh": "Refresh",
+      "seeAll": "See all",
+      "loading": "Reading the clock…",
+      "empty": "The clock has no people enrolled.",
+      "more": "and {{count}} more",
+      "count": "{{count}} person(s) on the clock",
+      "hint": "On-demand read from the device"
+    },
+    "device": {
+      "name": "Name",
+      "firmware": "Firmware",
+      "serial": "Serial",
+      "lastRead": "Last read"
+    },
+    "recentPunches": "Latest check-ins today",
+    "unknownPerson": "Unidentified",
+    "allClocks": "All clocks",
+    "tooltip": {
+      "punches": "{{count}} punch(es)",
+      "more": "and {{count}} more"
+    },
+    "chart": {
+      "area": "Area",
+      "bar": "Bars"
+    },
+    "table": {
+      "person": "Person",
+      "time": "Time",
+      "method": "Method"
+    }
+  },
+  "person": {
+    "punches": "Punches",
+    "punchDate": "Date",
+    "punchTime": "Time",
+    "punchMethod": "Type",
+    "noPunches": "No punches recorded.",
+    "title": "Person record",
+    "close": "Close",
+    "loading": "Reading the record…",
+    "noPhoto": "No face photo",
+    "number": "Number",
+    "link": "Linked user",
+    "notLinked": "Not linked",
+    "inactive": "(removed)",
+    "punchesToday": "Check-ins today",
+    "faces": "Registered faces",
+    "cards": "Cards",
+    "fingerprints": "Fingerprints (type and number only)",
+    "noFingerprints": "No fingerprints registered",
+    "finger": "Fingerprint {{id}}",
+    "errors": {
+      "read": "Could not read the record."
+    }
+  },
+  "employeeClock": {
+    "tiles": {
+      "faces": "Faces",
+      "fingers": "Fingerprints",
+      "cards": "Cards",
+      "punches": "Punches today"
+    },
+    "notEnrolled": "Not enrolled on this clock yet.",
+    "title": "Time clock",
+    "description": "Add this person to the clocks. For now it only writes to the test clock.",
+    "noNumber": "Add the employee number in Personnel to add this person to the clock.",
+    "empty": "No clocks registered.",
+    "loading": "Checking clocks…",
+    "state": {
+      "SIN_ALTA": "Not added",
+      "DADA_DE_ALTA": "Added",
+      "NO_RESPONSE": "No response"
+    },
+    "readOnly": "Read-only",
+    "alta": "Add to clock",
+    "confirmTitle": "Add to {{clock}}",
+    "confirmBody": "{{name}} (number {{number}}) will be created on the clock {{clock}}. Only the test clock is written.",
+    "done": "{{name}} was added to {{clock}}.",
+    "error": "Could not add to the clock.",
+    "autoDone": "Added to the clock: {{clocks}}.",
+    "fingerprint": {
+      "title": "Fingerprints",
+      "count": "{{count}} of {{max}} fingers registered",
+      "none": "No fingerprints",
+      "finger": "Finger",
+      "capture": "Capture finger",
+      "captured": "Finger {{finger}} captured",
+      "low": "Quality is low: capture again",
+      "apply": "Add",
+      "applied": "Fingerprint added to {{clock}}",
+      "confirmTitle": "Add finger {{finger}} to {{clock}}",
+      "confirmBody": "Finger {{finger}} of {{name}} (number {{number}}) will be registered on {{clock}}. Only the test clock is written.",
+      "limit": "Already has the maximum fingerprints",
+      "error": "The fingerprint operation could not be completed.",
+      "captureAgain": "Capture again",
+      "qualityValue": "Quality {{quality}}",
+      "qualityOk": "Good quality (minimum {{min}}). You can add it.",
+      "qualityLow": "Low quality (minimum {{min}}). Capture again with a clean, centered finger.",
+      "legendRegistered": "Green: already on the clock. Pick a free finger to add another.",
+      "legendPick": "Pick a free finger to capture it.",
+      "readyToCapture": "Ready to capture finger {{finger}}. Place the finger on the station's sensor.",
+      "placeFinger": "Place the finger on the station's sensor…",
+      "readOnly": "Read-only: fingerprints cannot be captured or added on this clock.",
+      "steps": {
+        "pick": "Pick finger",
+        "capture": "Capture",
+        "apply": "Add",
+        "review": "Review"
+      },
+      "capturing": "Capturing finger {{finger}} · {{seconds}} s",
+      "applying": "Sending the fingerprint to the clock and confirming…",
+      "dialogTitle": "Register finger {{finger}} on {{clock}}",
+      "close": "Done",
+      "register": "Register finger {{finger}}",
+      "cancel": "Cancel",
+      "errors": {
+        "details": "View technical detail",
+        "stationRejected": {
+          "title": "The station did not accept the capture",
+          "hint": "Check that the station is on its home screen, with no other capture in progress, and try again."
+        },
+        "stationAuth": {
+          "title": "Could not sign in to the station",
+          "hint": "Check the station user and password in the server configuration."
+        },
+        "qualityLow": {
+          "title": "Quality is low",
+          "hint": "Capture again with a clean, centered finger on the sensor."
+        },
+        "clockRejected": {
+          "title": "The clock rejected the operation",
+          "hint": "Check the connection to the test clock and try again."
+        },
+        "generic": {
+          "title": "The operation could not be completed",
+          "hint": "Try again. If it keeps failing, check the technical detail."
+        }
+      },
+      "waitingFinger": "Waiting for the finger on the station sensor… {{seconds}} s"
+    },
+    "summary": {
+      "loading": "Reading the clock…",
+      "error": "Could not read the record on the clock",
+      "faces": "{{count}} face(s)",
+      "fingers": "{{count}} fingerprint(s)",
+      "cards": "{{count}} card(s)",
+      "punches": "{{count}} punch(es) today",
+      "open": "View full record"
+    }
+  },
+  "clockSync": {
+    "bajaDone": "Removed from {{clock}}",
+    "bajaPending": "{{clock}} is read-only: the removal stays pending there",
+    "altaDone": "Added to {{clock}}",
+    "altaPending": "{{clock}} is read-only: the addition stays pending there",
+    "altaRequestFailed": "Could not enroll in the clocks",
+    "failed": "Could not update {{clock}}"
+  },
+  "summary": {
+    "punches": "Punches",
+    "clocks": "Clocks",
+    "connected": "{{count}} connected",
+    "problems": "With problems",
+    "problemsHint": "Not connecting: check their detail",
+    "allOk": "All connecting"
+  }
+}

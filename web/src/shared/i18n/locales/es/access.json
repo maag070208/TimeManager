@@ -1,0 +1,114 @@
+{
+  "title": "Bitácora de accesos",
+  "description": "Registro de entradas y salidas de personal con credencial.",
+  "filters": {
+    "dateRange": "Rango de fechas",
+    "employee": "Buscar empleado",
+    "employeePlaceholder": "Nombre o número de empleado...",
+    "includeVoided": "Mostrar anulados",
+    "type": "Tipo",
+    "allTypes": "Todos",
+    "clear": "Limpiar filtros"
+  },
+  "columns": {
+    "occurredAt": "Fecha y hora",
+    "employee": "Empleado",
+    "type": "Tipo",
+    "site": "Sitio",
+    "locationSource": "Fuente de ubicación",
+    "guard": "Guardia",
+    "status": "Estado",
+    "actions": ""
+  },
+  "types": {
+    "ENTRY": "Entrada",
+    "EXIT": "Salida"
+  },
+  "locationSources": {
+    "GPS": "GPS",
+    "SITE_ONLY": "Solo sitio",
+    "MANUAL": "Manual"
+  },
+  "methods": {
+    "QR_SCAN": "Escaneo QR",
+    "MANUAL": "Manual"
+  },
+  "status": {
+    "active": "Activo",
+    "voided": "Anulado"
+  },
+  "actions": {
+    "view": "Ver detalle",
+    "void": "Anular",
+    "exportCsv": "CSV",
+    "exporting": "Generando…",
+    "close": "Cerrar"
+  },
+  "detail": {
+    "title": "Detalle del evento",
+    "employee": "Empleado",
+    "employeeNumber": "Número de empleado",
+    "type": "Tipo",
+    "occurredAt": "Fecha y hora",
+    "deviceTimestamp": "Hora del dispositivo",
+    "site": "Sitio",
+    "guard": "Guardia",
+    "locationSource": "Fuente de ubicación",
+    "method": "Método",
+    "coordinates": "Coordenadas",
+    "accuracy": "Precisión GPS",
+    "credentialVersion": "Versión de credencial",
+    "clientEventId": "ID de evento del cliente",
+    "device": "Dispositivo",
+    "notes": "Notas",
+    "status": "Estado",
+    "voidReason": "Motivo de anulación",
+    "voidedAt": "Fecha de anulación",
+    "createdAt": "Registrado el",
+    "map": "Ubicación del escaneo",
+    "viewOnMap": "Ver en el mapa"
+  },
+  "void": {
+    "title": "Anular evento",
+    "message": "El evento se marcará como anulado. Indica el motivo.",
+    "reasonLabel": "Motivo de anulación",
+    "reasonPlaceholder": "Describe por qué se anula el evento...",
+    "reasonRequired": "El motivo es obligatorio",
+    "confirm": "Anular evento",
+    "cancel": "Cancelar",
+    "success": "El evento fue anulado correctamente",
+    "error": "No se pudo anular el evento",
+    "subtitle": "Esta acción queda en la bitácora."
+  },
+  "errors": {
+    "load": "No se pudieron cargar los eventos de acceso",
+    "detail": "No se pudo cargar el detalle del evento",
+    "sites": "No se pudieron cargar los sitios"
+  },
+  "empty": {
+    "title": "Sin registros",
+    "description": "No hay eventos de acceso con los filtros actuales."
+  },
+  "coordinates": {
+    "none": "Sin coordenadas"
+  },
+  "presets": {
+    "title": "Rangos rápidos",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "last7": "7 días"
+  },
+  "kpis": {
+    "total": "Eventos",
+    "entries": "Entradas",
+    "exits": "Salidas",
+    "voided": "Anulados"
+  },
+  "toolbar": {
+    "title": "Filtros"
+  },
+  "live": {
+    "title": "Última checada",
+    "none": "Aún no hay checadas registradas."
+  }
+}

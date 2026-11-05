@@ -1,0 +1,321 @@
+{
+  "title": "Langostin",
+  "description": "La mascota de Puerto Nuevo: todas sus animaciones y los escenarios donde vive.",
+  "state": {
+    "empty": {
+      "title": "Aún no hay nada por aquí",
+      "description": "Cuando haya registros, aparecerán en este lugar."
+    },
+    "noResults": {
+      "title": "Sin resultados",
+      "description": "Prueba con otra búsqueda o quita algún filtro."
+    },
+    "forbidden": {
+      "title": "No tienes permiso",
+      "description": "Pide acceso a quien administra el sistema si lo necesitas."
+    },
+    "error": {
+      "title": "Algo salió mal",
+      "description": "No pudimos cargar la información. Inténtalo de nuevo en un momento."
+    },
+    "offline": {
+      "title": "Sin conexión",
+      "description": "Revisa tu red; volveremos a intentarlo cuando regrese."
+    },
+    "loading": {
+      "title": "Cargando…",
+      "description": "Un momento, estoy buscando la información."
+    }
+  },
+  "guide": {
+    "label": "Langostin, guía del formulario",
+    "default": "Te acompaño mientras llenas el formulario.",
+    "close": "Cerrar guía",
+    "saving": "Guardando…",
+    "saved": "Listo, se guardó.",
+    "error": "Revisa los campos marcados antes de guardar."
+  },
+  "confirm": {
+    "title": "¿Continuar?",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
+  },
+  "kpis": {
+    "anims": "Animaciones",
+    "animsHint": "Gestos y poses de la mascota",
+    "scenes": "Escenarios",
+    "scenesHint": "Fondos donde vive la mascota",
+    "selected": "Animación elegida"
+  },
+  "stage": {
+    "title": "Escenario",
+    "description": "Elige un escenario y una animación: la mascota se dibuja encima del fondo.",
+    "showMascot": "Mostrar mascota",
+    "sceneLabel": "Escenario",
+    "animLabel": "Animación"
+  },
+  "animsSection": {
+    "title": "Animaciones",
+    "description": "Toca una animación para verla en el escenario de arriba.",
+    "search": "Buscar animación…",
+    "noResults": "Sin resultados"
+  },
+  "scenesSection": {
+    "title": "Escenarios",
+    "description": "Los ocho fondos del hotel, de la isla a la sala de servidores.",
+    "footer": "El fondo y la mascota se dibujan en un canvas de 64x40 px, sin imágenes ni dependencias."
+  },
+  "scenes": {
+    "suggested": "Sugerida",
+    "hotel": {
+      "name": "Hotel",
+      "idea": "Inicio y bienvenida"
+    },
+    "isla": {
+      "name": "Isla",
+      "idea": "Pantalla de espera, vacaciones"
+    },
+    "navidad": {
+      "name": "Navidad",
+      "idea": "Temporada navideña"
+    },
+    "playa": {
+      "name": "Playa",
+      "idea": "Verano"
+    },
+    "alberca": {
+      "name": "Alberca",
+      "idea": "Áreas del hotel"
+    },
+    "cuarto": {
+      "name": "Cuarto",
+      "idea": "Habitaciones, sin actividad"
+    },
+    "sistemas": {
+      "name": "Sistemas",
+      "idea": "Tickets, técnicos y mantenimiento"
+    },
+    "noche": {
+      "name": "Noche",
+      "idea": "Turno nocturno, fogata"
+    }
+  },
+  "groups": {
+    "basics": "Básicas",
+    "help": "Mensajes y ayuda",
+    "states": "Estados",
+    "work": "Trabajo",
+    "fun": "Diversión",
+    "season": "Temporada"
+  },
+  "anims": {
+    "idle": {
+      "name": "Reposo",
+      "hint": "La pose quieta de siempre."
+    },
+    "wave": {
+      "name": "Saludar",
+      "hint": "Levanta la garra para saludar."
+    },
+    "work": {
+      "name": "Trabajar",
+      "hint": "Escribe con elacomputador."
+    },
+    "ok": {
+      "name": "Listo",
+      "hint": "Salto de alegría con confeti."
+    },
+    "err": {
+      "name": "Error",
+      "hint": "Mueca de susto con SSHHS."
+    },
+    "think": {
+      "name": "Pensar",
+      "hint": "Mira arriba, con el globito de ideas."
+    },
+    "point": {
+      "name": "Señalar",
+      "hint": "Apunta a la siguiente opción."
+    },
+    "help": {
+      "name": "Ayuda",
+      "hint": "Muestra el ícono de interrogación."
+    },
+    "info": {
+      "name": "Info",
+      "hint": "Muestra el ícono de información."
+    },
+    "success": {
+      "name": "Éxito",
+      "hint": "Palomita verde de guardado."
+    },
+    "warn": {
+      "name": "Alerta",
+      "hint": "Triángulo amarillo de advertencia."
+    },
+    "notify": {
+      "name": "Aviso",
+      "hint": "Campanita que se mece."
+    },
+    "search": {
+      "name": "Buscar",
+      "hint": "Lupa en la mano."
+    },
+    "idea": {
+      "name": "Idea",
+      "hint": "Foco de ideas encendido."
+    },
+    "loading": {
+      "name": "Cargando",
+      "hint": "Anillo de carga girando."
+    },
+    "empty": {
+      "name": "Vacío",
+      "hint": "Sin resultados: puntos grises."
+    },
+    "sleep": {
+      "name": "Dormir",
+      "hint": "Zzz flotando."
+    },
+    "offline": {
+      "name": "Sin conexión",
+      "hint": "Nube tachada."
+    },
+    "lock": {
+      "name": "Bloqueado",
+      "hint": "Candado cerrado."
+    },
+    "404": {
+      "name": "No encontrado",
+      "hint": "Lupa con un 404."
+    },
+    "assigned": {
+      "name": "Asignado",
+      "hint": "Ticket asignado."
+    },
+    "fixing": {
+      "name": "Reparando",
+      "hint": "Herramienta girando."
+    },
+    "urgent": {
+      "name": "Urgente",
+      "hint": "Se pone rojo y avisa."
+    },
+    "resolved": {
+      "name": "Resuelto",
+      "hint": "Palomita blanca de resuelto."
+    },
+    "upload": {
+      "name": "Subiendo",
+      "hint": "Flecha de subida."
+    },
+    "love": {
+      "name": "Cariño",
+      "hint": "Corazón flotante."
+    },
+    "thanks": {
+      "name": "Gracias",
+      "hint": "Brindis y destellos."
+    },
+    "dance": {
+      "name": "Baile",
+      "hint": "Baila moviéndose de lado."
+    },
+    "birthday": {
+      "name": "Cumpleaños",
+      "hint": "Gorro de fiesta y confeti."
+    },
+    "coffee": {
+      "name": "Café",
+      "hint": "Taza humeante."
+    },
+    "eat": {
+      "name": "Comer",
+      "hint": "Se come el bocadillo."
+    },
+    "key": {
+      "name": "Llave",
+      "hint": "Saca la llave."
+    },
+    "bell": {
+      "name": "Campana",
+      "hint": "Repica la campana."
+    },
+    "beach": {
+      "name": "Playa",
+      "hint": "Gafas de sol y sol de fondo."
+    },
+    "christmas": {
+      "name": "Navidad",
+      "hint": "Gorro de Santa."
+    },
+    "halloween": {
+      "name": "Halloween",
+      "hint": "Calavera de calabaza."
+    }
+  },
+  "help": {
+    "name": "Langostín",
+    "online": "En línea",
+    "restart": "Empezar de nuevo",
+    "close": "Cerrar ayuda",
+    "open": "Abrir la ayuda de Langostín",
+    "title": "Ayuda de Langostín",
+    "contextLabel": "Estás en:",
+    "onThisScreen": "En esta pantalla",
+    "placeholder": "Escríbeme qué necesitas…",
+    "hint": "¿Te ayudo? Estás en {{screen}}",
+    "context": "Estás en {{screen}}. {{explain}}",
+    "going": "Claro, te llevo a {{screen}}.",
+    "unknown": "No tengo esa respuesta registrada. Puedo llevarte a la pantalla o, si es algo que falla, conviene levantar un ticket.",
+    "goTo": "Ir a…",
+    "surprise": "Sorpréndeme",
+    "greet": "Felicitar",
+    "switchRole": "Cambiar el rol con el que se explica",
+    "pause": "Pausa para un café ☕",
+    "hello": "¡Hola! ¿En qué te ayudo?",
+    "back": "Volver a la ayuda",
+    "ticketTitle": "Nuevo ticket con Langostín",
+    "createTicket": "Crear ticket aquí",
+    "agentTicket": "Nuevo ticket",
+    "ticketOffer": "Puedo darte de alta el ticket nuevo yo mismo, sin salir de esta pantalla. ¿Lo hacemos?",
+    "ticketOfferBubble": "¿Un ticket nuevo? Te lo levanto yo aquí mismo.",
+    "later": "Ahora no",
+    "agentTask": "Crear tarea aquí",
+    "taskOffer": "Puedo darte de alta una tarea de cualquiera de estos tickets, sin salir del tablero. ¿La armamos?",
+    "taskOfferBubble": "¿Una tarea nueva? Te la levanto yo aquí mismo.",
+    "agentEmployee": "Buscar a una persona",
+    "agentEmployeeForm": "Rellenar desde aquí",
+    "agentAct": "Nueva acta aquí",
+    "actOfferBubble": "¿Un acta nueva? Te la levanto yo aquí mismo.",
+    "agentSchedule": "Crear horario",
+    "scheduleOfferBubble": "¿Un horario nuevo? Te lo armo yo aquí mismo.",
+    "agentScheduleEdit": "Editar horario"
+  },
+  "season": {
+    "halloween": {
+      "name": "Halloween y Día de Muertos",
+      "greeting": "¡Feliz Halloween! 🎃 Cuidado con los fantasmas del inventario."
+    },
+    "navidad": {
+      "name": "Navidad",
+      "greeting": "¡Felices fiestas! 🎄 Que todos los tickets lleguen cerrados."
+    },
+    "verano": {
+      "name": "Verano en Baja",
+      "greeting": "¡Hola, hola! 🏖️ Hoy hay sol y playa, pero primero el trabajo."
+    },
+    "amor": {
+      "name": "San Valentín",
+      "greeting": "¡Feliz día del amor y la amistad! 💘"
+    },
+    "patrias": {
+      "name": "Fiestas patrias",
+      "greeting": "¡Viva México! 🇲🇽 ¿Un taquito y seguimos?"
+    },
+    "ano": {
+      "name": "Año Nuevo",
+      "greeting": "¡Feliz Año Nuevo! 🎉 A tener un gran año."
+    }
+  }
+}

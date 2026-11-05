@@ -1,0 +1,84 @@
+name: Build & Push Docker Hub (API)
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  IMAGE: axzydev/axzy_ptnv_api
+
+jobs:
+  # Aplica todas las migraciones sobre una base vacia antes de publicar: una
+  # migracion que depende de otra con nombre posterior falla aqui y no en el
+  # servidor del cliente (paso con 20260925222428_permisos_catalogo).
+  migraciones:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cartas
+          POSTGRES_PASSWORD: cartas
+          POSTGRES_DB: cartas
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cartas -d cartas"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Migraciones sobre una base vacia
+        env:
+          DATABASE_URL: postgresql://cartas:cartas@localhost:5432/cartas?schema=public
+        run: npx --yes prisma@5.22.0 migrate deploy
+
+  docker:
+    needs: migraciones
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: tag
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          # amd64 nativo: el runner es x86_64. Antes se compilaba también arm64
+          # por QEMU (emulación) y se llevaba ~4 min por imagen.
+          platforms: linux/amd64
+          # Sin atestaciones: el manifiesto de provenance/SBOM alarga el export.
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

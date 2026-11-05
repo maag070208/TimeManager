@@ -1,0 +1,22 @@
+{
+  "placeholder": "",
+  "title": "Notifications",
+  "description": "Notifications and alerts center",
+  "markAllRead": "Mark all as read",
+  "loading": "Loading…",
+  "empty": "No notifications",
+  "newNotification": "New notification",
+  "emptyHint": "New notices will show up here.",
+  "unread": "Unread",
+  "day": {
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "filters": {
+    "all": "All",
+    "unread": "Unread",
+    "tickets": "Tickets",
+    "people": "People",
+    "alerts": "Alerts"
+  }
+}

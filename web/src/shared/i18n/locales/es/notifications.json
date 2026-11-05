@@ -1,0 +1,22 @@
+{
+  "placeholder": "",
+  "title": "Notificaciones",
+  "description": "Centro de notificaciones y alertas",
+  "markAllRead": "Marcar todo como leído",
+  "loading": "Cargando…",
+  "empty": "Sin notificaciones",
+  "newNotification": "Nueva notificación",
+  "emptyHint": "Cuando haya avisos nuevos, aparecerán aquí.",
+  "unread": "Sin leer",
+  "day": {
+    "today": "Hoy",
+    "yesterday": "Ayer"
+  },
+  "filters": {
+    "all": "Todas",
+    "unread": "Sin leer",
+    "tickets": "Tickets",
+    "people": "Personal",
+    "alerts": "Alertas"
+  }
+}

@@ -1,0 +1,388 @@
+[
+  {
+    "key": "reports.view",
+    "module": "Reportes",
+    "name": "Ver reportes",
+    "description": "Ver reportes: entregas (cartas/items), dispositivos asignados, inventario completo y bitácora de salidas",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "reports.export",
+    "module": "Reportes",
+    "name": "Exportar reportes",
+    "description": "Exportar reportes: CSV server-side y PDF client-side de la página de reportes",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "hr.records",
+    "module": "Personal",
+    "name": "Ver expediente del personal",
+    "description": "Ver y editar el expediente completo: datos, documentos, foto, descuentos",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "hr.disciplinary_reports",
+    "module": "Personal",
+    "name": "Actas administrativas",
+    "description": "Levantar y consultar actas administrativas",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "users.view",
+    "module": "Usuarios",
+    "name": "Ver usuarios",
+    "description": "Ver cuentas de usuario",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "users.create",
+    "module": "Usuarios",
+    "name": "Crear usuarios",
+    "description": "Alta de cuentas e importación desde Excel",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "users.edit",
+    "module": "Usuarios",
+    "name": "Editar usuarios",
+    "description": "Editar cuentas, cambiar contraseñas, dar de baja y reactivar",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 3
+  },
+  {
+    "key": "users.delete",
+    "module": "Usuarios",
+    "name": "Eliminar usuarios",
+    "description": "Eliminar cuentas",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 4
+  },
+  {
+    "key": "users.permissions",
+    "module": "Usuarios",
+    "name": "Cambiar permisos",
+    "description": "Otorgar y quitar excepciones de permisos; cambiar el rol (solo con alcance TODO)",
+    "scopes": [
+      "AREA",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "departments.manage",
+    "module": "Catálogos",
+    "name": "Administrar departamentos",
+    "description": "Crear y editar departamentos y subáreas",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "catalogs.manage",
+    "module": "Catálogos",
+    "name": "Administrar catálogos",
+    "description": "Categorías de ticket, tipos de dispositivo, géneros, tipos de sangre y de documento",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "access.scan",
+    "module": "Control de acceso",
+    "name": "Escanear credenciales",
+    "description": "Escanear credenciales, registrar entradas/salidas y ver sus registros del día",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "access.log",
+    "module": "Control de acceso",
+    "name": "Ver bitácora de acceso",
+    "description": "Bitácora, reporte de entradas/salidas y estadísticas",
+    "scopes": [
+      "AREA",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "access.void",
+    "module": "Control de acceso",
+    "name": "Anular registros de acceso",
+    "description": "Anular registros de la bitácora",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 3
+  },
+  {
+    "key": "access.sites",
+    "module": "Control de acceso",
+    "name": "Administrar sitios",
+    "description": "Administrar sitios (porterías)",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 4
+  },
+  {
+    "key": "time_clock.view",
+    "module": "Checador",
+    "name": "Ver checadas",
+    "description": "Checadas y reporte de entradas/salidas del reloj",
+    "scopes": [
+      "AREA",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "time_clock.sync",
+    "module": "Checador",
+    "name": "Sincronizar checador",
+    "description": "Importar por fechas y forzar la sincronización",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "time_clock.link",
+    "module": "Checador",
+    "name": "Vincular números del reloj",
+    "description": "Vincular números del reloj con empleados",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 3
+  },
+  {
+    "key": "time_clocks.manage",
+    "module": "Checador",
+    "name": "Administrar relojes",
+    "description": "Alta, baja y configuración de relojes (con los relojes solo se lee)",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "schedules.view",
+    "module": "Horarios",
+    "name": "Ver horarios",
+    "description": "Consultar horarios y a quién están asignados",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "schedules.manage",
+    "module": "Horarios",
+    "name": "Administrar horarios",
+    "description": "Crear horarios y asignarlos en bloque",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "overtime.view",
+    "module": "Horas extra",
+    "name": "Ver horas extra",
+    "description": "Consultar y exportar horas extra",
+    "scopes": [
+      "AREA",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "overtime.approve",
+    "module": "Horas extra",
+    "name": "Aprobar horas extra",
+    "description": "Aprobar horas extra",
+    "scopes": [
+      "AREA",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "dashboard.view",
+    "module": "Sistema",
+    "name": "Ver panel",
+    "description": "Panel de indicadores en el inicio",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "audit.view",
+    "module": "Sistema",
+    "name": "Ver auditoría",
+    "description": "Auditoría del sistema",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "system.configure",
+    "module": "Sistema",
+    "name": "Configurar el sistema",
+    "description": "Configuración general y correos",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "roles.manage",
+    "module": "Sistema",
+    "name": "Administrar roles y permisos",
+    "description": "Editar la matriz de roles y el catálogo de permisos",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "payroll.view",
+    "module": "Pre Nómina",
+    "name": "Ver pre nómina",
+    "description": "Consultar y exportar la asistencia semanal para pre nómina",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "payroll.review",
+    "module": "Pre Nómina",
+    "name": "Revisar departamentos",
+    "description": "Marcar o desmarcar departamentos como revisados en la pre nómina",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 2
+  },
+  {
+    "key": "payroll.close",
+    "module": "Pre Nómina",
+    "name": "Cerrar pre nómina",
+    "description": "Cerrar y reabrir la pre nómina de una semana",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 3
+  },
+  {
+    "key": "attendance.view",
+    "module": "Asistencia",
+    "name": "Ver asistencia",
+    "description": "Consultar entradas, salidas, faltas y retardos (propia, de su área o de todos)",
+    "scopes": [
+      "NONE",
+      "OWN",
+      "AREA",
+      "ALL"
+    ],
+    "sensitive": false,
+    "sortOrder": 1
+  },
+  {
+    "key": "time_clock.write",
+    "module": "Checador",
+    "name": "Escribir en el reloj",
+    "description": "Dar de alta, editar y dar de baja personas y tarjetas en el reloj, y dar de alta desde Personal. Solo el reloj de prueba acepta escritura desde la web.",
+    "scopes": [
+      "NONE",
+      "ALL"
+    ],
+    "sensitive": true,
+    "sortOrder": 4
+  }
+]

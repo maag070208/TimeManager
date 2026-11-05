@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="130 50 530 590" width="530" height="590" role="img" aria-label="Puerto Nuevo Baja Hotel &amp; Villas">
+  <title>Puerto Nuevo Baja Hotel &amp; Villas</title>
+  <g class="towers">
+    <g class="t1"><path d="M246 176 H364 V605 H246 Z" fill="#FFFFFF"/>
+      <path d="M364 182 V605" stroke="#0E5A80" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <path class="win w1" fill="#6E3B2F" d="M282 342 V240 A26 26 0 0 1 334 240 V342 Z"/>
+      <path class="win w2" fill="#6E3B2F" d="M282 386 H334 V450 H282 Z"/>
+      <path class="slab" d="M244 166 C300 163 350 165 384 178" stroke="#0E5A80" stroke-width="22" stroke-linecap="round" fill="none"/></g>
+    <g class="t2"><path d="M366 244 H440 V605 H366 Z" fill="#FFFFFF"/>
+      <path d="M440 252 V605" stroke="#0E5A80" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <path class="win w3" fill="#6E3B2F" d="M378 316 V270 A12 12 0 0 1 402 270 V316 Z"/>
+      <path class="win w4" fill="#6E3B2F" d="M386 444 V382 A16 16 0 0 1 418 382 V444 Z"/>
+      <path class="win w5" fill="#6E3B2F" d="M386 470 H418 V532 H386 Z"/>
+      <path class="slab" d="M372 234 C402 233 430 239 452 254" stroke="#0E5A80" stroke-width="18" stroke-linecap="round" fill="none"/>
+      <path class="slab" d="M380 338 C410 334 442 340 466 354" stroke="#0E5A80" stroke-width="20" stroke-linecap="round" fill="none"/></g>
+  </g>
+  <clipPath id="pnsea"><path d="M440 447 H626 V572 C626 594 612 605 584 605 H440 Z"/></clipPath>
+  <g class="sea" clip-path="url(#pnsea)">
+    <path d="M440 447 H626 V572 C626 594 612 605 584 605 H440 Z" fill="#0E5A80"/>
+    <g class="swell"><path fill="#7FD0EA" d="M420 440 H640 V452 C606 470 572 468 540 482 C510 494 506 504 480 510 C462 514 450 524 436 532 Z"/>
+    <path class="foam" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" d="M640 452 C606 470 572 468 540 482 C510 494 506 504 480 510 C462 514 450 524 438 534"/></g>
+    <!-- fill="none" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="3" stroke-linecap="round" -->
+  </g>
+  <g class="arch" fill="none" stroke="#0E5A80" stroke-linecap="round" stroke-linejoin="round">
+    <path class="dr d1" pathLength="1" stroke-width="20" d="M292 604 C240 606 196 604 184 592 C170 578 170 520 170 440 C170 330 190 230 238 148"/>
+    <path class="dr d2" pathLength="1" stroke-width="22" d="M268 122 C330 82 420 70 490 100 C570 135 618 220 626 330 L627 560 C627 590 612 604 580 605 L452 605"/>
+  </g>
+  
+</svg>

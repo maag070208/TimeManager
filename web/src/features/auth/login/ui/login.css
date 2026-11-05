@@ -1,0 +1,158 @@
+/* Login: superficies con soporte de modo oscuro (la app alterna la clase `.dark` en <html>). */
+
+.login-canvas {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 12%, #ffffff) 0%,
+    #f0f9ff 45%,
+    #ffffff 100%
+  );
+}
+.dark .login-canvas {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 25%, #020617) 0%,
+    #020617 60%
+  );
+}
+
+.login-card {
+  /* La app reduce el `rem` raíz (densidad), así que aquí se usan px. */
+  width: 100%;
+  max-width: 980px !important;
+  background: #ffffff;
+  box-shadow: 0 30px 80px -20px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+.dark .login-card {
+  background: #0f172a;
+}
+.dark .login-card {
+  box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.6);
+}
+
+/* Panel de marca: azul profundo derivado del primario del tema. */
+.login-brand {
+  background: linear-gradient(
+    160deg,
+    var(--color-primary) 0%,
+    color-mix(in srgb, var(--color-primary) 72%, #000000) 100%
+  );
+}
+
+/* Texto y superficies sobre el panel de marca. Selectores con `.login-brand`
+   para ganarle al CSS sin capa del kit (pinta `h2` y los bordes). */
+.login-brand .login-on-brand {
+  color: #ffffff;
+}
+.login-brand .login-on-brand-muted {
+  color: rgb(255 255 255 / 0.72);
+}
+.login-brand .login-glass {
+  background: rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+.login-brand .login-chip {
+  background: rgb(255 255 255 / 0.14);
+  color: #ffffff;
+}
+.login-brand .login-orb {
+  background: rgb(255 255 255 / 0.07);
+}
+.login-brand .login-orb--faint {
+  background: rgb(255 255 255 / 0.04);
+}
+.login-brand .login-logo-tile {
+  background: #ffffff;
+  box-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.45);
+}
+.login-brand .login-avatar {
+  border: 3px solid color-mix(in srgb, var(--color-primary) 80%, #000000);
+  background: #ffffff;
+}
+
+.login-form-panel {
+  background: #ffffff;
+}
+/* Campos más altos que la densidad global (0.85): el login respira. */
+.login-form-panel input {
+  min-height: 44px !important;
+  height: 44px !important;
+  font-size: 14px !important;
+  padding-inline: 14px;
+}
+/* Etiquetas de campo un punto más grandes en el login. */
+.login-form-panel label {
+  font-size: 12.5px !important;
+}
+.dark .login-form-panel {
+  background: #0f172a;
+}
+
+.login-heading {
+  color: #0f172a;
+}
+.dark .login-heading {
+  color: #f1f5f9;
+}
+
+.login-muted {
+  color: #64748b;
+}
+.dark .login-muted {
+  color: #94a3b8;
+}
+
+.login-badge {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.dark .login-badge {
+  color: #e0f2fe;
+}
+
+/* Misma silueta de píldora que los campos del kit. */
+.login-submit {
+  border-radius: 9999px;
+  min-height: 44px !important;
+  font-size: 13.5px !important;
+}
+
+/* Punto de "operación en tiempo real": pulso solo si el usuario no pide menos movimiento. */
+.login-pulse {
+  background: #4ade80;
+  animation: login-pulse 1.8s ease-out infinite;
+}
+@keyframes login-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(74 222 128 / 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgb(74 222 128 / 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-pulse {
+    animation: none;
+  }
+}
+
+/* Entrada escalonada del panel de marca (respeta `prefers-reduced-motion`). */
+.login-rise {
+  animation: login-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.login-rise-1 { animation-delay: 60ms; }
+.login-rise-2 { animation-delay: 110ms; }
+.login-rise-3 { animation-delay: 160ms; }
+.login-rise-4 { animation-delay: 240ms; }
+@keyframes login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-rise,
+  .bento-stagger > * {
+    animation: none !important;
+  }
+}

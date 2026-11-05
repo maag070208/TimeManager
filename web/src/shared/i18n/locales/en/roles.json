@@ -1,0 +1,593 @@
+{
+  "title": "Roles, permissions and policies",
+  "description": "Define what each role can do and review anyone's access.",
+  "tabs": {
+    "access": "Access by person",
+    "catalog": "Catalog",
+    "policies": "Policies",
+    "roles": "Roles",
+    "matrix": "Compare roles",
+    "activity": "Activity"
+  },
+  "scope": {
+    "NONE": "None",
+    "OWN": "Own",
+    "AREA": "Area",
+    "ALL": "All"
+  },
+  "scopePlain": {
+    "NONE": "No access",
+    "OWN": "Only their own",
+    "AREA": "Their area",
+    "ALL": "Everything"
+  },
+  "role": {
+    "ADMIN": "ADMIN",
+    "MANAGER": "MANAGER",
+    "AREA_HEAD": "AREA LEAD",
+    "EMPLOYEE": "EMPLOYEE",
+    "HUMAN_RESOURCES": "HUMAN RESOURCES",
+    "CHEF": "CHEF",
+    "GUARD": "GUARD"
+  },
+  "matrix": {
+    "permission": "Permission",
+    "sensitive": "Sensitive",
+    "inactive": "Inactive",
+    "changeCount": "{{count}} pending changes",
+    "changeCount_one": "{{count}} pending change",
+    "changeCount_other": "{{count}} pending changes",
+    "searchPlaceholder": "Search permission by name, key or module…",
+    "noResults": "No permissions match the search",
+    "adminLocked": "ADMIN cannot lose the ability to manage roles and permissions",
+    "saving": "Saving...",
+    "saved": "Changes saved. Users with those roles will see them after reloading or returning to the window.",
+    "discard": "Discard",
+    "granted": "Yes"
+  },
+  "access": {
+    "newRole": "New role",
+    "systemRole": "Base",
+    "inactiveRole": "Inactive"
+  },
+  "roleDialog": {
+    "newTitle": "New role",
+    "editTitle": "Edit role",
+    "key": "Internal key",
+    "keyHint": "UPPERCASE and underscores. Used by the system and cannot be changed later.",
+    "staff": "Has a staff record",
+    "staffHint": "People with this role show up in time clock, payroll and overtime.",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "updated": "Role updated",
+    "deleteTitle": "Delete role",
+    "deleteConfirm": "Delete the role \"{{role}}\"? This cannot be undone.",
+    "deleted": "Role deleted",
+    "systemLocked": "Base role: its name cannot be changed.",
+    "errors": {
+      "key": "Use UPPERCASE, digits and underscores, starting with a letter",
+      "name": "Type the role name",
+      "keyTaken": "A role with that key already exists",
+      "copy": "Pick the role to copy permissions from"
+    },
+    "duplicateTitle": "Duplicate role",
+    "copyName": "{{name}} (copy)",
+    "duplicated": "Role duplicated with its permissions",
+    "nameQuestion": "What is the role called?",
+    "nameHint": "The name everyone will see, e.g. the job title.",
+    "namePlaceholder": "E.g. Warehouse assistant",
+    "keyPreview": "Internal key:",
+    "descriptionQuestion": "What is it for? (optional)",
+    "descriptionPlaceholder": "E.g. Receives goods and records warehouse entries.",
+    "startQuestion": "Which permissions does it start with?",
+    "startBlank": "No permissions",
+    "startBlankHint": "Start from scratch and tick what it needs.",
+    "startCopy": "Copy from another role",
+    "startCopyHint": "Start like a similar role and adjust it afterwards.",
+    "copyPlaceholder": "Pick the role to copy…",
+    "copyOption": "{{name}} ({{count}} permissions)",
+    "groupQuestion": "Which group? (optional)",
+    "groupHint": "Only used to sort the role list.",
+    "groupPlaceholder": "E.g. Operations",
+    "moreOptions": "More options",
+    "order": "Order in the list",
+    "orderHint": "Lower numbers appear first.",
+    "saveChanges": "Save changes",
+    "create": "Create role",
+    "createdNext": "Role created. Now choose what it can do."
+  },
+  "help": {
+    "open": "Help",
+    "title": "How access control works",
+    "intro": "Every request goes through three filters. Here you manage the second one (what each role can do) and the third one (context rules).",
+    "scopeTitle": "Data scope",
+    "scopeIntro": "Some permissions (the ones showing an adjust button) also define which data they apply to:",
+    "scopeOwnExample": "Only their own: for example, just their own tickets or tasks.",
+    "scopeAreaExample": "Their area: the data of the people in their department.",
+    "scopeAllExample": "Everything: the whole company.",
+    "scopeNote": "Checking one of these permissions applies the most cautious scope; you can adjust it with the adjust button next to the checkbox.",
+    "appliesTitle": "Who it applies to",
+    "appliesBody": "The change is for the whole role: everyone with that role sees it once their session updates (on reload or when returning to the window). Your own session does not change unless you have that role.",
+    "layers": {
+      "identity": {
+        "title": "Identity",
+        "body": "The session is valid and the account is active."
+      },
+      "rbac": {
+        "title": "Permission (RBAC)",
+        "body": "One of their roles (or an exception) grants the action's permission, with its scope."
+      },
+      "abac": {
+        "title": "Context (ABAC)",
+        "body": "Policies check the record: status, amount, who created it. The first one that matches decides."
+      }
+    },
+    "rolesTitle": "Roles and multi-role",
+    "rolesBody": "A role groups the permissions of a job. A person has a primary role and may have additional roles: they get the sum of all (highest scope wins). E.g. HR + Inventory = both.",
+    "exceptionsTitle": "Per-person exceptions",
+    "exceptionsBody": "For one person, an exception replaces what their roles say for a permission (raise, lower or remove), with a reason and expiry. They are managed in the user profile.",
+    "tips": {
+      "leastPrivilege": "Least privilege: start with \"Read only\" and grant only what the job needs.",
+      "duplicate": "For a job similar to another, use Duplicate and adjust; don't edit a base role for a particular case.",
+      "sod": "Segregation of duties: whoever creates an order should not approve it; policies enforce that.",
+      "test": "Before closing, test with \"Can they…?\" in Access by person."
+    }
+  },
+  "catalog": {
+    "title": "Permission catalog",
+    "subtitle": "The system permissions. They are not deleted: they are deactivated.",
+    "new": "New permission",
+    "createTitle": "New permission",
+    "editTitle": "Edit permission",
+    "sensitive": "Sensitive",
+    "notSensitive": "Not sensitive",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "activated": "Permission activated",
+    "deactivated": "Permission deactivated",
+    "created": "Permission created successfully",
+    "updated": "Permission updated successfully",
+    "saveError": "Could not save the permission",
+    "saving": "Saving...",
+    "columns": {
+      "key": "Key",
+      "module": "Module",
+      "name": "Name",
+      "scopes": "Scopes",
+      "sensitive": "Sensitive",
+      "sortOrder": "Order",
+      "active": "Status"
+    },
+    "fields": {
+      "key": "Key (module.action)",
+      "sortOrder": "Order"
+    },
+    "errors": {
+      "key": "The key must use the module.action format (lowercase, digits and underscore)",
+      "module": "Module is required",
+      "name": "Name is required",
+      "scopes": "Select at least one scope",
+      "sortOrder": "Order must be an integer greater than or equal to 0"
+    },
+    "wizard": {
+      "name": "What is the permission called?",
+      "nameHint": "Write it as an action: what the person will be able to do.",
+      "namePlaceholder": "E.g. Export reports",
+      "descriptionPlaceholder": "What exactly it allows (optional)",
+      "module": "Which module?",
+      "modulePlaceholder": "E.g. Reports",
+      "scope": "How is it granted?",
+      "scopeHint": "Choose whether it is a plain yes/no or depends on which records they can touch.",
+      "yesNo": "Yes or no",
+      "yesNoHint": "They have it or not. E.g. export reports.",
+      "ownAreaAll": "Own, their area or all",
+      "ownAreaAllHint": "E.g. view tickets: only theirs, their department's or all.",
+      "areaAll": "Their area or all",
+      "areaAllHint": "E.g. view punches: their department's or everyone's.",
+      "custom": "Custom",
+      "sensitive": "Sensitive permission",
+      "sensitiveHint": "Gives control over security or sensitive data: flagged for a double-check and only ADMIN grants it as an exception.",
+      "technical": "Technical data",
+      "keyHint": "module.action in lowercase. The key the code uses; it cannot be changed.",
+      "create": "Create permission"
+    }
+  },
+  "policies": {
+    "new": "New policy",
+    "newTitle": "New policy",
+    "editTitle": "Edit policy",
+    "edit": "Edit",
+    "inactive": "Inactive",
+    "priorityHint": "Lower number = evaluated first. The first matching rule decides; if none matches, it is allowed (the permission already authorized it).",
+    "addCondition": "Add condition",
+    "noConditions": "No conditions: the rule always applies (to whoever it targets).",
+    "deleteTitle": "Delete policy",
+    "deleteConfirm": "Delete the policy \"{{name}}\"?",
+    "save": "Save",
+    "saving": "Saving...",
+    "created": "Policy created",
+    "updated": "Policy updated",
+    "deleted": "Policy deleted",
+    "loadError": "Could not load the policies",
+    "saveError": "Could not save the policy",
+    "effect": {
+      "ALLOW": "Allow",
+      "DENY": "Deny"
+    },
+    "operator": {
+      "eq": "equals",
+      "neq": "not equals",
+      "gt": "greater than",
+      "gte": "greater or equal",
+      "lt": "less than",
+      "lte": "less or equal",
+      "in": "is in",
+      "not_in": "is not in",
+      "is_empty": "is empty",
+      "is_not_empty": "is not empty"
+    },
+    "fields": {
+      "description": "Description",
+      "active": "Active"
+    },
+    "errors": {
+      "condition": "Fill in the value of every condition",
+      "roles": "Pick at least one role or choose \"Everyone\""
+    },
+    "if": "If",
+    "always": "Always",
+    "and": "and",
+    "ref": {
+      "userId": "the same person",
+      "departmentId": "their department",
+      "role": "their role"
+    },
+    "addRule": "Rule",
+    "pickValue": "Pick…",
+    "removeCondition": "Remove condition",
+    "wizard": {
+      "action": "For which action?",
+      "actionHint": "The rule is checked when someone with the permission tries to do this.",
+      "effect": "What should happen?",
+      "deny": "Block",
+      "denyHint": "The action is not allowed, even if the role has the permission.",
+      "allow": "Let through",
+      "allowHint": "Allowed, and the following rules are not checked (useful as an exception).",
+      "when": "When?",
+      "whenHint": "Conditions on the record. With several, all must be met.",
+      "who": "Who does it apply to?",
+      "everyone": "Everyone",
+      "everyoneHint": "Anyone who has the permission.",
+      "someRoles": "Only some roles",
+      "someRolesHint": "Pick the roles it applies to.",
+      "preview": "This is the rule",
+      "name": "Rule name (optional)",
+      "nameHint": "If left empty, the suggested one is used.",
+      "order": "Check order",
+      "activeHint": "An inactive rule is kept but not checked."
+    },
+    "isRole": "is",
+    "or": "or",
+    "verdict": {
+      "ALLOW": "can",
+      "DENY": "cannot"
+    },
+    "explainer": "Rules add conditions to a permission the role already has. Example: even if a manager can approve purchase orders, they cannot approve the ones they created. They are checked top to bottom and the first one that applies decides.",
+    "story": {
+      "whoCan": "Whoever can",
+      "otherwise": "Any other case → can (their role permission is enough).",
+      "noRules": "No rules: their role permission is enough."
+    },
+    "moveUp": "Check earlier",
+    "moveDown": "Check later",
+    "turnOn": "Turn rule on",
+    "turnOff": "Turn rule off"
+  },
+  "errors": {
+    "load": "Error loading the permissions",
+    "saveMatrix": "Error saving the matrix",
+    "create": "Error creating the permission",
+    "update": "Error updating the permission",
+    "toggle": "Error changing the permission status",
+    "createRole": "Error creating the role",
+    "updateRole": "Error updating the role",
+    "deleteRole": "Error deleting the role",
+    "members": "Error loading people",
+    "addMember": "Could not add the role",
+    "removeMember": "Could not remove the role",
+    "access": "Could not load the person's access",
+    "simulate": "Could not run the test"
+  },
+  "verb": {
+    "view": "View",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "other": "Business action"
+  },
+  "level": {
+    "FULL": "Full",
+    "PARTIAL": "Partial",
+    "READ": "Read only",
+    "NONE": "No access"
+  },
+  "bulk": {
+    "all": "All",
+    "read": "Read only",
+    "none": "None"
+  },
+  "editor": {
+    "unsaved": "Unsaved",
+    "filter": {
+      "all": "All",
+      "granted": "Granted",
+      "missing": "Not granted",
+      "sensitive": "Sensitive"
+    },
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all"
+  },
+  "matrixView": {
+    "allModules": "All modules",
+    "onlyDiff": "Only differences",
+    "legend": {
+      "yes": "Yes"
+    },
+    "hint": "Click a cell to grant, raise the scope or remove.",
+    "openRole": "Open role",
+    "toggleRole": "Show or hide this role"
+  },
+  "roleList": {
+    "search": "Search role…",
+    "noModule": "No module",
+    "permissions_one": "{{count}} permission",
+    "permissions_other": "{{count}} permissions",
+    "pick": "Pick a role from the list."
+  },
+  "roleDetail": {
+    "noDescription": "No description.",
+    "edit": "Edit",
+    "duplicate": "Duplicate",
+    "more": "More actions",
+    "activate": "Activate role",
+    "deactivate": "Deactivate role",
+    "activated": "Role activated",
+    "deactivated": "Role deactivated",
+    "activateConfirm": "Activate the role \"{{role}}\"? Its permissions apply again to whoever has it.",
+    "deactivateConfirm": "Deactivate the role \"{{role}}\"? Its {{count}} person(s) stop receiving its permissions immediately.",
+    "deleteBlocked": "Delete ({{count}} have it)",
+    "tabs": {
+      "permissions": "Permissions",
+      "members": "People",
+      "screens": "Screens",
+      "policies": "Policies"
+    }
+  },
+  "members": {
+    "addLabel": "Add a person to this role",
+    "addPlaceholder": "Search by name or username…",
+    "roleInactive": "The role is inactive",
+    "add": "Add",
+    "addHint": "Added as an additional role: the person keeps their primary role and gains this one's permissions.",
+    "added": "Role {{role}} added",
+    "removed": "Role removed from {{name}}",
+    "search": "Search person…",
+    "empty": "Nobody has this role yet.",
+    "primary": "primary",
+    "extra": "additional",
+    "inactive": "Inactive",
+    "exceptions_one": "{{count}} exception",
+    "exceptions_other": "{{count}} exceptions",
+    "viewAccess": "View access",
+    "remove": "Remove",
+    "removeTitle": "Remove additional role",
+    "removeConfirm": "Remove the role {{role}} from {{name}}? They stop receiving its permissions immediately."
+  },
+  "screens": {
+    "menuOf": "{{role}} menu",
+    "menuEmpty": "Would not see any menu section.",
+    "empty": "With these permissions no screen would be visible.",
+    "canSee": "Visible",
+    "hidden_one": "{{count}} screen hidden for this access.",
+    "hidden_other": "{{count}} screens hidden for this access."
+  },
+  "rolePolicies": {
+    "intro": "Context rules (ABAC) that apply to this role. They are evaluated only if the role has the action's permission.",
+    "empty": "No policies apply to this role.",
+    "evaluated": "Evaluated",
+    "notReached": "Not reached: the role lacks the permission"
+  },
+  "changes": {
+    "summary_one": "{{count}} unsaved change in {{roles}} role(s)",
+    "summary_other": "{{count}} unsaved changes in {{roles}} role(s)",
+    "review": "Review and save",
+    "title": "Review changes",
+    "sensitive_one": "You are granting {{count}} sensitive permission ({{names}}). Double-check it.",
+    "sensitive_other": "You are granting {{count}} sensitive permissions ({{names}}). Double-check them.",
+    "applies": "People will see it after reloading or returning to the window; the API applies it from the next request.",
+    "headline_one": "You are changing {{count}} permission in {{roles}} role(s). It reaches {{people}} person(s).",
+    "headline_other": "You are changing {{count}} permissions in {{roles}} role(s). It reaches {{people}} person(s).",
+    "roleImpact_one": "{{count}} change · {{people}} person(s)",
+    "roleImpact_other": "{{count}} changes · {{people}} person(s)",
+    "keepEditing": "Keep editing",
+    "confirm": "Save changes"
+  },
+  "explorer": {
+    "search": "Search person…",
+    "allRoles": "All roles",
+    "showInactive": "Include inactive",
+    "emptyTitle": "Pick a person",
+    "emptyBody": "You will see their roles, what they can do in each module and where each permission comes from, the screens they see, and you can test any action.",
+    "openProfile": "Open profile",
+    "howResolved": "Effective access = current exception > highest scope among their roles > no permission. Computed by the API with the same rules it applies on every request.",
+    "until": "until {{date}}",
+    "rolesLabel": "Roles:",
+    "addRole": "Add role",
+    "removeRole": "Remove this role",
+    "section": {
+      "permissions": "What they can do",
+      "screens": "Screens they see"
+    },
+    "questionPlaceholder": "What do you want to know if {{name}} can do? E.g. create users",
+    "view": {
+      "can": "Can ({{count}})",
+      "cannot": "Cannot ({{count}})",
+      "all": "All"
+    },
+    "nothingCan": "This person has no permissions.",
+    "nothingCannot": "This person can do everything.",
+    "can": "Can",
+    "cannot": "Cannot",
+    "pending": "Pending save",
+    "hasRules": "Has rules",
+    "hasRulesHint": "This action has context rules: test it with a case.",
+    "source": {
+      "exception": "Exception for this person only",
+      "exceptionRemoved": "Removed for this person only (exception)",
+      "none": "None of their roles has it",
+      "byRole": "From their role"
+    },
+    "fix": {
+      "give": "Give access",
+      "remove": "Remove",
+      "grantRole": "Give it to the whole {{role}} role (affects {{count}} person(s))",
+      "grantPerson": "Give it only to {{name}}…",
+      "revokeRole": "Remove it from the whole {{role}} role (affects {{count}} person(s))",
+      "revokePerson": "Remove it only from {{name}}…",
+      "scopePerson": "Change the scope only for {{name}}…",
+      "clearException": "Remove the exception",
+      "clearTitle": "Remove exception",
+      "clearConfirm": "\"{{permission}}\" for {{name}} will depend only on their roles again.",
+      "cleared": "Exception removed",
+      "pendingToast": "Pending change in the {{role}} role: review and save it in the bar below."
+    }
+  },
+  "simulator": {
+    "title": "Can they…? — access tester",
+    "subtitle": "Checks in three steps the same thing the system checks: identity, role permission and context rules.",
+    "personPlaceholder": "Search a person…",
+    "permissionPlaceholder": "Search a permission…",
+    "context": "Record data (optional)",
+    "noValue": "No value",
+    "self": "The same person",
+    "other": "Another person",
+    "yes": "Yes",
+    "no": "No",
+    "running": "Testing…",
+    "allowed": "Allowed",
+    "denied": "Denied",
+    "allowedDetail": "Can \"{{permission}}\" with scope: {{scope}}.",
+    "deniedDetail": "Cannot \"{{permission}}\".",
+    "steps": {
+      "identity": "Identity",
+      "rbac": "Permission (RBAC)",
+      "abac": "Context (ABAC)"
+    },
+    "identity": {
+      "active": "Active account: can sign in.",
+      "inactive": "Inactive account: cannot sign in."
+    },
+    "rbac": {
+      "inactivePermission": "The permission is deactivated in the catalog: nobody has it.",
+      "exception": "An exception for this person decides it (it overrides their roles):",
+      "grantedBy": "Granted by:",
+      "noRole": "None of their roles ({{roles}}) has it."
+    },
+    "abac": {
+      "notEvaluated": "Not evaluated: the request already stopped earlier.",
+      "noRules": "The action has no context rules: allowed.",
+      "noneMatched": "No rule matches: allowed (the permission already authorized it).",
+      "decidedBy": "The rule \"{{name}}\" decides:"
+    },
+    "howToGrant": "To grant it: give it to one of their roles (Roles or Matrix tab), add a role that has it, or create an exception in their profile.",
+    "trace": {
+      "title": "Rule trace (in priority order)",
+      "appliesToRole": "applies to their role",
+      "notForRole": "not for their role",
+      "matches": "matches",
+      "decides": "DECIDES",
+      "noMatch": "no match",
+      "actual": "value"
+    },
+    "test": "Test",
+    "who": "Who?",
+    "what": "What do they want to do?",
+    "contextHint": "Only if the action has rules: amount, status, who created it…",
+    "pickBoth": "Pick a person and an action to see whether they can do it and why."
+  },
+  "activity": {
+    "subtitle": "Changes to roles, permissions, policies and exceptions, and denied access attempts.",
+    "quick": {
+      "all": "All",
+      "denied": "Denied accesses"
+    },
+    "columns": {
+      "date": "Date",
+      "action": "Action",
+      "actor": "Who",
+      "detail": "Detail"
+    },
+    "copiedFrom": "copied from {{role}}",
+    "deletedPolicy": "Deleted policy",
+    "followsRole": "per their role",
+    "action": {
+      "ROLE_CREATED": "Role created",
+      "ROLE_UPDATED": "Role edited",
+      "ROLE_DELETED": "Role deleted",
+      "ROLE_PERMISSIONS_UPDATED": "Role permission",
+      "PERMISSION_CREATED": "Permission created",
+      "PERMISSION_UPDATED": "Permission edited",
+      "POLICY_CREATED": "Policy created",
+      "POLICY_UPDATED": "Policy edited",
+      "POLICY_DELETED": "Policy deleted",
+      "PERMISSION_EXCEPTION_SET": "Exception granted",
+      "PERMISSION_EXCEPTION_REMOVED": "Exception removed",
+      "USER_ROLE_ADDED": "Role assigned",
+      "USER_ROLE_REMOVED": "Role withdrawn",
+      "ACCESS_DENIED": "Access denied"
+    }
+  },
+  "exception": {
+    "grantTitle": "Give access only to {{name}}",
+    "revokeTitle": "Remove access only from {{name}}",
+    "grantIntro": "It's an exception: it doesn't change their role or other people. Useful to cover for someone or a temporary case.",
+    "revokeIntro": "Even if their role has it, it won't apply to {{name}} while the exception lasts.",
+    "scopeQuestion": "On which data?",
+    "reasonQuestion": "Why? (optional)",
+    "reasonHint": "It stays in the log so others understand the exception.",
+    "reasonPlaceholder": "E.g. Covers the area head's vacation",
+    "expiryQuestion": "Until when?",
+    "expiry": {
+      "default": "Per configuration",
+      "defaultHint": "Expires per the system's default validity.",
+      "date": "Until a date",
+      "dateHint": "Pick the last day.",
+      "never": "No expiry",
+      "neverHint": "Until someone removes it."
+    },
+    "grantConfirm": "Give access",
+    "revokeConfirm": "Remove access",
+    "granted": "Done: {{name}} now has access.",
+    "revoked": "Done: access removed from {{name}}.",
+    "errors": {
+      "date": "Pick the expiry date",
+      "save": "Could not save the exception"
+    }
+  },
+  "summary": {
+    "roles": "Roles",
+    "rolesHint": "in the catalog",
+    "permissions": "Permissions",
+    "permissionsHint": "in the catalog",
+    "people": "People",
+    "peopleHint": "with access",
+    "policies": "Policies",
+    "policiesHint": "active rules",
+    "peopleByRole": "People by role",
+    "assignments": "{{assignments}} assignments · {{people}} people",
+    "grantedHint": "granted",
+    "moreRoles": "+{{count}} more roles"
+  }
+}

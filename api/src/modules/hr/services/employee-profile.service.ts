@@ -1,0 +1,231 @@
+import type { Prisma, PrismaClient } from "@prisma/client";
+import { prismaClient } from "@core/config/database";
+import { HttpError } from "@core/middlewares/error.middleware";
+import { staffRoleKeys } from "@core/permissions";
+import { paginatedQuery } from "@core/db/table";
+import {
+  filterBool,
+  filterEnum,
+  filterId,
+  filterText,
+  orderByOf,
+  type ITDataTableFetchParams,
+  type ITDataTableResponse,
+} from "@core/utils/table";
+import { personalProfileInclude } from "../models/entity/hr.entity";
+import type {
+  EmployeeDiscountsSetInput,
+  EmployeeAssignmentInput,
+  PersonalProfileUpdateInput,
+} from "../models/dto/hr.dto";
+
+/**
+ * Roles que forman el roster de "Personal" (RH). ADMIN y RH son cuentas de
+ * operación/administración, no expedientes de personal; el roster sale de los
+ * roles marcados `staff` en `/roles`.
+ */
+const personalRoles = (): string[] => staffRoleKeys();
+
+const toDateOrNull = (value: string | null | undefined): Date | null | undefined => {
+  if (value === undefined) return undefined;
+  return value ? new Date(value) : null;
+};
+
+export class EmployeeProfileService {
+  constructor(private readonly db: PrismaClient = prismaClient) {}
+
+  async stats() {
+    const roles = personalRoles();
+    const byRole = await this.db.user.groupBy({
+      by: ["role"],
+      _count: { _all: true },
+      where: { role: { in: roles } },
+    });
+
+    const byRoleCount: Record<string, number> = {};
+    for (const key of roles) byRoleCount[key] = 0;
+    for (const row of byRole) byRoleCount[row.role] = row._count._all;
+
+    const total = byRole.reduce((acc, row) => acc + row._count._all, 0);
+    const active = await this.db.user.count({
+      where: { role: { in: roles }, active: true },
+    });
+
+    return { total, active, inactive: total - active, roles: byRoleCount };
+  }
+
+  async table(params: ITDataTableFetchParams): Promise<ITDataTableResponse<any>> {
+    const { filters } = params;
+    // `name` solo guarda el primer nombre: la búsqueda por nombre cubre los 4 campos.
+    const nameFilter = filterText(filters, "name");
+    const where: Prisma.UserWhereInput = {
+      role: filterEnum(filters, "role", personalRoles()) ?? { in: personalRoles() },
+      ...(nameFilter
+        ? {
+            OR: [
+              { name: nameFilter },
+              { middleName: nameFilter },
+              { paternalSurname: nameFilter },
+              { maternalSurname: nameFilter },
+            ],
+          }
+        : {}),
+      employeeNumber: filterText(filters, "employeeNumber"),
+      jobTitle: filterText(filters, "jobTitle"),
+      departmentId: filterId(filters, "departmentId"),
+      subareaId: filterId(filters, "subareaId"),
+      // La app KMP manda "true"/"false" como texto: `filterBool` acepta ambos.
+      active: filterBool(filters, "active"),
+    };
+
+    const orderBy = orderByOf(
+      params.sort,
+      {
+        name: "name",
+        employeeNumber: "employeeNumber",
+        role: "role",
+        active: "active",
+        jobTitle: "jobTitle",
+        departmentId: (direction) => ({ department: { name: direction } }),
+        subareaId: (direction) => ({ subarea: { name: direction } }),
+        createdAt: "createdAt",
+      },
+      // Por defecto, del más nuevo al más viejo.
+      [{ createdAt: "desc" }, { id: "desc" }]
+    );
+
+    return paginatedQuery({
+      model: this.db.user,
+      where: where as Record<string, unknown>,
+      orderBy: orderBy as unknown as never[],
+      include: personalProfileInclude as never,
+      page: params.page,
+      limit: params.limit,
+    });
+  }
+
+  async getById(id: string) {
+    const profile = await this.db.user.findUnique({
+      where: { id },
+      include: personalProfileInclude,
+    });
+    if (!profile) throw new HttpError(404, "EMPLOYEE_PROFILE_NOT_FOUND");
+    return profile;
+  }
+
+  /** Departamento activo (o nulo) y, si viene, subárea activa que pertenezca a ese departamento. */
+  private async assertDepartmentAndSubarea(
+    departmentId: string | null,
+    subareaId: string | null
+  ): Promise<void> {
+    if (departmentId) {
+      const department = await this.db.department.findUnique({ where: { id: departmentId } });
+      if (!department || !department.active) throw new HttpError(404, "INVALID_DEPARTMENT");
+    }
+    if (!subareaId) return;
+    const subarea = await this.db.subarea.findUnique({ where: { id: subareaId } });
+    if (!subarea || !subarea.active || subarea.departmentId !== departmentId) {
+      throw new HttpError(400, "INVALID_SUBAREA");
+    }
+  }
+
+  /**
+   * Asigna departamento y subárea a varios empleados a la vez (RH). Valida una vez
+   * y escribe en una sola sentencia; si algún id no existe, no escribe nada.
+   */
+  async assignDepartments(input: EmployeeAssignmentInput) {
+    const userIds = [...new Set(input.userIds)];
+    const departmentId = input.departmentId || null;
+    const subareaId = input.subareaId || null;
+    await this.assertDepartmentAndSubarea(departmentId, subareaId);
+
+    const found = await this.db.user.count({ where: { id: { in: userIds } } });
+    if (found !== userIds.length) throw new HttpError(404, "EMPLOYEE_PROFILE_NOT_FOUND");
+
+    const result = await this.db.user.updateMany({
+      where: { id: { in: userIds } },
+      data: { departmentId, subareaId },
+    });
+    return { updated: result.count };
+  }
+
+  async updateProfile(id: string, data: PersonalProfileUpdateInput) {
+    const current = await this.getById(id);
+
+    // Departamento y subárea van juntos: la subárea debe pertenecer al departamento
+    // final. Cambiar de departamento sin mandar subárea la limpia. "" cuenta como null.
+    const departmentId =
+      data.departmentId !== undefined ? data.departmentId || null : current.departmentId;
+    const departmentChanged = departmentId !== current.departmentId;
+    const subareaId =
+      data.subareaId !== undefined
+        ? data.subareaId || null
+        : departmentChanged
+          ? null
+          : current.subareaId;
+    await this.assertDepartmentAndSubarea(departmentId, subareaId);
+
+    if (data.genderId) {
+      const gender = await this.db.gender.findUnique({ where: { id: data.genderId } });
+      if (!gender) throw new HttpError(404, "INVALID_GENDER");
+    }
+    if (data.bloodTypeId) {
+      const bloodType = await this.db.bloodType.findUnique({ where: { id: data.bloodTypeId } });
+      if (!bloodType) throw new HttpError(404, "INVALID_BLOOD_TYPE");
+    }
+
+    await this.db.user.update({
+      where: { id },
+      data: {
+        // `name` solo se pisa si viene: el expediente es su dueño, pero un
+        // guardado parcial (descuentos, foto) no debe borrarlo.
+        ...(data.name !== undefined ? { name: data.name.trim() } : {}),
+        middleName: data.middleName,
+        paternalSurname: data.paternalSurname,
+        maternalSurname: data.maternalSurname,
+        email: data.email,
+        employeeNumber: data.employeeNumber,
+        jobTitle: data.jobTitle,
+        departmentId,
+        subareaId,
+        genderId: data.genderId,
+        bloodTypeId: data.bloodTypeId,
+        medicalConditions: data.medicalConditions,
+        allergies: data.allergies,
+        birthDate: toDateOrNull(data.birthDate),
+        hireDate: toDateOrNull(data.hireDate),
+        rfc: data.rfc,
+        curp: data.curp,
+        nss: data.nss,
+        streetAddress: data.streetAddress,
+        neighborhood: data.neighborhood,
+        postalCode: data.postalCode,
+        city: data.city,
+        addressState: data.addressState,
+        country: data.country,
+        personalPhone: data.personalPhone,
+        workPhone: data.workPhone,
+        emergencyContactName: data.emergencyContactName,
+        emergencyContactPhone: data.emergencyContactPhone,
+        emergencyContactRelationship: data.emergencyContactRelationship,
+      },
+    });
+
+    return this.getById(id);
+  }
+
+  async setDiscounts(id: string, input: EmployeeDiscountsSetInput) {
+    await this.getById(id);
+
+    await this.db.$transaction([
+      this.db.employeeDiscount.deleteMany({ where: { userId: id } }),
+      ...input.discounts.map((d) =>
+        this.db.employeeDiscount.create({
+          data: { userId: id, type: d.type, note: d.note },
+        })
+      ),
+    ]);
+
+    return this.getById(id);
+  }
+}

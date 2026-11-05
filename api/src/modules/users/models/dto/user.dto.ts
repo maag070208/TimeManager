@@ -1,0 +1,212 @@
+import { z, registry } from "@core/swagger/registry";
+import { paginatedTableResponseSchema } from "@core/swagger/table.dto";
+
+// El rol es dinámico (tabla `roles`, administrable desde `/roles`): la web
+// manda la clave y el servicio valida que exista y esté activo.
+const RoleSchema = z.string().min(1).max(50);
+
+export const UserSchema = z
+  .object({
+    id: z.string(),
+    username: z.string(),
+    email: z.string().nullish(),
+    name: z.string(),
+    /** Primer nombre crudo (`name` en la base); el `name` de la respuesta es el compuesto. */
+    firstName: z.string().optional(),
+    middleName: z.string().nullish(),
+    paternalSurname: z.string().nullish(),
+    maternalSurname: z.string().nullish(),
+    role: RoleSchema,
+    extraRoles: z.array(z.object({ role: z.string() })).optional(),
+    active: z.boolean(),
+    jobTitle: z.string().nullish(),
+    employeeNumber: z.string().nullish(),
+    company: z.string().nullish(),
+    departmentId: z.string().nullish(),
+    department: z.object({ id: z.string(), name: z.string() }).nullish(),
+    subareaId: z.string().nullish(),
+    subarea: z.object({ id: z.string(), name: z.string() }).nullish(),
+    deactivatedAt: z.string().nullish(),
+    deactivatedById: z.string().nullish(),
+    deactivatedBy: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+      })
+      .nullish(),
+    deactivationReason: z.string().nullish(),
+    createdAt: z.string(),
+  })
+  .openapi("User");
+
+export type User = z.infer<typeof UserSchema>;
+
+/** Disponibilidad de un dato único (usuario, correo o número de empleado) para el formulario en vivo. */
+export const UserAvailabilityQuery = z.object({
+  field: z.enum(["username", "email", "employeeNumber"]),
+  value: z.string().trim().min(1).max(254),
+  exceptId: z.string().optional(),
+});
+
+export const UserCreateDto = z
+  .object({
+    username: z.string().min(3, "USERNAME_MIN_LENGTH"),
+    email: z
+      .string()
+      .email("INVALID_EMAIL")
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+    password: z.string().min(6, "PASSWORD_MIN_LENGTH"),
+    name: z.string().min(1),
+    middleName: z.string().optional(),
+    paternalSurname: z.string().optional(),
+    maternalSurname: z.string().optional(),
+    role: RoleSchema.optional(),
+    /** Roles adicionales (multi-rol). Se guardan en `user_roles`. */
+    roles: z.array(RoleSchema).optional(),
+    jobTitle: z.string().optional(),
+    employeeNumber: z.string().optional(),
+    company: z.string().optional(),
+    departmentId: z.string().optional(),
+    subareaId: z.string().optional(),
+  })
+  .openapi("UserCreateInput");
+
+export type UserCreateInput = z.infer<typeof UserCreateDto>;
+
+export const UserUpdateDto = z
+  .object({
+    name: z.string().optional(),
+    middleName: z.string().nullable().optional(),
+    paternalSurname: z.string().nullable().optional(),
+    maternalSurname: z.string().nullable().optional(),
+    email: z
+      .string()
+      .email("INVALID_EMAIL")
+      .nullable()
+      .optional()
+      .or(z.literal("").transform(() => null)),
+    role: RoleSchema.optional(),
+    /** Roles adicionales (multi-rol). Si viene, reemplaza los actuales. */
+    roles: z.array(RoleSchema).optional(),
+    active: z.boolean().optional(),
+    jobTitle: z.string().optional(),
+    employeeNumber: z.string().optional(),
+    company: z.string().optional(),
+    departmentId: z.string().nullable().optional(),
+    subareaId: z.string().nullable().optional(),
+  })
+  .openapi("UserUpdateInput");
+
+export type UserUpdateInput = z.infer<typeof UserUpdateDto>;
+
+export const UserPasswordDto = z
+  .object({ password: z.string().min(6, "PASSWORD_MIN_LENGTH") })
+  .openapi("UserPasswordInput");
+
+/** Excepción de permiso por empleado (Fase 2). */
+export const SetUserPermissionExceptionDto = z
+  .object({
+    scope: z.enum(["NONE", "OWN", "AREA", "ALL"]),
+    reason: z.string().max(300).optional(),
+    /** ISO date o `null` para sin vencimiento; ausente = vigencia global. */
+    expiresAt: z.string().datetime().nullable().optional(),
+  })
+  .openapi("SetUserPermissionExceptionInput");
+
+export type SetUserPermissionExceptionInput = z.infer<typeof SetUserPermissionExceptionDto>;
+
+export const UserPermissionViewSchema = registry.register(
+  "UserPermissionView",
+  z.object({
+    permission: z.string(),
+    module: z.string(),
+    name: z.string(),
+    scopes: z.array(z.enum(["NONE", "OWN", "AREA", "ALL"])),
+    sensitive: z.boolean(),
+    roleScope: z.enum(["NONE", "OWN", "AREA", "ALL"]),
+    effective: z.enum(["NONE", "OWN", "AREA", "ALL"]),
+    exception: z
+      .object({
+        scope: z.enum(["NONE", "OWN", "AREA", "ALL"]),
+        reason: z.string().nullable(),
+        expiresAt: z.string().nullable(),
+        grantedById: z.string().nullable(),
+      })
+      .nullable(),
+  })
+);
+
+export const UserPermissionListSchema = registry.register(
+  "UserPermissionList",
+  z.array(UserPermissionViewSchema)
+);
+
+export const UserTableResponseSchema = paginatedTableResponseSchema(UserSchema, "UserTableResponse");
+
+export const UserImportResultSchema = z
+  .object({
+    created: z.number(),
+    skipped: z.array(
+      z.object({
+        row: z.number(),
+        username: z.string(),
+        reason: z.string(),
+      })
+    ),
+  })
+  .openapi("UserImportResult");
+
+export const UserHistoryEntrySchema = z
+  .object({
+    id: z.string(),
+    type: z.string(),
+    title: z.string(),
+    detail: z.string(),
+    timestamp: z.string(),
+    refId: z.string().optional(),
+  })
+  .openapi("UserHistoryEntry");
+
+export const UserDeleteResponseSchema = z
+  .object({
+    soft: z.boolean(),
+    forced: z.boolean().optional(),
+    data: z.record(z.string(), z.unknown()),
+  })
+  .openapi("UserDeleteResponse");
+
+export const DeactivateUserDto = z
+  .object({
+    reason: z.string().min(3, "REASON_MIN_LENGTH").max(500),
+    notifyUser: z.boolean().default(true),
+    /** Motivo del catálogo `removal_categories`; obligatorio en las bajas del reloj. */
+    categoryId: z.string().min(1).optional(),
+  })
+  .openapi("UserDeactivateInput");
+export type DeactivateUserInput = z.infer<typeof DeactivateUserDto>;
+
+export const ReactivateUserDto = z.object({}).openapi("UserReactivateInput");
+export type ReactivateUserInput = z.infer<typeof ReactivateUserDto>;
+
+export const UserDeactivateResponseSchema = z
+  .object({
+    id: z.string(),
+    active: z.boolean(),
+    deactivatedAt: z.string().nullable(),
+    deactivatedById: z.string().nullable(),
+    deactivationReason: z.string().nullable(),
+  })
+  .openapi("UserDeactivateResponse");
+export type UserDeactivateResponse = z.infer<typeof UserDeactivateResponseSchema>;
+
+registry.register("User", UserSchema);
+registry.register("UserCreateInput", UserCreateDto);
+registry.register("UserUpdateInput", UserUpdateDto);
+registry.register("UserPasswordInput", UserPasswordDto);
+registry.register("UserImportResult", UserImportResultSchema);
+registry.register("UserHistoryEntry", UserHistoryEntrySchema);
+registry.register("UserDeleteResponse", UserDeleteResponseSchema);
+registry.register("UserDeactivateInput", DeactivateUserDto);
+registry.register("UserReactivateInput", ReactivateUserDto);
+registry.register("UserDeactivateResponse", UserDeactivateResponseSchema);

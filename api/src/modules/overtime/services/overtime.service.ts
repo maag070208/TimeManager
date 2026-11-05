@@ -1,0 +1,294 @@
+import type { PrismaClient } from "@prisma/client";
+import { prismaClient } from "@core/config/database";
+import {
+  filterDateRange,
+  filterDayRange,
+  filterEnum,
+  filterId,
+  filterText,
+  paginatedTable,
+  type ITDataTableFetchParams,
+  type TableFilters,
+} from "@core/utils/table";
+import { localDateKey } from "@core/utils/timezone";
+import { dateKeyOf, toUtcDate } from "@modules/schedules/services/schedule.service";
+import type { ScheduleOvertimeDay } from "@modules/schedules/models/entity/schedule.entity";
+import type { AuditLogger } from "@modules/users/services/user.service";
+import type {
+  OvertimeDayRow,
+  OvertimeDayStatus,
+  OvertimeSummary,
+} from "../models/entity/overtime.entity";
+import type { OvertimeApprovalInput } from "../models/dto/overtime.dto";
+
+/** Valores admitidos del filtro `status` (`ALL` = todas las pestañas). */
+const OVERTIME_STATUS_FILTERS = ["PENDING", "APPROVED", "REJECTED", "ALL"] as const;
+
+interface OvertimeRange {
+  start: Date;
+  end: Date;
+  timezone: string;
+  period: string;
+}
+
+/** Puerto de cálculo: lo implementa `HorarioService.computeOvertimeDays`. */
+export interface OvertimeCalculator {
+  computeOvertimeDays(params: ITDataTableFetchParams): Promise<{
+    days: ScheduleOvertimeDay[];
+    range: OvertimeRange;
+  }>;
+}
+
+/**
+ * Aprobación de tiempo extra por (persona, día). La tabla guarda SOLO
+ * decisiones (APROBADO/RECHAZADO); los pendientes se materializan al vuelo
+ * desde el cálculo diario del módulo `horarios`.
+ */
+export class OvertimeService {
+  constructor(
+    private readonly db: PrismaClient = prismaClient,
+    private readonly calculator: OvertimeCalculator,
+    private readonly audit?: AuditLogger
+  ) {}
+
+  async query(
+    params: ITDataTableFetchParams,
+    onlyApproved = false
+  ): Promise<{
+    data: OvertimeDayRow[];
+    total: number;
+    summary: OvertimeSummary;
+  }> {
+    const { days, range } = await this.calculator.computeOvertimeDays(params);
+    const rows = await this.materialize(days, range);
+
+    // Persona/depto/periodo/columnas, SIN el estatus: los conteos de las
+    // pestañas y las tarjetas no deben cambiar según la pestaña activa.
+    const base = this.filter(rows, params.filters);
+    // RH solo ve lo aprobado: se ignora el `status` pedido y se enmascara el
+    // cálculo (`extraMin`) por el snapshot aprobado. El resumen deriva de las
+    // filas visibles, así que pendientes/rechazados quedan en 0 solos.
+    const visibleBase = onlyApproved
+      ? base.filter((r) => r.status === "APPROVED").map((r) => ({ ...r, extraMin: r.approvedExtraMin }))
+      : base;
+    const status = onlyApproved ? "APPROVED" : filterEnum(params.filters, "status", OVERTIME_STATUS_FILTERS);
+    const visible = status && status !== "ALL" ? visibleBase.filter((r) => r.status === status) : visibleBase;
+    const ordered = this.sort(visible, params.sort);
+    const from = (params.page - 1) * params.limit;
+    return {
+      ...paginatedTable(params, ordered.slice(from, from + params.limit), ordered.length),
+      summary: this.summaryOf(visibleBase, range),
+    };
+  }
+
+  /**
+   * Aprueba/rechaza (o revierte a PENDIENTE) los días indicados. Recalcula los
+   * días con `filters` para validar existencia y `extraMin > 0`, y guarda el
+   * snapshot del cálculo vigente. Devuelve `{ updated, skipped }`.
+   */
+  async decide(input: OvertimeApprovalInput, actorId?: string): Promise<{ updated: number; skipped: number }> {
+    const { days } = await this.calculator.computeOvertimeDays({
+      page: 1,
+      limit: 100000,
+      filters: input.filters ?? {},
+      sort: undefined,
+    });
+    const byKey = new Map<string, ScheduleOvertimeDay>();
+    for (const d of days) byKey.set(`${d.userId}|${d.date}`, d);
+
+    const decidedAt = new Date();
+    let updated = 0;
+    let skipped = 0;
+
+    for (const item of input.items) {
+      const day = byKey.get(`${item.userId}|${item.date}`);
+      if (!day || day.extraMin <= 0) {
+        skipped += 1;
+        continue;
+      }
+      const date = toUtcDate(item.date);
+
+      if (input.status === "PENDING") {
+        await this.db.overtimeApproval.deleteMany({ where: { userId: item.userId, date } });
+      } else {
+        const snapshot = {
+          status: input.status,
+          extraMin: day.extraMin,
+          scheduleName: day.scheduleName,
+          scheduledMin: day.scheduledMin,
+          note: input.note ?? null,
+          decidedById: actorId ?? null,
+          decidedAt,
+        };
+        await this.db.overtimeApproval.upsert({
+          where: { userId_date: { userId: item.userId, date } },
+          create: { userId: item.userId, date, ...snapshot },
+          update: snapshot,
+        });
+      }
+      updated += 1;
+    }
+
+    await this.audit?.({
+      action: "OVERTIME_APPROVAL",
+      entityType: "OvertimeApproval",
+      entityId: "bulk",
+      userId: actorId,
+      metadata: {
+        status: input.status,
+        requested: input.items.length,
+        updated,
+        skipped,
+      },
+    });
+
+    return { updated, skipped };
+  }
+
+  /** Días con extra calculado o con decisión guardada, con su estado. */
+  private async materialize(days: ScheduleOvertimeDay[], range: OvertimeRange): Promise<OvertimeDayRow[]> {
+    const userIds = [...new Set(days.map((d) => d.userId))];
+    const firstDay = toUtcDate(localDateKey(range.start, range.timezone));
+    const lastDay = toUtcDate(localDateKey(new Date(range.end.getTime() - 1), range.timezone));
+    const approvals = userIds.length
+      ? await this.db.overtimeApproval.findMany({
+          where: { userId: { in: userIds }, date: { gte: firstDay, lte: lastDay } },
+          include: { decidedBy: { select: { id: true, name: true } } },
+        })
+      : [];
+    const byKey = new Map<string, (typeof approvals)[number]>();
+    for (const a of approvals) byKey.set(`${a.userId}|${dateKeyOf(a.date)}`, a);
+
+    const rows: OvertimeDayRow[] = [];
+    for (const d of days) {
+      const ap = byKey.get(`${d.userId}|${d.date}`);
+      // Días sin extra ni decisión no son "días de tiempo extra".
+      if (d.extraMin <= 0 && !ap) continue;
+      const status: OvertimeDayStatus = ap ? ap.status : "PENDING";
+      rows.push({
+        ...d,
+        status,
+        approvedExtraMin: ap?.status === "APPROVED" ? ap.extraMin : 0,
+        note: ap?.note ?? null,
+        decidedById: ap?.decidedById ?? null,
+        decidedByName: ap?.decidedBy?.name ?? null,
+        decidedAt: ap?.decidedAt?.toISOString() ?? null,
+      });
+    }
+    return rows;
+  }
+
+  private filter(
+    rows: OvertimeDayRow[],
+    filters: TableFilters
+  ): OvertimeDayRow[] {
+    const departmentId = typeof filters.departmentId === "string" ? filters.departmentId : undefined;
+    const q = typeof filters.q === "string" ? filters.q.trim().toLowerCase() : "";
+    // Filtros de columna.
+    const text = (key: string) => filterText(filters, key)?.contains.toLowerCase();
+    const userId = filterId(filters, "userId");
+    const decidedById = filterId(filters, "decidedById");
+    const schedule = text("scheduleName");
+    const note = text("note");
+    // "day" y no "date": `date` es el ancla del periodo que manda la barra.
+    const day = filterDayRange(filters, "day");
+    const dayFrom = day?.gte?.toISOString().slice(0, 10);
+    const dayTo = day?.lte?.toISOString().slice(0, 10);
+    const decided = filterDateRange(filters, "decidedAt");
+    const has = (value: string | null | undefined, needle: string) => (value ?? "").toLowerCase().includes(needle);
+
+    return rows.filter((r) => {
+      if (departmentId && r.departmentId !== departmentId) return false;
+      if (q) {
+        const text = [r.employeeName, r.employeeNumber, r.departmentName]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!text.includes(q)) return false;
+      }
+      if (userId && r.userId !== userId) return false;
+      if (decidedById && r.decidedById !== decidedById) return false;
+      if (schedule && !has(r.scheduleName, schedule)) return false;
+      if (note && !has(r.note, note)) return false;
+      if (dayFrom && r.date < dayFrom) return false;
+      if (dayTo && r.date > dayTo) return false;
+      if (decided) {
+        const at = r.decidedAt ? new Date(r.decidedAt) : null;
+        if (!at || (decided.gte && at < decided.gte) || (decided.lte && at > decided.lte)) return false;
+      }
+      return true;
+    });
+  }
+
+  private static readonly SORTABLE_FIELDS = new Set([
+    "employeeName",
+    "departmentName",
+    "date",
+    "day",
+    "userId",
+    "decidedById",
+    "scheduleName",
+    "extraMin",
+    "approvedExtraMin",
+    "status",
+    "decidedAt",
+    "decidedByName",
+    "note",
+  ]);
+
+  private sort(rows: OvertimeDayRow[], sort: ITDataTableFetchParams["sort"]): OvertimeDayRow[] {
+    // Orden por defecto: día más reciente primero, luego por nombre.
+    const fallback = (a: OvertimeDayRow, b: OvertimeDayRow): number =>
+      b.date.localeCompare(a.date) || a.employeeName.localeCompare(b.employeeName);
+
+    if (!sort || !OvertimeService.SORTABLE_FIELDS.has(sort.key)) return [...rows].sort(fallback);
+
+    const dir = sort.direction === "asc" ? 1 : -1;
+    // La columna Día se llama "day" en la tabla (ver `filter`).
+    // Las columnas filtran por id y ordenan por lo que muestran.
+    const shown: Record<string, string> = { day: "date", userId: "employeeName", decidedById: "decidedByName" };
+    const key = (shown[sort.key] ?? sort.key) as keyof OvertimeDayRow;
+    return [...rows].sort((a, b) => {
+      const av = a[key];
+      const bv = b[key];
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+      return String(av ?? "").localeCompare(String(bv ?? "")) * dir;
+    });
+  }
+
+  private summaryOf(rows: OvertimeDayRow[], range: OvertimeRange): OvertimeSummary {
+    const pending = rows.filter((r) => r.status === "PENDING");
+    const approved = rows.filter((r) => r.status === "APPROVED");
+    const rejected = rows.filter((r) => r.status === "REJECTED");
+    const sum = (list: OvertimeDayRow[], key: "extraMin" | "approvedExtraMin") =>
+      list.reduce((acc, r) => acc + r[key], 0);
+
+    // Minutos de extra calculados (no rechazados) por departamento, de mayor a menor.
+    const byDept = new Map<string, { departmentId: string | null; departmentName: string | null; minutes: number }>();
+    for (const r of rows) {
+      if (r.status === "REJECTED") continue;
+      const key = r.departmentId ?? "";
+      const entry = byDept.get(key) ?? { departmentId: r.departmentId, departmentName: r.departmentName, minutes: 0 };
+      entry.minutes += r.extraMin;
+      byDept.set(key, entry);
+    }
+
+    return {
+      totalDays: rows.length,
+      pendingDays: pending.length,
+      approvedDays: approved.length,
+      rejectedDays: rejected.length,
+      pendingMinutes: sum(pending, "extraMin"),
+      approvedMinutes: sum(approved, "approvedExtraMin"),
+      rejectedMinutes: sum(rejected, "extraMin"),
+      peopleWithPending: new Set(pending.map((r) => r.userId)).size,
+      byDepartment: [...byDept.values()].filter((d) => d.minutes > 0).sort((a, b) => b.minutes - a.minutes),
+      range: {
+        start: range.start.toISOString(),
+        end: range.end.toISOString(),
+        timezone: range.timezone,
+        period: range.period,
+      },
+    };
+  }
+}

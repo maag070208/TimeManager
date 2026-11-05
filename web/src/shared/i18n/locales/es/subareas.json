@@ -1,0 +1,22 @@
+{
+  "list": {
+    "title": "Subáreas",
+    "description": "Sublugares dentro de cada departamento (ej. Kiosco dentro de A&B)",
+    "breadcrumb": "Subáreas",
+    "new": "Nueva subárea",
+    "create": "Crear",
+    "newPlaceholder": "Ej. KIOSCO",
+    "departmentPlaceholder": "Selecciona un departamento",
+    "colName": "SUBÁREA",
+    "colDepartment": "DEPARTAMENTO",
+    "inactive": "inactiva",
+    "editName": "Editar nombre",
+    "reactivate": "Reactivar",
+    "delete": "Eliminar subárea",
+    "editTitle": "Editar subárea",
+    "editPlaceholder": "Nombre de la subárea",
+    "deleteForever": "Eliminar definitivamente",
+    "deleteActive": "¿Eliminar {{name}}? Se desactivará; si tiene usuarios asociados no se podrá eliminar.",
+    "deleteForeverMsg": "¿Eliminar definitivamente {{name}}? Esta acción no se puede deshacer."
+  }
+}

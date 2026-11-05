@@ -1,0 +1,25 @@
+# Nada que no sea necesario para compilar/ejecutar la API.
+node_modules
+dist
+coverage
+tests
+.git
+.gitignore
+.env
+.env.local
+*.log
+*.md
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+# Respaldos crudos y conversores de un solo uso: insumo de desarrollo, no van a
+# la imagen. OJO: `prisma/legacy/dump.ts` SÍ va (lo importa `prisma/restore.ts`,
+# que es un comando de producción); si se excluye la carpeta completa, el build
+# falla con "Cannot find module './legacy/dump'".
+prisma/legacy/*.sql
+prisma/legacy/extract.ts
+prisma/legacy/refresh-seed.ts

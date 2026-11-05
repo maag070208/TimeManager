@@ -1,0 +1,8 @@
+{
+  "reason": {
+    "DAMAGED": "Dañado",
+    "OBSOLETE": "Obsoleto",
+    "LOST": "Extravío",
+    "OTHER": "Otro"
+  }
+}

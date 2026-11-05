@@ -1,0 +1,114 @@
+{
+  "title": "Access log",
+  "description": "Entry and exit records for personnel with a credential.",
+  "filters": {
+    "dateRange": "Date range",
+    "employee": "Search employee",
+    "employeePlaceholder": "Employee name or number...",
+    "includeVoided": "Show voided",
+    "type": "Type",
+    "allTypes": "All",
+    "clear": "Clear filters"
+  },
+  "columns": {
+    "occurredAt": "Date and time",
+    "employee": "Employee",
+    "type": "Type",
+    "site": "Site",
+    "locationSource": "Location source",
+    "guard": "Guard",
+    "status": "Status",
+    "actions": ""
+  },
+  "types": {
+    "ENTRY": "Entry",
+    "EXIT": "Exit"
+  },
+  "locationSources": {
+    "GPS": "GPS",
+    "SITE_ONLY": "Site only",
+    "MANUAL": "Manual"
+  },
+  "methods": {
+    "QR_SCAN": "QR scan",
+    "MANUAL": "Manual"
+  },
+  "status": {
+    "active": "Active",
+    "voided": "Voided"
+  },
+  "actions": {
+    "view": "View details",
+    "void": "Void",
+    "exportCsv": "CSV",
+    "exporting": "Generating…",
+    "close": "Close"
+  },
+  "detail": {
+    "title": "Event details",
+    "employee": "Employee",
+    "employeeNumber": "Employee number",
+    "type": "Type",
+    "occurredAt": "Date and time",
+    "deviceTimestamp": "Device time",
+    "site": "Site",
+    "guard": "Guard",
+    "locationSource": "Location source",
+    "method": "Method",
+    "coordinates": "Coordinates",
+    "accuracy": "GPS accuracy",
+    "credentialVersion": "Credential version",
+    "clientEventId": "Client event ID",
+    "device": "Device",
+    "notes": "Notes",
+    "status": "Status",
+    "voidReason": "Void reason",
+    "voidedAt": "Voided at",
+    "createdAt": "Recorded at",
+    "map": "Scan location",
+    "viewOnMap": "View on map"
+  },
+  "void": {
+    "title": "Void event",
+    "message": "The event will be marked as voided. Provide a reason.",
+    "reasonLabel": "Void reason",
+    "reasonPlaceholder": "Describe why the event is being voided...",
+    "reasonRequired": "Reason is required",
+    "confirm": "Void event",
+    "cancel": "Cancel",
+    "success": "The event was voided successfully",
+    "error": "The event could not be voided",
+    "subtitle": "This action is kept in the log."
+  },
+  "errors": {
+    "load": "Could not load access events",
+    "detail": "Could not load event details",
+    "sites": "Could not load sites"
+  },
+  "empty": {
+    "title": "No records",
+    "description": "There are no access events for the current filters."
+  },
+  "coordinates": {
+    "none": "No coordinates"
+  },
+  "presets": {
+    "title": "Quick ranges",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "last7": "Last 7 days"
+  },
+  "kpis": {
+    "total": "Events",
+    "entries": "Entries",
+    "exits": "Exits",
+    "voided": "Voided"
+  },
+  "toolbar": {
+    "title": "Filters"
+  },
+  "live": {
+    "title": "Latest scan",
+    "none": "No scans recorded yet."
+  }
+}
