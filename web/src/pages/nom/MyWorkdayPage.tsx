@@ -149,10 +149,11 @@ export default function MyWorkdayPage() {
 
   return (
     <ITPage
+      className="min-w-full! max-w-none!"
       title={t("title")}
       description={t("description")}
       icon={<LuCalendarCheck size={20} />}
-      maxWidth="3xl"
+      maxWidth="7xl"
       actions={
         <ITButton
           variant="outlined"
@@ -165,9 +166,9 @@ export default function MyWorkdayPage() {
         </ITButton>
       }
     >
-      <div className="flex flex-col gap-4 pb-12">
+      <div className="grid grid-cols-1 items-start gap-4 pb-12 lg:grid-cols-12">
         {fx.error && (
-          <ITText className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700">
+          <ITText className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700 lg:col-span-12">
             {fx.error}
           </ITText>
         )}
@@ -177,7 +178,7 @@ export default function MyWorkdayPage() {
         ) : (
           <>
             {/* Checada del día: siguiente paso grande + los 4 movimientos. */}
-            <ITCard contentClassName="!p-4 sm:!p-5">
+            <ITCard className="lg:col-span-7" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={4}>
                 <ITFlex align="center" justify="between" gap={2} wrap="wrap">
                   <ITFlex direction="column" gap={0.5}>
@@ -314,7 +315,7 @@ export default function MyWorkdayPage() {
             </ITCard>
 
             {/* Mis marcajes */}
-            <ITCard contentClassName="!p-4 sm:!p-5">
+            <ITCard className="lg:col-span-5" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuCalendarCheck size={16} />} title={t("punches.title")} />
                 <div className="grid grid-cols-2 gap-2">
@@ -412,7 +413,7 @@ export default function MyWorkdayPage() {
             </ITCard>
 
             {/* Teletrabajo */}
-            <ITCard contentClassName="!p-4 sm:!p-5">
+            <ITCard className="lg:col-span-6" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuLaptop size={16} />} title={t("telework.title")} />
                 {!telework || !telework.registration ? (
@@ -520,8 +521,67 @@ export default function MyWorkdayPage() {
                 )}
               </ITFlex>
             </ITCard>
+            {/* Consentimiento de horas extra (F3/1.5) */}
+            <ITCard className="lg:col-span-6" contentClassName="!p-4 sm:!p-5">
+              <ITFlex direction="column" gap={3}>
+                <CardHeader icon={<LuClock size={16} />} title={tr("requests.title")} />
+                <ITText muted className="!text-[12px]">{tr("requests.hint")}</ITText>
+                {wc.requests.length === 0 ? (
+                  <ITText muted className="!text-[12px]">{tr("requests.empty")}</ITText>
+                ) : (
+                  <ITFlex direction="column" gap={2}>
+                    {wc.requests.map((request) => (
+                      <div key={request.id} className="flex flex-col gap-2 rounded-lg border border-slate-100 p-3">
+                        <ITFlex align="center" justify="between" gap={2} wrap="wrap">
+                          <ITText className="font-semibold !text-[13px]">{request.reason}</ITText>
+                          <ITBadget
+                            color={request.status === "ACCEPTED" ? "success" : request.status === "REJECTED" ? "danger" : request.status === "CANCELLED" ? "gray" : "warning"}
+                            size="sm"
+                          >
+                            {tr(`requests.${request.status.toLowerCase()}`)}
+                          </ITBadget>
+                        </ITFlex>
+                        <ITText muted className="!text-[11px]">
+                          {tr("requests.planned")}: {Math.floor(request.plannedMin / 60)}h {request.plannedMin % 60}m
+                          {request.days.length > 0 ? ` · ${tr("requests.days")}: ${request.days.join(", ")}` : ""}
+                        </ITText>
+                        {request.workerNote && (
+                          <ITText muted className="!text-[11px]">{request.workerNote}</ITText>
+                        )}
+                        {request.status === "PENDING" && (
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <ITButton
+                              variant="filled"
+                              color="primary"
+                              size="sm"
+                              className="w-full"
+                              disabled={wc.busy !== null}
+                              onClick={() => void wc.decideRequest(request.id, true)}
+                            >
+                              <LuCheck size={13} className="mr-1" />
+                              {tr("requests.accept")}
+                            </ITButton>
+                            <ITButton
+                              variant="outlined"
+                              color="secondary"
+                              size="sm"
+                              className="w-full"
+                              disabled={wc.busy !== null}
+                              onClick={() => void wc.decideRequest(request.id, false)}
+                            >
+                              <LuX size={13} className="mr-1" />
+                              {tr("requests.reject")}
+                            </ITButton>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </ITFlex>
+                )}
+              </ITFlex>
+            </ITCard>
             {/* Prueba plena (R-01): método de registro y conformidad semanal */}
-            <ITCard contentClassName="!p-4 sm:!p-5">
+            <ITCard className="lg:col-span-7" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuFileText size={16} />} title={tr("record.title")} />
                 <ITText muted className="!text-[12px]">{tr("record.hint")}</ITText>
@@ -592,67 +652,8 @@ export default function MyWorkdayPage() {
               </ITFlex>
             </ITCard>
 
-            {/* Consentimiento de horas extra (F3/1.5) */}
-            <ITCard contentClassName="!p-4 sm:!p-5">
-              <ITFlex direction="column" gap={3}>
-                <CardHeader icon={<LuClock size={16} />} title={tr("requests.title")} />
-                <ITText muted className="!text-[12px]">{tr("requests.hint")}</ITText>
-                {wc.requests.length === 0 ? (
-                  <ITText muted className="!text-[12px]">{tr("requests.empty")}</ITText>
-                ) : (
-                  <ITFlex direction="column" gap={2}>
-                    {wc.requests.map((request) => (
-                      <div key={request.id} className="flex flex-col gap-2 rounded-lg border border-slate-100 p-3">
-                        <ITFlex align="center" justify="between" gap={2} wrap="wrap">
-                          <ITText className="font-semibold !text-[13px]">{request.reason}</ITText>
-                          <ITBadget
-                            color={request.status === "ACCEPTED" ? "success" : request.status === "REJECTED" ? "danger" : request.status === "CANCELLED" ? "gray" : "warning"}
-                            size="sm"
-                          >
-                            {tr(`requests.${request.status.toLowerCase()}`)}
-                          </ITBadget>
-                        </ITFlex>
-                        <ITText muted className="!text-[11px]">
-                          {tr("requests.planned")}: {Math.floor(request.plannedMin / 60)}h {request.plannedMin % 60}m
-                          {request.days.length > 0 ? ` · ${tr("requests.days")}: ${request.days.join(", ")}` : ""}
-                        </ITText>
-                        {request.workerNote && (
-                          <ITText muted className="!text-[11px]">{request.workerNote}</ITText>
-                        )}
-                        {request.status === "PENDING" && (
-                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            <ITButton
-                              variant="filled"
-                              color="primary"
-                              size="sm"
-                              className="w-full"
-                              disabled={wc.busy !== null}
-                              onClick={() => void wc.decideRequest(request.id, true)}
-                            >
-                              <LuCheck size={13} className="mr-1" />
-                              {tr("requests.accept")}
-                            </ITButton>
-                            <ITButton
-                              variant="outlined"
-                              color="secondary"
-                              size="sm"
-                              className="w-full"
-                              disabled={wc.busy !== null}
-                              onClick={() => void wc.decideRequest(request.id, false)}
-                            >
-                              <LuX size={13} className="mr-1" />
-                              {tr("requests.reject")}
-                            </ITButton>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </ITFlex>
-                )}
-              </ITFlex>
-            </ITCard>
             {/* Vacaciones y permisos */}
-            <ITCard contentClassName="!p-4 sm:!p-5">
+            <ITCard className="lg:col-span-5" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuCalendarCheck size={16} />} title={tr("leave.title")} />
                 <ITText muted className="!text-[12px]">{tr("leave.hint")}</ITText>
