@@ -91,6 +91,22 @@ export class WorkRecordService {
       },
     });
 
+    // Historial append-only: cada aceptación conserva el texto/métodos firmados.
+    await this.db.workRecordAgreementVersion.create({
+      data: {
+        tenantId,
+        agreementId: agreement.id,
+        userId,
+        methods: agreement.methods as never,
+        roundingPolicy: agreement.roundingPolicy,
+        correctionRules: agreement.correctionRules,
+        textVersion: agreement.textVersion,
+        acceptedAt: agreement.acceptedAt,
+        acceptedIp: agreement.acceptedIp,
+        acceptedHash: agreement.acceptedHash,
+      },
+    });
+
     await this.audit?.({
       action: "WORK_RECORD_AGREEMENT_ACCEPTED",
       entityType: "WorkRecordAgreement",
@@ -100,6 +116,60 @@ export class WorkRecordService {
       newState: { textVersion, methods, acceptedHash },
     });
     return agreement;
+  }
+
+  /** Firma patronal del acuerdo (RJ-07): cierra la prueba de dos partes. */
+  async employerSign(
+    agreementId: string,
+    actor: { id: string; name?: string | null; ip?: string | null }
+  ) {
+    const agreement = await this.db.workRecordAgreement.findUnique({ where: { id: agreementId } });
+    if (!agreement) throw new HttpError(404, "AGREEMENT_NOT_FOUND");
+    if (!agreement.acceptedAt) throw new HttpError(409, "AGREEMENT_NOT_ACCEPTED_BY_WORKER");
+    const employerAcceptedAt = new Date();
+    const employerAcceptedHash = sha256({
+      agreementId,
+      textVersion: agreement.textVersion,
+      methods: agreement.methods,
+      acceptedHash: agreement.acceptedHash,
+      employerAcceptedAt: employerAcceptedAt.toISOString(),
+      employerAcceptedById: actor.id,
+    });
+    const updated = await this.db.workRecordAgreement.update({
+      where: { id: agreementId },
+      data: {
+        employerAcceptedAt,
+        employerAcceptedById: actor.id,
+        employerAcceptedIp: actor.ip ?? null,
+        employerAcceptedHash,
+      },
+    });
+    await this.db.workRecordAgreementVersion.updateMany({
+      where: { agreementId, textVersion: agreement.textVersion },
+      data: {
+        employerAcceptedAt,
+        employerAcceptedById: actor.id,
+        employerAcceptedIp: actor.ip ?? null,
+        employerAcceptedHash,
+      },
+    });
+    await this.audit?.({
+      action: "WORK_RECORD_AGREEMENT_EMPLOYER_SIGNED",
+      entityType: "WorkRecordAgreement",
+      entityId: agreementId,
+      userId: actor.id,
+      userName: actor.name ?? undefined,
+      newState: { employerAcceptedHash, textVersion: agreement.textVersion },
+    });
+    return updated;
+  }
+
+  async versions(agreementId: string) {
+    return this.db.workRecordAgreementVersion.findMany({
+      where: { agreementId },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
   }
 
   async listAgreements(tenantId: string) {

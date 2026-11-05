@@ -138,7 +138,10 @@
     "ackAccepted": "Semana confirmada",
     "ackDiscrepancySent": "Discrepancia enviada",
     "lastAck": "Última conformidad",
-    "noAck": "Aún no has confirmado ninguna semana."
+    "noAck": "Aún no has confirmado ninguna semana.",
+    "textTitle": "Acuerdo de método de registro",
+    "employerSigned": "Firmado por el patrón",
+    "employerPending": "Falta firma del patrón"
   },
   "requests": {
     "title": "Solicitudes de horas extra",

@@ -149,6 +149,17 @@ export class WeeklyAttendanceService {
     });
     const userIds = people.map((p) => p.id);
 
+    const agreements = await this.db.workdayDistributionAgreement.findMany({
+      where: {
+        userId: { in: userIds },
+        acceptedAt: { not: null },
+        effectiveFrom: { lte: range.end },
+        OR: [{ effectiveTo: null }, { effectiveTo: { gte: range.start } }],
+      },
+      select: { userId: true },
+    });
+    const agreementUsers = new Set(agreements.map((row) => row.userId).filter(Boolean) as string[]);
+
     const [assignments, approvals] = await Promise.all([
       loadScheduleAssignments(this.db, userIds, range),
       this.db.overtimeApproval.findMany({
@@ -168,7 +179,13 @@ export class WeeklyAttendanceService {
         const schedule = scheduleOn(assignments, person.id, dayKey);
         scheduleName = schedule?.name ?? scheduleName;
         const daySessions = sessionsByKey.get(`${person.id}|${dayKey}`) ?? [];
-        const workday = computeWorkday(dayKey, daySessions, schedule, timezone);
+        const workday = computeWorkday(
+          dayKey,
+          daySessions,
+          schedule,
+          timezone,
+          agreementUsers.has(person.id)
+        );
         const incomplete = daySessions.some((s) => s.incident !== null && INCOMPLETE_INCIDENTS.has(s.incident));
 
         let status: WeeklyAttendanceDayStatus;

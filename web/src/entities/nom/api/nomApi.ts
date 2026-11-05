@@ -6,6 +6,7 @@ import type {
   LeaveRequestRow,
   LeaveType,
   RecordAgreement,
+  RecordAgreementProposal,
   WorkRecordAcknowledgment,
   MyPunch,
   OutOfHoursChannel,
@@ -84,6 +85,7 @@ export const nomApi = {
 
   /** Prueba plena (R-01): acuerdo del método de registro del trabajador. */
   myRecordAgreement: () => api.get<RecordAgreement | null>(`${base}/me/record-agreement`),
+  recordProposal: () => api.get<RecordAgreementProposal>(`${base}/me/record-agreement/proposal`),
   acceptRecordAgreement: (input: {
     methods: string[];
     roundingPolicy?: string | null;

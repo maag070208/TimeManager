@@ -86,3 +86,17 @@ opinión de asesor ni las disposiciones generales de la STPS.
 - **Sello encadenado por lote** del export (hoy hash por export) si la autoridad lo exige.
 - **Cifrado adicional** de datos sensibles y consentimientos por cliente (modelo listo, texto y proceso legal pendientes).
 - **Precios, dominio (`axzy.dev`), bucket S3 privado y rotación de Ably**: acciones administrativas.
+
+## Actualización 2026-11-05 — cierre de huecos
+
+Implementado y probado (detalle en [PLAN_CIERRE_HUECOS_JORNADA.md](PLAN_CIERRE_HUECOS_JORNADA.md)):
+
+- Checadas web/app suman jornada (con flag por cliente) y conflicto reloj/web marcado.
+- Ajustes aprobados (reloj y remoto) cambian la jornada, prenómina y export; la checada original queda inmutable.
+- Export `stps-registro-jornada-v2` con primera entrada, última salida, origen, detalle de marcajes y SHA-256 sobre el texto final.
+- Convenio art. 58 con aceptación del trabajador; sin convenio la jornada diaria se topa a 8/7/7.5 h y el exceso es extra; días > 12 h se bloquean.
+- Retención robusta con ajustes archivados, bajas recientes respetadas, auditoría y tablas de archivo protegidas.
+- Acuerdo de método de registro con versiones y doble firma (trabajador + patrón) con hash/IP.
+- Menores: todo exceso es ilegal; infracciones art. 66 DÍA/DÍAS marcadas.
+
+Pendiente de la autoridad: formato/plazo/ámbito STPS y validación legal (§8 del plan).

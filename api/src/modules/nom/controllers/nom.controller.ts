@@ -8,6 +8,7 @@ import {
   AdjustmentDecisionDto,
   AlertScanDto,
   ArchiveDto,
+  DistributionAgreementCreateDto,
   DiscrepancyCreateDto,
   NomSettingsUpdateDto,
   OutOfHoursContactDto,
@@ -29,9 +30,11 @@ import type { TeleworkService } from "../services/telework.service";
 import type { WeeklyOvertimeService } from "../services/weekly-overtime.service";
 import type { HolidayService } from "../services/holiday.service";
 import type { WorkRecordService } from "../services/work-record.service";
+import { RECORD_METHODS } from "../services/work-record.service";
 import type { OvertimeRequestService } from "../services/overtime-request.service";
 import type { TeleworkComplianceService } from "../services/telework-compliance.service";
 import type { LeaveService } from "../services/leave.service";
+import type { DistributionAgreementService } from "../services/distribution-agreement.service";
 
 const tenantIdOrThrow = (): string => {
   const tenantId = currentTenantId();
@@ -59,7 +62,8 @@ export class NomController {
     private readonly record: WorkRecordService,
     private readonly overtimeRequests: OvertimeRequestService,
     private readonly teleworkCompliance: TeleworkComplianceService,
-    private readonly leave: LeaveService
+    private readonly leave: LeaveService,
+    private readonly distribution: DistributionAgreementService
   ) {}
 
   getConfig = async (_req: Request, res: Response) => {
@@ -172,6 +176,27 @@ export class NomController {
         },
         actorOf(req)
       )
+    );
+  };
+
+  listDistributionAgreements = async (req: Request, res: Response) => {
+    res.json(
+      await this.distribution.list({
+        userId: typeof req.query.userId === "string" ? req.query.userId : undefined,
+        scheduleId: typeof req.query.scheduleId === "string" ? req.query.scheduleId : undefined,
+      })
+    );
+  };
+
+  createDistributionAgreement = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.distribution.create(tenantIdOrThrow(), actorOf(req), DistributionAgreementCreateDto.parse(req.body))
+    );
+  };
+
+  acceptDistributionAgreement = async (req: Request, res: Response) => {
+    res.json(
+      await this.distribution.accept(req.params.id, actorOf(req), req.ip ?? null)
     );
   };
 
@@ -381,6 +406,18 @@ export class NomController {
     res.json(await this.overtimeRequests.cancel(tenantIdOrThrow(), req.params.id, actorOf(req)));
   };
 
+  recordAgreementProposal = async (_req: Request, res: Response) => {
+    res.json({
+      methods: [...RECORD_METHODS],
+      text:
+        "Acuerdo de método de registro de jornada. El registro se lleva con los métodos marcados; " +
+        "las correcciones se hacen por ajuste documentado y aprobado, con hora del servidor. " +
+        "Ambas partes (trabajador y patrón) conservan una copia y pueden consultar el historial.",
+      roundingPolicy: "Minutos exactos; el redondeo es solo para nómina",
+      correctionRules: "Toda corrección pasa por ajuste documentado y aprobado",
+    });
+  };
+
   myRecordAgreement = async (req: Request, res: Response) => {
     res.json(await this.record.agreementFor(req.user!.id));
   };
@@ -418,6 +455,20 @@ export class NomController {
         { ...actorOf(req), ip: req.ip ?? null }
       )
     );
+  };
+
+  employerSignRecordAgreement = async (req: Request, res: Response) => {
+    res.json(
+      await this.record.employerSign(req.params.id, {
+        id: req.user!.id,
+        name: actorOf(req).name,
+        ip: req.ip ?? null,
+      })
+    );
+  };
+
+  recordAgreementVersions = async (req: Request, res: Response) => {
+    res.json(await this.record.versions(req.params.id));
   };
 
   listRecordAgreements = async (_req: Request, res: Response) => {

@@ -168,6 +168,7 @@ model User {
   policiesCreated    Policy[]         @relation("PolicyCreatedBy")
   weeklyOvertimeLedgers WeeklyOvertimeLedger[] @relation("WeeklyOvertimeLedgerUser")
   recordAgreement       WorkRecordAgreement? @relation("WorkRecordAgreementUser")
+  recordAgreementsSigned WorkRecordAgreement[] @relation("WorkRecordAgreementEmployer")
   recordAcknowledgments WorkRecordAcknowledgment[] @relation("WorkRecordAcknowledgmentUser")
   overtimeRequests      OvertimeRequest[] @relation("OvertimeRequestUser")
   overtimeRequestsMade  OvertimeRequest[] @relation("OvertimeRequestRequester")
@@ -277,6 +278,9 @@ model User {
   teleworkReversalRequests     TeleworkReversalRequest[] @relation("TeleworkReversalUser")
   teleworkMedicalExams         TeleworkMedicalExam[] @relation("TeleworkMedicalExamUser")
   leaveRequests                LeaveRequest[] @relation("LeaveRequestUser")
+  distributionAgreements       WorkdayDistributionAgreement[] @relation("DistributionAgreementUser")
+  distributionAccepted         WorkdayDistributionAgreement[] @relation("DistributionAgreementAcceptor")
+  distributionCreated          WorkdayDistributionAgreement[] @relation("DistributionAgreementCreator")
   outOfHoursContacts           OutOfHoursContact[]    @relation("OutOfHoursContactUser")
   createdOutOfHoursContacts    OutOfHoursContact[]    @relation("OutOfHoursContactCreator")
 
@@ -1108,8 +1112,16 @@ model WorkRecordAgreement {
   acceptedAt     DateTime?
   acceptedIp     String?
   acceptedHash   String?
+  /// Firma patronal (RJ-07): sin ella el acuerdo es unilateral.
+  employerAcceptedAt   DateTime?
+  employerAcceptedIp   String?
+  employerAcceptedHash String?
+  employerAcceptedById String?
+  employerAcceptedBy   User?   @relation("WorkRecordAgreementEmployer", fields: [employerAcceptedById], references: [id], onDelete: SetNull)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  versions WorkRecordAgreementVersion[]
 
   @@index([tenantId])
   @@map("work_record_agreements")
@@ -1118,6 +1130,31 @@ model WorkRecordAgreement {
 /// Conformidad periódica: el trabajador ve su resumen (ordinaria, extra doble/
 /// triple/ilegal, descansos) y lo acepta o abre una discrepancia. El hash del
 /// resumen aceptado queda como evidencia.
+/// Historial append-only de versiones del acuerdo de método de registro.
+model WorkRecordAgreementVersion {
+  id           String @id @default(uuid())
+  tenantId     String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  agreementId  String
+  agreement    WorkRecordAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  userId       String
+  methods      Json
+  roundingPolicy   String?
+  correctionRules  String?
+  textVersion  Int
+  acceptedAt   DateTime?
+  acceptedIp   String?
+  acceptedHash String?
+  employerAcceptedAt   DateTime?
+  employerAcceptedIp   String?
+  employerAcceptedHash String?
+  employerAcceptedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId, agreementId])
+  @@index([userId])
+  @@map("work_record_agreement_versions")
+}
+
 model WorkRecordAcknowledgment {
   id          String @id @default(uuid())
   tenantId    String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
@@ -1476,6 +1513,45 @@ enum PunchAdjustmentTarget {
   CLOCK
   REMOTE
   ACCESS
+}
+
+enum DistributionAgreementKind {
+  INDIVIDUAL
+  COLECTIVO
+}
+
+enum DistributionAgreementParty {
+  WORKER
+  UNION
+}
+
+/// Convenio de distribución de jornada (art. 58 LFT): evidencia de que el
+/// horario/semana se acordó con la persona o su representación sindical.
+model WorkdayDistributionAgreement {
+  id           String @id @default(uuid())
+  tenantId     String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId       String?
+  user         User?  @relation("DistributionAgreementUser", fields: [userId], references: [id], onDelete: SetNull)
+  scheduleId   String?
+  kind         DistributionAgreementKind @default(INDIVIDUAL)
+  party        DistributionAgreementParty @default(WORKER)
+  scope        String @default("HORARIO")
+  effectiveFrom DateTime @db.Date
+  effectiveTo   DateTime? @db.Date
+  evidenceText String
+  acceptedHash String
+  acceptedAt   DateTime?
+  acceptedIp   String?
+  acceptedById String?
+  acceptedBy   User? @relation("DistributionAgreementAcceptor", fields: [acceptedById], references: [id], onDelete: SetNull)
+  createdById  String?
+  createdBy    User? @relation("DistributionAgreementCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, userId])
+  @@index([tenantId, scheduleId])
+  @@map("workday_distribution_agreements")
 }
 
 model PunchAdjustment {

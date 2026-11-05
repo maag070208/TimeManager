@@ -19,6 +19,7 @@ import { prismaClient } from "@core/config/database";
 import { logger } from "@core/utils/logger";
 import { NomSettingsService } from "@modules/nom/services/nom-settings.service";
 import { RetentionService } from "@modules/nom/services/retention.service";
+import { AuditService } from "@modules/audit/services/audit.service";
 
 const dryRun = process.argv.includes("--dry-run");
 const tenantArg = process.argv.find((arg) => arg.startsWith("--tenant="));
@@ -26,7 +27,8 @@ const tenantId = tenantArg?.split("=")[1];
 
 const main = async () => {
   const settings = new NomSettingsService(prismaClient);
-  const retention = new RetentionService(prismaClient, settings);
+  const audit = new AuditService(prismaClient);
+  const retention = new RetentionService(prismaClient, settings, audit.createLog.bind(audit));
 
   const targets = tenantId
     ? [{ tenantId }]
@@ -41,7 +43,7 @@ const main = async () => {
     const result = await retention.archiveTenant(target.tenantId, { dryRun });
     logger.info(
       `[nom-archive] ${target.tenantId} corte=${result?.cutoff ?? "n/a"} ` +
-        `dryRun=${result?.dryRun ?? "n/a"} checadas=${result?.punches ?? 0} eventos=${result?.accessEvents ?? 0}`
+        `dryRun=${result?.dryRun ?? "n/a"} checadas=${result?.punches ?? 0} eventos=${result?.accessEvents ?? 0} ajustes=${result?.adjustments ?? 0}`
     );
   }
 };

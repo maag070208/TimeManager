@@ -15,6 +15,7 @@ import { WorkRecordService } from "./services/work-record.service";
 import { OvertimeRequestService } from "./services/overtime-request.service";
 import { TeleworkComplianceService } from "./services/telework-compliance.service";
 import { LeaveService } from "./services/leave.service";
+import { DistributionAgreementService } from "./services/distribution-agreement.service";
 import { NomController } from "./controllers/nom.controller";
 import { createNomRouter } from "./routes/nom.routes";
 
@@ -31,6 +32,7 @@ export { WorkRecordService } from "./services/work-record.service";
 export { OvertimeRequestService } from "./services/overtime-request.service";
 export { TeleworkComplianceService } from "./services/telework-compliance.service";
 export { LeaveService, vacationEntitlementDays } from "./services/leave.service";
+export { DistributionAgreementService } from "./services/distribution-agreement.service";
 export { classifyWeeklyOvertime, OVERTIME_ENGINE_VERSION } from "@modules/overtime/services/weekly-overtime-engine";
 
 type SysConfigReader = (key: string) => Promise<string | null>;
@@ -64,6 +66,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
   const overtimeRequests = new OvertimeRequestService(prismaClient, deps.audit);
   const teleworkCompliance = new TeleworkComplianceService(prismaClient, deps.audit);
   const leave = new LeaveService(prismaClient, deps.audit);
+  const distribution = new DistributionAgreementService(prismaClient, deps.audit);
   const weeklyOvertime = new WeeklyOvertimeService(
     prismaClient,
     deps.calculator,
@@ -84,7 +87,8 @@ export const createNomModule = (deps: NomModuleDeps) => {
     record,
     overtimeRequests,
     teleworkCompliance,
-    leave
+    leave,
+    distribution
   );
   return {
     router: createNomRouter(controller),
@@ -101,6 +105,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
     overtimeRequests,
     teleworkCompliance,
     leave,
+    distribution,
     /**
      * Worker NOM: barrido horario de límites de jornada (ayer) y archivado
      * diario de los clientes con retención configurada. Lo arranca `src/index.ts`.

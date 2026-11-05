@@ -190,7 +190,7 @@ SaaS.
 | 1a | F1A-11 (login escritorio), F1A-12 (defensa en profundidad rutas plataforma) | F1A-11 lo absorbe el agente nuevo |
 | 1b | F1B-01 RLS, 02 workers fuera, 03 cola, 04 TZ por cliente, 05 S3/Ably por tenant, 06 API key de reloj, 07 PgBouncer, 08 índices, 11 agente, 12 estación, 13 ingesta | Los relojes (10-13) son la prioridad de producto |
 | 1c | F1C-03 API producción (rate limit, compression, SIGTERM), 04 artefacto+CI, 05 endpoints caros, 06 envs/docs | 04 es el bloqueante de despliegue |
-| 2 | F2-01 inmutabilidad, 02 auditoría correcciones, 03 alertas jornada, 04 retención, 05 bug retardo, 06 validar STPS | Requisito para vender “cumple NOM” |
+| 2 | ✅ F2-01..05 implementados y probados; F2-06 espera disposiciones STPS | Ver PLAN_CIERRE_HUECOS_JORNADA.md |
 | 3 | F3-03 entrar como cliente, 04 límites (→ F3-09/10), 05 branding, 06 subdominios, 07 reloj guiado | Se amplía con planes (F3-09..11) |
 | 4 | F4-01 cobro, 02 rate limit/compression/cursor, 03 observabilidad, 04 backups, 05 k6, 06 CI | Depende de A1/A2 |
 | 5 | F5-01 SSO, 02 BD por cliente, 03 SLA | Cuando lo pida un cliente |

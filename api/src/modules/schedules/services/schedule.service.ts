@@ -482,6 +482,16 @@ export class ScheduleService {
     }
 
     const assignments = await loadScheduleAssignments(this.db, [...byPerson.keys()], range);
+    const agreements = await this.db.workdayDistributionAgreement.findMany({
+      where: {
+        userId: { in: [...byPerson.keys()] },
+        acceptedAt: { not: null },
+        effectiveFrom: { lte: range.end },
+        OR: [{ effectiveTo: null }, { effectiveTo: { gte: range.start } }],
+      },
+      select: { userId: true },
+    });
+    const agreementUsers = new Set(agreements.map((row) => row.userId).filter(Boolean) as string[]);
 
     const days: ScheduleOvertimeDay[] = [];
 
@@ -498,7 +508,13 @@ export class ScheduleService {
 
       for (const [dayKey, daySessions] of byDay) {
         const schedule = scheduleOn(assignments, userId, dayKey);
-        const day = computeWorkday(dayKey, daySessions, schedule, range.timezone);
+        const day = computeWorkday(
+          dayKey,
+          daySessions,
+          schedule,
+          range.timezone,
+          agreementUsers.has(userId)
+        );
         // Última salida del día (ISO) para mostrarla contra el turno.
         const lastExit = daySessions
           .map((x) => (x.exitAt ? new Date(x.exitAt).getTime() : 0))

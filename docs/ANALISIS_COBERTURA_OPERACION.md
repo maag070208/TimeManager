@@ -21,11 +21,11 @@ percepciones/deducciones y reglas configurables por industria**.
 |---|---:|---|
 | Retardos | **70 %** | Se calculan y reportan; no generan sanción ni impacto de pago porque no hay motor de nómina |
 | Retardos configurables | **50 %** | Tolerancias por horario; faltan reglas por cliente/industria y consecuencias |
-| Jornada 9:00–22:00 | **40 %** | Se detecta el exceso semanal/12 h, pero no se desglosa ni se paga el exceso diario legal |
+| Jornada 9:00–22:00 | **70 %** | Jornada diaria topada a 8/7/7.5 h; exceso diario como extra y tope 12 h (RJ-08) |
 | Obrero-patronal | **55 %** | Auditoría, ajustes y retención sí; faltan contratos/consentimientos y expediente laboral completo |
 | “Checa entrada, se hace wei y sale con extra” | **35 %** | Hay reloj + aprobación + ledger, pero no pausas, geocerca ni autorización previa |
-| Vacaciones pagadas | **5 %** | No existe el modelo de vacaciones |
-| Vacaciones no pagadas | **5 %** | Ídem |
+| Vacaciones pagadas | **70 %** | Implementadas: tipos, saldo LFT, solicitud y aprobación (2026-11-05) |
+| Vacaciones no pagadas | **70 %** | Permiso sin goce con el mismo flujo |
 | Día de descanso pagado | **20 %** | Se marca descanso trabajado/domingo; no hay tarifa ni pago |
 | Día de descanso no pagado | **40 %** | `restDay` + faltantes detectados; falta justificación/incidencia |
 | Multi-industria | **40 %** | Horarios flexibles, partidos y cruce de medianoche; faltan patrones rotativos y plantillas |
@@ -109,7 +109,7 @@ regresa (varias sesiones del martes).
 
 ### 2.5 Vacaciones pagadas / no pagadas
 
-**Hoy:** **no existen**. No hay modelos `Vacation`, `Leave`, `Absence` ni saldos. Sólo se detectan
+**Hoy:** existen `leave_types`/`leave_requests` con saldo LFT y aprobación. Se detectan
 ausencias por la ausencia de checadas en el reporte semanal, sin justificación ni goce de sueldo.
 
 **Lo que falta (bloque completo):**

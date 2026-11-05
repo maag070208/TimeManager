@@ -193,6 +193,7 @@ export interface ArchiveResult {
   punches: number;
   accessEvents: number;
   remotePunches: number;
+  adjustments: number;
 }
 
 export interface StpsExportParams {

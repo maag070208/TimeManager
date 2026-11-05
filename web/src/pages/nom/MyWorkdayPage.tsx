@@ -590,12 +590,28 @@ export default function MyWorkdayPage() {
                     {wc.error}
                   </ITText>
                 )}
+                {wc.proposal && (
+                  <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
+                    <ITText className="font-semibold !text-[12.5px]">{tr("record.textTitle")}</ITText>
+                    <ITText className="!text-[12px]">{wc.proposal.text}</ITText>
+                    <ITFlex gap={1} wrap="wrap">
+                      {wc.proposal.methods.map((method) => (
+                        <ITBadget key={method} color="info" size="sm">{method}</ITBadget>
+                      ))}
+                    </ITFlex>
+                  </div>
+                )}
+
                 {wc.agreement?.acceptedAt ? (
                   <ITFlex align="center" gap={2} wrap="wrap">
                     <ITBadget color="success" size="sm">{tr("record.accepted")}</ITBadget>
                     <ITText muted className="!text-[11px]">
-                      {tr("record.version")} {wc.agreement.textVersion} · {dateOf(wc.agreement.acceptedAt)}
+                      {tr("record.version")} {wc.agreement.textVersion} · {dateOf(wc.agreement.acceptedAt)} ·{" "}
+                      {wc.agreement.methods.join(" + ")}
                     </ITText>
+                    <ITBadget color={wc.agreement.employerAcceptedAt ? "success" : "warning"} size="sm">
+                      {wc.agreement.employerAcceptedAt ? tr("record.employerSigned") : tr("record.employerPending")}
+                    </ITBadget>
                   </ITFlex>
                 ) : (
                   <ITButton

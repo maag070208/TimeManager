@@ -150,7 +150,8 @@ export const computeWorkday = (
   dayKey: string,
   sessions: WorkdaySession[],
   schedule: WorkdaySchedule | null,
-  timezone: string
+  timezone: string,
+  hasDistributionAgreement = false
 ): Workday => {
   const workedMin = sessions.reduce((acc, s) => acc + s.workedMinutes, 0);
 
@@ -191,6 +192,12 @@ export const computeWorkday = (
       schedule.mealBreakMin
   );
 
+  // RJ-08: la jornada ordinaria diaria se topa al estándar del turno (8/7/7.5 h)
+  // salvo convenio de distribución (art. 58). El exceso es tiempo extra.
+  const shift = shiftTypeOf(day);
+  const standardMin = shift === "NOCTURNA" ? 7 * 60 : shift === "MIXTA" ? 7 * 60 + 30 : 8 * 60;
+  const ordinaryScheduled = hasDistributionAgreement ? scheduledMin : Math.min(scheduledMin, standardMin);
+
   const dayStartMs = startOfLocalDay(dayKey, timezone).getTime();
 
   // Retardo: primera entrada contra la entrada programada (primer tramo) + tolerancia.
@@ -219,11 +226,19 @@ export const computeWorkday = (
     }
   }
 
+  // Solo el exceso que viene del HORARIO sobre el estándar del turno se separa
+  // como extra; el extra real después de la salida ya lo calcula `dayExtra`.
+  const overOrdinary =
+    scheduledMin > ordinaryScheduled
+      ? Math.max(0, Math.min(workedMin, scheduledMin) - ordinaryScheduled)
+      : 0;
+  if (overOrdinary >= schedule.minOvertimeMin) extraMin = Math.max(extraMin, overOrdinary);
+
   return {
     workedMin,
-    scheduledMin,
+    scheduledMin: ordinaryScheduled,
     extraMin,
-    missingMin: workedMin > 0 ? Math.max(0, scheduledMin - workedMin) : 0,
+    missingMin: workedMin > 0 ? Math.max(0, ordinaryScheduled - workedMin) : 0,
     lateMin,
     restDay: false,
     scheduleName: schedule.name,
@@ -287,7 +302,8 @@ export const validateScheduleLegality = (
     maxDailyMinutes = Math.max(maxDailyMinutes, net);
 
     const shift = shiftTypeOf(day);
-    if (net > maxDailyMinutesForShift(shift)) warnings.push(`DIA_MAYOR_ESTANDAR:${day.weekday}`);
+    if (net > 12 * 60) violations.push(`DIA_MAYOR_12H:${day.weekday}`);
+    else if (net > maxDailyMinutesForShift(shift)) warnings.push(`DIA_MAYOR_ESTANDAR:${day.weekday}`);
     const continuous = !day.splitStartTime && !day.splitEndTime;
     if (continuous && net >= 6 * 60 && input.mealBreakMin < 30) {
       warnings.push(`DESCANSO_NO_DECLARADO:${day.weekday}`);

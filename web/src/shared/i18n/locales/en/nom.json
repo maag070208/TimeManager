@@ -138,7 +138,10 @@
     "ackAccepted": "Week confirmed",
     "ackDiscrepancySent": "Discrepancy sent",
     "lastAck": "Last acknowledgment",
-    "noAck": "You have not confirmed any week yet."
+    "noAck": "You have not confirmed any week yet.",
+    "textTitle": "Work record agreement",
+    "employerSigned": "Signed by employer",
+    "employerPending": "Employer signature pending"
   },
   "requests": {
     "title": "Overtime requests",

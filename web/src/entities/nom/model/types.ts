@@ -103,6 +103,15 @@ export interface RecordAgreement {
   textVersion: number;
   acceptedAt: string | null;
   acceptedHash: string | null;
+  employerAcceptedAt?: string | null;
+  employerAcceptedHash?: string | null;
+}
+
+export interface RecordAgreementProposal {
+  methods: string[];
+  text: string;
+  roundingPolicy: string | null;
+  correctionRules: string | null;
 }
 
 /** Conformidad periódica con el resumen de jornada (R-01). */

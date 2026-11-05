@@ -32,6 +32,8 @@ export type WeeklyOvertimeViolation =
   | "EXCEDENTE_ILEGAL"
   | "TOPE_DIARIO_12H"
   | "MENOR"
+  | "ART_66_EXCEDE_DIA"
+  | "ART_66_EXCEDE_DIAS"
   | "SIN_DIA_DE_DESCANSO";
 
 export interface WeeklyOvertimeDayInput {
@@ -250,6 +252,16 @@ export const classifyWeeklyOvertime = (input: WeeklyOvertimeInput): WeeklyOverti
     const candidate = day.candidateExtraMin;
     if (candidate <= 0) continue;
 
+    // RJ-09: el menor nunca cobra extra al doble/triple; todo exceso es ilegal.
+    if (minor) {
+      day.illegalMin += candidate;
+      illegalTotal += candidate;
+      day.extraMin = candidate;
+      addViolation(day.violations, "MENOR");
+      if (candidate > 4 * 60) addViolation(day.violations, "ART_66_EXCEDE_DIA");
+      continue;
+    }
+
     // La jornada ordinaria + extra nunca puede pasar de 12 h en el día.
     const dailyRoom = Math.max(0, DAILY_TOTAL_LIMIT_MINUTES - day.ordinaryMin);
     const allowed = Math.min(candidate, dailyRoom);
@@ -266,6 +278,10 @@ export const classifyWeeklyOvertime = (input: WeeklyOvertimeInput): WeeklyOverti
     }
 
     extraDays += 1;
+    if (allowed > 4 * 60) {
+      addViolation(day.violations, "ART_66_EXCEDE_DIA");
+      addViolation(violations, "ART_66_EXCEDE_DIA");
+    }
     let remaining = allowed;
 
     const doubleEligible =
@@ -298,6 +314,10 @@ export const classifyWeeklyOvertime = (input: WeeklyOvertimeInput): WeeklyOverti
     }
 
     day.extraMin = day.doubleMin + day.tripleMin + day.illegalMin;
+  }
+
+  if (extraDays > MAX_OVERTIME_DAYS_PER_WEEK) {
+    addViolation(violations, "ART_66_EXCEDE_DIAS");
   }
 
   return {

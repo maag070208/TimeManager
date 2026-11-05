@@ -128,13 +128,14 @@ test("caso 9: 2027, 8 h + 5 h extra (13 h) → 4 h DOBLE + 1 h ILEGAL por tope d
   assert.ok(result.violations.includes("TOPE_DIARIO_12H"));
 });
 
-test("caso 10: 2027, trabajador de 17 años con 1 h extra → TRIPLE + MENOR", () => {
+test("caso 10: 2027, trabajador de 17 años con 1 h extra → ILEGAL + MENOR", () => {
   const result = classifyWeeklyOvertime({
     days: [day("2027-01-04", 60)],
     ageAtWeekStart: 17,
   });
   assert.equal(result.otDoubleMin, 0);
-  assert.equal(result.otTripleMin, 60);
+  assert.equal(result.otTripleMin, 0);
+  assert.equal(result.otIllegalMin, 60);
   assert.ok(result.minor);
   assert.ok(result.violations.includes("MENOR"));
 });

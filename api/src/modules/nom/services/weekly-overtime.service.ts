@@ -57,6 +57,20 @@ export class WeeklyOvertimeService {
     const weekStartKey = localDateKey(range.start, range.timezone);
     const weekStart = toUtcDate(weekStartKey);
     const users = await this.usersById([...new Set(days.map((day) => day.userId))]);
+    const agreementUsers = new Set<string>();
+    if (days.length > 0) {
+      const agreements = await this.db.workdayDistributionAgreement.findMany({
+        where: {
+          tenantId,
+          userId: { in: [...new Set(days.map((day) => day.userId))] },
+          acceptedAt: { not: null },
+          effectiveFrom: { lte: range.end },
+          OR: [{ effectiveTo: null }, { effectiveTo: { gte: range.start } }],
+        },
+        select: { userId: true },
+      });
+      for (const agreement of agreements) if (agreement.userId) agreementUsers.add(agreement.userId);
+    }
     const holidayDates = this.holidays
       ? await this.holidays.between(
           tenantId,
@@ -89,6 +103,7 @@ export class WeeklyOvertimeService {
           shiftType: day.shiftType ?? "DIURNA",
           restDay: day.restDay,
           holidayWorked: holidayDates.has(day.date) && !day.restDay && day.workedMin > 0,
+          hasDistributionAgreement: agreementUsers.has(userId),
         }));
 
       const result = classifyWeeklyOvertime({

@@ -26,6 +26,7 @@ const currentWeek = (): { periodStart: string; periodEnd: string } => {
  */
 export const useWorkerCompliance = () => {
   const [agreement, setAgreement] = useState<RecordAgreement | null>(null);
+  const [proposal, setProposal] = useState<{ methods: string[]; text: string; roundingPolicy: string | null; correctionRules: string | null } | null>(null);
   const [acknowledgments, setAcknowledgments] = useState<WorkRecordAcknowledgment[]>([]);
   const [requests, setRequests] = useState<OvertimeRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +38,13 @@ export const useWorkerCompliance = () => {
     setLoading(true);
     setError(null);
     try {
-      const [nextAgreement, nextAcknowledgments, nextRequests] = await Promise.all([
+      const [nextProposal, nextAgreement, nextAcknowledgments, nextRequests] = await Promise.all([
+        nomApi.recordProposal(),
         nomApi.myRecordAgreement(),
         nomApi.myRecordAcknowledgments(),
         nomApi.myOvertimeRequests(),
       ]);
+      setProposal(nextProposal);
       setAgreement(nextAgreement);
       setAcknowledgments(nextAcknowledgments);
       setRequests(nextRequests);
@@ -72,7 +75,7 @@ export const useWorkerCompliance = () => {
   const acceptAgreement = () =>
     run("agreement", async () => {
       await nomApi.acceptRecordAgreement({
-        methods: ["CLOCK", "REMOTE"],
+        methods: proposal?.methods ?? ["CLOCK", "REMOTE"],
         roundingPolicy: "Minutos exactos; el redondeo es solo para nómina",
         correctionRules: "Toda corrección pasa por ajuste documentado y aprobado",
       });
@@ -92,6 +95,7 @@ export const useWorkerCompliance = () => {
 
   return {
     agreement,
+    proposal,
     acknowledgments,
     requests,
     loading,

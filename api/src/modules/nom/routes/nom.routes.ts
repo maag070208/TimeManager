@@ -58,6 +58,11 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/alerts", canRead, asyncHandler(controller.listAlerts));
   router.post("/alerts/scan", canWrite, asyncHandler(controller.scanAlerts));
 
+  // Convenio de distribución de jornada (art. 58).
+  router.get("/distribution-agreements", canRead, asyncHandler(controller.listDistributionAgreements));
+  router.post("/distribution-agreements", canWrite, asyncHandler(controller.createDistributionAgreement));
+  router.post("/me/distribution-agreements/:id/accept", asyncHandler(controller.acceptDistributionAgreement));
+
   // Vacaciones y permisos configurables por cliente.
   router.get("/leave/types", asyncHandler(controller.listLeaveTypes));
   router.post("/leave/types", canWrite, asyncHandler(controller.createLeaveType));
@@ -98,10 +103,13 @@ export const createNomRouter = (controller: NomController): Router => {
 
   // Prueba plena (F3): acuerdo del método de registro y conformidad periódica.
   router.get("/me/record-agreement", asyncHandler(controller.myRecordAgreement));
+  router.get("/me/record-agreement/proposal", asyncHandler(controller.recordAgreementProposal));
   router.post("/me/record-agreement/accept", asyncHandler(controller.acceptRecordAgreement));
   router.get("/me/record-acknowledgments", asyncHandler(controller.myAcknowledgments));
   router.post("/me/record-acknowledgments", asyncHandler(controller.acknowledgeRecord));
   router.get("/record-agreements", canRead, asyncHandler(controller.listRecordAgreements));
+  router.post("/record-agreements/:id/employer-sign", canWrite, asyncHandler(controller.employerSignRecordAgreement));
+  router.get("/record-agreements/:id/versions", canRead, asyncHandler(controller.recordAgreementVersions));
   router.get("/record-acknowledgments", canRead, asyncHandler(controller.listRecordAcknowledgments));
 
   // Catálogo de festivos del cliente (art. 74 LFT).

@@ -1,6 +1,6 @@
 # Plan de cierre de huecos — registro electrónico de jornada (LFT 2027)
 
-Fecha: 2026-11-05. Estado: **Fase 1 completa** — RJ-02, RJ-03, RJ-04 y RJ-06 implementados. Falta Fase 2-4 (RJ-01/05/07/08/09/10).
+Fecha: 2026-11-05. Estado: **implementado** (2026-11-05) — RJ-01 a RJ-09 en código con pruebas. Quedan decisiones legales abiertas §7 y los pendientes de autoridad §8.
 
 Cierra los huecos que quedaron abiertos tras la auditoría de código del registro electrónico
 de jornada (LFT art. 132 fr. XXXIV, exigible 01-ene-2027; multa art. 994 fr. IV Bis) frente al
@@ -46,16 +46,16 @@ Trazabilidad de este plan con el resumen legal:
 
 | ID | Hueco | Prioridad | Talla | Depende de |
 |---|---|---|---|---|
-| RJ-01 | Sin convenio art. 58 (distribución/cambio a 46 h) | P0 | M | — |
+| RJ-01 | Sin convenio art. 58 (distribución/cambio a 46 h) | P0 | M | ✅ implementado (API + motor; UI RH básica pendiente) |
 | RJ-02 | Marcaje remoto no suma jornada (subregistro) | P0 | L | ✅ implementado |
 | RJ-03 | Ajuste aprobado no incide en jornada ni export | P0 | M | ✅ implementado (falta cancelar un aprobado) |
 | RJ-04 | Marcaje remoto sin flujo de corrección | P0 | M | ✅ implementado |
-| RJ-05 | Retención falla con checadas ajustadas; piso legal incompleto | P0 | M | — |
+| RJ-05 | Retención falla con checadas ajustadas; piso legal incompleto | P0 | M | ✅ implementado (falta botón web) |
 | RJ-06 | Export incompleto para inspección | P1 | M | ✅ v2 implementado (falta detalle de access_events) |
-| RJ-07 | Prueba plena unilateral y UI que no muestra lo que se firma | P1 | M | — |
-| RJ-08 | Jornada diaria 8/7/7.5 y tope 12 h sin bloquear; sin desglose diario | P1 | L | RJ-01 |
-| RJ-09 | Infracciones de menores y art. 66 no marcadas | P2 | S | — |
-| RJ-10 | Sincronizar documentación de cumplimiento | P2 | S | todos |
+| RJ-07 | Prueba plena unilateral y UI que no muestra lo que se firma | P1 | M | ✅ implementado (falta pantalla RH para firmar) |
+| RJ-08 | Jornada diaria 8/7/7.5 y tope 12 h sin bloquear; sin desglose diario | P1 | L | ✅ implementado |
+| RJ-09 | Infracciones de menores y art. 66 no marcadas | P2 | S | ✅ implementado |
+| RJ-10 | Sincronizar documentación de cumplimiento | P2 | S | ✅ implementado |
 
 **Criterio de "hecho" para toda tarea:** código + migración (si aplica) + tests unitarios e
 integración en verde + `pnpm typecheck` y `pnpm lint` en 0 + ficha `docs/modules/<modulo>.md`
@@ -71,7 +71,12 @@ si es multi-tenant. Nada de E2E salvo petición explícita.
 - **RJ-06 ✅** export `stps-registro-jornada-v2`: primera entrada, última salida y origen por día, detalle de marcajes (reloj vigente + remoto + archivo), `minor` desde el ledger y SHA-256 sobre el texto final (CSV y JSON) recalculable por el receptor.
 - **Evidencia:** unitarios 115/115, integración 186/186, `tsc` limpio. E2E de prenómina/Mi jornada en verde.
 - **RJ-04 ✅** `PunchAdjustment` es polimórfico (`targetType` CLOCK/REMOTE/ACCESS + `targetId`); la discrepancia del trabajador ya acepta marcajes web, RH aprueba y el reporte usa la hora/tipo vigentes. La UI de Mi jornada permite reportar checadas remotas. Historial y auditoría conservan el objetivo.
-- **Siguiente:** Fase 2 — RJ-01 (convenio art. 58) y RJ-08 (jornada diaria/tope 12 h). Luego RJ-05, RJ-07 y RJ-09/RJ-10.
+- **RJ-01/RJ-08 ✅** convenio `workday_distribution_agreements` con aceptación del trabajador y alimentación del motor; jornada diaria topada a 8/7/7.5 h sin convenio, exceso diario como extra y bloqueo de días > 12 h.
+- **RJ-05 ✅** el archivado mueve también los ajustes, respeta bajas recientes en `access_events`, audita desde el script y protege las tablas de archivo con RLS y bloqueo de TRUNCATE.
+- **RJ-07 ✅** versiones append-only del acuerdo de método, firma del trabajador y del patrón con hash/IP, y UI que muestra el texto/métodos que se firman.
+- **RJ-09 ✅** todo exceso de un menor se clasifica ilegal (nunca doble/triple) y se marcan `ART_66_EXCEDE_DIA`/`ART_66_EXCEDE_DIAS`.
+- **Evidencia final:** unitarios **115/115**, integración **191/191** (56 suites), `tsc` limpio.
+- **Pendientes de producto:** pantalla RH para crear convenios/firmar acuerdos y botón web de archivado; decisiones legales §7 siguen abiertas.
 
 ## 3. P0 — Evidencia que se cae en inspección o juicio
 

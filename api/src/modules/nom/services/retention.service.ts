@@ -15,6 +15,7 @@ export const LEGAL_RETENTION_MONTHS = 12;
 
 const PUNCH_COLUMNS = `"id", "tenantId", "clockSerial", "serialNo", "employeeNumber", "name", "method", "minor", "occurredAt", "createdAt"`;
 const ACCESS_EVENT_COLUMNS = `"id", "tenantId", "type", "occurredAt", "deviceTimestamp", "employeeId", "employeeNameSnapshot", "employeeNumberSnapshot", "guardId", "siteId", "latitude", "longitude", "gpsAccuracyMeters", "locationSource", "method", "credentialVersion", "scannedPayloadHash", "clientEventId", "deviceId", "deviceCode", "notes", "voidedAt", "voidedById", "voidReason", "createdAt"`;
+const ADJUSTMENT_COLUMNS = `"id", "tenantId", "targetType", "targetId", "punchId", "remotePunchId", "requestedById", "reason", "previousState", "newState", "status", "decidedById", "decidedAt", "decisionNote", "createdAt"`;
 const REMOTE_PUNCH_COLUMNS = `"id", "tenantId", "userId", "type", "workMode", "occurredAt", "clientReportedAt", "latitude", "longitude", "gpsAccuracyMeters", "note", "clientEventId", "createdAt"`;
 
 /** `now` menos `months` meses, en UTC (corte de retención), sin desbordar el día. */
@@ -134,10 +135,30 @@ export class RetentionService {
     const dryRun = options.dryRun ?? false;
 
     if (dryRun) {
-      const [punches, accessEvents, remotePunches] = await Promise.all([
+      const accessFilter = terminated.userIds.length
+        ? { employeeId: { notIn: terminated.userIds } }
+        : {};
+      const [punches, accessEvents, remotePunches, adjustments] = await Promise.all([
         this.db.timeClockPunch.count({ where: { tenantId, occurredAt: { lt: cutoff }, ...punchFilter } }),
-        this.db.accessEvent.count({ where: { tenantId, occurredAt: { lt: cutoff } } }),
+        this.db.accessEvent.count({ where: { tenantId, occurredAt: { lt: cutoff }, ...accessFilter } }),
         this.db.remotePunch.count({ where: { tenantId, occurredAt: { lt: cutoff }, ...remoteFilter } }),
+        this.db.$queryRawUnsafe<Array<{ count: bigint }>>(
+          `SELECT count(*)::bigint AS count FROM "punch_adjustments" a
+           WHERE a."tenantId" = $1 AND (
+             (a."targetType" = 'CLOCK' AND EXISTS (
+               SELECT 1 FROM "time_clock_punches" p WHERE p."id" = a."punchId" AND p."tenantId" = $1
+                 AND p."occurredAt" < $2 AND ($3::text[] IS NULL OR p."employeeNumber" <> ALL($3::text[]))
+             )) OR
+             (a."targetType" = 'REMOTE' AND EXISTS (
+               SELECT 1 FROM "remote_punches" r WHERE r."id" = a."remotePunchId" AND r."tenantId" = $1
+                 AND r."occurredAt" < $2 AND ($4::text[] IS NULL OR r."userId" <> ALL($4::text[]))
+             ))
+           )`,
+          tenantId,
+          cutoff,
+          terminated.employeeNumbers.length ? terminated.employeeNumbers : null,
+          terminated.userIds.length ? terminated.userIds : null
+        ).then((rows) => Number(rows[0]?.count ?? 0)),
       ]);
       return {
         tenantId,
@@ -147,6 +168,7 @@ export class RetentionService {
         punches,
         accessEvents,
         remotePunches,
+        adjustments,
       };
     }
 
@@ -155,6 +177,43 @@ export class RetentionService {
       // DELETE sobre checadas/eventos: la purga controlada de archivo.
       await tx.$executeRawUnsafe("SELECT set_config('app.tenant_id', $1, true)", tenantId);
       await tx.$executeRawUnsafe("SET LOCAL app.nom_purge = 'on'");
+
+      // RJ-05: primero los ajustes (FK restrict), luego las checadas.
+      const adjustments = await tx.$executeRawUnsafe(
+        `INSERT INTO "nom_archived_punch_adjustments" (${ADJUSTMENT_COLUMNS})
+         SELECT ${ADJUSTMENT_COLUMNS} FROM "punch_adjustments" a
+         WHERE a."tenantId" = $1 AND (
+           (a."targetType" = 'CLOCK' AND EXISTS (
+             SELECT 1 FROM "time_clock_punches" p WHERE p."id" = a."punchId" AND p."tenantId" = $1
+               AND p."occurredAt" < $2 AND ($3::text[] IS NULL OR p."employeeNumber" <> ALL($3::text[]))
+           )) OR
+           (a."targetType" = 'REMOTE' AND EXISTS (
+             SELECT 1 FROM "remote_punches" r WHERE r."id" = a."remotePunchId" AND r."tenantId" = $1
+               AND r."occurredAt" < $2 AND ($4::text[] IS NULL OR r."userId" <> ALL($4::text[]))
+           ))
+         )`,
+        tenantId,
+        cutoff,
+        terminated.employeeNumbers.length ? terminated.employeeNumbers : null,
+        terminated.userIds.length ? terminated.userIds : null
+      );
+      const deletedAdjustments = await tx.$executeRawUnsafe(
+        `DELETE FROM "punch_adjustments" a
+         WHERE a."tenantId" = $1 AND (
+           (a."targetType" = 'CLOCK' AND EXISTS (
+             SELECT 1 FROM "time_clock_punches" p WHERE p."id" = a."punchId" AND p."tenantId" = $1
+               AND p."occurredAt" < $2 AND ($3::text[] IS NULL OR p."employeeNumber" <> ALL($3::text[]))
+           )) OR
+           (a."targetType" = 'REMOTE' AND EXISTS (
+             SELECT 1 FROM "remote_punches" r WHERE r."id" = a."remotePunchId" AND r."tenantId" = $1
+               AND r."occurredAt" < $2 AND ($4::text[] IS NULL OR r."userId" <> ALL($4::text[]))
+           ))
+         )`,
+        tenantId,
+        cutoff,
+        terminated.employeeNumbers.length ? terminated.employeeNumbers : null,
+        terminated.userIds.length ? terminated.userIds : null
+      );
 
       const punches = await tx.$executeRawUnsafe(
         `INSERT INTO "nom_archived_time_clock_punches" (${PUNCH_COLUMNS})
@@ -177,14 +236,18 @@ export class RetentionService {
       const accessEvents = await tx.$executeRawUnsafe(
         `INSERT INTO "nom_archived_access_events" (${ACCESS_EVENT_COLUMNS})
          SELECT ${ACCESS_EVENT_COLUMNS} FROM "access_events"
-         WHERE "tenantId" = $1 AND "occurredAt" < $2`,
+         WHERE "tenantId" = $1 AND "occurredAt" < $2
+           AND ($3::text[] IS NULL OR "employeeId" <> ALL($3::text[]))`,
         tenantId,
-        cutoff
+        cutoff,
+        terminated.userIds.length ? terminated.userIds : null
       );
       const deletedAccessEvents = await tx.$executeRawUnsafe(
-        `DELETE FROM "access_events" WHERE "tenantId" = $1 AND "occurredAt" < $2`,
+        `DELETE FROM "access_events" WHERE "tenantId" = $1 AND "occurredAt" < $2
+           AND ($3::text[] IS NULL OR "employeeId" <> ALL($3::text[]))`,
         tenantId,
-        cutoff
+        cutoff,
+        terminated.userIds.length ? terminated.userIds : null
       );
 
       const remotePunches = await tx.$executeRawUnsafe(
@@ -208,16 +271,18 @@ export class RetentionService {
       if (
         punches !== deletedPunches ||
         accessEvents !== deletedAccessEvents ||
-        remotePunches !== deletedRemotePunches
+        remotePunches !== deletedRemotePunches ||
+        adjustments !== deletedAdjustments
       ) {
         throw new Error(
-          `NOM archive mismatch: punches ${punches}/${deletedPunches}, access ${accessEvents}/${deletedAccessEvents}, remote ${remotePunches}/${deletedRemotePunches}`
+          `NOM archive mismatch: punches ${punches}/${deletedPunches}, access ${accessEvents}/${deletedAccessEvents}, remote ${remotePunches}/${deletedRemotePunches}, adjustments ${adjustments}/${deletedAdjustments}`
         );
       }
       return {
         punches: deletedPunches,
         accessEvents: deletedAccessEvents,
         remotePunches: deletedRemotePunches,
+        adjustments: deletedAdjustments,
       };
     });
 
@@ -238,6 +303,7 @@ export class RetentionService {
       punches: result.punches,
       accessEvents: result.accessEvents,
       remotePunches: result.remotePunches,
+      adjustments: result.adjustments,
     };
   }
 
@@ -254,9 +320,9 @@ export class RetentionService {
           const config = await this.settings.resolve(tenantId);
           return this.archiveTenant(tenantId, { config });
         });
-        if (result && (result.punches > 0 || result.accessEvents > 0 || result.remotePunches > 0)) {
+        if (result && (result.punches > 0 || result.accessEvents > 0 || result.remotePunches > 0 || result.adjustments > 0)) {
           logger.info(
-            `[nom] retención ${retentionMonths}m: ${result.punches} checada(s), ${result.accessEvents} evento(s) y ${result.remotePunches} marcaje(s) remoto(s) archivados en ${tenantId}`
+            `[nom] retención ${retentionMonths}m: ${result.punches} checada(s), ${result.accessEvents} evento(s), ${result.remotePunches} marcaje(s) remoto(s) y ${result.adjustments} ajuste(s) archivados en ${tenantId}`
           );
           results.push(result);
         }
