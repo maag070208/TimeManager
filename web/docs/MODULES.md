@@ -81,8 +81,8 @@ El producto es solo el servicio de checadas. Tickets, inventario, cocina y las p
 - CRUD, soft-delete.
 - Endpoints: `/subareas`.
 
-### 6. Usuarios (solo ADMIN)
-- Rutas: `/users`, `/users/new`, `/users/:id/edit`, `/users/:id/history`, `/users/import`
+### 6. Usuarios → fundido en Personal
+- Ya no hay pantalla de Usuarios: cuentas y expedientes viven en `/employees` (ver `docs/modules/users.md`). Rutas: `/employees/new`, `/employees/import`, `/employees/:id/account`, `/employees/:id/history`; las `/users/*` redirigen.
 - Lista, crear/editar, cambio password, activar/desactivar, historial (timeline + audit-log), importación (panel + resultado).
 - Endpoints: `/users`, `/users/:id/password`, `/users/:id/deactivate`, `/users/:id/reactivate`, `/users/employees`, `/auth/login`, `/auth/me`.
 

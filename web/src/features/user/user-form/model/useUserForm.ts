@@ -9,9 +9,8 @@ import { personalApi, type DocumentType } from "@entities/hr";
 import { validateEmail } from "@shared/validation";
 import { describeClockSync, timeClockApi } from "@entities/time-clock";
 import { showToast } from "@app/toast/toast.slice";
-import type { AppDispatch } from "@app/store";
+import type { AppDispatch, RootState } from "@app/store";
 import { getSelectedTenant } from "@shared/api/tenant";
-import type { RootState } from "@app/store";
 
 export const ROLE_GUIDANCE: Record<
   UserRole,

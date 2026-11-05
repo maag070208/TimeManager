@@ -24,7 +24,16 @@ CRUD de usuarios del sistema (que también son los empleados), importación masi
 
 ## Frontend
 
-`pages/users/*` (lista, nuevo, edición, historial, importación), `features/user/*`, `entities/user`.
+Una persona = una cuenta: **no hay pantalla de Usuarios**, todo vive en **Personal** (`/employees`).
+
+- Lista: `pages/employees/EmployeesListPage` + `features/user/employees-list`. Con `hr.records` lee el expediente (`/hr/query`); con solo `users.view` (SUPPORT) lee las cuentas (`/users/query`), sin datos sensibles. Misma tabla.
+- Por fila: ver, editar expediente y menú "⋯" (`features/user/account-actions`): cuenta (usuario, rol, correo), contraseña, baja con motivo, reactivar, eliminar (con forzado si hay historial).
+- Rutas: `/employees/new`, `/employees/import`, `/employees/:id/account` (diálogo de cuenta sobre la lista), `/employees/:id/history`. Las viejas `/users/*` redirigen.
+- `entities/user`, `features/user/user-form`, `user-history`, `import-users`, `user-permissions`.
+
+## Roles por cliente
+
+`isRoleAllowedFor` (`core/permissions/roles.ts`): el personal de un cliente solo puede tener roles de cliente (`staff`: CLIENT_ADMIN, HUMAN_RESOURCES, CLIENT_STAFF). ADMIN/SUPPORT son de plataforma; darlos a alguien de un cliente le abriría la matriz de roles y la configuración, que son de todos. Se valida en alta, edición (con el cliente del usuario editado) y "agregar miembro" de la consola de roles → 403 `ROLE_NOT_FOR_CLIENT`. La web tampoco los ofrece dentro de un cliente.
 
 ## Notas multi-tenant
 
