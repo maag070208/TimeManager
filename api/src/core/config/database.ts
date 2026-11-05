@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { tenancyExtension } from "@core/tenancy";
+// Directo del archivo (no del barrel): iterate.ts importa este módulo y un
+// import circular database ↔ barrel rompería la carga.
+import { tenancyExtension } from "@core/tenancy/extension";
 
 /**
  * `users.name` guarda solo el primer nombre; el nombre completo se arma con

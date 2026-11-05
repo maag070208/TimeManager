@@ -31,6 +31,8 @@ const EMPTY_ROSTER: RosterFacts = { suspicious: false, pendingRemovals: 0, reapp
  * lectura del equipo que se guarda en caché. Solo LEE del reloj.
  */
 export class TimeClockSummaryService {
+  // Clave = serialNumber (PK global de TimeClock): no hay colisión entre
+  // clientes aunque el servicio atienda varios tenants.
   private readonly cache = new Map<string, DeviceRead>();
 
   constructor(

@@ -8,3 +8,5 @@ export {
 } from "./context";
 export { scopeArgs } from "./scope";
 export { tenancyExtension } from "./extension";
+export { forEachActiveTenant, activeTenants, type TenantRef } from "./iterate";
+export { seedTenantTemplateCatalogs } from "./catalogs";

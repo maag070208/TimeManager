@@ -1,5 +1,6 @@
 import type { EmailLog } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
+import { runWithTenant } from "@core/tenancy";
 import { env } from "@core/config/env.config";
 import {
   getNotificationRecipients,
@@ -136,22 +137,26 @@ const runRow = async (row: EmailLog): Promise<void> => {
   const attempts = row.attempts + 1;
 
   try {
-    const attachments = await loadAttachments(row.attachments);
-    const ok = await sendEmail({
-      to: row.to
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0),
-      subject: row.subject,
-      html: row.html,
-      attachments,
-      skipStakeholders: true,
-    });
-    if (!ok) throw new Error("sendEmail returned false");
+    // Dentro del contexto del cliente del correo (null = plataforma): cualquier
+    // dato de negocio que toque la plantilla queda filtrado a su cliente.
+    await runWithTenant(row.tenantId, async () => {
+      const attachments = await loadAttachments(row.attachments);
+      const ok = await sendEmail({
+        to: row.to
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+        subject: row.subject,
+        html: row.html,
+        attachments,
+        skipStakeholders: true,
+      });
+      if (!ok) throw new Error("sendEmail returned false");
 
-    await prismaClient.emailLog.update({
-      where: { id: row.id },
-      data: { status: "SENT", sentAt: new Date(), lastError: null },
+      await prismaClient.emailLog.update({
+        where: { id: row.id },
+        data: { status: "SENT", sentAt: new Date(), lastError: null },
+      });
     });
   } catch (err) {
     const lastError = err instanceof Error ? err.message : String(err);

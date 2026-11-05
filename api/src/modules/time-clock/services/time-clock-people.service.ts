@@ -68,6 +68,8 @@ export class TimeClockPeopleService {
   ) {}
 
   private readonly pendingCaptures = new Map<string, PendingCapture>();
+  // Clave = serialNumber (PK global de TimeClock); byEmployee vive dentro de
+  // ese reloj, así que un número de empleado de otro cliente nunca choca.
   private readonly biometricsCache = new Map<string, { at: number; byEmployee: Record<string, PersonBiometrics> }>();
 
   private async clockFor(serial: string, write: boolean, timeoutMs?: number): Promise<{ client: IsapiClient; name: string | null }> {

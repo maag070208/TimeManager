@@ -31,6 +31,9 @@ const sysConfigSelect = {
  * `user.service.ts#deactivate` (ver ahí el razonamiento).
  */
 export class SysConfigService {
+  // sys_config es de PLATAFORMA (sin tenantId): una sola clave por config,
+  // compartida por todos los clientes. Si algún día haya config por cliente,
+  // la clave debe pasar a `${tenantId}:${key}`.
   private readonly cache = new Map<string, { value: string; ts: number }>();
 
   constructor(

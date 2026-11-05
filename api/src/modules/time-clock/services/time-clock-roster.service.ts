@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
-import { requireTenantId } from "@core/tenancy";
+import { forEachActiveTenant, requireTenantId } from "@core/tenancy";
 import { logger } from "@core/utils/logger";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import { IsapiClient } from "./isapi.client";
@@ -383,7 +383,11 @@ export class TimeClockRosterService {
     if (!this.credentials) return () => undefined;
     const tick = (): void => {
       if (this.running) return;
-      this.run("AUTO").catch((err: unknown) =>
+      // Una corrida por cliente ACTIVE, cada una en su contexto: dentro, el
+      // padrón solo ve los relojes y empleados de ese cliente.
+      forEachActiveTenant(async () => {
+        await this.run("AUTO");
+      }).catch((err: unknown) =>
         logger.error(`[time-clock-roster] ${messageOf(err)}`)
       );
     };

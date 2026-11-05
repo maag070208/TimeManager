@@ -1,0 +1,18 @@
+{
+  "removalCategories": [
+    { "key": "resignation", "name": "Renuncia" },
+    { "key": "dismissal", "name": "Despido" },
+    { "key": "job_abandonment", "name": "Abandono de empleo" },
+    { "key": "contract_end", "name": "Término de contrato" },
+    { "key": "retirement", "name": "Jubilación" }
+  ],
+  "documentTypes": [
+    { "name": "INE", "required": true, "sortOrder": 1 },
+    { "name": "CURP", "required": true, "sortOrder": 2 },
+    { "name": "RFC", "required": true, "sortOrder": 3 },
+    { "name": "Acta de nacimiento", "required": false, "sortOrder": 4 },
+    { "name": "Comprobante de domicilio", "required": false, "sortOrder": 5 },
+    { "name": "Contrato de trabajo", "required": true, "sortOrder": 6 },
+    { "name": "Alta IMSS", "required": false, "sortOrder": 7 }
+  ]
+}

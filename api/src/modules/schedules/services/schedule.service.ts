@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
+import { requireTenantId } from "@core/tenancy";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { ci, orderByOf, type ITDataTableFetchParams, type TableFilters, type ITDataTableResponse } from "@core/utils/table";
 import {
@@ -75,7 +76,7 @@ export class ScheduleService {
         mealBreakMin: data.mealBreakMin ?? 0,
         minOvertimeMin: data.minOvertimeMin ?? 60,
         crossesMidnight: data.crossesMidnight ?? false,
-        days: { create: data.days.map((d) => this.normalizeDay(d)) },
+        days: { create: data.days.map((d) => ({ ...this.normalizeDay(d), tenantId: requireTenantId() })) },
       },
       include: { days: { orderBy: { weekday: "asc" } } },
     });
@@ -104,7 +105,7 @@ export class ScheduleService {
           minOvertimeMin: data.minOvertimeMin,
           crossesMidnight: data.crossesMidnight,
           active: data.active,
-          ...(data.days ? { days: { create: data.days.map((d) => this.normalizeDay(d)) } } : {}),
+          ...(data.days ? { days: { create: data.days.map((d) => ({ ...this.normalizeDay(d), tenantId: requireTenantId() })) } } : {}),
         },
         include: { days: { orderBy: { weekday: "asc" } } },
       });

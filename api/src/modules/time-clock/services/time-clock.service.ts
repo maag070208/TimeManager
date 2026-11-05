@@ -1,5 +1,6 @@
 import { PunchMethod, type TimeClock, type Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
+import { forEachActiveTenant } from "@core/tenancy";
 import { paginatedQuery } from "@core/db/table";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { logger } from "@core/utils/logger";
@@ -471,10 +472,14 @@ export class TimeClockService {
     }
     const tick = async (): Promise<void> => {
       try {
-        for (const clock of await this.registeredClocks()) {
-          const clockStatus = this.clockStatus(clock.serialNumber);
-          if (!clockStatus.inProgress && !clockStatus.pausedByCredentials) void this.run(clock);
-        }
+        // Una corrida por cliente ACTIVE, cada una en su contexto: dentro,
+        // registeredClocks() solo ve los relojes de ese cliente.
+        await forEachActiveTenant(async () => {
+          for (const clock of await this.registeredClocks()) {
+            const clockStatus = this.clockStatus(clock.serialNumber);
+            if (!clockStatus.inProgress && !clockStatus.pausedByCredentials) void this.run(clock);
+          }
+        });
       } catch (err) {
         logger.error(`[time-clock] could not read the registered time clocks: ${messageOf(err)}`);
       }
