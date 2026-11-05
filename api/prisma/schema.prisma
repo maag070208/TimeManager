@@ -165,6 +165,8 @@ model User {
   permissionsGranted UserPermission[] @relation("UserPermissionGrantedBy")
   policiesCreated    Policy[]         @relation("PolicyCreatedBy")
   weeklyOvertimeLedgers WeeklyOvertimeLedger[] @relation("WeeklyOvertimeLedgerUser")
+  recordAgreement       WorkRecordAgreement? @relation("WorkRecordAgreementUser")
+  recordAcknowledgments WorkRecordAcknowledgment[] @relation("WorkRecordAcknowledgmentUser")
   active             Boolean          @default(true)
   jobTitle           String?
   employeeNumber     String?
@@ -975,6 +977,61 @@ model WeeklyOvertimeLedger {
   @@index([userId, weekStart])
   @@index([status])
   @@map("weekly_overtime_ledgers")
+}
+
+/// Estado de la conformidad periódica del trabajador con su resumen de jornada.
+enum WorkRecordAckStatus {
+  PENDING
+  ACCEPTED
+  DISCREPANCY
+}
+
+/// Acuerdo del método de registro (art. 132 fr. XXXIV, prueba plena): método(s),
+/// reglas de redondeo y corrección, versión del texto y aceptación firmada por
+/// hash con fecha e IP. Uno por persona y cliente.
+model WorkRecordAgreement {
+  id       String @id @default(uuid())
+  tenantId String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId   String @unique
+  user     User   @relation("WorkRecordAgreementUser", fields: [userId], references: [id], onDelete: Cascade)
+  /// Métodos acordados: ["CLOCK"], ["REMOTE"], ["CLOCK","REMOTE"], ["ACCESS"].
+  methods        Json
+  roundingPolicy String?
+  correctionRules String?
+  textVersion    Int      @default(1)
+  acceptedAt     DateTime?
+  acceptedIp     String?
+  acceptedHash   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("work_record_agreements")
+}
+
+/// Conformidad periódica: el trabajador ve su resumen (ordinaria, extra doble/
+/// triple/ilegal, descansos) y lo acepta o abre una discrepancia. El hash del
+/// resumen aceptado queda como evidencia.
+model WorkRecordAcknowledgment {
+  id          String @id @default(uuid())
+  tenantId    String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId      String
+  user        User   @relation("WorkRecordAcknowledgmentUser", fields: [userId], references: [id], onDelete: Cascade)
+  periodStart DateTime @db.Date
+  periodEnd   DateTime @db.Date
+  summary     Json
+  summaryHash String
+  status      WorkRecordAckStatus @default(PENDING)
+  acceptedAt  DateTime?
+  workerIp    String?
+  discrepancyNote String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, userId, periodStart, periodEnd])
+  @@index([tenantId, periodStart])
+  @@index([userId, periodStart])
+  @@map("work_record_acknowledgments")
 }
 
 // ---------------------------------------------------------------------------

@@ -57,6 +57,14 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/alerts", canRead, asyncHandler(controller.listAlerts));
   router.post("/alerts/scan", canWrite, asyncHandler(controller.scanAlerts));
 
+  // Prueba plena (F3): acuerdo del método de registro y conformidad periódica.
+  router.get("/me/record-agreement", asyncHandler(controller.myRecordAgreement));
+  router.post("/me/record-agreement/accept", asyncHandler(controller.acceptRecordAgreement));
+  router.get("/me/record-acknowledgments", asyncHandler(controller.myAcknowledgments));
+  router.post("/me/record-acknowledgments", asyncHandler(controller.acknowledgeRecord));
+  router.get("/record-agreements", canRead, asyncHandler(controller.listRecordAgreements));
+  router.get("/record-acknowledgments", canRead, asyncHandler(controller.listRecordAcknowledgments));
+
   // Catálogo de festivos del cliente (art. 74 LFT).
   router.get("/holidays", canRead, asyncHandler(controller.listHolidays));
   router.post("/holidays", canWrite, asyncHandler(controller.createHoliday));

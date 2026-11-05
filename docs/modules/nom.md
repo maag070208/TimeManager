@@ -130,3 +130,10 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **Export STPS v1:** `stps-registro-jornada-v1` incluye columnas `extraDoble`, `extraTriple`, `excedenteIlegal`, `descansoLaborado`, `festivoLaborado`, `domingo`, `menor` e `infracciones`, tomadas del ledger semanal; el export asegura el cálculo del ledger de las semanas del periodo.
 - **UI de aprobación semanal:** panel «Horas extra por semana (LFT 2026)» en Tiempo extra; muestra ordinaria/doble/triple/excedente por persona y permite confirmar (congelar) el ledger si el usuario tiene `overtime.approve`.
 - Pendiente de F1: bolsas en la pre-nómina (el export ya las incluye).
+
+## Prueba plena del registro (F3, R-01)
+
+- `work_record_agreements`: acuerdo del método de registro por trabajador (métodos CLOCK/REMOTE/ACCESS, política de redondeo y reglas de corrección), con versión del texto, fecha, IP y **hash SHA-256** de aceptación.
+- `work_record_acknowledgments`: conformidad periódica; el trabajador ve el resumen de sus ledgers semanales (ordinaria, doble, triple, ilegal) y lo acepta o abre una discrepancia con nota. El resumen y su hash quedan guardados.
+- Endpoints: `GET/POST /nom/me/record-agreement(/accept)`, `GET/POST /nom/me/record-acknowledgments` y listados de RH `GET /nom/record-agreements` y `GET /nom/record-acknowledgments` (permiso de lectura NOM).
+- Pendiente F3: UI en Mi jornada, retención art. 804 (R-02) con export de archivos y autorización/consentimiento de horas extra (1.5).

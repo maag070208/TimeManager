@@ -28,6 +28,7 @@ import type { RemotePunchService } from "../services/remote-punch.service";
 import type { TeleworkService } from "../services/telework.service";
 import type { WeeklyOvertimeService } from "../services/weekly-overtime.service";
 import type { HolidayService } from "../services/holiday.service";
+import type { WorkRecordService } from "../services/work-record.service";
 
 const tenantIdOrThrow = (): string => {
   const tenantId = currentTenantId();
@@ -51,7 +52,8 @@ export class NomController {
     private readonly remotePunches: RemotePunchService,
     private readonly telework: TeleworkService,
     private readonly weeklyOvertime: WeeklyOvertimeService,
-    private readonly holidays: HolidayService
+    private readonly holidays: HolidayService,
+    private readonly record: WorkRecordService
   ) {}
 
   getConfig = async (_req: Request, res: Response) => {
@@ -100,6 +102,54 @@ export class NomController {
   };
 
 
+
+
+  myRecordAgreement = async (req: Request, res: Response) => {
+    res.json(await this.record.agreementFor(req.user!.id));
+  };
+
+  acceptRecordAgreement = async (req: Request, res: Response) => {
+    res.json(
+      await this.record.acceptAgreement(
+        tenantIdOrThrow(),
+        req.user!.id,
+        {
+          methods: req.body?.methods,
+          roundingPolicy: req.body?.roundingPolicy ?? null,
+          correctionRules: req.body?.correctionRules ?? null,
+        },
+        { ...actorOf(req), ip: req.ip ?? null }
+      )
+    );
+  };
+
+  myAcknowledgments = async (req: Request, res: Response) => {
+    res.json(await this.record.myAcknowledgments(req.user!.id));
+  };
+
+  acknowledgeRecord = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.record.acknowledge(
+        tenantIdOrThrow(),
+        req.user!.id,
+        {
+          periodStart: String(req.body?.periodStart ?? ""),
+          periodEnd: String(req.body?.periodEnd ?? ""),
+          accept: req.body?.accept !== false,
+          note: typeof req.body?.note === "string" ? req.body.note : null,
+        },
+        { ...actorOf(req), ip: req.ip ?? null }
+      )
+    );
+  };
+
+  listRecordAgreements = async (_req: Request, res: Response) => {
+    res.json(await this.record.listAgreements(tenantIdOrThrow()));
+  };
+
+  listRecordAcknowledgments = async (_req: Request, res: Response) => {
+    res.json(await this.record.listAcknowledgments(tenantIdOrThrow()));
+  };
 
   listHolidays = async (req: Request, res: Response) => {
     const year = Number(req.query.year) || new Date().getUTCFullYear();

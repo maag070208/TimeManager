@@ -11,6 +11,7 @@ import { RemotePunchService } from "./services/remote-punch.service";
 import { TeleworkService } from "./services/telework.service";
 import { WeeklyOvertimeService } from "./services/weekly-overtime.service";
 import { HolidayService } from "./services/holiday.service";
+import { WorkRecordService } from "./services/work-record.service";
 import { NomController } from "./controllers/nom.controller";
 import { createNomRouter } from "./routes/nom.routes";
 
@@ -23,6 +24,7 @@ export { RemotePunchService } from "./services/remote-punch.service";
 export { TeleworkService } from "./services/telework.service";
 export { WeeklyOvertimeService } from "./services/weekly-overtime.service";
 export { HolidayService, legalHolidays } from "./services/holiday.service";
+export { WorkRecordService } from "./services/work-record.service";
 export { classifyWeeklyOvertime, OVERTIME_ENGINE_VERSION } from "@modules/overtime/services/weekly-overtime-engine";
 
 type SysConfigReader = (key: string) => Promise<string | null>;
@@ -52,6 +54,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
   const remotePunches = new RemotePunchService(prismaClient, settings, deps.audit);
   const telework = new TeleworkService(prismaClient, settings, deps.notifications, deps.audit);
   const holidays = new HolidayService(prismaClient, deps.audit);
+  const record = new WorkRecordService(prismaClient, deps.audit);
   const weeklyOvertime = new WeeklyOvertimeService(
     prismaClient,
     deps.calculator,
@@ -68,7 +71,8 @@ export const createNomModule = (deps: NomModuleDeps) => {
     remotePunches,
     telework,
     weeklyOvertime,
-    holidays
+    holidays,
+    record
   );
   return {
     router: createNomRouter(controller),
@@ -81,6 +85,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
     telework,
     weeklyOvertime,
     holidays,
+    record,
     /**
      * Worker NOM: barrido horario de límites de jornada (ayer) y archivado
      * diario de los clientes con retención configurada. Lo arranca `src/index.ts`.
