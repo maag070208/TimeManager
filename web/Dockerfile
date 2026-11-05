@@ -17,18 +17,23 @@ COPY web/package.json ./web/
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter timemanager-web --store-dir=/pnpm/store
 
-# Código y build. La imagen solo necesita el artefacto: `vite` (esbuild) compila
-# sin tipar. El typecheck (`tsc -b`) sigue corriendo en `pnpm build` (local/CI).
+# Código y build de PRODUCCIÓN: `tsc -b` (typecheck) + `vite build` minimizado.
+# La URL del API se puede fijar en build (VITE_API_URL) o en runtime con el
+# env `API_URL` del contenedor, que render-config.sh escribe en /config.js.
 COPY web ./web
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
-RUN pnpm --filter timemanager-web run build:image
+RUN pnpm --filter timemanager-web run build:prod
 
 
 # =========================
 # Runtime — nginx
 # =========================
 FROM nginx:1.27-alpine AS runtime
+
+# API_URL es la config de runtime (prioridad sobre el build). Ejemplo:
+#   docker run -e API_URL=https://api.timemanager.mx/api/v1 ...
+ENV API_URL=""
 
 COPY --from=builder /repo/web/dist /usr/share/nginx/html
 COPY web/nginx.conf /etc/nginx/conf.d/default.conf
