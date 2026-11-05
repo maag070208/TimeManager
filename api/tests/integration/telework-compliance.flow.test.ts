@@ -148,6 +148,46 @@ describe("F4 NOM-037: brechas P0", () => {
     expectStatus(expiring, 200, "capacitaciones por vencer");
     assert.ok((expiring.body as unknown[]).length >= 1);
 
+    const exam = await api("POST", "/nom/telework/medical-exams", {
+      token: hr.token,
+      body: {
+        userId: staff.user.id,
+        kind: "INITIAL",
+        completedAt: "2026-10-15",
+        expiresAt: "2027-10-15",
+        result: "APTO",
+      },
+    });
+    expectStatus(exam, 201, "examen médico registrado");
+
+    const certificate = await api("POST", "/nom/telework/inspections", {
+      token: hr.token,
+      body: {
+        issuer: "Unidad de Inspección Demo",
+        certificateNumber: "DICT-2026-001",
+        issuedAt: "2026-09-01",
+        expiresAt: "2028-09-01",
+        scope: "Teletrabajo",
+      },
+    });
+    expectStatus(certificate, 201, "dictamen registrado");
+
+    const duplicateCertificate = await api("POST", "/nom/telework/inspections", {
+      token: hr.token,
+      body: {
+        issuer: "Unidad de Inspección Demo",
+        certificateNumber: "DICT-2026-001",
+        issuedAt: "2026-09-01",
+        expiresAt: "2028-09-01",
+      },
+    });
+    expectError(duplicateCertificate, 409, "CERTIFICATE_TAKEN", "dictamen duplicado");
+
+    const exams = await api("GET", "/nom/telework/medical-exams", { token: hr.token });
+    expectStatus(exams, 200, "exámenes médicos");
+    const inspections = await api("GET", "/nom/telework/inspections", { token: hr.token });
+    expectStatus(inspections, 200, "dictámenes");
+
     const evidence = await api("GET", "/nom/telework/evidence", { token: hr.token });
     expectStatus(evidence, 200, "expediente NOM-037");
     assert.equal(evidence.body?.schemaVersion, "nom037-expediente-v1");

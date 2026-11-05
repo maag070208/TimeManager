@@ -218,8 +218,18 @@ export class TeleworkComplianceService {
    * con hash de integridad para conservarlo como evidencia.
    */
   async evidence(tenantId: string) {
-    const [tenant, settings, registrations, checklists, equipment, trainings, notices, reversals] =
-      await Promise.all([
+    const [
+      tenant,
+      settings,
+      registrations,
+      checklists,
+      equipment,
+      trainings,
+      notices,
+      reversals,
+      medicalExams,
+      inspections,
+    ] = await Promise.all([
         this.db.tenant.findUnique({ where: { id: tenantId }, select: { id: true, name: true, slug: true } }),
         this.db.nomSettings.findUnique({
           where: { tenantId },
@@ -262,6 +272,15 @@ export class TeleworkComplianceService {
           orderBy: { requestedAt: "asc" },
           include: { user: { select: { name: true, employeeNumber: true } } },
         }),
+        this.db.teleworkMedicalExam.findMany({
+          where: { tenantId },
+          orderBy: { completedAt: "asc" },
+          include: { user: { select: { name: true, employeeNumber: true } } },
+        }),
+        this.db.inspectionCertificate.findMany({
+          where: { tenantId },
+          orderBy: { expiresAt: "asc" },
+        }),
       ]);
     const body = {
       schemaVersion: "nom037-expediente-v1",
@@ -274,9 +293,120 @@ export class TeleworkComplianceService {
       trainings,
       notices,
       reversals,
+      medicalExams,
+      inspections,
     };
     const hash = sha256(body);
     return { ...body, sha256: hash };
+  }
+
+  /** Examen médico del teletrabajador (NOM-030 / NOM-037 5.11). */
+  async createMedicalExam(
+    tenantId: string,
+    userId: string,
+    input: {
+      kind?: "INITIAL" | "PERIODIC";
+      completedAt: string;
+      expiresAt?: string | null;
+      result?: string | null;
+      notes?: string | null;
+      evidence?: string | null;
+    },
+    actor: { id: string; name?: string }
+  ) {
+    const completedAt = new Date(input.completedAt);
+    if (Number.isNaN(completedAt.getTime())) throw new HttpError(400, "INVALID_MEDICAL_EXAM");
+    const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+    if (expiresAt && Number.isNaN(expiresAt.getTime())) throw new HttpError(400, "INVALID_MEDICAL_EXAM");
+    const exam = await this.db.teleworkMedicalExam.create({
+      data: {
+        tenantId,
+        userId,
+        kind: input.kind === "INITIAL" ? "INITIAL" : "PERIODIC",
+        completedAt,
+        expiresAt,
+        result: input.result?.trim() || null,
+        notes: input.notes?.trim() || null,
+        evidence: input.evidence?.trim() || null,
+        createdById: actor.id,
+      },
+    });
+    await this.audit?.({
+      action: "TELEWORK_MEDICAL_EXAM_REGISTERED",
+      entityType: "TeleworkMedicalExam",
+      entityId: exam.id,
+      userId: actor.id,
+      userName: actor.name,
+      newState: { userId, completedAt: completedAt.toISOString() },
+    });
+    return exam;
+  }
+
+  async listMedicalExams(tenantId: string) {
+    return this.db.teleworkMedicalExam.findMany({
+      where: { tenantId },
+      orderBy: { completedAt: "desc" },
+      take: 500,
+      include: { user: { select: { name: true, employeeNumber: true } } },
+    });
+  }
+
+  /** Dictamen de unidad de inspección (NOM-037 numeral 9), vigencia 2 años. */
+  async createInspectionCertificate(
+    tenantId: string,
+    input: {
+      issuer: string;
+      certificateNumber: string;
+      issuedAt: string;
+      expiresAt: string;
+      scope?: string | null;
+      evidence?: string | null;
+      notes?: string | null;
+    },
+    actor: { id: string; name?: string }
+  ) {
+    if (input.issuer.trim().length < 3 || input.certificateNumber.trim().length < 3) {
+      throw new HttpError(400, "INVALID_CERTIFICATE");
+    }
+    const issuedAt = new Date(input.issuedAt);
+    const expiresAt = new Date(input.expiresAt);
+    if (Number.isNaN(issuedAt.getTime()) || Number.isNaN(expiresAt.getTime()) || expiresAt <= issuedAt) {
+      throw new HttpError(400, "INVALID_CERTIFICATE");
+    }
+    const exists = await this.db.inspectionCertificate.findFirst({
+      where: { tenantId, certificateNumber: input.certificateNumber.trim() },
+    });
+    if (exists) throw new HttpError(409, "CERTIFICATE_TAKEN");
+    const certificate = await this.db.inspectionCertificate.create({
+      data: {
+        tenantId,
+        issuer: input.issuer.trim(),
+        certificateNumber: input.certificateNumber.trim(),
+        issuedAt,
+        expiresAt,
+        scope: input.scope?.trim() || null,
+        evidence: input.evidence?.trim() || null,
+        notes: input.notes?.trim() || null,
+        createdById: actor.id,
+      },
+    });
+    await this.audit?.({
+      action: "INSPECTION_CERTIFICATE_REGISTERED",
+      entityType: "InspectionCertificate",
+      entityId: certificate.id,
+      userId: actor.id,
+      userName: actor.name,
+      newState: { certificateNumber: certificate.certificateNumber, expiresAt: expiresAt.toISOString() },
+    });
+    return certificate;
+  }
+
+  async listInspectionCertificates(tenantId: string) {
+    return this.db.inspectionCertificate.findMany({
+      where: { tenantId },
+      orderBy: { expiresAt: "asc" },
+      take: 500,
+    });
   }
 
   async listNotices(tenantId: string) {

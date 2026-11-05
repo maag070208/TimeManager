@@ -67,6 +67,10 @@ export const createNomRouter = (controller: NomController): Router => {
   router.post("/me/telework/equipment/:id/accept", asyncHandler(controller.acceptMyTeleworkEquipment));
   router.get("/telework/trainings", canRead, asyncHandler(controller.listTeleworkTrainings));
   router.get("/telework/trainings/expiring", canRead, asyncHandler(controller.expiringTeleworkTrainings));
+  router.get("/telework/medical-exams", canRead, asyncHandler(controller.listTeleworkMedicalExams));
+  router.post("/telework/medical-exams", canWrite, asyncHandler(controller.createTeleworkMedicalExam));
+  router.get("/telework/inspections", canRead, asyncHandler(controller.listInspectionCertificates));
+  router.post("/telework/inspections", canWrite, asyncHandler(controller.createInspectionCertificate));
   router.get("/telework/evidence", canRead, asyncHandler(controller.teleworkEvidence));
   router.post("/telework/trainings", canWrite, asyncHandler(controller.createTeleworkTraining));
   router.get("/telework/notices", canRead, asyncHandler(controller.listTeleworkNotices));

@@ -180,6 +180,50 @@ export class NomController {
     );
   };
 
+  listTeleworkMedicalExams = async (_req: Request, res: Response) => {
+    res.json(await this.teleworkCompliance.listMedicalExams(tenantIdOrThrow()));
+  };
+
+  createTeleworkMedicalExam = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.teleworkCompliance.createMedicalExam(
+        tenantIdOrThrow(),
+        String(req.body?.userId ?? ""),
+        {
+          kind: req.body?.kind === "INITIAL" ? "INITIAL" : "PERIODIC",
+          completedAt: String(req.body?.completedAt ?? ""),
+          expiresAt: typeof req.body?.expiresAt === "string" ? req.body.expiresAt : null,
+          result: typeof req.body?.result === "string" ? req.body.result : null,
+          notes: typeof req.body?.notes === "string" ? req.body.notes : null,
+          evidence: typeof req.body?.evidence === "string" ? req.body.evidence : null,
+        },
+        actorOf(req)
+      )
+    );
+  };
+
+  listInspectionCertificates = async (_req: Request, res: Response) => {
+    res.json(await this.teleworkCompliance.listInspectionCertificates(tenantIdOrThrow()));
+  };
+
+  createInspectionCertificate = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.teleworkCompliance.createInspectionCertificate(
+        tenantIdOrThrow(),
+        {
+          issuer: String(req.body?.issuer ?? ""),
+          certificateNumber: String(req.body?.certificateNumber ?? ""),
+          issuedAt: String(req.body?.issuedAt ?? ""),
+          expiresAt: String(req.body?.expiresAt ?? ""),
+          scope: typeof req.body?.scope === "string" ? req.body.scope : null,
+          evidence: typeof req.body?.evidence === "string" ? req.body.evidence : null,
+          notes: typeof req.body?.notes === "string" ? req.body.notes : null,
+        },
+        actorOf(req)
+      )
+    );
+  };
+
   expiringTeleworkTrainings = async (req: Request, res: Response) => {
     const days = Number(req.query.days) || 30;
     res.json(await this.teleworkCompliance.expiringTrainings(tenantIdOrThrow(), Math.min(Math.max(days, 1), 365)));

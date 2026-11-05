@@ -157,3 +157,10 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **Alertas de capacitación:** `GET /nom/telework/trainings/expiring?days=30` lista las que vencen en la ventana.
 - **Desconexión del propio sistema (4.11/7.3 e):** las notificaciones a un teletrabajador activo se **difieren a su siguiente jornada** si llegan fuera de su horario (`notifications.deferredUntil`); no aparecen en la campanita ni cuentan como no leídas hasta entonces. Cubre también turnos que cruzan medianoche.
 - Pendiente F4: retención mínima de 1 año de evidencias y P1/P2 (riesgos ergonómicos, exámenes médicos, violencia familiar, dictámenes).
+
+## P2 del teletrabajo (F6)
+
+- **Exámenes médicos** (`telework_medical_exams`): inicial/periódico, fecha de realización, vencimiento, resultado, evidencia. Endpoints `GET/POST /nom/telework/medical-exams`.
+- **Dictámenes de unidad de inspección** (`inspection_certificates`): emisor, número único por cliente, vigencia y evidencia. Endpoints `GET/POST /nom/telework/inspections`, con validación de duplicados.
+- Ambos entran al **expediente NOM-037** (`/nom/telework/evidence`).
+- Pendiente F6: canal confidencial de violencia familiar (requiere decisión legal/privacidad) y retención mínima de 1 año de evidencias.

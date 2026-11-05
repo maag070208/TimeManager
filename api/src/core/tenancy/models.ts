@@ -53,6 +53,8 @@ export const TENANT_MODELS: ReadonlySet<string> = new Set([
   "TeleworkTraining",
   "TeleworkNotice",
   "TeleworkReversalRequest",
+  "TeleworkMedicalExam",
+  "InspectionCertificate",
   "OutOfHoursContact",
 ]);
 
