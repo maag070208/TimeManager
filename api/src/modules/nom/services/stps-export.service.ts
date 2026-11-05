@@ -128,6 +128,57 @@ export class StpsExportService {
       orderBy: { occurredAt: "asc" },
       include: { user: { select: { name: true, employeeNumber: true } } },
     });
+    // R-02: el export también lee las tablas de archivo (art. 804).
+    type ArchivedPunch = {
+      occurredAt: Date;
+      employeeNumber: string | null;
+      name: string | null;
+      method: string;
+    };
+    let archivedPunchRows: ArchivedPunch[] = [];
+    let archivedRemoteRows: Array<{
+      occurredAt: Date;
+      userId: string;
+      type: string;
+      workMode: string;
+      employeeNumber?: string | null;
+      name?: string | null;
+    }> = [];
+    if (typeof (this.db as { $queryRawUnsafe?: unknown }).$queryRawUnsafe === "function") {
+      archivedPunchRows = await this.db.$queryRawUnsafe<ArchivedPunch[]>(
+        `SELECT "occurredAt", "employeeNumber", "name", "method"
+         FROM "nom_archived_time_clock_punches"
+         WHERE "tenantId" = $1 AND "occurredAt" >= $2 AND "occurredAt" < $3
+         ORDER BY "occurredAt" ASC`,
+        tenantId,
+        range.start,
+        range.end
+      );
+      archivedRemoteRows = await this.db.$queryRawUnsafe<
+        Array<{ occurredAt: Date; userId: string; type: string; workMode: string }>
+      >(
+        `SELECT "occurredAt", "userId", "type", "workMode"
+         FROM "nom_archived_remote_punches"
+         WHERE "tenantId" = $1 AND "occurredAt" >= $2 AND "occurredAt" < $3
+         ORDER BY "occurredAt" ASC`,
+        tenantId,
+        range.start,
+        range.end
+      );
+      const names = archivedRemoteRows.length
+        ? await this.db.user.findMany({
+            where: { id: { in: [...new Set(archivedRemoteRows.map((row) => row.userId))] } },
+            select: { id: true, name: true, employeeNumber: true },
+          })
+        : [];
+      const byId = new Map(names.map((row) => [row.id, row]));
+      archivedRemoteRows = archivedRemoteRows.map((row) => ({
+        ...row,
+        employeeNumber: byId.get(row.userId)?.employeeNumber ?? null,
+        name: byId.get(row.userId)?.name ?? null,
+      }));
+    }
+
     const remoteRows: StpsRemotePunchRow[] = remote.map((punch) => ({
       date: localDateKey(punch.occurredAt, range.timezone),
       employeeNumber: punch.user?.employeeNumber ?? null,
@@ -139,8 +190,23 @@ export class StpsExportService {
     }));
 
     const generatedAt = new Date().toISOString();
+    const archived = {
+      punches: archivedPunchRows.map((row) => ({
+        occurredAt: row.occurredAt.toISOString(),
+        employeeNumber: row.employeeNumber,
+        name: row.name,
+        method: row.method,
+      })),
+      remotePunches: archivedRemoteRows.map((row) => ({
+        occurredAt: row.occurredAt.toISOString(),
+        employeeNumber: row.employeeNumber,
+        name: row.name,
+        type: row.type,
+        workMode: row.workMode,
+      })),
+    };
     const sha256 = createHash("sha256")
-      .update(JSON.stringify({ rows, remotePunches: remoteRows }))
+      .update(JSON.stringify({ rows, remotePunches: remoteRows, archived }))
       .digest("hex");
     const from = localDateKey(range.start, range.timezone);
     const to = localDateKey(new Date(range.end.getTime() - 1), range.timezone);
@@ -157,6 +223,8 @@ export class StpsExportService {
       people: new Set(rows.map((row) => row.employeeNumber ?? row.name)).size,
       incidents: rows.filter((row) => row.restDay || row.withoutSchedule).length,
       remotePunches: remoteRows.length,
+      archivedPunches: archived.punches.length,
+      archivedRemotePunches: archived.remotePunches.length,
     };
     const filename = `registro-jornada_${tenant.slug}_${from}_${to}.${params.format}`;
     const header = {
@@ -176,9 +244,9 @@ export class StpsExportService {
       return {
         contentType: "application/json; charset=utf-8",
         filename,
-        body: JSON.stringify({ ...header, rows, remotePunches: remoteRows }, null, 2),
+        body: JSON.stringify({ ...header, rows, remotePunches: remoteRows, archived }, null, 2),
         sha256,
-        rowCount: rows.length + remoteRows.length,
+        rowCount: rows.length + remoteRows.length + archived.punches.length + archived.remotePunches.length,
       };
     }
 
@@ -225,12 +293,49 @@ export class StpsExportService {
             ...remoteRows.map((row) =>
               [
                 row.date,
-                row.employeeNumber,
-                row.name,
+                row.employeeNumber ?? null,
+                row.name ?? null,
                 row.type,
                 row.workMode,
                 row.occurredAt,
                 row.hasGeolocation ? "si" : "no",
+              ]
+                .map(csvCell)
+                .join(",")
+            ),
+          ]
+        : []),
+      ...(archived.punches.length
+        ? [
+            "",
+            "# registros archivados (retención art. 804; mismo contenido, tabla de archivo)",
+            "fecha,hora,numeroEmpleado,nombre,metodo",
+            ...archived.punches.map((row) =>
+              [
+                row.occurredAt.slice(0, 10),
+                row.occurredAt.slice(11, 19),
+                row.employeeNumber ?? null,
+                row.name ?? null,
+                row.method,
+              ]
+                .map(csvCell)
+                .join(",")
+            ),
+          ]
+        : []),
+      ...(archived.remotePunches.length
+        ? [
+            "",
+            "# marcajes remotos archivados (retención art. 804)",
+            "fecha,hora,numeroEmpleado,nombre,tipo,modalidad",
+            ...archived.remotePunches.map((row) =>
+              [
+                row.occurredAt.slice(0, 10),
+                row.occurredAt.slice(11, 19),
+                row.employeeNumber ?? null,
+                row.name ?? null,
+                row.type,
+                row.workMode,
               ]
                 .map(csvCell)
                 .join(",")

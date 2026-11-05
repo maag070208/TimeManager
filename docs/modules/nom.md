@@ -136,4 +136,5 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - `work_record_agreements`: acuerdo del método de registro por trabajador (métodos CLOCK/REMOTE/ACCESS, política de redondeo y reglas de corrección), con versión del texto, fecha, IP y **hash SHA-256** de aceptación.
 - `work_record_acknowledgments`: conformidad periódica; el trabajador ve el resumen de sus ledgers semanales (ordinaria, doble, triple, ilegal) y lo acepta o abre una discrepancia con nota. El resumen y su hash quedan guardados.
 - Endpoints: `GET/POST /nom/me/record-agreement(/accept)`, `GET/POST /nom/me/record-acknowledgments` y listados de RH `GET /nom/record-agreements` y `GET /nom/record-acknowledgments` (permiso de lectura NOM).
-- Pendiente F3: UI en Mi jornada, retención art. 804 (R-02) con export de archivos y autorización/consentimiento de horas extra (1.5).
+- **Retención art. 804 (R-02, en curso):** el archivado nunca toca los últimos 12 meses de la relación laboral ni los registros de personas con baja reciente (piso legal de 12 meses); el export STPS lee las tablas `nom_archived_*` e incluye una sección de registros archivados.
+- Pendiente F3: UI de conformidad en Mi jornada, autorización/consentimiento de horas extra (1.5) y cierre de R-02.

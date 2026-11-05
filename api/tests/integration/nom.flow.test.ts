@@ -426,6 +426,61 @@ describe("F2-04 retención y archivado", () => {
     const gone = await api("GET", `/nom/punches/${oldPunch.id}/history`, { token: hr.token });
     expectError(gone, 404, "PUNCH_NOT_FOUND", "checada archivada");
   });
+  test("el archivado respeta la ventana legal del art. 804 (baja reciente)", async () => {
+    const tenant = await createTenant();
+    const hr = await clientSession("HUMAN_RESOURCES", { tenant });
+    const db = await prismaClient();
+
+    const activeNumber = unique("E-ACT");
+    const terminatedNumber = unique("E-TERM");
+    await createUser({
+      tenantId: tenant.id,
+      role: "CLIENT_STAFF",
+      employeeNumber: activeNumber,
+    });
+    const terminated = await createUser({
+      tenantId: tenant.id,
+      role: "CLIENT_STAFF",
+      employeeNumber: terminatedNumber,
+    });
+    await db.user.update({
+      where: { id: terminated.id },
+      data: { deactivatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    });
+
+    const old = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000);
+    await createPunch(tenant.id, {
+      employeeNumber: activeNumber,
+      name: "Activo Viejo",
+      occurredAt: old,
+    });
+    await createPunch(tenant.id, {
+      employeeNumber: terminatedNumber,
+      name: "Baja Reciente",
+      occurredAt: old,
+    });
+
+    await api("PUT", "/nom/config", {
+      token: hr.token,
+      body: { retentionMonths: 1 },
+    });
+
+    const dryRun = await api("POST", "/nom/retention/archive", {
+      token: hr.token,
+      body: { dryRun: true },
+    });
+    expectStatus(dryRun, 200, "archivado simulado con baja reciente");
+    assert.equal(dryRun.body?.punches, 1, "solo archiva al empleado activo");
+
+    const real = await api("POST", "/nom/retention/archive", { token: hr.token, body: {} });
+    expectStatus(real, 200, "archivado real con baja reciente");
+    assert.equal(real.body?.punches, 1);
+    const remaining = await db.timeClockPunch.count({
+      where: { tenantId: tenant.id, employeeNumber: terminatedNumber },
+    });
+    assert.equal(remaining, 1, "la baja reciente conserva sus registros");
+  });
+
 });
 
 describe("Export formal y autoservicio de configuración", () => {
