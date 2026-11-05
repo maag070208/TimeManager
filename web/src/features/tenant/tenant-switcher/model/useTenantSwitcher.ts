@@ -4,6 +4,9 @@ import type { RootState } from "@app/store";
 import { tenantApi, type Tenant } from "@entities/tenant";
 import { getSelectedTenant, setSelectedTenant, type SelectedTenant } from "@shared/api/tenant";
 
+/** Valor del selector para "sin cliente" (el select del kit trata "" como vacío). */
+export const PLATFORM_OPTION = "__platform__";
+
 /**
  * Cliente vigente de la sesión. Personal de cliente: el suyo (fijo).
  * Plataforma con `tenants.view`: puede elegir uno; la elección viaja como
@@ -37,5 +40,5 @@ export const useTenantSwitcher = () => {
 
   const currentName = user?.tenant?.name ?? selected?.name ?? null;
 
-  return { isPlatform, canSwitch, tenants, selectedId: selected?.id ?? "", currentName, select };
+  return { isPlatform, canSwitch, tenants, selectedId: selected?.id ?? PLATFORM_OPTION, currentName, select };
 };

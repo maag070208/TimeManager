@@ -25,10 +25,11 @@ Una ficha por módulo de `api/src/modules/`. Cada ficha describe qué hace, sus 
 | `dashboard` | Agregaciones read-only para tableros por rol | 5 | [dashboard](dashboard.md) |
 | `config` | Configuración del sistema (sys-config) | 4 | [config](config.md) |
 | `email` | Cola y bitácora de correos, reintentos | 3 | [email](email.md) |
+| `tenants` | Clientes de la plataforma: alta, suspensión, uso (solo plataforma) | 4 | [tenants](tenants.md) |
 
 ## Estado frente al SaaS
 
-Ningún módulo tiene hoy aislamiento por cliente: no existe modelo `Tenant` y los datos cuelgan directo de `User`. El detalle está en [../SAAS_PLAN.md](../SAAS_PLAN.md); cada ficha tiene una sección "Notas multi-tenant" con lo que le toca a ese módulo.
+Fase 1a: modelo `Tenant`, `tenantId` en las tablas de cliente y extensión de Prisma que filtra por el contexto (`api/src/core/tenancy/`). Avance en [../PLAN_IMPLEMENTACION.md](../PLAN_IMPLEMENTACION.md); cada ficha tiene una sección "Notas multi-tenant" con lo que le toca a ese módulo.
 
 ## Notas
 

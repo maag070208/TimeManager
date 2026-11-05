@@ -16,6 +16,9 @@ Login por usuario/contraseña con JWT, refresh de token, sesión actual y cambio
 
 ## Notas multi-tenant
 
-- **Cuello de botella #1 del SaaS**: `username` y `email` son `@unique` globales. Hay que decidir identidad por tenant (login con cliente+usuario) o identidad global (email único + membresías por tenant). Ver decisión D1 en [../SAAS_PLAN.md](../SAAS_PLAN.md).
-- El JWT debe cargar `tenantId` (y rol dentro del tenant) para que el middleware de aislamiento funcione sin consultas extra.
+- Login por cliente (F1A-04): `POST /login` acepta `tenant` (slug). Con slug busca `(tenantId, username)`; sin slug solo usuarios de plataforma. Cliente suspendido → 403 `TENANT_SUSPENDED`.
+- JWT y refresh llevan `tenantId`; `/me` devuelve `tenant { id, slug, name, timezone }` (`null` = plataforma).
+- `X-Tenant-Id` solo para ADMIN/SUPPORT de plataforma (validado contra `tenants`).
+- Web (F1A-07): el slug sale del subdominio (`shared/api/tenant.ts`); el login muestra "Empresa: <slug>" o "Acceso del equipo de TimeManager".
+- Pendiente: la app de escritorio (Electron) no tiene subdominio, así que hoy solo permite login de plataforma.
 - Considerar por cliente: políticas de contraseña, bloqueo por intentos y, más adelante, SSO (Google/Microsoft) como feature de plan alto.

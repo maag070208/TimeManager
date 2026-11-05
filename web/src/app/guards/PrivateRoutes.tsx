@@ -1,6 +1,6 @@
 import { ITLayout, ITSidebarProps, ITToast, type ITNavigationItem } from "@axzydev/axzy_ui_system";
 import { useEffect, useState, useCallback, type ReactNode } from "react";
-import { FaHouseUser, FaUserTie, FaCog, FaLaptopCode } from "react-icons/fa";
+import { FaHouseUser, FaUserTie, FaCog } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -23,7 +23,6 @@ const NAV_ICONS: Record<string, ReactNode> = {
   start: <FaHouseUser size={14} />,
   hr: <FaUserTie size={14} />,
   settings: <FaCog size={14} />,
-  tic: <FaLaptopCode size={14} />,
 };
 
 export default function PrivateRoutes() {

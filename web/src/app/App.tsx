@@ -117,8 +117,6 @@ export default function App() {
           }
         />
         <Route path="/notifications" element={<NotificationsPage />} />
-        {/* Galería de la mascota (animaciones y escenarios): solo ADMIN. */}
-        
         {/* Reloj checador Hikvision (solo lectura; ver TIME_CLOCK.md). */}
         <Route
           path="/hr/time-clock"

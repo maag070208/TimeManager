@@ -19,13 +19,14 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 - **Stack**: Express 4, Prisma 5 (`prisma/schema.prisma`, 36 modelos, baseline `20261104000000_baseline_rh`), zod, JWT, Winston, Swagger, Ably, AWS S3, xlsx.
 - **Estructura**: `src/core` (config, db, middlewares, permissions, policies, services, utils) y `src/modules/<modulo>/{controllers,routes,services,models,index.ts}`. Router central: `src/modules/api.router.ts`.
 - **Alias TS**: `@src/*`, `@core/*`, `@modules/*` (baseUrl `./`; compilar con `tsc && tsc-alias`).
-- **Módulos (14, todos RH)**: `time-clock`, `access`, `hr`, `schedules`, `overtime` (núcleo) y `auth`, `users`, `departments`, `permissions`, `audit`, `notifications`, `dashboard`, `config`, `email` (soporte). Las carpetas vacías `inventory`, `kitchen`, `tickets`, `hotel-store`, `material-outputs`, `reports`, `suppliers` son residuo del ERP — pendiente borrarlas.
+- **Módulos (15)**: `time-clock`, `access`, `hr`, `schedules`, `overtime` (núcleo RH), `auth`, `users`, `departments`, `permissions`, `audit`, `notifications`, `dashboard`, `config`, `email` (soporte) y `tenants` (clientes de la plataforma). Las carpetas vacías `inventory`, `kitchen`, `tickets`, `hotel-store`, `material-outputs`, `reports`, `suppliers` son residuo del ERP — pendiente borrarlas.
 - **Ficha de cada módulo**: `docs/modules/<modulo>.md`.
 - **Comandos**:
   - Dev: `pnpm dev` (nodemon)
   - Build: `pnpm build` · Lint: `pnpm lint`
   - Prisma: `pnpm prisma:generate`, `pnpm prisma:migrate` (deploy), `pnpm seed`
-  - Tests unitarios: `pnpm test:unit` (Playwright con `playwright.unit.config.ts`)
+  - Tests unitarios: `pnpm test:unit` (node:test + ts-node, `src/**/*.test.ts`, sin BD)
+  - Aislamiento entre clientes: `TENANCY_CHECK_DATABASE_URL=<BD de prueba> pnpm tenancy-check` (nunca contra la nube)
 
 ### Reglas de base de datos
 
@@ -39,6 +40,8 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 - **Arquitectura**: Feature-Sliced Design — `src/app` (bootstrap, router, guards), `entities` (API + modelos + slices), `features` (casos de uso: `model/use*.ts` + `ui/`), `widgets` (composición, PDFs), `pages` (rutas), `shared` (api, ui, lib, i18n).
 - **Alias**: `@app`, `@entities`, `@features`, `@pages`, `@widgets`, `@shared`.
 - **Roles** (claves en inglés, nombres en español): `ADMIN` y `SUPPORT` (equipo TimeManager), `CLIENT_ADMIN`, `HUMAN_RESOURCES` y `CLIENT_STAFF` (cliente). Viven en la tabla `roles`; catálogo y matriz en `api/prisma/seed-data/{roles,role_permissions}.json`. La UI se gobierna por permisos (`useCan`), no por clave de rol.
+- **Mascota**: Tic (canvas 8-bit, sin imágenes) en `shared/ui/tic` (`Tic`, `TicState`, `TicAvatar`, `Escena`), `shared/ui/tic-chat` y `shared/ui/tic-confirm`; textos en el namespace i18n `tic`.
+- **Multi-cliente**: el login toma el cliente del subdominio (`acme.localhost:5006` en local); ADMIN/SUPPORT eligen cliente en la barra superior (`X-Tenant-Id`).
 - **Mapa detallado de módulos frontend**: `web/docs/MODULES.md`.
 - **Comandos**:
   - Dev: `pnpm dev` (puerto 5006, strictPort)

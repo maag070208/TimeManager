@@ -158,18 +158,26 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
   - Seed: `seedPermissionsFromFixtures` sigue siendo de plataforma; `RemovalCategory`/`DocumentType` plantilla se copian al crear un cliente.
   - Implementado: `core/tenancy/iterate.ts` (`forEachActiveTenant`/`activeTenants`) + `catalogs.ts` (`seedTenantTemplateCatalogs`, idempotente, desde `seed-data/tenant_template_catalogs.json`). Sync de relojes y roster corren una vez por cliente ACTIVE; la cola de correo procesa cada correo en el contexto de su tenant. Únicos creates anidados hallados: `ScheduleDay` en create/update de horarios (corregidos). Caches auditadas: las de relojes usan `serialNumber` (PK global, sin colisión) y `sys_config` es de plataforma — quedan documentadas. Prueba funcional Docker: 5/5.
 
-- [ ] **F1A-06 Endpoint de clientes (mínimo).** Módulo `tenants`: `GET /tenants` (ADMIN/SUPPORT), `POST /tenants` (ADMIN: crea tenant + su `CLIENT_ADMIN` + catálogos plantilla), `PATCH /tenants/:id` (estado). Ficha `docs/modules/tenants.md`.
+- [x] **F1A-06 Endpoint de clientes (mínimo).** Módulo `tenants`: `GET /tenants` (ADMIN/SUPPORT), `POST /tenants` (ADMIN: crea tenant + su `CLIENT_ADMIN` + catálogos plantilla), `PATCH /tenants/:id` (estado). Ficha `docs/modules/tenants.md`.
+  - Implementado: permisos nuevos `tenants.view` (ADMIN, SUPPORT) y `tenants.manage` (ADMIN), y además exige usuario de plataforma. Slug validado (formato y reservados), 409 si se repite. Sin contraseña genera una provisional que se devuelve una sola vez. Auditoría `TENANT_CREATED/UPDATED/SUSPENDED/REACTIVATED`. `runWithTenant` ahora tipa `Promise<Awaited<T>>`.
+  - CORS: `WEB_ORIGIN` acepta lista y comodín de subdominio (`http://*.localhost:5006`).
+  - Prueba funcional (Postgres 16 en Docker + API real): **20/20** — alta con catálogos, slug repetido/reservado, SUPPORT sin alta, uso, login del CLIENT_ADMIN por slug, `/auth/me` con tenant, 403 para usuarios de cliente (lista y `X-Tenant-Id`), suspensión/reactivación en caliente, 404, CORS por subdominio.
 
-- [ ] **F1A-07 Web.**
+- [x] **F1A-07 Web.**
   - Login: slug desde el subdominio (`acme.localhost:5006` en local; `*.localhost` resuelve sin DNS). `app.`, `admin.` o sin subdominio = plataforma. Vite: `server.allowedHosts` con `.localhost`.
   - Selector de cliente en la barra superior para `ADMIN`/`SUPPORT` que manda `X-Tenant-Id` (interceptor axios) y recuerda la elección en `localStorage`.
   - Nombre del cliente visible en la barra superior.
   - Archivos: `web/src/features/auth/login`, `web/src/shared/api`, `web/src/app/guards/PrivateRoutes.tsx`.
+  - Implementado: `shared/api/tenant.ts` (slug del host; `VITE_TENANT_BASE_DOMAIN` en producción), `entities/tenant`, `features/tenant/tenant-switcher` en el slot de la barra superior; login muestra la empresa del subdominio y el mensaje de cliente suspendido. PDFs y credencial usan el nombre del cliente (`shared/lib/tenantBrand.ts`) en lugar de "Puerto Nuevo". Verificado en navegador: login por `demo.localhost`, nombre en la barra, ADMIN cambia de cliente y la lista se filtra.
 
-- [ ] **F1A-08 Pruebas.**
+- [x] **F1A-08 Pruebas.**
   - Agregar `pnpm test:unit` al API (runner `node:test` + `ts-node`, sin BD).
   - Unitarias de `scopeArgs`: cada operación agrega el filtro; `create`/`createMany`/`upsert` inyectan; plataforma sin cliente no filtra; `tenantId` del cliente gana sobre uno enviado en `where`.
   - Script de aislamiento `api/scripts/tenancy-check.ts` contra una BD de prueba: crea tenants A y B con un empleado, horario y checada cada uno; comprueba que A no lista, lee por id, edita ni borra lo de B; limpia al final.
+  - Implementado: `pnpm test:unit` (node:test + ts-node, `src/**/*.test.ts`): 18 pruebas de `scopeArgs`, contexto ALS, CORS y DTO de tenants. Encontró y corrigió un bug: `createMany` con `data` como objeto (válido en Prisma) rompía `scopeArgs`. `pnpm tenancy-check` solo lee `TENANCY_CHECK_DATABASE_URL` (nunca `DATABASE_URL`): **13/13** en Postgres 16 (Docker), sin residuos.
+
+- [ ] **F1A-10 Plataforma sin cliente elegido.** Hoy ADMIN/SUPPORT sin `X-Tenant-Id` ven en las pantallas de cliente los datos de **todos** los clientes mezclados, y las altas fallan en BD (sin `tenantId`). Pedir elegir cliente antes de abrir pantallas de cliente (o abrir directo en la consola F3-01).
+- [ ] **F1A-11 Login en la app de escritorio.** Electron no tiene subdominio: agregar campo de empresa (solo en escritorio) o configurar el slug por instalación.
 
 - [ ] **F1A-09 Aplicar y verificar.** Migración en Railway, crear 2 tenants de prueba, login por subdominio de cada uno, correr `tenancy-check`, actualizar fichas de módulos y `AGENTS.md`.
 
@@ -219,7 +227,7 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 
 ### Limpieza heredada (paralelizable, en cualquier momento)
 
-- [ ] **L-01** `notificationRoute` en `web/src/entities/notification/model/types.ts` aún apunta a `/tickets`, `/inventory`, `/kitchen`.
+- [x] **L-01** `notificationRoute` en `web/src/entities/notification/model/types.ts` aún apunta a `/tickets`, `/inventory`, `/kitchen`.
 - [ ] **L-02** Borrar carpetas vacías del API: `inventory`, `kitchen`, `tickets`, `hotel-store`, `material-outputs`, `reports`, `suppliers`.
 - [ ] **L-03** Políticas ABAC de órdenes de compra/facturas en `api/src/core/policies/seed.ts` (residuo del ERP).
 - [ ] **L-04** `api/.github` y `web/.github` publican imágenes `axzydev/axzy_ptnv_*` (Puerto Nuevo): borrarlos y crear CI propio en F4-06. **No moverlos a la raíz.**
@@ -230,6 +238,7 @@ Objetivo: dos clientes pueden convivir en la misma BD sin verse. Detalle técnic
 - [x] **L-09** `User.company` (texto libre, muere con D2 en favor de `tenantId`): borrado del schema, DTOs/entities/mappers/services de `users` y `hr`, y de la web (hero, tipos). La migración F1A-02 debe incluir el `DROP COLUMN`.
 - [ ] **L-10** `Notification.ticketId` + canal Ably `tickets:` + referencias en `appEvents`, `useAblyNotifications` y DTO de `dashboard` (residuo de tickets).
 - [ ] **L-11** `AuditLog.deviceId`/`deviceCode` (residuo del audit de inventario): DTO/entity/mapper de `audit` + writers del `AuditLogger`.
+- [x] **L-13** Mascota: Langostín (Puerto Nuevo) reemplazada por **Tic** en toda la web (`shared/ui/tic`, `tic-chat`, `tic-confirm`, namespace i18n `tic`); fuera la entrada muerta de la galería del menú, los namespaces i18n sin uso `tickets`/`inventory`/`home` y los textos "Puerto Nuevo" visibles (departamentos, pre nómina, credencial).
 - [ ] **L-12** `DepartmentTicketSchema` en el DTO de `departments` y grupo `tickets` en el DTO de `dashboard`.
 
 ---

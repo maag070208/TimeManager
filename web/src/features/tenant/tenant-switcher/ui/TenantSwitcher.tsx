@@ -1,7 +1,7 @@
 import { ITSelect, ITText } from "@axzydev/axzy_ui_system";
 import { LuBuilding2 } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
-import { useTenantSwitcher } from "../model/useTenantSwitcher";
+import { PLATFORM_OPTION, useTenantSwitcher } from "../model/useTenantSwitcher";
 
 /** Nombre del cliente en la barra superior; selector para el personal de plataforma. */
 export default function TenantSwitcher() {
@@ -10,7 +10,7 @@ export default function TenantSwitcher() {
 
   if (canSwitch) {
     const options = [
-      { value: "", label: t("tenant.platform") },
+      { value: PLATFORM_OPTION, label: t("tenant.platform") },
       ...(tenants ?? []).map((tenant) => ({ value: tenant.id, label: tenant.name })),
     ];
     return (

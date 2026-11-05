@@ -46,7 +46,6 @@
     "weeklyAttendance": "Asistencia semanal",
     "payroll": "Pre Nómina",
     "settings": "Configuración",
-    "tic": "Tic",
     "accountMenu": "Cuenta de {{name}}"
   },
   "files": {
