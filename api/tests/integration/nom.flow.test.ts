@@ -226,18 +226,57 @@ describe("F2-03 límites legales y alertas", () => {
     assert.equal(initial.body?.weeklyLimitMinutes, initial.body?.legal?.weeklyLimitMinutes);
     assert.equal(initial.body?.retentionMonths, null);
 
+    // Un tope semanal más estricto que el legal del año vigente (2026+).
+    const stricterWeekly = Number(initial.body?.legal?.weeklyLimitMinutes) - 60;
     const updated = await api("PUT", "/nom/config", {
       token: hr.token,
-      body: { workdayLimitMinutes: 600, weeklyLimitMinutes: 2700, retentionMonths: 12 },
+      body: { workdayLimitMinutes: 600, weeklyLimitMinutes: stricterWeekly, retentionMonths: 12 },
     });
     expectStatus(updated, 200, "actualización de config");
     assert.equal(updated.body?.workdayLimitMinutes, 600);
-    assert.equal(updated.body?.weeklyLimitMinutes, 2700);
+    assert.equal(updated.body?.weeklyLimitMinutes, stricterWeekly);
     assert.equal(updated.body?.retentionMonths, 12);
     assert.equal(updated.body?.source?.workdayLimit, "tenant");
 
     const reread = await api("GET", "/nom/config", { token: hr.token });
     assert.equal(reread.body?.workdayLimitMinutes, 600);
+
+    // Solo más estricto que la ley: ni la jornada diaria ni la semanal pueden
+    // superar el tope legal del año vigente.
+    const laxDay = await api("PUT", "/nom/config", {
+      token: hr.token,
+      body: { workdayLimitMinutes: 15 * 60 },
+    });
+    expectError(laxDay, 400, "INVALID_WORKDAY_LIMIT", "jornada diaria mayor a 12 h");
+
+    const laxWeek = await api("PUT", "/nom/config", {
+      token: hr.token,
+      body: { weeklyLimitMinutes: 60 * 60 },
+    });
+    expectError(laxWeek, 400, "INVALID_WEEKLY_LIMIT", "jornada semanal mayor a la legal");
+  });
+
+  test("una configuración legada por encima de la ley se recorta al tope legal", async () => {
+    const tenant = await createTenant();
+    const hr = await clientSession("HUMAN_RESOURCES", { tenant });
+    const db = await prismaClient();
+    await db.nomSettings.create({
+      data: {
+        tenantId: tenant.id,
+        workdayLimitMinutes: 15 * 60,
+        weeklyLimitMinutes: 60 * 60,
+        updatedById: hr.user.id,
+      },
+    });
+
+    const config = await api("GET", "/nom/config", { token: hr.token });
+    expectStatus(config, 200, "config con valores legados laxos");
+    assert.equal(config.body?.workdayLimitMinutes, 720);
+    assert.equal(config.body?.weeklyLimitMinutes, config.body?.legal?.weeklyLimitMinutes);
+    assert.equal(config.body?.legal?.weeklyOvertimeLimitMinutes, 540, "9 h al doble en 2026");
+    assert.equal(config.body?.legal?.weeklyTripleLimitMinutes, 240);
+    assert.equal(config.body?.legal?.dailyOvertimeLimitMinutes, 240);
+    assert.equal(config.body?.legal?.maxOvertimeDaysPerWeek, 4);
   });
 
   test("el barrido responde y un empleado sin permisos no puede dispararlo", async () => {

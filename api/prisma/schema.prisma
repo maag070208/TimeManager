@@ -1274,9 +1274,9 @@ model PunchAdjustment {
 model NomSettings {
   tenantId             String    @id
   tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  /// Tope de jornada diaria (ordinaria + extra). Default legal: 12 h = 720.
+  /// Tope de jornada diaria (ordinaria + extra). Máximo legal: 12 h = 720.
   workdayLimitMinutes  Int?
-  /// Tope semanal. `null` = calcular por año (46 h 2027-2029, 40 h desde 2030).
+  /// Tope semanal. `null` = calcular por año (48/46/44/42/40 h de 2026 a 2030+); solo más estricto que la ley.
   weeklyLimitMinutes   Int?
   /// Meses que un registro queda activo antes de archivarse. `null`/0 = sin archivado.
   retentionMonths      Int?

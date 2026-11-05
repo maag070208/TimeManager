@@ -15,11 +15,16 @@ export interface NomConfig {
     weeklyLimit: "tenant" | "sys_config" | "legal_default";
     retention: "tenant" | "sys_config" | "disabled";
   };
-  /** Contexto legal usado para el default semanal (46 h 2027-2029 → 40 h 2030+). */
+  /** Contexto legal del año vigente (jornada y topes de horas extra). */
   legal: {
     year: number;
     weeklyLimitMinutes: number;
     workdayLimitMinutes: number;
+    weeklyOvertimeLimitMinutes: number;
+    weeklyTripleLimitMinutes: number;
+    dailyOvertimeLimitMinutes: number;
+    maxOvertimeDaysPerWeek: number;
+    weeklyInfractionLimitMinutes: number;
   };
   /** ¿Marcaje remoto habilitado para el cliente? (F2-07) */
   remotePunchEnabled: boolean;

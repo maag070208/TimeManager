@@ -35,13 +35,55 @@ const workdayDay = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-test("tope semanal legal por año: 48 h antes de 2027, 46 h 2027-2029, 40 h desde 2030", async () => {
+test("tope semanal legal por año: 48/46/44/42/40 h (transitorio 2.º)", async () => {
   const { weeklyLimitForYear } = await loadSettings();
-  assert.equal(weeklyLimitForYear(2026), 48 * 60);
-  assert.equal(weeklyLimitForYear(2027), 46 * 60);
-  assert.equal(weeklyLimitForYear(2029), 46 * 60);
-  assert.equal(weeklyLimitForYear(2030), 40 * 60);
-  assert.equal(weeklyLimitForYear(2035), 40 * 60);
+  const table: Array<[number, number]> = [
+    [2026, 48],
+    [2027, 46],
+    [2028, 44],
+    [2029, 42],
+    [2030, 40],
+    [2035, 40],
+  ];
+  for (const [year, hours] of table) {
+    assert.equal(weeklyLimitForYear(year), hours * 60, `jornada ordinaria ${year}`);
+  }
+});
+
+test("topes de horas extra por año: 9/9/10/11/12 h al doble y 4 h al triple", async () => {
+  const {
+    weeklyLimitForYear,
+    weeklyOvertimeLimitForYear,
+    weeklyInfractionLimitForYear,
+    WEEKLY_OVERTIME_TRIPLE_LIMIT_MINUTES,
+    DAILY_OVERTIME_LIMIT_MINUTES,
+    MAX_OVERTIME_DAYS_PER_WEEK,
+    MAX_WORKDAY_LIMIT_MINUTES,
+  } = await loadSettings();
+  const table: Array<[number, number]> = [
+    [2026, 9],
+    [2027, 9],
+    [2028, 10],
+    [2029, 11],
+    [2030, 12],
+  ];
+  for (const [year, hours] of table) {
+    assert.equal(weeklyOvertimeLimitForYear(year), hours * 60, `extra al doble ${year}`);
+    assert.equal(
+      weeklyInfractionLimitForYear(year),
+      weeklyLimitForYear(year) + hours * 60 + WEEKLY_OVERTIME_TRIPLE_LIMIT_MINUTES,
+      `umbral de infracción ${year}`
+    );
+  }
+  // Un tope ordinario configurado más estricto baja el umbral de la misma forma.
+  assert.equal(
+    weeklyInfractionLimitForYear(2027, 40 * 60),
+    40 * 60 + 9 * 60 + 4 * 60
+  );
+  assert.equal(WEEKLY_OVERTIME_TRIPLE_LIMIT_MINUTES, 4 * 60);
+  assert.equal(DAILY_OVERTIME_LIMIT_MINUTES, 4 * 60);
+  assert.equal(MAX_OVERTIME_DAYS_PER_WEEK, 4);
+  assert.equal(MAX_WORKDAY_LIMIT_MINUTES, 720, "la configuración diaria nunca pasa de 12 h");
 });
 
 test("corte de retención: resta meses sin desbordar el día del mes", async () => {
@@ -215,12 +257,35 @@ test("alertas: detecta jornada > límite, avisa una sola vez y suma la semana", 
   const week = await weekService.scan("tenant-1", { date: "2027-03-10", scope: "WEEK" });
   assert.equal(week.created.length, 0);
 
-  // Un día de 3000 min sí excede el tope semanal.
+  // 46 h ordinarias + 9 h extra (3300 min) es legal en 2027: no alerta.
+  const legalWeekService = new WorkdayAlertsService(
+    fakeDb as never,
+    {
+      computeOvertimeDays: async () => ({
+        days: [
+          workdayDay({ date: "2027-03-09", workedMin: 1650 }),
+          workdayDay({ date: "2027-03-10", workedMin: 1650 }),
+        ],
+        range: { start: new Date("2027-03-08T06:00:00.000Z"), end: new Date("2027-03-15T06:00:00.000Z") },
+      }),
+    } as never,
+    fakeSettings as never,
+    fakeNotifications as never,
+    undefined
+  );
+  const legalWeek = await legalWeekService.scan("tenant-1", { date: "2027-03-10", scope: "WEEK" });
+  assert.equal(legalWeek.created.length, 0, "las horas extra legales no generan infracción");
+
+  // 60 h en la semana (3600 min) pasa el umbral de infracción de 2027:
+  // 46 h ordinarias + 9 h al doble + 4 h al triple = 3540 min.
   const heavyService = new WorkdayAlertsService(
     fakeDb as never,
     {
       computeOvertimeDays: async () => ({
-        days: [workdayDay({ date: "2027-03-10", workedMin: 3000 })],
+        days: [
+          workdayDay({ date: "2027-03-09", workedMin: 1800 }),
+          workdayDay({ date: "2027-03-10", workedMin: 1800 }),
+        ],
         range: { start: new Date("2027-03-08T06:00:00.000Z"), end: new Date("2027-03-15T06:00:00.000Z") },
       }),
     } as never,
@@ -231,7 +296,7 @@ test("alertas: detecta jornada > límite, avisa una sola vez y suma la semana", 
   const heavy = await heavyService.scan("tenant-1", { date: "2027-03-10", scope: "WEEK" });
   assert.equal(heavy.created.length, 1);
   assert.equal(heavy.created[0].scope, "WEEK");
-  assert.equal(heavy.created[0].limitMinutes, 2760);
+  assert.equal(heavy.created[0].limitMinutes, 46 * 60 + 9 * 60 + 4 * 60);
 });
 
 test("plantilla del checklist de teletrabajo (NOM-037): 8 puntos únicos", async () => {

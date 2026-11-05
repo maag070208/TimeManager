@@ -12,7 +12,7 @@ import type {
   AlertScanResult,
   WorkdayAlertDto,
 } from "../models/entity/nom.entity";
-import type { NomSettingsService } from "./nom-settings.service";
+import { weeklyInfractionLimitForYear, type NomSettingsService } from "./nom-settings.service";
 
 /** Puerto del cálculo diario de jornada (lo implementa `schedules`). */
 export interface WorkdayCalculator {
@@ -40,11 +40,11 @@ const toDateOnly = (dateKey: string): Date => new Date(`${dateKey}T00:00:00.000Z
 /**
  * Alertas de límite de jornada (F2-03).
  *
- * Barre el cálculo diario/semanal que ya usa Horarios (`computeOvertimeDays`),
- * compara contra los límites efectivos del cliente (12 h/día; tope semanal por
- * año, configurable) y, al detectar un exceso, persiste la alerta y avisa a RH
- * (campanita + correo por la cola). Una alerta por persona/escala/día: el
- * barrido es idempotente y no repite el aviso.
+ * Barre el cálculo diario/semanal que ya usa Horarios (`computeOvertimeDays`).
+ * El día se compara contra el tope de 12 h configurables (solo más estricto) y
+ * la semana contra el umbral real de infracción: jornada ordinaria + extra al
+ * doble del año + 4 h de excedente triple. Comparar contra la jornada
+ * ordinaria sola marcaría como infracción cualquier hora extra legal.
  */
 export class WorkdayAlertsService {
   constructor(
@@ -205,8 +205,13 @@ export class WorkdayAlertsService {
           });
       }
       const weekAnchor = localDateKey(range.start, timezone);
+      const weekYear = Number(weekAnchor.slice(0, 4));
+      const weeklyInfractionLimit = weeklyInfractionLimitForYear(
+        weekYear,
+        config.weeklyLimitMinutes
+      );
       for (const row of byUser.values()) {
-        if (row.workedMinutes <= config.weeklyLimitMinutes) continue;
+        if (row.workedMinutes <= weeklyInfractionLimit) continue;
         const alert = await this.recordAlert({
           tenantId,
           userId: row.userId,
@@ -214,7 +219,7 @@ export class WorkdayAlertsService {
           scope: "WEEK",
           dateKey: weekAnchor,
           workedMinutes: row.workedMinutes,
-          limitMinutes: config.weeklyLimitMinutes,
+          limitMinutes: weeklyInfractionLimit,
         });
         if (alert) created.push(alert);
       }

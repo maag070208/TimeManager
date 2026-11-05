@@ -8,7 +8,7 @@ Módulo transversal de cumplimiento para el **registro electrónico de jornada**
 
 - **Inmutabilidad de checadas (F2-01):** `time_clock_punches` es append-only por trigger de BD (sin UPDATE ni DELETE); `access_events` solo admite el primer pase a anulado. Las correcciones son registros de ajuste ligados, no ediciones.
 - **Ajustes de checadas (F2-01/F2-02):** alta con motivo, valor anterior/nuevo y solicitante; aprobación/rechazo por un segundo usuario; historial y pista de auditoría por checada.
-- **Límites legales de jornada (F2-03):** configurables por cliente (12 h/día; tope semanal por año, 46 h 2027-2029 → 40 h desde 2030), con barrido de alertas y aviso a RH (campanita + correo por la cola).
+- **Límites legales de jornada (F2-03):** configurables por cliente **solo más estrictos que la ley** (12 h/día; jornada semanal 48/46/44/42/40 h de 2026 a 2030+), con barrido de alertas y aviso a RH (campanita + correo por la cola). La alerta semanal usa el umbral de infracción real: jornada ordinaria + extra al doble del año (9/9/10/11/12 h) + 4 h al triple; las horas extra legales ya no se marcan.
 - **Retención y archivado (F2-04):** meses de retención por cliente; los registros vencidos se mueven a tablas `nom_archived_*` (no se pierden), con comando manual y worker diario.
 - **Export formal del registro de jornada:** CSV/JSON por periodo y persona con hash SHA-256 de integridad (formato versionado `stps-registro-jornada-v0`).
 - **Marcaje remoto (F2-07/F2-08):** inicio/fin de jornada desde la web/app para home office o campo, sin reloj, idempotente por `clientEventId`, con geolocalización OPCIONAL y solo en el instante del marcaje (sin rastreo continuo). Interruptor por cliente (`remotePunchEnabled`).
@@ -50,7 +50,7 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 ## Límites y alertas (F2-03)
 
 - Precedencia: `nom_settings` del cliente → `sys_config` (`NOM_WORKDAY_LIMIT_MINUTES`, `NOM_WEEKLY_LIMIT_MINUTES`, `NOM_RETENTION_MONTHS`) → default legal calculado.
-- Default legal diario: 720 min (12 h ordinaria + extra). Semanal por año: 2880 min antes de 2027 (LFT vigente 48 h), 2760 min en 2027-2029 (46 h), 2400 min desde 2030 (40 h).
+- Default legal diario: 720 min (12 h ordinaria + extra). Semanal por año: 2880 min (48 h, 2026), 2760 (46 h, 2027), 2640 (44 h, 2028), 2520 (42 h, 2029), 2400 (40 h, 2030+). Extra al doble: 540/540/600/660/720 min (9/9/10/11/12 h). Excedente al triple: 240 min. Máximo 4 h de extra por día y 4 días con extra por semana.
 - El barrido usa el mismo cálculo diario de `schedules` que el reporte de horas extra (`computeOvertimeDays`): no duplica la lógica de emparejamiento del reloj.
 - Al detectar un exceso: `WorkdayLimitAlert` (idempotente por persona/escala/día) + notificación in-app a `CLIENT_ADMIN`/`HUMAN_RESOURCES` del cliente + correo por la cola de `email_logs` + entrada de auditoría `WORKDAY_LIMIT_ALERT`.
 - Worker: barrido horario (día anterior) y archivado diario; se arranca en `src/index.ts` (`startNomWorker`) y no corre en `NODE_ENV=test`. Para una corrida manual, `POST /alerts/scan`.

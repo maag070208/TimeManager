@@ -15,20 +15,59 @@ export const NOM_WORKDAY_LIMIT_CONFIG_KEY = "NOM_WORKDAY_LIMIT_MINUTES";
 export const NOM_WEEKLY_LIMIT_CONFIG_KEY = "NOM_WEEKLY_LIMIT_MINUTES";
 export const NOM_RETENTION_MONTHS_CONFIG_KEY = "NOM_RETENTION_MONTHS";
 
-/** Tope legal diario (ordinaria + extra): 12 h. */
-export const LEGAL_WORKDAY_LIMIT_MINUTES = 720;
+/** Tope legal diario (ordinaria + extra): 12 h (art. 68 LFT). */
+export const LEGAL_WORKDAY_LIMIT_MINUTES = 12 * 60;
 
-/** Topes legales semanales por año (LFT reforma 2027: 46 h → 40 h en 2030). */
+/**
+ * Jornada ordinaria máxima semanal por año (transitorio 2.º del decreto LFT
+ * publicado el 01-may-2026): 48 h 2026, 46 h 2027, 44 h 2028, 42 h 2029 y
+ * 40 h desde 2030.
+ */
 export const weeklyLimitForYear = (year: number): number => {
   if (year >= 2030) return 40 * 60;
+  if (year >= 2029) return 42 * 60;
+  if (year >= 2028) return 44 * 60;
   if (year >= 2027) return 46 * 60;
   return 48 * 60;
 };
 
+/**
+ * Horas extra semanales pagadas al doble por año (transitorio 4.º):
+ * 9 h en 2026-2027, 10 h en 2028, 11 h en 2029 y 12 h desde 2030.
+ */
+export const weeklyOvertimeLimitForYear = (year: number): number => {
+  if (year >= 2030) return 12 * 60;
+  if (year >= 2029) return 11 * 60;
+  if (year >= 2028) return 10 * 60;
+  return 9 * 60;
+};
+
+/** Excedente semanal pagado al triple (art. 68): hasta 4 h por semana. */
+export const WEEKLY_OVERTIME_TRIPLE_LIMIT_MINUTES = 4 * 60;
+/** Máximo de horas extra en un día (art. 66): 4 h. */
+export const DAILY_OVERTIME_LIMIT_MINUTES = 4 * 60;
+/** Máximo de días con horas extra en la semana (art. 66): 4. */
+export const MAX_OVERTIME_DAYS_PER_WEEK = 4;
+
+/**
+ * Umbral semanal de infracción: jornada ordinaria + extra al doble del año +
+ * excedente al triple (4 h). Por encima de esto se rompe el art. 66/68; no
+ * confundir con la jornada ordinaria sola (eso marcaría toda hora extra).
+ */
+export const weeklyInfractionLimitForYear = (
+  year: number,
+  ordinaryLimitMinutes: number = weeklyLimitForYear(year)
+): number =>
+  ordinaryLimitMinutes +
+  weeklyOvertimeLimitForYear(year) +
+  WEEKLY_OVERTIME_TRIPLE_LIMIT_MINUTES;
+
 export const MIN_WORKDAY_LIMIT_MINUTES = 60;
-export const MAX_WORKDAY_LIMIT_MINUTES = 24 * 60;
+/** Nunca puede superar el máximo legal del art. 68 (12 h). */
+export const MAX_WORKDAY_LIMIT_MINUTES = LEGAL_WORKDAY_LIMIT_MINUTES;
 export const MIN_WEEKLY_LIMIT_MINUTES = 600;
-export const MAX_WEEKLY_LIMIT_MINUTES = 7 * 24 * 60;
+/** Tope absoluto (año 2030+). El tope real se valida contra el año vigente. */
+export const MAX_WEEKLY_LIMIT_MINUTES = 40 * 60;
 export const MIN_RETENTION_MONTHS = 1;
 export const MAX_RETENTION_MONTHS = 120;
 
@@ -45,7 +84,8 @@ const parsePositiveInt = (value: string | null | undefined): number | null => {
  *
  * Precedencia: `nom_settings` del cliente → `sys_config` global (default de
  * plataforma) → default legal calculado. Los límites son minutos; el semanal
- * sin configurar se calcula por año (46 h 2027-2029, 40 h desde 2030).
+ * sin configurar se calcula por año (48/46/44/42/40 h de 2026 a 2030+). El
+ * cliente solo puede configurar topes más estrictos que la ley.
  */
 export class NomSettingsService {
   constructor(
@@ -76,9 +116,15 @@ export class NomSettingsService {
     const sysRetention = await this.sysInt(NOM_RETENTION_MONTHS_CONFIG_KEY);
     const legalWeekly = weeklyLimitForYear(year);
 
-    const workdayLimitMinutes =
-      settings?.workdayLimitMinutes ?? sysWorkday ?? LEGAL_WORKDAY_LIMIT_MINUTES;
-    const weeklyLimitMinutes = settings?.weeklyLimitMinutes ?? sysWeekly ?? legalWeekly;
+    // Solo más estricto que la ley: recorta valores legados o de sys_config.
+    const workdayLimitMinutes = Math.min(
+      settings?.workdayLimitMinutes ?? sysWorkday ?? LEGAL_WORKDAY_LIMIT_MINUTES,
+      LEGAL_WORKDAY_LIMIT_MINUTES
+    );
+    const weeklyLimitMinutes = Math.min(
+      settings?.weeklyLimitMinutes ?? sysWeekly ?? legalWeekly,
+      legalWeekly
+    );
     const retentionMonths = settings?.retentionMonths ?? sysRetention ?? null;
 
     const policy: TeleworkPolicyTexts = {
@@ -106,6 +152,11 @@ export class NomSettingsService {
         year,
         weeklyLimitMinutes: legalWeekly,
         workdayLimitMinutes: LEGAL_WORKDAY_LIMIT_MINUTES,
+        weeklyOvertimeLimitMinutes: weeklyOvertimeLimitForYear(year),
+        weeklyTripleLimitMinutes: WEEKLY_OVERTIME_TRIPLE_LIMIT_MINUTES,
+        dailyOvertimeLimitMinutes: DAILY_OVERTIME_LIMIT_MINUTES,
+        maxOvertimeDaysPerWeek: MAX_OVERTIME_DAYS_PER_WEEK,
+        weeklyInfractionLimitMinutes: weeklyInfractionLimitForYear(year),
       },
     };
   }
@@ -131,11 +182,13 @@ export class NomSettingsService {
     if (
       input.weeklyLimitMinutes != null &&
       (input.weeklyLimitMinutes < MIN_WEEKLY_LIMIT_MINUTES ||
-        input.weeklyLimitMinutes > MAX_WEEKLY_LIMIT_MINUTES)
+        input.weeklyLimitMinutes > previous.legal.weeklyLimitMinutes)
     ) {
       throw new HttpError(400, "INVALID_WEEKLY_LIMIT", {
         min: MIN_WEEKLY_LIMIT_MINUTES,
-        max: MAX_WEEKLY_LIMIT_MINUTES,
+        max: previous.legal.weeklyLimitMinutes,
+        legal: previous.legal.weeklyLimitMinutes,
+        year: previous.legal.year,
       });
     }
     if (
