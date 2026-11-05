@@ -56,7 +56,7 @@ export class RetentionService {
    * Corte efectivo (art. 804): nunca archiva dentro del último año de la
    * relación ni antes de 1 año después de la baja.
    */
-  private async effectiveCutoff(tenantId: string, now: Date): Promise<Date> {
+  private async effectiveCutoff(_tenantId: string, now: Date): Promise<Date> {
     const months = LEGAL_RETENTION_MONTHS;
     return retentionCutoff(now, months);
   }

@@ -102,5 +102,36 @@
       "EMAIL": "Correo",
       "OTHER": "Otro"
     }
+  },
+  "record": {
+    "title": "Mi registro de jornada",
+    "hint": "Acuerda el método de registro y confirma tu resumen periódico: fortalece la prueba de tus horas.",
+    "accept": "Aceptar método de registro",
+    "accepted": "Método aceptado",
+    "version": "Versión",
+    "ackTitle": "Conformidad de mi semana",
+    "ackHint": "Revisa tu resumen y confírmalo o reporta una discrepancia.",
+    "ackAccept": "Confirmar mi semana",
+    "ackDiscrepancy": "Reportar discrepancia",
+    "ackNote": "Describe la discrepancia",
+    "ackAccepted": "Semana confirmada",
+    "ackDiscrepancySent": "Discrepancia enviada",
+    "lastAck": "Última conformidad",
+    "noAck": "Aún no has confirmado ninguna semana."
+  },
+  "requests": {
+    "title": "Solicitudes de horas extra",
+    "hint": "Tu patrón te pide autorización; aceptar o rechazar no cambia el registro de lo trabajado.",
+    "empty": "No tienes solicitudes de horas extra.",
+    "reason": "Motivo",
+    "planned": "Estimado",
+    "days": "Días",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "rejectNote": "Motivo del rechazo (opcional)",
+    "accepted": "Aceptada",
+    "rejected": "Rechazada",
+    "cancelled": "Cancelada",
+    "pending": "Pendiente"
   }
 }

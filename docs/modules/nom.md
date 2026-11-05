@@ -137,4 +137,11 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - `work_record_acknowledgments`: conformidad periódica; el trabajador ve el resumen de sus ledgers semanales (ordinaria, doble, triple, ilegal) y lo acepta o abre una discrepancia con nota. El resumen y su hash quedan guardados.
 - Endpoints: `GET/POST /nom/me/record-agreement(/accept)`, `GET/POST /nom/me/record-acknowledgments` y listados de RH `GET /nom/record-agreements` y `GET /nom/record-acknowledgments` (permiso de lectura NOM).
 - **Retención art. 804 (R-02, en curso):** el archivado nunca toca los últimos 12 meses de la relación laboral ni los registros de personas con baja reciente (piso legal de 12 meses); el export STPS lee las tablas `nom_archived_*` e incluye una sección de registros archivados.
-- Pendiente F3: UI de conformidad en Mi jornada, autorización/consentimiento de horas extra (1.5) y cierre de R-02.
+- **UI en Mi jornada:** tarjeta «Mi registro de jornada» (aceptar método + confirmar semana o reportar discrepancia) y «Solicitudes de horas extra» (aceptar/rechazar desde el teléfono). La conformidad y el consentimiento quedan auditados con hash en el servidor.
+
+## Autorización previa y consentimiento de horas extra (F3, 1.5)
+
+- `overtime_requests` (migración `20261115000000_overtime_requests`): el patrón pide la extra con motivo, minutos y días; el trabajador **acepta o rechaza** desde `/me/overtime-requests/:id/decision`. El registro de lo trabajado no cambia por el rechazo.
+- Menores de 18 no pueden recibir solicitudes (`MINOR_OVERTIME_FORBIDDEN`); el máximo por día es 4 h y no se puede decidir dos veces.
+- Endpoints: `GET/POST /nom/overtime/requests`, `POST /nom/overtime/requests/:id/cancel` (RH) y `GET /nom/me/overtime-requests`, `POST /nom/me/overtime-requests/:id/decision` (trabajador).
+- Pendiente F3: pantalla de RH para crear solicitudes y cierre de R-02 (export de archivos ya incluido; falta revisión final).

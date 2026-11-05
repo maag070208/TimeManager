@@ -29,6 +29,7 @@ import type { TeleworkService } from "../services/telework.service";
 import type { WeeklyOvertimeService } from "../services/weekly-overtime.service";
 import type { HolidayService } from "../services/holiday.service";
 import type { WorkRecordService } from "../services/work-record.service";
+import type { OvertimeRequestService } from "../services/overtime-request.service";
 
 const tenantIdOrThrow = (): string => {
   const tenantId = currentTenantId();
@@ -53,7 +54,8 @@ export class NomController {
     private readonly telework: TeleworkService,
     private readonly weeklyOvertime: WeeklyOvertimeService,
     private readonly holidays: HolidayService,
-    private readonly record: WorkRecordService
+    private readonly record: WorkRecordService,
+    private readonly overtimeRequests: OvertimeRequestService
   ) {}
 
   getConfig = async (_req: Request, res: Response) => {
@@ -103,6 +105,45 @@ export class NomController {
 
 
 
+
+
+  myOvertimeRequests = async (req: Request, res: Response) => {
+    res.json(await this.overtimeRequests.myRequests(req.user!.id));
+  };
+
+  decideOvertimeRequest = async (req: Request, res: Response) => {
+    const accept = req.body?.accept === true;
+    const note = typeof req.body?.note === "string" ? req.body.note : null;
+    res.json(
+      await this.overtimeRequests.decide(
+        tenantIdOrThrow(),
+        req.user!.id,
+        req.params.id,
+        { accept, note },
+        actorOf(req)
+      )
+    );
+  };
+
+  createOvertimeRequest = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.overtimeRequests.create(tenantIdOrThrow(), actorOf(req), {
+        userId: String(req.body?.userId ?? ""),
+        reason: String(req.body?.reason ?? ""),
+        plannedMin: Number(req.body?.plannedMin ?? 0),
+        days: Array.isArray(req.body?.days) ? req.body.days.filter((day: unknown) => typeof day === "string") : [],
+      })
+    );
+  };
+
+  listOvertimeRequests = async (req: Request, res: Response) => {
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    res.json(await this.overtimeRequests.list(tenantIdOrThrow(), status));
+  };
+
+  cancelOvertimeRequest = async (req: Request, res: Response) => {
+    res.json(await this.overtimeRequests.cancel(tenantIdOrThrow(), req.params.id, actorOf(req)));
+  };
 
   myRecordAgreement = async (req: Request, res: Response) => {
     res.json(await this.record.agreementFor(req.user!.id));

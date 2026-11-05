@@ -102,5 +102,36 @@
       "EMAIL": "Email",
       "OTHER": "Other"
     }
+  },
+  "record": {
+    "title": "My work record",
+    "hint": "Agree on the recording method and confirm your periodic summary.",
+    "accept": "Accept recording method",
+    "accepted": "Method accepted",
+    "version": "Version",
+    "ackTitle": "My weekly acknowledgment",
+    "ackHint": "Review your summary and confirm it or report a discrepancy.",
+    "ackAccept": "Confirm my week",
+    "ackDiscrepancy": "Report discrepancy",
+    "ackNote": "Describe the discrepancy",
+    "ackAccepted": "Week confirmed",
+    "ackDiscrepancySent": "Discrepancy sent",
+    "lastAck": "Last acknowledgment",
+    "noAck": "You have not confirmed any week yet."
+  },
+  "requests": {
+    "title": "Overtime requests",
+    "hint": "Your employer asks for authorization; accepting or rejecting does not change the record of time worked.",
+    "empty": "You have no overtime requests.",
+    "reason": "Reason",
+    "planned": "Estimate",
+    "days": "Days",
+    "accept": "Accept",
+    "reject": "Reject",
+    "rejectNote": "Rejection reason (optional)",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled",
+    "pending": "Pending"
   }
 }

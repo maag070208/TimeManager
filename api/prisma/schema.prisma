@@ -167,6 +167,8 @@ model User {
   weeklyOvertimeLedgers WeeklyOvertimeLedger[] @relation("WeeklyOvertimeLedgerUser")
   recordAgreement       WorkRecordAgreement? @relation("WorkRecordAgreementUser")
   recordAcknowledgments WorkRecordAcknowledgment[] @relation("WorkRecordAcknowledgmentUser")
+  overtimeRequests      OvertimeRequest[] @relation("OvertimeRequestUser")
+  overtimeRequestsMade  OvertimeRequest[] @relation("OvertimeRequestRequester")
   active             Boolean          @default(true)
   jobTitle           String?
   employeeNumber     String?
@@ -984,6 +986,40 @@ enum WorkRecordAckStatus {
   PENDING
   ACCEPTED
   DISCREPANCY
+}
+
+/// Estado de una solicitud previa de horas extra (autorización del patrón +
+/// consentimiento del trabajador, arts. 66 y 68 LFT).
+enum OvertimeRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+/// Solicitud previa de horas extra: el patrón la pide con motivo, días y
+/// minutos estimados y el trabajador la acepta o rechaza desde Mi jornada.
+/// Aceptar/rechazar no altera el registro: lo trabajado se calcula igual.
+model OvertimeRequest {
+  id            String @id @default(uuid())
+  tenantId      String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId        String
+  user          User   @relation("OvertimeRequestUser", fields: [userId], references: [id], onDelete: Cascade)
+  requestedById String
+  requestedBy   User   @relation("OvertimeRequestRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  reason        String
+  plannedMin    Int
+  /// Días propuestos (JSON array de `YYYY-MM-DD`).
+  days          Json   @default("[]")
+  status        OvertimeRequestStatus @default(PENDING)
+  workerNote    String?
+  workerDecidedAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([userId, createdAt])
+  @@map("overtime_requests")
 }
 
 /// Acuerdo del método de registro (art. 132 fr. XXXIV, prueba plena): método(s),

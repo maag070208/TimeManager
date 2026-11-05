@@ -13,16 +13,20 @@ import {
 import { useTranslation } from "react-i18next";
 import {
   LuCalendarCheck,
+  LuCheck,
   LuClock,
+  LuFileText,
   LuLaptop,
   LuLogIn,
   LuLogOut,
   LuMapPin,
   LuRefreshCw,
+  LuX,
 } from "react-icons/lu";
 import type { MyPunch, PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
+import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
 
 const SOURCE_LABEL: Record<MyPunch["source"], string> = {
   CLOCK: "sourceClock",
@@ -55,12 +59,14 @@ export default function MyWorkdayPage() {
   const { t } = useTranslation("nom");
   const tr = t as unknown as (key: string, vars?: Record<string, unknown>) => string;
   const fx = useMyWorkday();
+  const wc = useWorkerCompliance();
   const [note, setNote] = useState("");
   const [withGeo, setWithGeo] = useState(false);
   const [workMode, setWorkMode] = useState<"PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO">("REMOTO");
   const [selectedPunch, setSelectedPunch] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [answers, setAnswers] = useState<Record<string, "YES" | "NO">>({});
+  const [ackNote, setAckNote] = useState("");
 
   const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
   const entry = useMemo(() => todayPunches.find((row) => row.type === "ENTRY") ?? null, [todayPunches]);
@@ -428,6 +434,137 @@ export default function MyWorkdayPage() {
                       </div>
                     </div>
                   </>
+                )}
+              </ITFlex>
+            </ITCard>
+            {/* Prueba plena (R-01): método de registro y conformidad semanal */}
+            <ITCard contentClassName="!p-4 sm:!p-5">
+              <ITFlex direction="column" gap={3}>
+                <CardHeader icon={<LuFileText size={16} />} title={tr("record.title")} />
+                <ITText muted className="!text-[12px]">{tr("record.hint")}</ITText>
+                {wc.error && (
+                  <ITText className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[12px] text-red-700">
+                    {wc.error}
+                  </ITText>
+                )}
+                {wc.agreement?.acceptedAt ? (
+                  <ITFlex align="center" gap={2} wrap="wrap">
+                    <ITBadget color="success" size="sm">{tr("record.accepted")}</ITBadget>
+                    <ITText muted className="!text-[11px]">
+                      {tr("record.version")} {wc.agreement.textVersion} · {dateOf(wc.agreement.acceptedAt)}
+                    </ITText>
+                  </ITFlex>
+                ) : (
+                  <ITButton
+                    variant="outlined"
+                    color="secondary"
+                    className="w-full sm:w-auto"
+                    disabled={wc.busy !== null}
+                    onClick={() => void wc.acceptAgreement()}
+                  >
+                    {tr("record.accept")}
+                  </ITButton>
+                )}
+
+                <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
+                  <ITText className="font-semibold !text-[13px]">{tr("record.ackTitle")}</ITText>
+                  <ITText muted className="!text-[11px]">{tr("record.ackHint")}</ITText>
+                  {wc.acknowledgments[0] ? (
+                    <ITText muted className="!text-[11px]">
+                      {tr("record.lastAck")}: {dateOf(wc.acknowledgments[0].acceptedAt ?? wc.acknowledgments[0].periodEnd)} ·{" "}
+                      {wc.acknowledgments[0].status === "ACCEPTED" ? tr("record.ackAccepted") : tr("record.ackDiscrepancySent")}
+                    </ITText>
+                  ) : (
+                    <ITText muted className="!text-[11px]">{tr("record.noAck")}</ITText>
+                  )}
+                  <ITTextarea
+                    name="ackNote"
+                    label={tr("record.ackNote")}
+                    value={ackNote}
+                    onChange={(value) => setAckNote(value)}
+                    rows={2}
+                  />
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <ITButton
+                      variant="filled"
+                      color="primary"
+                      className="w-full"
+                      disabled={wc.busy !== null}
+                      onClick={() => void wc.acknowledge(true)}
+                    >
+                      <LuCheck size={14} className="mr-1" />
+                      {tr("record.ackAccept")}
+                    </ITButton>
+                    <ITButton
+                      variant="outlined"
+                      color="secondary"
+                      className="w-full"
+                      disabled={wc.busy !== null || ackNote.trim().length < 3}
+                      onClick={() => void wc.acknowledge(false, ackNote.trim())}
+                    >
+                      {tr("record.ackDiscrepancy")}
+                    </ITButton>
+                  </div>
+                </div>
+              </ITFlex>
+            </ITCard>
+
+            {/* Consentimiento de horas extra (F3/1.5) */}
+            <ITCard contentClassName="!p-4 sm:!p-5">
+              <ITFlex direction="column" gap={3}>
+                <CardHeader icon={<LuClock size={16} />} title={tr("requests.title")} />
+                <ITText muted className="!text-[12px]">{tr("requests.hint")}</ITText>
+                {wc.requests.length === 0 ? (
+                  <ITText muted className="!text-[12px]">{tr("requests.empty")}</ITText>
+                ) : (
+                  <ITFlex direction="column" gap={2}>
+                    {wc.requests.map((request) => (
+                      <div key={request.id} className="flex flex-col gap-2 rounded-lg border border-slate-100 p-3">
+                        <ITFlex align="center" justify="between" gap={2} wrap="wrap">
+                          <ITText className="font-semibold !text-[13px]">{request.reason}</ITText>
+                          <ITBadget
+                            color={request.status === "ACCEPTED" ? "success" : request.status === "REJECTED" ? "danger" : request.status === "CANCELLED" ? "gray" : "warning"}
+                            size="sm"
+                          >
+                            {tr(`requests.${request.status.toLowerCase()}`)}
+                          </ITBadget>
+                        </ITFlex>
+                        <ITText muted className="!text-[11px]">
+                          {tr("requests.planned")}: {Math.floor(request.plannedMin / 60)}h {request.plannedMin % 60}m
+                          {request.days.length > 0 ? ` · ${tr("requests.days")}: ${request.days.join(", ")}` : ""}
+                        </ITText>
+                        {request.workerNote && (
+                          <ITText muted className="!text-[11px]">{request.workerNote}</ITText>
+                        )}
+                        {request.status === "PENDING" && (
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <ITButton
+                              variant="filled"
+                              color="primary"
+                              size="sm"
+                              className="w-full"
+                              disabled={wc.busy !== null}
+                              onClick={() => void wc.decideRequest(request.id, true)}
+                            >
+                              <LuCheck size={13} className="mr-1" />
+                              {tr("requests.accept")}
+                            </ITButton>
+                            <ITButton
+                              variant="outlined"
+                              color="secondary"
+                              size="sm"
+                              className="w-full"
+                              disabled={wc.busy !== null}
+                              onClick={() => void wc.decideRequest(request.id, false)}
+                            >
+                              <LuX size={13} className="mr-1" />
+                              {tr("requests.reject")}
+                            </ITButton>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </ITFlex>
                 )}
               </ITFlex>
             </ITCard>

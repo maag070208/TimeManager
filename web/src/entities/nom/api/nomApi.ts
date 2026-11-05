@@ -1,6 +1,9 @@
 import { api } from "@shared/api/client";
 import type {
   MeTelework,
+  OvertimeRequestRow,
+  RecordAgreement,
+  WorkRecordAcknowledgment,
   MyPunch,
   OutOfHoursChannel,
   OutOfHoursContact,
@@ -26,6 +29,27 @@ export const nomApi = {
     const query = qs.toString();
     return api.get<MyPunch[]>(`${base}/me/punches${query ? `?${query}` : ""}`);
   },
+
+  /** Prueba plena (R-01): acuerdo del método de registro del trabajador. */
+  myRecordAgreement: () => api.get<RecordAgreement | null>(`${base}/me/record-agreement`),
+  acceptRecordAgreement: (input: {
+    methods: string[];
+    roundingPolicy?: string | null;
+    correctionRules?: string | null;
+  }) => api.post<RecordAgreement>(`${base}/me/record-agreement/accept`, input),
+  myRecordAcknowledgments: () =>
+    api.get<WorkRecordAcknowledgment[]>(`${base}/me/record-acknowledgments`),
+  acknowledgeRecord: (input: {
+    periodStart: string;
+    periodEnd: string;
+    accept: boolean;
+    note?: string | null;
+  }) => api.post<WorkRecordAcknowledgment>(`${base}/me/record-acknowledgments`, input),
+
+  /** Autorización previa + consentimiento de horas extra (F3/1.5). */
+  myOvertimeRequests: () => api.get<OvertimeRequestRow[]>(`${base}/me/overtime-requests`),
+  decideOvertimeRequest: (id: string, input: { accept: boolean; note?: string | null }) =>
+    api.post<OvertimeRequestRow>(`${base}/me/overtime-requests/${id}/decision`, input),
 
   /** Marcaje remoto (sin reloj). La geolocalización es opcional y solo de este momento. */
   punch: (input: {

@@ -6,7 +6,6 @@ import { assertDateKey, isReportPeriod, localDateKey } from "@core/utils/timezon
 import type {
   StpsExportParams,
   StpsExportResult,
-  StpsExportRow,
   StpsRemotePunchRow,
 } from "../models/entity/nom.entity";
 import type { WorkdayCalculator } from "./workday-alerts.service";

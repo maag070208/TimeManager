@@ -12,6 +12,7 @@ import { TeleworkService } from "./services/telework.service";
 import { WeeklyOvertimeService } from "./services/weekly-overtime.service";
 import { HolidayService } from "./services/holiday.service";
 import { WorkRecordService } from "./services/work-record.service";
+import { OvertimeRequestService } from "./services/overtime-request.service";
 import { NomController } from "./controllers/nom.controller";
 import { createNomRouter } from "./routes/nom.routes";
 
@@ -25,6 +26,7 @@ export { TeleworkService } from "./services/telework.service";
 export { WeeklyOvertimeService } from "./services/weekly-overtime.service";
 export { HolidayService, legalHolidays } from "./services/holiday.service";
 export { WorkRecordService } from "./services/work-record.service";
+export { OvertimeRequestService } from "./services/overtime-request.service";
 export { classifyWeeklyOvertime, OVERTIME_ENGINE_VERSION } from "@modules/overtime/services/weekly-overtime-engine";
 
 type SysConfigReader = (key: string) => Promise<string | null>;
@@ -55,6 +57,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
   const telework = new TeleworkService(prismaClient, settings, deps.notifications, deps.audit);
   const holidays = new HolidayService(prismaClient, deps.audit);
   const record = new WorkRecordService(prismaClient, deps.audit);
+  const overtimeRequests = new OvertimeRequestService(prismaClient, deps.audit);
   const weeklyOvertime = new WeeklyOvertimeService(
     prismaClient,
     deps.calculator,
@@ -72,7 +75,8 @@ export const createNomModule = (deps: NomModuleDeps) => {
     telework,
     weeklyOvertime,
     holidays,
-    record
+    record,
+    overtimeRequests
   );
   return {
     router: createNomRouter(controller),
@@ -86,6 +90,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
     weeklyOvertime,
     holidays,
     record,
+    overtimeRequests,
     /**
      * Worker NOM: barrido horario de límites de jornada (ayer) y archivado
      * diario de los clientes con retención configurada. Lo arranca `src/index.ts`.

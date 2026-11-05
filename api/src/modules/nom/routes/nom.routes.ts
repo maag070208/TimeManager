@@ -57,6 +57,13 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/alerts", canRead, asyncHandler(controller.listAlerts));
   router.post("/alerts/scan", canWrite, asyncHandler(controller.scanAlerts));
 
+  // Autorización previa + consentimiento de horas extra (F3/1.5).
+  router.get("/me/overtime-requests", asyncHandler(controller.myOvertimeRequests));
+  router.post("/me/overtime-requests/:id/decision", asyncHandler(controller.decideOvertimeRequest));
+  router.get("/overtime/requests", canRead, asyncHandler(controller.listOvertimeRequests));
+  router.post("/overtime/requests", requiresPermission("overtime.approve"), asyncHandler(controller.createOvertimeRequest));
+  router.post("/overtime/requests/:id/cancel", requiresPermission("overtime.approve"), asyncHandler(controller.cancelOvertimeRequest));
+
   // Prueba plena (F3): acuerdo del método de registro y conformidad periódica.
   router.get("/me/record-agreement", asyncHandler(controller.myRecordAgreement));
   router.post("/me/record-agreement/accept", asyncHandler(controller.acceptRecordAgreement));

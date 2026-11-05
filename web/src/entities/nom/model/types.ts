@@ -93,3 +93,37 @@ export interface OutOfHoursContact {
   notifiedEmployee: boolean;
   createdAt: string;
 }
+
+/** Acuerdo del método de registro (R-01, prueba plena). */
+export interface RecordAgreement {
+  id: string;
+  methods: string[];
+  roundingPolicy: string | null;
+  correctionRules: string | null;
+  textVersion: number;
+  acceptedAt: string | null;
+  acceptedHash: string | null;
+}
+
+/** Conformidad periódica con el resumen de jornada (R-01). */
+export interface WorkRecordAcknowledgment {
+  id: string;
+  periodStart: string;
+  periodEnd: string;
+  summaryHash: string;
+  status: "PENDING" | "ACCEPTED" | "DISCREPANCY";
+  acceptedAt: string | null;
+  discrepancyNote: string | null;
+}
+
+/** Solicitud previa de horas extra (F3/1.5). */
+export interface OvertimeRequestRow {
+  id: string;
+  reason: string;
+  plannedMin: number;
+  days: string[];
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED";
+  workerNote: string | null;
+  workerDecidedAt: string | null;
+  createdAt: string;
+}
