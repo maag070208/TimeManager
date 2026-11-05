@@ -14,7 +14,8 @@
     "test": "node --test electron/sync-core.test.cjs",
     "typecheck": "tsc --noEmit",
     "dist:win": "pnpm build && electron-builder --win",
-    "dist:linux": "pnpm build && electron-builder --linux"
+    "dist:linux": "pnpm build && electron-builder --linux",
+    "dist:mac": "pnpm build && electron-builder --mac"
   },
   "dependencies": {
     "@axzydev/axzy_ui_system": "1.8.14",
@@ -74,6 +75,18 @@
       "category": "Utility",
       "artifactName": "TimeManagerAgent-${version}.${ext}"
     },
-    "icon": "resources/icon.png"
+    "icon": "resources/icon.png",
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "artifactName": "TimeManagerAgent-${version}-${arch}.${ext}"
+    }
   }
 }
