@@ -14,6 +14,7 @@ export class AuditController {
       end: typeof req.query.end === "string" ? req.query.end : undefined,
       page: req.query.page && !Number.isNaN(Number(req.query.page)) ? Number(req.query.page) : undefined,
       limit: req.query.limit && !Number.isNaN(Number(req.query.limit)) ? Number(req.query.limit) : undefined,
+      cursor: typeof req.query.cursor === "string" && req.query.cursor !== "" ? req.query.cursor : undefined,
     });
     res.json(data);
   };

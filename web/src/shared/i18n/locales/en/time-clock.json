@@ -351,6 +351,17 @@
     },
     "connection": {
       "ok": "Connection OK · {{serial}}"
+    },
+    "station": {
+      "title": "Fingerprint station",
+      "configured": "Configured · {{url}}",
+      "notConfigured": "Not configured",
+      "source": {
+        "tenant": "on-site (client)",
+        "platform": "central (TimeManager)",
+        "env": ".env fallback",
+        "none": "—"
+      }
     }
   },
   "history": {

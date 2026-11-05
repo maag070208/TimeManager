@@ -62,6 +62,11 @@ export interface TimeClockPersonInput {
 export interface FingerprintStationInfo {
   configured: boolean;
   url: string | null;
+  /** F1B-12: de dónde sale la estación (cliente, plataforma, .env, ninguna). */
+  source?: "tenant" | "platform" | "env" | "none";
+  username?: string | null;
+  hasPassword?: boolean;
+  scopeTenantId?: string | null;
 }
 
 /** Resultado de probar el lector: la plantilla no se devuelve ni se guarda. */

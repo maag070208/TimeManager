@@ -25,7 +25,7 @@ Alta, consulta y suspensión de clientes (tenants) del SaaS. Solo personal de pl
 
 - `Tenant.brandColor` (`#RRGGBB`), `Tenant.logoDataUrl` (data URL PNG/JPEG/WebP, máx. ~512 KB decodificados) y `Tenant.emailFrom` (remitente propio; fallback `RESEND_FROM_EMAIL`). Se editan con `PATCH /tenants/:id` (solo plataforma, auditado con valor anterior/nuevo; `null` quita el branding).
 - `/auth/me` expone `tenant.brandColor` y `tenant.logoDataUrl`; el login público usa `GET /auth/branding?tenant=<slug>` (sin sesión, devuelve `name`/`brandColor`/`logoDataUrl`, nulls si el cliente no existe).
-- Web: el panel de login aplica logo/color/nombre del cliente y el sidebar usa logo/nombre del tenant de la sesión. **Pendiente:** PDFs y plantillas de correo (marca TimeManager) y usar `emailFrom` en la cola de correo.
+- Web: el panel de login aplica logo/color/nombre del cliente, el sidebar usa logo/nombre y los **PDFs** (membrete de reportes y credencial) usan nombre/logo/color. La **cola de correo** usa el logo inline y el color del cliente en las plantillas y envía con `emailFrom` (fallback `RESEND_FROM_EMAIL`). **Pendiente:** pantalla de branding en la consola de clientes (hoy por API) y dominio del remitente verificado en Resend.
 
 ## Modelos
 

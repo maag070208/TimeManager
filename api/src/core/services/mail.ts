@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import type * as nodemailer from "nodemailer";
 import { LOGO_TIMEMANAGER_PNG_BASE64 } from "@core/assets/logoTimeManager";
 import { env } from "@core/config/env.config";
+import { currentTenantId, tenantBrand } from "@core/tenancy";
 import { EMAIL_LOGO_CID } from "@core/services/email-templates";
 import type { SysConfigService } from "@modules/config/services/sys-config.service";
 
@@ -20,13 +21,40 @@ export interface EmailAttachment {
 }
 
 
-const logoAttachment = (): EmailAttachment => ({
+const logoAttachment = (logoDataUrl?: string | null): EmailAttachment => ({
   filename: "timemanager-logo.png",
-  content: Buffer.from(LOGO_TIMEMANAGER_PNG_BASE64, "base64"),
+  content: logoBufferOf(logoDataUrl),
   contentType: "image/png",
   inline: true,
   cid: EMAIL_LOGO_CID,
 });
+
+/** Logo inline del cliente (data URL) o el de TimeManager (F3-05). */
+const logoBufferOf = (logoDataUrl?: string | null): Buffer => {
+  const match = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/.exec(logoDataUrl ?? "");
+  if (match) {
+    try {
+      return Buffer.from(match[2], "base64");
+    } catch {
+      /* cae al logo TimeManager */
+    }
+  }
+  return Buffer.from(LOGO_TIMEMANAGER_PNG_BASE64, "base64");
+};
+
+/**
+ * Header `From` del correo (F3-05): remitente propio del cliente
+ * (`tenant.emailFrom`) con fallback al del `.env`; si el remitente configurado
+ * ya trae nombre (`Nombre <correo>`), se respeta tal cual.
+ */
+export const resolveFromHeader = (
+  configured: string | null | undefined,
+  brandName: string | null | undefined
+): string => {
+  const fromAddr = configured ?? env.RESEND_FROM_EMAIL ?? env.SMTP_FROM ?? env.SMTP_USER ?? "noreply@axzy.dev";
+  if (fromAddr.includes("<")) return fromAddr;
+  return `${brandName ?? "TimeManager"} <${fromAddr}>`;
+};
 
 /**
  * Email transport. Dual provider:
@@ -197,7 +225,9 @@ export const sendEmail = async (input: {
   skipStakeholders?: boolean;
 }): Promise<boolean> => {
   const initialRecipients = Array.isArray(input.to) ? input.to : [input.to];
-  const attachments = [logoAttachment(), ...(input.attachments ?? [])];
+  // Branding del cliente del contexto (F3-05): logo inline y remitente propio.
+  const brand = await tenantBrand(currentTenantId()).catch(() => null);
+  const attachments = [logoAttachment(brand?.logoDataUrl), ...(input.attachments ?? [])];
   // Union con los destinatarios CC configurados en EMAIL_NOTIFICATION_RECIPIENTS
   // (sys_config) con fallback a NOTIFICATION_EMAILS del env. Se omiten cuando
   // `skipStakeholders` es true (triggers que ya envían individualmente a cada
@@ -221,10 +251,8 @@ export const sendEmail = async (input: {
 
   if (resend) {
     try {
-      const fromAddr =
-        env.RESEND_FROM_EMAIL ?? env.SMTP_FROM ?? env.SMTP_USER ?? "noreply@axzy.dev";
       // Resend espera un header "From" con formato "Nombre <correo@dominio>".
-      const fromHeader = fromAddr.includes("<") ? fromAddr : `TimeManager <${fromAddr}>`;
+      const fromHeader = resolveFromHeader(brand?.emailFrom, brand?.name);
       const { error } = await resend.emails.send({
         from: fromHeader,
         to: recipients,
@@ -257,7 +285,7 @@ export const sendEmail = async (input: {
   if (tx) {
     try {
       await tx.sendMail({
-        from: env.SMTP_FROM ?? env.SMTP_USER!,
+        from: resolveFromHeader(brand?.emailFrom, brand?.name),
         to: recipients.join(", "),
         subject: input.subject,
         html: input.html,

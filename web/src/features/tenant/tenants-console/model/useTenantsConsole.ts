@@ -66,6 +66,21 @@ export const useTenantsConsole = () => {
     }
   };
 
+  /**
+   * Aprovisionamiento guiado (F3-07): entra como el cliente (auditoría) y abre
+   * la pantalla de relojes operando con `X-Tenant-Id`, donde ya viven el alta,
+   * "Probar conexión", "Sincronizar ahora", el último sync y el panel del agente.
+   */
+  const manageClocks = async (t: Tenant) => {
+    try {
+      await tenantApi.impersonate(t.id);
+      setSelectedTenant({ id: t.id, name: t.name, slug: t.slug });
+      window.location.assign("/#/time-clocks");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const confirmStatus = async () => {
     if (!statusTarget) return;
     setSavingStatus(true);
@@ -93,6 +108,7 @@ export const useTenantsConsole = () => {
     setSearch,
     reload,
     enter,
+    manageClocks,
     statusTarget,
     setStatusTarget,
     savingStatus,

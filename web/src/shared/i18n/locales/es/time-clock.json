@@ -351,6 +351,17 @@
     },
     "connection": {
       "ok": "Conexión correcta · {{serial}}"
+    },
+    "station": {
+      "title": "Estación de huellas",
+      "configured": "Configurada · {{url}}",
+      "notConfigured": "No configurada",
+      "source": {
+        "tenant": "en sitio (cliente)",
+        "platform": "central (TimeManager)",
+        "env": "fallback .env",
+        "none": "—"
+      }
     }
   },
   "history": {

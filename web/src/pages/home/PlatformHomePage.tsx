@@ -78,6 +78,7 @@ export default function PlatformHomePage() {
                   onToggleStatus={fx.setStatusTarget}
                   onEditPlan={setPlanTarget}
                   onManageAgent={setAgentTarget}
+                  onManageClocks={fx.manageClocks}
                 />
               )}
             </div>

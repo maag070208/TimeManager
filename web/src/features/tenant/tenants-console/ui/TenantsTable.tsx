@@ -1,5 +1,5 @@
 import { ITButton, ITText } from "@axzydev/axzy_ui_system";
-import { LuArrowRight, LuKeyRound } from "react-icons/lu";
+import { LuArrowRight, LuClock3, LuKeyRound } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { Tenant } from "@entities/tenant";
 import { tenantHost, tenantUrl } from "@shared/api/tenant";
@@ -12,6 +12,8 @@ interface Props {
   onToggleStatus: (t: Tenant) => void;
   onEditPlan: (t: Tenant) => void;
   onManageAgent: (t: Tenant) => void;
+  /** F3-07: abre relojes operando como el cliente (alta/probar/sync/estación). */
+  onManageClocks: (t: Tenant) => void;
 }
 
 /** Uso contra límite del plan; en rojo cuando ya se rebasó (p. ej. tras bajar de plan). */
@@ -23,7 +25,7 @@ const Usage = ({ usage, limit }: { usage: number; limit: number | null }) => (
 );
 
 /** Clientes de la plataforma: subdominio, estado, uso, plan y acciones. */
-export default function TenantsTable({ rows, canManage, onEnter, onToggleStatus, onEditPlan, onManageAgent }: Props) {
+export default function TenantsTable({ rows, canManage, onEnter, onToggleStatus, onEditPlan, onManageAgent, onManageClocks }: Props) {
   const { t, i18n } = useTranslation("home");
   const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { day: "numeric", month: "short", year: "numeric" });
 
@@ -85,6 +87,12 @@ export default function TenantsTable({ rows, canManage, onEnter, onToggleStatus,
                         </ITButton>
                       </>
                     )}
+                    <ITButton variant="outlined" color="secondary" size="sm" onClick={() => onManageClocks(row)}>
+                      <span className="flex items-center gap-1.5">
+                        <LuClock3 size={11} />
+                        <ITText className="font-bold text-[11px]">{t("platform.actions.clocks")}</ITText>
+                      </span>
+                    </ITButton>
                     <ITButton variant="outlined" color="secondary" size="sm" onClick={() => onManageAgent(row)}>
                       <span className="flex items-center gap-1.5">
                         <LuKeyRound aria-hidden size={12} />

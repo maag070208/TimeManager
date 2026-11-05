@@ -1,7 +1,11 @@
 import type { EmailLog } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { currentTenantId, runWithTenant, tenantBrand } from "@core/tenancy";
-import { EMAIL_COMPANY_TOKEN } from "@core/services/email-templates";
+import {
+  EMAIL_BRAND_COLOR_TOKEN,
+  EMAIL_COMPANY_TOKEN,
+  EMAIL_DEFAULT_BRAND_COLOR,
+} from "@core/services/email-templates";
 import { env } from "@core/config/env.config";
 import {
   getNotificationRecipients,
@@ -62,18 +66,33 @@ const serializeTo = (to: string | string[]): string =>
  * correos que ya estaban PENDING siguen su curso por el worker; el gate NO
  * afecta a `sendEmail` ni al drenado de la cola.
  */
+/**
+ * Sustituye los tokens de marca del correo (F3-05): nombre del cliente y color
+ * de acento. Función pura para poder probarla sin BD.
+ */
+export const applyBrandTokens = (
+  text: string,
+  brand: { name: string | null; color: string | null },
+  { escape }: { escape: boolean }
+): string => {
+  const company = brand.name ?? "TimeManager";
+  const color = brand.color ?? EMAIL_DEFAULT_BRAND_COLOR;
+  return text
+    .split(EMAIL_COMPANY_TOKEN).join(escape ? escapeHtml(company) : company)
+    .split(EMAIL_BRAND_COLOR_TOKEN).join(color);
+};
+
 export const enqueueEmail = async (input: EnqueueEmailInput): Promise<boolean> => {
   if (!(await isEmailSendingEnabled())) return true;
   try {
-    // El encabezado y el asunto llevan el nombre del cliente del contexto.
-    const company = (await tenantBrand(currentTenantId()))?.name ?? "TimeManager";
-    const withCompany = (text: string, escape: boolean) =>
-      text.split(EMAIL_COMPANY_TOKEN).join(escape ? escapeHtml(company) : company);
+    // Encabezado, asunto y color de acento del cliente del contexto (F3-05).
+    const brand = await tenantBrand(currentTenantId());
+    const tokens = { name: brand?.name ?? null, color: brand?.brandColor ?? null };
     await prismaClient.emailLog.create({
       data: {
         to: serializeTo(input.to),
-        subject: withCompany(input.subject, false),
-        html: withCompany(input.html, true),
+        subject: applyBrandTokens(input.subject, tokens, { escape: false }),
+        html: applyBrandTokens(input.html, tokens, { escape: true }),
         attachments: input.attachments?.length ? (input.attachments as unknown as object) : undefined,
         action: input.action,
         entityType: input.entityType,

@@ -3,7 +3,7 @@ import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
 import { PDF_COLORS } from "@shared/pdf/theme";
 import { CREDENTIAL_H_PX, CREDENTIAL_W_PX, LAYOUT } from "./cardSpec";
 import { i18n } from "@shared/i18n";
-import { getTenantBrandName } from "@shared/lib/tenantBrand";
+import { getTenantBrandColor, getTenantBrandLogo, getTenantBrandName } from "@shared/lib/tenantBrand";
 
 export interface CredentialRenderInput {
   profile: PersonalProfile;
@@ -149,7 +149,7 @@ export const drawCredential = async (
   // Banda superior + acento.
   ctx.fillStyle = PDF_COLORS.band;
   ctx.fillRect(LAYOUT.band.x, LAYOUT.band.y, LAYOUT.band.w, LAYOUT.band.h);
-  ctx.fillStyle = PDF_COLORS.bandAccent;
+  ctx.fillStyle = getTenantBrandColor() ?? PDF_COLORS.bandAccent;
   ctx.fillRect(LAYOUT.accent.x, LAYOUT.accent.y, LAYOUT.accent.w, LAYOUT.accent.h);
 
   // Logo sobre badge blanco.
@@ -157,7 +157,7 @@ export const drawCredential = async (
   ctx.arc(LAYOUT.logoBadge.cx, LAYOUT.logoBadge.cy, LAYOUT.logoBadge.r, 0, Math.PI * 2);
   ctx.fillStyle = PDF_COLORS.white;
   ctx.fill();
-  const logo = await loadImage(LOGO_TIMEMANAGER_BASE64);
+  const logo = await loadImage(getTenantBrandLogo() ?? LOGO_TIMEMANAGER_BASE64);
   if (logo) {
     const { x, y, w, h } = LAYOUT.logo;
     drawImageContain(ctx, logo, x, y, w, h);

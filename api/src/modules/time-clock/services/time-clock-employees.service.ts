@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { currentTenantId, requireTenantId } from "@core/tenancy";
-import { ci, filterEnum, filterId, filterText, type ITDataTableFetchParams } from "@core/utils/table";
+import { ci, filterEnum, filterId, filterText, type ITDataTableFetchParams, decodeCursor, encodeCursor } from "@core/utils/table";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import type {
   TimeClockEmployeeRow,
@@ -135,11 +135,22 @@ export class TimeClockEmployeesService {
     const sorted = [...filtered].sort(sorter);
     if (params.sort?.direction === "desc") sorted.reverse();
 
-    const from = (params.page - 1) * params.limit;
+    // Cursor opaco (F4-02): el orden se calcula en memoria, así que el cursor
+    // guarda la posición estable dentro del orden por defecto (`name`).
+    const cursor = !params.sort ? decodeCursor<{ offset: number }>(params.cursor) : null;
+    const from = cursor && Number.isInteger(cursor.offset) && cursor.offset >= 0
+      ? cursor.offset
+      : (params.page - 1) * params.limit;
+    const data = sorted.slice(from, from + params.limit);
+    const nextCursor = data.length === params.limit && from + params.limit < sorted.length
+      ? encodeCursor({ offset: from + params.limit })
+      : null;
     return {
-      data: sorted.slice(from, from + params.limit),
+      data,
       total: sorted.length,
       summary: this.summary(rows),
+      // Se anuncia también en la página offset si el orden es el por defecto.
+      ...(params.sort ? {} : { nextCursor }),
     };
   }
 

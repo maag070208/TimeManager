@@ -25,6 +25,7 @@ export const createAuditRouter = (controller: AuditController): Router => {
       { in: "query", name: "end", required: false, schema: { type: "string", format: "date" } },
       { in: "query", name: "page", required: false, schema: { type: "integer", minimum: 1 } },
       { in: "query", name: "limit", required: false, schema: { type: "integer", minimum: 1, maximum: 500 } },
+      { in: "query", name: "cursor", required: false, schema: { type: "string" } },
     ],
     responses: {
       200: { description: "Logs paginados", content: { "application/json": { schema: AuditLogListResponseSchema } } },

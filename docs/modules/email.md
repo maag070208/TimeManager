@@ -7,6 +7,12 @@ Envío de correos (Nodemailer/Resend) con bitácora (`EmailLog`), reintento y ca
 `POST /mail/logs/query` (bitácora paginada), `POST /mail/logs/:id/retry`, `POST /mail/logs/:id/cancel`.
 Las tres exigen sesión de plataforma (ADMIN) y `system.configure`.
 
+## Branding por cliente (F3-05)
+
+- Al encolar, `email-queue` sustituye `%%TM_COMPANY%%` por el nombre del cliente y `%%TM_BRAND_COLOR%%` por su `brandColor` (fallback: acento TimeManager) en asunto y HTML. El encabezado de la plantilla ya llevaba el nombre; el acento ahora también es del cliente.
+- Al enviar (worker), `sendEmail` resuelve el branding del contexto del correo: usa el **logo inline del cliente** (`tenant.logoDataUrl`, con el logo TimeManager como fallback) y el **remitente propio** (`tenant.emailFrom`) con fallback a `RESEND_FROM_EMAIL`/SMTP. Un `From` configurado como `Nombre <correo>` se respeta tal cual.
+- Requisito externo: el dominio del `emailFrom` debe estar verificado en Resend.
+
 ## Modelos
 
 `EmailLog`.

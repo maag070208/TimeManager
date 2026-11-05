@@ -46,7 +46,8 @@ export class DepartmentService {
         count: (direction) => ({ users: { _count: direction } }),
         createdAt: "createdAt",
       },
-      [{ name: "asc" }]
+      // Desempate estable por id (llave del cursor).
+      [{ name: "asc" }, { id: "asc" }]
     );
 
     const include: Prisma.DepartmentInclude = {
@@ -64,6 +65,17 @@ export class DepartmentService {
       include: include as never,
       page: params.page,
       limit: params.limit,
+      // Cursor solo con el orden por defecto (name asc, id asc).
+      ...(!params.sort
+        ? { cursor: {
+            value: params.cursor,
+            where: (value: unknown) => {
+              const c = value as { n: string; i: string };
+              return { OR: [{ name: { gt: c.n } }, { name: c.n, id: { gt: c.i } }] };
+            },
+            from: (row: any) => ({ n: row.name, i: row.id }),
+          } }
+        : {}),
     });
   }
 

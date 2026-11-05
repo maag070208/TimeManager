@@ -38,7 +38,8 @@
       "suspend": "Suspend",
       "reactivate": "Reactivate",
       "plan": "Plan",
-      "agent": "Agent"
+      "agent": "Agent",
+      "clocks": "Clocks"
     },
     "confirm": {
       "suspendTitle": "Suspend {{name}}?",

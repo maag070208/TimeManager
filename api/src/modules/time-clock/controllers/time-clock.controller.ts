@@ -242,8 +242,8 @@ export class TimeClockController {
 
   employeesTable = async (req: Request, res: Response): Promise<void> => {
     const params = parseTableParams(req.body);
-    const { data, total, summary } = await this.employees.table(params);
-    res.json({ ...paginatedTable(params, data, total), summary });
+    const { data, total, summary, nextCursor } = await this.employees.table(params);
+    res.json({ ...paginatedTable(params, data, total, nextCursor), summary });
   };
 
   linkEmployee = async (req: Request, res: Response): Promise<void> => {

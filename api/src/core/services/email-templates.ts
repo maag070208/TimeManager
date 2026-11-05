@@ -20,6 +20,13 @@ const escapeHtml = (value: string): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+/**
+ * Token del color de acento del cliente (F3-05). `enqueueEmail` lo sustituye
+ * por `tenant.brandColor` (o el acento TimeManager si el cliente no tiene).
+ */
+export const EMAIL_BRAND_COLOR_TOKEN = "%%TM_BRAND_COLOR%%";
+export const EMAIL_DEFAULT_BRAND_COLOR = "#5fb8dd";
+
 // Paleta de marca (tokens `--tm-*` de la web).
 const EMAIL_COLORS = {
   band: "#1D2636",
@@ -128,7 +135,7 @@ const layoutEmail = ({ language, title, preview, content }: LayoutInput): string
 
             <!-- Línea de acento -->
             <tr>
-              <td style="height:3px;line-height:3px;font-size:0;background:${EMAIL_COLORS.bandAccent};">&nbsp;</td>
+              <td style="height:3px;line-height:3px;font-size:0;background:${EMAIL_BRAND_COLOR_TOKEN};">&nbsp;</td>
             </tr>
 
             <!-- Cuerpo -->
@@ -139,7 +146,7 @@ const layoutEmail = ({ language, title, preview, content }: LayoutInput): string
                 ${content}
 
                 <!-- Footer -->
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:24px;border-top:1px solid ${EMAIL_COLORS.bandAccent};">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:24px;border-top:1px solid ${EMAIL_BRAND_COLOR_TOKEN};">
                   <tr>
                     <td style="padding-top:12px;font-size:12px;color:${EMAIL_COLORS.muted};">
                       ${escapeHtml(t("emails.footer", {}, language))}

@@ -43,7 +43,8 @@ export class SubareaService {
         departmentId: (direction) => ({ department: { name: direction } }),
         createdAt: "createdAt",
       },
-      [{ name: "asc" }]
+      // Desempate estable por id (llave del cursor).
+      [{ name: "asc" }, { id: "asc" }]
     );
 
     return paginatedQuery<any>({
@@ -53,6 +54,16 @@ export class SubareaService {
       include: { department: departmentRef } as never,
       page: params.page,
       limit: params.limit,
+      ...(!params.sort
+        ? { cursor: {
+            value: params.cursor,
+            where: (value: unknown) => {
+              const c = value as { n: string; i: string };
+              return { OR: [{ name: { gt: c.n } }, { name: c.n, id: { gt: c.i } }] };
+            },
+            from: (row: any) => ({ n: row.name, i: row.id }),
+          } }
+        : {}),
     });
   }
 

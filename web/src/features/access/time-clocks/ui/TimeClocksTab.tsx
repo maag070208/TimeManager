@@ -26,6 +26,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
   const {
     t,
     status,
+    station,
     configs,
     loadConfig,
     isRegistrationOpen,
@@ -79,6 +80,32 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
         <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>
           {error}
         </ITAlert>
+      )}
+
+      {station && (
+        <ITCard className="!p-4">
+          <ITFlex align="center" gap={2} wrap="wrap">
+            <ITText className="text-[12px] font-bold text-slate-700">
+              {t("clocks.station.title")}
+            </ITText>
+            <ITText
+              className={
+                station.configured
+                  ? "text-[11.5px] font-semibold text-[var(--color-success)]"
+                  : "text-[11.5px] font-semibold text-slate-500"
+              }
+            >
+              {station.configured
+                ? t("clocks.station.configured", { url: station.url ?? "—" })
+                : t("clocks.station.notConfigured")}
+            </ITText>
+            {station.configured && (
+              <ITText muted className="text-[11px]">
+                {t(`clocks.station.source.${station.source ?? "none"}` as never)}
+              </ITText>
+            )}
+          </ITFlex>
+        </ITCard>
       )}
 
       {selected ? (

@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { env as config } from "@core/config/env.config";
 import { metricsContentType, refreshOperationalGauges, renderMetrics } from "@core/observability/metrics";
 import { newRequestId, runWithRequestContext, setRequestPrincipal } from "@core/observability/request-context";
@@ -51,11 +51,58 @@ export const queryRateLimiter = rateLimit({
   limit: config.RATE_LIMIT_QUERY_MAX,
 });
 
-/** Aplica el tope de consultas solo a las rutas que terminan en `/query` o `/sync`. */
+/** Rutas caras/ingesta con tope además del de IP: /query, sync, import, ingest y push del agente. */
+export const isRateLimitedPath = (path: string): boolean =>
+  path.endsWith("/query") ||
+  path.endsWith("/sync") ||
+  path.endsWith("/import") ||
+  path.endsWith("/ingest") ||
+  path.endsWith("/punches");
+
+/** Aplica el tope de consultas por IP solo a las rutas caras/ingesta. */
 export const queryPathsRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
-  const path = req.path;
-  if (path.endsWith("/query") || path.endsWith("/sync") || path.endsWith("/import") || path.endsWith("/ingest")) {
+  if (isRateLimitedPath(req.path)) {
     queryRateLimiter(req, res, next);
+    return;
+  }
+  next();
+};
+
+/**
+ * Clave del rate limit por cliente (F4-02): `tenant:<id>` si el token (aún sin
+ * validar contra la BD: aquí solo se limita) trae cliente; si no,
+ * `ip:<ip>` (plataforma sin cliente y anónimos). Barato: no toca la BD.
+ */
+export const tenantRateLimitKey = (req: Pick<Request, "headers" | "ip">): string => {
+  const header = req.headers.authorization;
+  if (typeof header === "string") {
+    try {
+      const token = header.replace(/^Bearer\s+/i, "").trim();
+      const payload = verifyToken(token) as { tenantId?: string | null };
+      if (typeof payload.tenantId === "string" && payload.tenantId !== "") {
+        return `tenant:${payload.tenantId}`;
+      }
+    } catch {
+      // Token inválido/vencido: se limita por IP; `authenticate` responderá 401.
+    }
+  }
+  return `ip:${ipKeyGenerator(req.ip ?? "")}`;
+};
+
+/** Tope por cliente (independiente del de IP). */
+export const tenantQueryRateLimiter = rateLimit({
+  ...baseOptions,
+  limit: config.RATE_LIMIT_PER_TENANT,
+  keyGenerator: tenantRateLimitKey,
+  validate: {
+    ...baseOptions.validate,
+    keyGeneratorIpFallback: false,
+  },
+});
+
+export const tenantQueryPathsRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
+  if (isRateLimitedPath(req.path)) {
+    tenantQueryRateLimiter(req, res, next);
     return;
   }
   next();

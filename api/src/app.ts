@@ -17,6 +17,7 @@ import {
   metricsHandler,
   queryPathsRateLimiter,
   requestContextMiddleware,
+  tenantQueryPathsRateLimiter,
 } from "@core/middlewares/production.middleware";
 import { emailQueueDepth } from "@core/services/email-queue";
 import { setupSwagger } from "@core/swagger/setup";
@@ -73,6 +74,8 @@ export const createApp = () => {
   // Rate limiting: login estricto y consultas caras (store en memoria hoy).
   app.use("/api/v1/auth/login", loginRateLimiter);
   app.use("/api/v1", queryPathsRateLimiter);
+  // Segundo tope por cliente (el de arriba es por IP).
+  app.use("/api/v1", tenantQueryPathsRateLimiter);
 
   // Idioma de la respuesta: Accept-Language → sys_config LANGUAGE → es.
   app.use("/api/v1", languageMiddleware, apiRouter);

@@ -15,8 +15,8 @@ export class SubareaController {
 
   table = async (req: Request, res: Response) => {
     const params = parseTableParams(req.body);
-    const { data, total } = await this.subareas.table(params);
-    res.json(paginatedTable(params, data, total));
+    const { data, total, nextCursor } = await this.subareas.table(params);
+    res.json(paginatedTable(params, data, total, nextCursor));
   };
 
   getOne = async (req: Request, res: Response) => {

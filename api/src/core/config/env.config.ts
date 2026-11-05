@@ -122,6 +122,8 @@ export const env = {
   RATE_LIMIT_DISABLED: process.env.RATE_LIMIT_DISABLED === "true",
   RATE_LIMIT_LOGIN_MAX: parseInt(process.env.RATE_LIMIT_LOGIN_MAX ?? "20", 10),
   RATE_LIMIT_QUERY_MAX: parseInt(process.env.RATE_LIMIT_QUERY_MAX ?? "600", 10),
+  /** Tope por cliente (tenant) en endpoints caros/ingesta; anónimos van por IP. */
+  RATE_LIMIT_PER_TENANT: parseInt(process.env.RATE_LIMIT_PER_TENANT ?? "2000", 10),
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? "900000", 10),
   /** Logs estructurados (JSON) con request-id/tenant/user cuando true. */
   LOG_JSON: process.env.LOG_JSON ?? (process.env.NODE_ENV === "production" ? "true" : "false"),

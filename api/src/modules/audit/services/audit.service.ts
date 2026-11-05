@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { decodeCursor, encodeCursor } from "@core/utils/table";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type {
@@ -47,20 +48,39 @@ export class AuditService {
     }
 
     const page = params.page ?? 1;
-    const limit = params.limit ?? 50;
-    const skip = (page - 1) * limit;
+    const limit = Math.min(Math.max(params.limit ?? 50, 1), 500);
+    const cursor = decodeCursor<{ c: string; i: string }>(params.cursor);
+    if (cursor) {
+      const createdAt = new Date(cursor.c);
+      const scopedWhere = {
+        AND: [where, { OR: [{ createdAt: { lt: createdAt } }, { createdAt, id: { lt: cursor.i } }] }],
+      } as Prisma.AuditLogWhereInput;
+      const data = await this.db.auditLog.findMany({
+        where: scopedWhere,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: limit,
+      });
+      const last = data[data.length - 1];
+      const nextCursor =
+        last && data.length === limit ? encodeCursor({ c: last.createdAt.toISOString(), i: last.id }) : null;
+      // `total` no se paga al paginar por cursor (el cliente ya avanzó).
+      return { data, total: 0, page, limit, nextCursor };
+    }
 
     const [total, data] = await this.db.$transaction([
       this.db.auditLog.count({ where }),
       this.db.auditLog.findMany({
         where,
-        orderBy: { createdAt: "desc" },
-        skip,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * limit,
         take: limit,
       }),
     ]);
+    const last = data[data.length - 1];
+    const nextCursor =
+      last && data.length === limit ? encodeCursor({ c: last.createdAt.toISOString(), i: last.id }) : undefined;
 
-    return { data, total, page, limit };
+    return { data, total, page, limit, ...(nextCursor !== undefined ? { nextCursor } : {}) };
   }
 
   async getById(id: string) {

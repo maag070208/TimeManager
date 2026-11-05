@@ -20,6 +20,8 @@ export interface ListAuditLogsParams {
   end?: string;
   page?: number;
   limit?: number;
+  /** Cursor opaco (F4-02) para continuar por keyset (createdAt desc, id desc). */
+  cursor?: string;
 }
 
 export interface AuditLogListResult {
@@ -27,6 +29,8 @@ export interface AuditLogListResult {
   total: number;
   page: number;
   limit: number;
+  /** Siguiente página por cursor cuando aplica. */
+  nextCursor?: string | null;
 }
 
 export type AuditTransactionClient = Prisma.TransactionClient;

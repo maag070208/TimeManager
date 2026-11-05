@@ -15,7 +15,7 @@ import { useAblyNotifications, type LiveNotification } from "./useAblyNotificati
 import ForcePasswordChange from "./ForcePasswordChange";
 import { PLATFORM_PATHS, TenantSwitcher, useClientContext } from "@features/tenant/tenant-switcher";
 import { getSelectedTenant } from "@shared/api/tenant";
-import { setTenantBrandName } from "@shared/lib/tenantBrand";
+import { setTenantBrand } from "@shared/lib/tenantBrand";
 import logoUrl from "@shared/assets/brand/timemanager-logo-for-light-bg.svg";
 import symbolUrl from "@shared/assets/brand/timemanager-symbol-for-light-bg.svg";
 
@@ -92,7 +92,11 @@ export default function PrivateRoutes() {
 
   // Membrete de PDFs y credenciales: el cliente de la sesión o el elegido.
   useEffect(() => {
-    setTenantBrandName(user?.tenant?.name ?? getSelectedTenant()?.name ?? null);
+    setTenantBrand({
+      name: user?.tenant?.name ?? getSelectedTenant()?.name ?? null,
+      color: user?.tenant?.brandColor ?? null,
+      logoDataUrl: user?.tenant?.logoDataUrl ?? null,
+    });
   }, [user]);
 
   // La interfaz sigue el idioma del sistema que trae la sesión.

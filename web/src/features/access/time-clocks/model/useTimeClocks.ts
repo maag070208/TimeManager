@@ -5,6 +5,7 @@ import {
   type TimeClockDevice,
   type TimeClockConfig,
   type TimeClockStatus,
+  type FingerprintStationInfo,
 } from "@entities/time-clock";
 
 /** Refresco del estado mientras algún reloj sincroniza. */
@@ -29,6 +30,8 @@ export const useTimeClocks = () => {
   const { t } = useTranslation(["time-clock", "common"]);
 
   const [status, setStatus] = useState<TimeClockStatus | null>(null);
+  // Estación de huellas efectiva del cliente en contexto (F1B-12/F3-07).
+  const [station, setStation] = useState<FingerprintStationInfo | null>(null);
   const [configs, setConfigs] = useState<Record<string, ClockConfig>>({});
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -87,6 +90,11 @@ export const useTimeClocks = () => {
       setStatus(await timeClockApi.status());
     } catch (e) {
       setError(messageOf(e, t("clocks.errors.status")));
+    }
+    try {
+      setStation(await timeClockApi.fingerprintStationInfo());
+    } catch {
+      setStation(null);
     }
   }, [t]);
 
@@ -221,6 +229,7 @@ export const useTimeClocks = () => {
     syncing,
     t,
     status,
+    station,
     configs,
     loadConfig,
     isRegistrationOpen,

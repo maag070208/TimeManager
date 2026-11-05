@@ -36,8 +36,8 @@ export class PersonalController {
 
   table = async (req: Request, res: Response) => {
     const params = parseTableParams(req.body);
-    const { data, total } = await this.profiles.table(params);
-    res.json(paginatedTable(params, data.map(personalProfileToDto), total));
+    const { data, total, nextCursor } = await this.profiles.table(params);
+    res.json(paginatedTable(params, data.map(personalProfileToDto), total, nextCursor));
   };
 
   stats = async (_req: Request, res: Response) => {
