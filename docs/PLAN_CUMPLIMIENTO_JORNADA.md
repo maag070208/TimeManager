@@ -235,7 +235,7 @@ Hoy es 5-nov-2026; el escalón de 46 h y las disposiciones STPS entran el **1-en
 | **F1 — Motor semanal de horas extra** 🚧 (motor, ledger, turno H-01, festivos H-05 y export v1 hechos; resta UI/pre-nómina) | 10-dic-2026 | Algoritmo 1.3 + casos 1.4 + `WeeklyOvertimeLedger`; tipo de turno (H-01); festivos (H-05); menores; descanso de 7 días (H-07); registro sin tolerancias (1.6); aprobación por semana; pre-nómina y export con bolsas (R-04) |
 | **F2 — Transición 2027** 🚧 (validación H-02 y reporte H-03; resta UI/avisos) | 15-dic-2026 | Validación de horarios (H-02) y asistente de transición (H-03) corrido en todos los clientes antes del 1-ene |
 | **F3 — Prueba plena y retención** 🚧 (R-01 y 1.5 con UI en Mi jornada; R-02 en revisión) | 31-ene-2027 | Acuerdo del método y conformidad periódica (R-01); retención art. 804 (R-02); autorización previa y consentimiento de extra (1.5) |
-| **F4 — NOM-037 completa** | 28-feb-2027 | Brechas P0/P1 de la sección 4, desconexión del propio sistema, expediente exportable |
+| **F4 — NOM-037 completa** 🚧 (P0: % teletrabajo, validación del checklist, equipo, capacitación, avisos y reversibilidad) | 28-feb-2027 | Brechas P0/P1 de la sección 4, desconexión del propio sistema, expediente exportable |
 | **F5 — Disposiciones STPS** | ≤ 30 días tras su publicación | Ámbito, excepciones, formato oficial del export, retención definitiva, sello encadenado (R-05), paquete de inspección (R-08) |
 | **F6 — Pendientes P2** | 2027 | Exámenes médicos, violencia familiar, dictámenes |
 

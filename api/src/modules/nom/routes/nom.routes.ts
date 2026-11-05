@@ -57,6 +57,21 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/alerts", canRead, asyncHandler(controller.listAlerts));
   router.post("/alerts/scan", canWrite, asyncHandler(controller.scanAlerts));
 
+  // Brechas NOM-037 (F4): % teletrabajo, validación del checklist por la
+  // Comisión, equipo, capacitación, avisos y reversibilidad.
+  router.patch("/telework/registrations/:id/details", canWrite, asyncHandler(controller.updateTeleworkDetails));
+  router.post("/telework/checklists/:id/validate", canWrite, asyncHandler(controller.validateTeleworkChecklist));
+  router.get("/telework/equipment", canRead, asyncHandler(controller.listTeleworkEquipment));
+  router.post("/telework/equipment", canWrite, asyncHandler(controller.deliverTeleworkEquipment));
+  router.post("/me/telework/equipment/:id/accept", asyncHandler(controller.acceptMyTeleworkEquipment));
+  router.get("/telework/trainings", canRead, asyncHandler(controller.listTeleworkTrainings));
+  router.post("/telework/trainings", canWrite, asyncHandler(controller.createTeleworkTraining));
+  router.get("/telework/notices", canRead, asyncHandler(controller.listTeleworkNotices));
+  router.post("/me/telework/notices", asyncHandler(controller.createMyTeleworkNotice));
+  router.get("/telework/reversals", canRead, asyncHandler(controller.listTeleworkReversals));
+  router.post("/me/telework/reversal", asyncHandler(controller.requestMyTeleworkReversal));
+  router.post("/telework/reversals/:id/decide", canWrite, asyncHandler(controller.decideTeleworkReversal));
+
   // Autorización previa + consentimiento de horas extra (F3/1.5).
   router.get("/me/overtime-requests", asyncHandler(controller.myOvertimeRequests));
   router.post("/me/overtime-requests/:id/decision", asyncHandler(controller.decideOvertimeRequest));

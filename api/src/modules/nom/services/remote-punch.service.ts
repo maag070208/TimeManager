@@ -57,6 +57,23 @@ export class RemotePunchService {
     const config = await this.settings.resolve(user.tenantId);
     if (!config.remotePunchEnabled) throw new HttpError(403, "REMOTE_PUNCH_DISABLED");
 
+    // NOM-037 5.4/5.5: si la Comisión validó el lugar como NO_APTO, no se
+    // permite marcar desde ese lugar.
+    const registration = await this.db.teleworkRegistration.findFirst({
+      where: { userId: user.id, status: "ACTIVE" },
+      select: { id: true },
+    });
+    if (registration) {
+      const lastValidation = await this.db.teleworkChecklist.findFirst({
+        where: { userId: user.id, validatedAt: { not: null } },
+        orderBy: { validatedAt: "desc" },
+        select: { result: true },
+      });
+      if (lastValidation?.result === "NO_APTO") {
+        throw new HttpError(403, "TELEWORK_WORKPLACE_NOT_APPROVED");
+      }
+    }
+
     const hasLat = input.latitude !== undefined;
     const hasLng = input.longitude !== undefined;
     if (hasLat !== hasLng) throw new HttpError(400, "INVALID_GEO_POINT");

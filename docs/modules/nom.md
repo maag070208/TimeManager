@@ -145,3 +145,11 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - Menores de 18 no pueden recibir solicitudes (`MINOR_OVERTIME_FORBIDDEN`); el máximo por día es 4 h y no se puede decidir dos veces.
 - Endpoints: `GET/POST /nom/overtime/requests`, `POST /nom/overtime/requests/:id/cancel` (RH) y `GET /nom/me/overtime-requests`, `POST /nom/me/overtime-requests/:id/decision` (trabajador).
 - Pendiente F3: pantalla de RH para crear solicitudes y cierre de R-02 (export de archivos ya incluido; falta revisión final).
+
+## Brechas NOM-037 (F4)
+
+- **% de teletrabajo y datos del puesto** en `TeleworkRegistration` (porcentaje, actividades, puesto, lugares convenidos); alerta si baja de 40 % (art. 330-A).
+- **Validación del checklist por la Comisión de Seguridad e Higiene**: `POST /nom/telework/checklists/:id/validate` con resultado APTO/NO_APTO, validador y fecha. Un **NO_APTO bloquea el marcaje remoto** (`TELEWORK_WORKPLACE_NOT_APPROVED`).
+- **Equipo entregado** (`telework_equipment_deliveries`) con acuse del trabajador y hash; **capacitación anual** con vencimiento; **avisos escritos** del trabajador y **reversibilidad a presencial** con decisión auditada.
+- Endpoints de RH y de autoservicio (`/nom/me/telework/...`); todo con RLS por cliente.
+- Pendiente F4: política con secciones obligatorias (plantilla), retención de evidencias, desconexión del propio sistema (diferir notificaciones) y capacitación con alertas automáticas.

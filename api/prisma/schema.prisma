@@ -269,6 +269,10 @@ model User {
   teleworkRegistrations        TeleworkRegistration[] @relation("TeleworkRegistrationUser")
   createdTeleworkRegistrations TeleworkRegistration[] @relation("TeleworkRegistrationCreator")
   teleworkChecklists           TeleworkChecklist[]    @relation("TeleworkChecklistUser")
+  teleworkEquipmentDeliveries  TeleworkEquipmentDelivery[] @relation("TeleworkEquipmentUser")
+  teleworkTrainings            TeleworkTraining[] @relation("TeleworkTrainingUser")
+  teleworkNotices              TeleworkNotice[] @relation("TeleworkNoticeUser")
+  teleworkReversalRequests     TeleworkReversalRequest[] @relation("TeleworkReversalUser")
   outOfHoursContacts           OutOfHoursContact[]    @relation("OutOfHoursContactUser")
   createdOutOfHoursContacts    OutOfHoursContact[]    @relation("OutOfHoursContactCreator")
 
@@ -1641,6 +1645,12 @@ model TeleworkRegistration {
   status                TeleworkStatus @default(ACTIVE)
   /// Domicilio donde se ejecuta el teletrabajo (opcional; dato sensible).
   homeAddress           String?
+  /// % de la relación laboral en teletrabajo (NOM-037 5.1; alerta si <40 %).
+  teleworkPercent       Int?
+  activities            String?
+  position              String?
+  /// Lugares convenidos de trabajo (JSON array).
+  workPlaces            Json?
   startedAt             DateTime       @default(now())
   endedAt               DateTime?
   /// Consentimiento de política/aviso (NOM-037 / LFPDPPP); versión aceptada.
@@ -1666,6 +1676,11 @@ enum TeleworkChecklistKind {
   PERIODIC
 }
 
+enum TeleworkChecklistResult {
+  APTO
+  NO_APTO
+}
+
 /// Checklist del lugar de teletrabajo (NOM-037): inicial al alta y periódico.
 /// Las respuestas se guardan como JSON validado contra la plantilla del API.
 model TeleworkChecklist {
@@ -1680,11 +1695,106 @@ model TeleworkChecklist {
   answers        Json
   completedAt    DateTime              @default(now())
   createdById    String?
+  /// Validación por la Comisión de Seguridad e Higiene (NOM-037 5.4/5.5).
+  validatedById  String?
+  validatedAt    DateTime?
+  result         TeleworkChecklistResult?
+  validationNotes String?
 
   @@index([tenantId, userId])
   @@index([registrationId])
   @@index([tenantId, completedAt])
   @@map("telework_checklists")
+}
+
+/// Equipo de cómputo/ergonómico entregado al teletrabajador (NOM-037 5.7),
+/// con acuse de recibo del trabajador.
+model TeleworkEquipmentDelivery {
+  id         String @id @default(uuid())
+  tenantId   String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId     String
+  user       User   @relation("TeleworkEquipmentUser", fields: [userId], references: [id], onDelete: Cascade)
+  items      Json
+  notes      String?
+  deliveredAt DateTime @default(now())
+  acceptedAt DateTime?
+  acceptedHash String?
+  createdById String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId, userId])
+  @@map("telework_equipment_deliveries")
+}
+
+enum TeleworkTrainingKind {
+  INITIAL
+  ANNUAL
+}
+
+/// Capacitación anual en seguridad y salud del teletrabajo (NOM-037 5.9/8.1).
+model TeleworkTraining {
+  id          String @id @default(uuid())
+  tenantId    String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId      String
+  user        User   @relation("TeleworkTrainingUser", fields: [userId], references: [id], onDelete: Cascade)
+  kind        TeleworkTrainingKind @default(ANNUAL)
+  completedAt DateTime
+  expiresAt   DateTime
+  evidence    String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, userId])
+  @@index([tenantId, expiresAt])
+  @@map("telework_trainings")
+}
+
+enum TeleworkNoticeKind {
+  ADDRESS_CHANGE
+  RISK_CONDITION
+  OTHER
+}
+
+/// Aviso escrito del trabajador (cambio de domicilio, alteraciones, riesgos)
+/// con fecha de elaboración, ocurrencia y descripción (NOM-037 6.x).
+model TeleworkNotice {
+  id          String @id @default(uuid())
+  tenantId    String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId      String
+  user        User   @relation("TeleworkNoticeUser", fields: [userId], references: [id], onDelete: Cascade)
+  kind        TeleworkNoticeKind @default(OTHER)
+  occurredAt  DateTime @db.Date
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, userId])
+  @@map("telework_notices")
+}
+
+enum TeleworkReversalStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+
+/// Reversibilidad a presencial (LFT 330-G / NOM-037).
+model TeleworkReversalRequest {
+  id           String @id @default(uuid())
+  tenantId     String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId       String
+  user         User   @relation("TeleworkReversalUser", fields: [userId], references: [id], onDelete: Cascade)
+  reason       String
+  status       TeleworkReversalStatus @default(REQUESTED)
+  requestedAt  DateTime @default(now())
+  decidedAt    DateTime?
+  decidedById  String?
+  decisionNote String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@map("telework_reversal_requests")
 }
 
 enum OutOfHoursContactChannel {

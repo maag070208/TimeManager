@@ -30,6 +30,7 @@ import type { WeeklyOvertimeService } from "../services/weekly-overtime.service"
 import type { HolidayService } from "../services/holiday.service";
 import type { WorkRecordService } from "../services/work-record.service";
 import type { OvertimeRequestService } from "../services/overtime-request.service";
+import type { TeleworkComplianceService } from "../services/telework-compliance.service";
 
 const tenantIdOrThrow = (): string => {
   const tenantId = currentTenantId();
@@ -55,7 +56,8 @@ export class NomController {
     private readonly weeklyOvertime: WeeklyOvertimeService,
     private readonly holidays: HolidayService,
     private readonly record: WorkRecordService,
-    private readonly overtimeRequests: OvertimeRequestService
+    private readonly overtimeRequests: OvertimeRequestService,
+    private readonly teleworkCompliance: TeleworkComplianceService
   ) {}
 
   getConfig = async (_req: Request, res: Response) => {
@@ -106,6 +108,116 @@ export class NomController {
 
 
 
+
+
+  updateTeleworkDetails = async (req: Request, res: Response) => {
+    const body = req.body ?? {};
+    res.json(
+      await this.teleworkCompliance.updateDetails(tenantIdOrThrow(), req.params.id, {
+        teleworkPercent: body.teleworkPercent === undefined ? undefined : Number(body.teleworkPercent),
+        activities: body.activities === undefined ? undefined : String(body.activities),
+        position: body.position === undefined ? undefined : String(body.position),
+        workPlaces: Array.isArray(body.workPlaces)
+          ? body.workPlaces.filter((place: unknown) => typeof place === "string")
+          : undefined,
+      }, actorOf(req))
+    );
+  };
+
+  validateTeleworkChecklist = async (req: Request, res: Response) => {
+    const result = req.body?.result === "NO_APTO" ? "NO_APTO" : "APTO";
+    res.json(
+      await this.teleworkCompliance.validateChecklist(
+        tenantIdOrThrow(),
+        req.params.id,
+        { result, notes: typeof req.body?.notes === "string" ? req.body.notes : null },
+        actorOf(req)
+      )
+    );
+  };
+
+  deliverTeleworkEquipment = async (req: Request, res: Response) => {
+    const items = Array.isArray(req.body?.items)
+      ? req.body.items.filter((item: unknown) => typeof item === "string")
+      : [];
+    res.status(201).json(
+      await this.teleworkCompliance.deliverEquipment(
+        tenantIdOrThrow(),
+        String(req.body?.userId ?? ""),
+        { items, notes: typeof req.body?.notes === "string" ? req.body.notes : null },
+        actorOf(req)
+      )
+    );
+  };
+
+  listTeleworkEquipment = async (_req: Request, res: Response) => {
+    res.json(await this.teleworkCompliance.listEquipment(tenantIdOrThrow()));
+  };
+
+  acceptMyTeleworkEquipment = async (req: Request, res: Response) => {
+    res.json(
+      await this.teleworkCompliance.acceptEquipment(tenantIdOrThrow(), req.user!.id, req.params.id)
+    );
+  };
+
+  createTeleworkTraining = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.teleworkCompliance.createTraining(
+        tenantIdOrThrow(),
+        String(req.body?.userId ?? ""),
+        {
+          completedAt: String(req.body?.completedAt ?? ""),
+          expiresAt: String(req.body?.expiresAt ?? ""),
+          evidence: typeof req.body?.evidence === "string" ? req.body.evidence : null,
+        },
+        actorOf(req)
+      )
+    );
+  };
+
+  listTeleworkTrainings = async (_req: Request, res: Response) => {
+    res.json(await this.teleworkCompliance.listTrainings(tenantIdOrThrow()));
+  };
+
+  createMyTeleworkNotice = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.teleworkCompliance.createNotice(tenantIdOrThrow(), req.user!.id, {
+        kind: String(req.body?.kind ?? "OTHER"),
+        occurredAt: String(req.body?.occurredAt ?? ""),
+        description: String(req.body?.description ?? ""),
+      })
+    );
+  };
+
+  listTeleworkNotices = async (_req: Request, res: Response) => {
+    res.json(await this.teleworkCompliance.listNotices(tenantIdOrThrow()));
+  };
+
+  requestMyTeleworkReversal = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.teleworkCompliance.requestReversal(tenantIdOrThrow(), req.user!.id, {
+        reason: String(req.body?.reason ?? ""),
+      })
+    );
+  };
+
+  listTeleworkReversals = async (_req: Request, res: Response) => {
+    res.json(await this.teleworkCompliance.listReversals(tenantIdOrThrow()));
+  };
+
+  decideTeleworkReversal = async (req: Request, res: Response) => {
+    res.json(
+      await this.teleworkCompliance.decideReversal(
+        tenantIdOrThrow(),
+        req.params.id,
+        {
+          approve: req.body?.approve === true,
+          note: typeof req.body?.note === "string" ? req.body.note : null,
+        },
+        actorOf(req)
+      )
+    );
+  };
 
   myOvertimeRequests = async (req: Request, res: Response) => {
     res.json(await this.overtimeRequests.myRequests(req.user!.id));

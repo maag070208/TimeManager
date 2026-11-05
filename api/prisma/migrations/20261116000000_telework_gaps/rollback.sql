@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS "telework_reversal_requests";
+DROP TABLE IF EXISTS "telework_notices";
+DROP TABLE IF EXISTS "telework_trainings";
+DROP TABLE IF EXISTS "telework_equipment_deliveries";
+ALTER TABLE "telework_checklists" DROP COLUMN IF EXISTS "validatedById", DROP COLUMN IF EXISTS "validatedAt", DROP COLUMN IF EXISTS "result", DROP COLUMN IF EXISTS "validationNotes";
+ALTER TABLE "telework_registrations" DROP COLUMN IF EXISTS "teleworkPercent", DROP COLUMN IF EXISTS "activities", DROP COLUMN IF EXISTS "position", DROP COLUMN IF EXISTS "workPlaces";
+DROP TYPE IF EXISTS "TeleworkReversalStatus";
+DROP TYPE IF EXISTS "TeleworkNoticeKind";
+DROP TYPE IF EXISTS "TeleworkTrainingKind";
+DROP TYPE IF EXISTS "TeleworkChecklistResult";
