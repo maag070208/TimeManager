@@ -21,7 +21,9 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 # sin tipar. El typecheck (`tsc -b`) sigue corriendo en `pnpm build` (local/CI).
 COPY web ./web
 ARG VITE_API_URL
+ARG VITE_ABLY_API_KEY
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_ABLY_API_KEY=$VITE_ABLY_API_KEY
 RUN pnpm --filter timemanager-web run build:image
 
 

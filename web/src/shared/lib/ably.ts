@@ -1,12 +1,23 @@
 import { useEffect, useRef } from "react";
 import * as Ably from "ably";
 
+/**
+ * Key de Ably del entorno (`VITE_ABLY_API_KEY`, en el `.env` de la web fuera
+ * de git). Sin key, las notificaciones en vivo se desactivan y la app sigue
+ * funcionando: Ably solo empuja avisos a la campanita.
+ */
+export const ABLY_API_KEY = import.meta.env.VITE_ABLY_API_KEY;
+
+if (!ABLY_API_KEY && import.meta.env.DEV) {
+  console.warn(
+    "[ably] VITE_ABLY_API_KEY no está configurada: las notificaciones en vivo están desactivadas."
+  );
+}
+
 let ablyClient: Ably.Realtime | null = null;
 
-export const ABLY_API_KEY =
-  "yuJ-ow.7iF_wA:tuWolCDo1xBN4tpDEbZFD7A60KNnT_AsTNvhxkII-go";
-
-const getAblyClient = (): Ably.Realtime => {
+const getAblyClient = (): Ably.Realtime | null => {
+  if (!ABLY_API_KEY) return null;
   if (!ablyClient) {
     ablyClient = new Ably.Realtime({ key: ABLY_API_KEY });
   }
@@ -23,6 +34,7 @@ export const useAblyChannel = (
   useEffect(() => {
     if (!channelName) return;
     const client = getAblyClient();
+    if (!client) return;
     const channel = client.channels.get(channelName);
 
     const events = Object.keys(handlersRef.current);

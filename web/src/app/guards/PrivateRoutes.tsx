@@ -17,6 +17,7 @@ import { PLATFORM_PATHS, TenantSwitcher, useClientContext } from "@features/tena
 import { getSelectedTenant } from "@shared/api/tenant";
 import { setTenantBrandName } from "@shared/lib/tenantBrand";
 import logoUrl from "@shared/assets/brand/timemanager-logo-for-light-bg.svg";
+import symbolUrl from "@shared/assets/brand/timemanager-symbol-for-light-bg.svg";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {
@@ -217,6 +218,12 @@ export default function PrivateRoutes() {
   const sidebar: ITSidebarProps = {
     navigationItems,
     isCollapsed: true,
+    // Marca: en el riel colapsado solo el símbolo; al expandirse (hover o
+    // cuando el kit lo abre) aparece el nombre junto al logo.
+    brand: {
+      logo: <img src={symbolUrl} alt="TimeManager" className="h-8 w-8 object-contain" />,
+      text: "TimeManager",
+    },
     // Panel flotante con la persona al pie (mismo lenguaje bento del resto).
     variant: "bento",
     // La tarjeta flota separada del borde (el kit respeta el className desde 1.8.14).
