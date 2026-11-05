@@ -452,7 +452,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/platform.jpg" alt="Consola de clientes de plataforma" url="timemanager.mx" />
+                <BrowserFrame className="lp-shot" src="/landing/multi-cliente.jpg" alt="Consola de clientes de plataforma" url="timemanager.mx" />
               </div>
             </article>
 
@@ -491,7 +491,7 @@ export default function LandingPage() {
         {/* ── Galería ─────────────────────────────────────────── */}
         <section className="border-y" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-surface-2)" }}>
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-24">
-            <SectionTitle eyebrow="Así se ve" title="Capturas reales del sistema" text="Sin mockups: pantallas del producto con datos de prueba." />
+            <SectionTitle eyebrow="Así se ve" title="Así se ve el sistema" text="Pantallas del producto con datos de demostración; nombres y clientes ilustrativos." />
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               <div data-reveal>
                 <BrowserFrame className="lp-shot" src="/landing/clock-dashboard.jpg" alt="Dashboard del reloj" url="acme.timemanager.mx/#/time-clocks/dashboard" />

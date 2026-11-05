@@ -195,7 +195,10 @@ producto en `public/landing/*.jpg`.
 - Secciones: hero, bento de producto (asistencia, personal, horarios, portal
   móvil, reloj + agente, multi-cliente, cumplimiento), galería, agente,
   planes 500/750/1000, FAQ y CTA.
-- Capturas: se generan con Playwright contra el stack E2E (`api/scripts/e2e-seed.ts`)
+- Capturas: se generan con Playwright contra el stack E2E (`api/scripts/e2e-seed.ts`),
+  se anonimiza la barra superior (cliente/usuario) y la consola de clientes se
+  sustituye por una ilustración con clientes ficticios: la landing es pública y
+  no debe revelar qué clientes existen
   iniciando sesión como `acme.admin` / `acme.staff` / `e2e.admin` y guardando en
   `public/landing/`. Para regenerarlas, repetir la captura con el runner
   `node scripts/e2e-run.mjs <spec-de-captura> --project=chromium`.

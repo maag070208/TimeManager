@@ -83,6 +83,24 @@ after(async () => {
 });
 
 
+
+describe("un cliente no puede ver el catálogo de clientes", () => {
+  test("listar clientes y planes queda reservado a plataforma", async () => {
+    const tenants = await api("GET", "/tenants", { token: adminA.token });
+    expectError(tenants, 403, "INSUFFICIENT_PERMISSIONS", "cliente lista clientes");
+
+    const plans = await api("GET", "/plans", { token: adminA.token });
+    expectError(plans, 403, "INSUFFICIENT_PERMISSIONS", "cliente lista planes");
+  });
+
+  test("la plataforma sí puede listar clientes y planes", async () => {
+    const tenants = await api("GET", "/tenants", { token: platform.token });
+    expectStatus(tenants, 200, "plataforma lista clientes");
+    const plans = await api("GET", "/plans", { token: platform.token });
+    expectStatus(plans, 200, "plataforma lista planes");
+  });
+});
+
 describe("mismo username en clientes distintos", () => {
   const passA = "Clave-Acme-2027!";
   const passB = "Clave-Ithub-2027!";
