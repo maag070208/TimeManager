@@ -50,7 +50,7 @@ export function scopeArgs(
   }
 
   if (operation === "createMany") {
-    const list = (a.data ?? []) as Args[];
+    const list = (Array.isArray(a.data) ? a.data : a.data ? [a.data] : []) as Args[];
     return { ...a, data: list.map((d) => ({ ...d, tenantId })) };
   }
 

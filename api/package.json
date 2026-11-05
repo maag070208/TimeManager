@@ -13,7 +13,9 @@
     "prisma:migrate:dev": "npx prisma migrate dev",
     "mock:access": "ts-node prisma/mock-access.ts",
     "mock:attendance": "ts-node -r tsconfig-paths/register prisma/mock-attendance.ts",
-    "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
+    "test:unit": "node --require ts-node/register/transpile-only --require tsconfig-paths/register --test \"src/**/*.test.ts\"",
+    "tenancy-check": "ts-node -r tsconfig-paths/register scripts/tenancy-check.ts"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"

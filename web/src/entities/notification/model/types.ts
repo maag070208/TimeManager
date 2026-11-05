@@ -8,10 +8,8 @@ export interface Notification {
   read: boolean;
   createdAt: string;
 }
-/** Pantalla que abre una notificación: su ticket o, si es de un panel, el módulo. */
-export const notificationRoute = (n: Partial<Pick<Notification, "ticketId" | "type">>): string | null => {
-  if (n.ticketId) return `/tickets/${n.ticketId}`;
-  if (n.type === "INVENTORY_AUDIT") return "/inventory";
-  if (n.type === "KITCHEN_ALERTS") return "/kitchen";
+/** Pantalla que abre una notificación según su tipo; `null` = solo la bandeja. */
+export const notificationRoute = (n: Partial<Pick<Notification, "type">>): string | null => {
+  if (n.type === "TIME_CLOCK_ROSTER") return "/hr/time-clock/roster";
   return null;
 };
