@@ -50,7 +50,8 @@
     "accountMenu": "{{name}}'s account",
     "myWorkday": "My workday",
     "telework": "Telework (NOM-037)",
-    "generalSettings": "Settings"
+    "generalSettings": "Settings",
+    "leave": "Vacation"
   },
   "files": {
     "access": "access",

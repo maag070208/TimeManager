@@ -144,6 +144,30 @@
     "save": "Save",
     "schedulesLink": "Configure schedules and lateness tolerances",
     "retentionTitle": "Reminder",
-    "retentionText": "Schedules configure entry/exit tolerance, meal break and overtime minimum."
+    "retentionText": "Schedules configure entry/exit tolerance, meal break and overtime minimum.",
+    "attendanceTitle": "Attendance policy",
+    "attendanceHint": "Defaults for new schedules: tolerances, meal break and overtime minimum.",
+    "entryTolerance": "Entry tolerance (min)",
+    "exitTolerance": "Exit tolerance (min)",
+    "mealBreak": "Meal break (min)",
+    "minOvertime": "Overtime minimum (min)"
+  },
+  "leave": {
+    "title": "Vacation and leave",
+    "hint": "Check your available days and request vacation or leave.",
+    "available": "Available",
+    "used": "Used",
+    "pending": "Pending approval",
+    "type": "Type",
+    "from": "From",
+    "to": "To",
+    "reason": "Reason (optional)",
+    "request": "Request",
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "CANCELLED": "Cancelled"
+    }
   }
 }

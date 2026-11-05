@@ -49,6 +49,35 @@ describe("F2 horarios legales y transición 2027", () => {
     expectError(noRest, 400, "SCHEDULE_ILLEGAL", "semana sin día de descanso");
   });
 
+  test("los defaults de asistencia del cliente aplican a horarios nuevos", async () => {
+    const tenant = await createTenant();
+    const admin = await clientSession("CLIENT_ADMIN", { tenant });
+
+    const saved = await api("PUT", "/nom/config", {
+      token: admin.token,
+      body: {
+        defaultEntryToleranceMin: 5,
+        defaultExitToleranceMin: 15,
+        defaultMealBreakMin: 30,
+        defaultMinOvertimeMin: 0,
+      },
+    });
+    expectStatus(saved, 200, "política de asistencia");
+
+    const created = await api("POST", "/schedules", {
+      token: admin.token,
+      body: {
+        name: "Horario con defaults",
+        days: [1, 2, 3, 4, 5].map((weekday) => day(weekday, "08:00", "17:00")),
+      },
+    });
+    expectStatus(created, 201, "horario con defaults");
+    assert.equal(created.body?.entryToleranceMin, 5);
+    assert.equal(created.body?.exitToleranceMin, 15);
+    assert.equal(created.body?.mealBreakMin, 30);
+    assert.equal(created.body?.minOvertimeMin, 0);
+  });
+
   test("la semana laboral del cliente se configura (jueves → miércoles)", async () => {
     const tenant = await createTenant();
     const admin = await clientSession("CLIENT_ADMIN", { tenant });

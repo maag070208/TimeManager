@@ -174,6 +174,12 @@ export class NomSettingsService {
     return {
       workdayLimitMinutes,
       weekStartDay: tenant?.weekStartDay ?? 3,
+      attendanceDefaults: {
+        entryToleranceMin: settings?.defaultEntryToleranceMin ?? 10,
+        exitToleranceMin: settings?.defaultExitToleranceMin ?? 10,
+        mealBreakMin: settings?.defaultMealBreakMin ?? 0,
+        minOvertimeMin: settings?.defaultMinOvertimeMin ?? 60,
+      },
       weeklyLimitMinutes,
       retentionMonths,
       remotePunchEnabled: settings?.remotePunchEnabled ?? true,
@@ -256,6 +262,10 @@ export class NomSettingsService {
         workdayLimitMinutes: input.workdayLimitMinutes ?? null,
         weeklyLimitMinutes: input.weeklyLimitMinutes ?? null,
         retentionMonths: input.retentionMonths ?? null,
+        defaultEntryToleranceMin: input.defaultEntryToleranceMin ?? null,
+        defaultExitToleranceMin: input.defaultExitToleranceMin ?? null,
+        defaultMealBreakMin: input.defaultMealBreakMin ?? null,
+        defaultMinOvertimeMin: input.defaultMinOvertimeMin ?? null,
         remotePunchEnabled: input.remotePunchEnabled ?? true,
         updatedById: actor.id,
       },
@@ -267,6 +277,18 @@ export class NomSettingsService {
           ? { weeklyLimitMinutes: input.weeklyLimitMinutes }
           : {}),
         ...(input.retentionMonths !== undefined ? { retentionMonths: input.retentionMonths } : {}),
+        ...(input.defaultEntryToleranceMin !== undefined
+          ? { defaultEntryToleranceMin: input.defaultEntryToleranceMin }
+          : {}),
+        ...(input.defaultExitToleranceMin !== undefined
+          ? { defaultExitToleranceMin: input.defaultExitToleranceMin }
+          : {}),
+        ...(input.defaultMealBreakMin !== undefined
+          ? { defaultMealBreakMin: input.defaultMealBreakMin }
+          : {}),
+        ...(input.defaultMinOvertimeMin !== undefined
+          ? { defaultMinOvertimeMin: input.defaultMinOvertimeMin }
+          : {}),
         ...(input.remotePunchEnabled !== undefined
           ? { remotePunchEnabled: input.remotePunchEnabled }
           : {}),

@@ -276,6 +276,7 @@ model User {
   teleworkNotices              TeleworkNotice[] @relation("TeleworkNoticeUser")
   teleworkReversalRequests     TeleworkReversalRequest[] @relation("TeleworkReversalUser")
   teleworkMedicalExams         TeleworkMedicalExam[] @relation("TeleworkMedicalExamUser")
+  leaveRequests                LeaveRequest[] @relation("LeaveRequestUser")
   outOfHoursContacts           OutOfHoursContact[]    @relation("OutOfHoursContactUser")
   createdOutOfHoursContacts    OutOfHoursContact[]    @relation("OutOfHoursContactCreator")
 
@@ -992,6 +993,65 @@ model WeeklyOvertimeLedger {
 }
 
 /// Estado de la conformidad periódica del trabajador con su resumen de jornada.
+/// Tipos de ausencia/permiso configurables por cliente.
+enum LeaveKind {
+  VACATION
+  PAID_LEAVE
+  UNPAID_LEAVE
+  SICK_LEAVE
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model LeaveType {
+  id       String @id @default(uuid())
+  tenantId String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  key      String
+  name     String
+  kind     LeaveKind @default(OTHER)
+  paid     Boolean  @default(false)
+  active   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests LeaveRequest[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId, active])
+  @@map("leave_types")
+}
+
+/// Solicitud de vacaciones/permiso con aprobación. `days` se calcula del rango.
+model LeaveRequest {
+  id        String @id @default(uuid())
+  tenantId  String @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId    String
+  user      User   @relation("LeaveRequestUser", fields: [userId], references: [id], onDelete: Cascade)
+  typeId    String
+  type      LeaveType @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  days      Int
+  status    LeaveStatus @default(PENDING)
+  reason    String?
+  decidedById String?
+  decidedAt DateTime?
+  decisionNote String?
+  createdById String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([userId, startDate])
+  @@map("leave_requests")
+}
+
 enum WorkRecordAckStatus {
   PENDING
   ACCEPTED
@@ -1452,6 +1512,11 @@ model NomSettings {
   weeklyLimitMinutes   Int?
   /// Meses que un registro queda activo antes de archivarse. `null`/0 = sin archivado.
   retentionMonths      Int?
+  /// Defaults de asistencia para horarios nuevos (retardos/comida/extra).
+  defaultEntryToleranceMin Int?
+  defaultExitToleranceMin  Int?
+  defaultMealBreakMin      Int?
+  defaultMinOvertimeMin    Int?
   /// ¿Se permite el marcaje remoto (app/web) para este cliente? (F2-07)
   remotePunchEnabled   Boolean   @default(true)
   /// Política de teletrabajo editable por cliente (NOM-037 / F2-08).

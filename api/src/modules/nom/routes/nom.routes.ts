@@ -58,6 +58,16 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/alerts", canRead, asyncHandler(controller.listAlerts));
   router.post("/alerts/scan", canWrite, asyncHandler(controller.scanAlerts));
 
+  // Vacaciones y permisos configurables por cliente.
+  router.get("/leave/types", asyncHandler(controller.listLeaveTypes));
+  router.post("/leave/types", canWrite, asyncHandler(controller.createLeaveType));
+  router.get("/me/leave/balance", asyncHandler(controller.myLeaveBalance));
+  router.get("/me/leave/requests", asyncHandler(controller.myLeaveRequests));
+  router.post("/me/leave/requests", asyncHandler(controller.createMyLeaveRequest));
+  router.post("/me/leave/requests/:id/cancel", asyncHandler(controller.cancelMyLeaveRequest));
+  router.get("/leave/requests", canRead, asyncHandler(controller.listLeaveRequests));
+  router.post("/leave/requests/:id/decide", canWrite, asyncHandler(controller.decideLeaveRequest));
+
   // Brechas NOM-037 (F4): % teletrabajo, validación del checklist por la
   // Comisión, equipo, capacitación, avisos y reversibilidad.
   router.patch("/telework/registrations/:id/details", canWrite, asyncHandler(controller.updateTeleworkDetails));

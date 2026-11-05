@@ -237,7 +237,9 @@ Hoy es 5-nov-2026; el escalón de 46 h y las disposiciones STPS entran el **1-en
 | **F3 — Prueba plena y retención** 🚧 (R-01 y 1.5 con UI en Mi jornada; R-02 en revisión) | 31-ene-2027 | Acuerdo del método y conformidad periódica (R-01); retención art. 804 (R-02); autorización previa y consentimiento de extra (1.5) |
 | **F4 — NOM-037 completa** 🚧 (P0 hechos: %, checklist, política, equipo, capacitación, avisos, reversibilidad, desconexión y expediente; restan retención de evidencias y P1/P2) | 28-feb-2027 | Brechas P0/P1 de la sección 4, desconexión del propio sistema, expediente exportable |
 | **F5 — Disposiciones STPS** ⏳ (esperando publicación del DOF; layout versionado listo) | ≤ 30 días tras su publicación | Ámbito, excepciones, formato oficial del export, retención definitiva, sello encadenado (R-05), paquete de inspección (R-08) |
-| **F6 — Pendientes P2** 🚧 (exámenes médicos y dictámenes hechos; falta canal de violencia familiar y retención de evidencias) | 2027 | Exámenes médicos, violencia familiar, dictámenes |
+| **F6 — Pendientes P2** 🚧 (exámenes médicos y dictámenes hechos; falta canal de violencia familiar y retención de evidencias) | 2027 |
+
+> Implementado además del plan: **semana laboral configurable por cliente**, **política de asistencia por cliente** (tolerancias/comida/mínimo de extra) y **vacaciones/permisos configurables** con saldo LFT y aprobación. Exámenes médicos, violencia familiar, dictámenes |
 
 Cada fase cierra con: `tsc`, lint, unitarios del motor (`pnpm test:unit`), integración del módulo
 `nom`/`schedules`/`overtime`, y actualización de las fichas en `docs/modules/`.

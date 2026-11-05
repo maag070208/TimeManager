@@ -27,6 +27,7 @@ import type { MyPunch, PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
 import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
+import { useMyLeave } from "@features/nom/worker-portal/model/useMyLeave";
 
 const SOURCE_LABEL: Record<MyPunch["source"], string> = {
   CLOCK: "sourceClock",
@@ -60,6 +61,7 @@ export default function MyWorkdayPage() {
   const tr = t as unknown as (key: string, vars?: Record<string, unknown>) => string;
   const fx = useMyWorkday();
   const wc = useWorkerCompliance();
+  const leave = useMyLeave();
   const [note, setNote] = useState("");
   const [withGeo, setWithGeo] = useState(false);
   const [workMode, setWorkMode] = useState<"PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO">("REMOTO");
@@ -67,6 +69,10 @@ export default function MyWorkdayPage() {
   const [reason, setReason] = useState("");
   const [answers, setAnswers] = useState<Record<string, "YES" | "NO">>({});
   const [ackNote, setAckNote] = useState("");
+  const [leaveTypeId, setLeaveTypeId] = useState("");
+  const [leaveFrom, setLeaveFrom] = useState("");
+  const [leaveTo, setLeaveTo] = useState("");
+  const [leaveReason, setLeaveReason] = useState("");
 
   const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
   const entry = useMemo(() => todayPunches.find((row) => row.type === "ENTRY") ?? null, [todayPunches]);
@@ -562,6 +568,101 @@ export default function MyWorkdayPage() {
                             </ITButton>
                           </div>
                         )}
+                      </div>
+                    ))}
+                  </ITFlex>
+                )}
+              </ITFlex>
+            </ITCard>
+            {/* Vacaciones y permisos */}
+            <ITCard contentClassName="!p-4 sm:!p-5">
+              <ITFlex direction="column" gap={3}>
+                <CardHeader icon={<LuCalendarCheck size={16} />} title={tr("leave.title")} />
+                <ITText muted className="!text-[12px]">{tr("leave.hint")}</ITText>
+                {leave.balance && (
+                  <ITFlex gap={2} wrap="wrap">
+                    <ITBadget color="success" size="sm">
+                      {tr("leave.available")}: {leave.balance.availableDays} d
+                    </ITBadget>
+                    <ITBadget color="gray" size="sm">
+                      {tr("leave.used")}: {leave.balance.usedDays} d
+                    </ITBadget>
+                    <ITBadget color="warning" size="sm">
+                      {tr("leave.pending")}: {leave.balance.pendingDays} d
+                    </ITBadget>
+                  </ITFlex>
+                )}
+                {leave.error && (
+                  <ITText className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[12px] text-red-700">
+                    {leave.error}
+                  </ITText>
+                )}
+                <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
+                  <label className="flex flex-col gap-1 text-[12px] text-slate-600">
+                    {tr("leave.type")}
+                    <select
+                      value={leaveTypeId || leave.types[0]?.id || ""}
+                      onChange={(event) => setLeaveTypeId(event.target.value)}
+                      className="rounded-md border border-slate-200 px-2 py-2 text-[13px]"
+                    >
+                      {leave.types.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}{type.paid ? "" : " (sin goce)"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <label className="flex flex-col gap-1 text-[12px] text-slate-600">
+                      {tr("leave.from")}
+                      <input type="date" value={leaveFrom} onChange={(e) => setLeaveFrom(e.target.value)} className="rounded-md border border-slate-200 px-2 py-2 text-[13px]" />
+                    </label>
+                    <label className="flex flex-col gap-1 text-[12px] text-slate-600">
+                      {tr("leave.to")}
+                      <input type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} className="rounded-md border border-slate-200 px-2 py-2 text-[13px]" />
+                    </label>
+                  </div>
+                  <ITInput name="leaveReason" label={tr("leave.reason")} value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} />
+                  <ITButton
+                    variant="filled"
+                    color="primary"
+                    className="w-full sm:w-auto"
+                    disabled={leave.busy || !leaveFrom || !leaveTo}
+                    onClick={() => {
+                      const typeId = leaveTypeId || leave.types[0]?.id;
+                      if (!typeId) return;
+                      void leave.request({ typeId, startDate: leaveFrom, endDate: leaveTo, reason: leaveReason || undefined });
+                      setLeaveFrom("");
+                      setLeaveTo("");
+                      setLeaveReason("");
+                    }}
+                  >
+                    {tr("leave.request")}
+                  </ITButton>
+                </div>
+                {leave.requests.length > 0 && (
+                  <ITFlex direction="column" gap={2}>
+                    {leave.requests.slice(0, 5).map((request) => (
+                      <div key={request.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 p-2.5">
+                        <div className="min-w-0">
+                          <ITText className="!text-[12.5px] font-semibold">{request.type.name}</ITText>
+                          <ITText muted className="!text-[11px]">
+                            {dateOf(request.startDate)} – {dateOf(request.endDate)} · {request.days} d
+                          </ITText>
+                        </div>
+                        <ITFlex align="center" gap={1}>
+                          <ITBadget
+                            color={request.status === "APPROVED" ? "success" : request.status === "REJECTED" ? "danger" : request.status === "PENDING" ? "warning" : "gray"}
+                            size="sm"
+                          >
+                            {tr(`leave.status.${request.status}`)}
+                          </ITBadget>
+                          {request.status === "PENDING" && (
+                            <ITButton variant="outlined" color="secondary" size="sm" onClick={() => void leave.cancel(request.id)}>
+                              <LuX size={12} />
+                            </ITButton>
+                          )}
+                        </ITFlex>
                       </div>
                     ))}
                   </ITFlex>

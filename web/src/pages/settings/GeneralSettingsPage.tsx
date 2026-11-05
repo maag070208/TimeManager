@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITButton, ITCard, ITText, ITToast, ITSelect } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITCard, ITInput, ITText, ITToast, ITSelect } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import { LuSettings } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@app/store";
 import { meThunk } from "@entities/user";
-import { nomApi } from "@entities/nom";
+import { nomApi, type NomConfigDto } from "@entities/nom";
 import { ITPage } from "@axzydev/axzy_ui_system";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -16,6 +16,12 @@ export default function GeneralSettingsPage() {
   const { t } = useTranslation("nom");
   const dispatch = useDispatch<AppDispatch>();
   const [weekStartDay, setWeekStartDay] = useState(3);
+  const [defaults, setDefaults] = useState({
+    entryToleranceMin: 10,
+    exitToleranceMin: 10,
+    mealBreakMin: 0,
+    minOvertimeMin: 60,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +30,10 @@ export default function GeneralSettingsPage() {
   useEffect(() => {
     nomApi
       .getConfig()
-      .then((config) => setWeekStartDay(config.weekStartDay ?? 3))
+      .then((config: NomConfigDto) => {
+        setWeekStartDay(config.weekStartDay ?? 3);
+        setDefaults(config.attendanceDefaults);
+      })
       .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."))
       .finally(() => setLoading(false));
   }, []);
@@ -33,7 +42,13 @@ export default function GeneralSettingsPage() {
     setSaving(true);
     setError(null);
     try {
-      await nomApi.updateConfig({ weekStartDay });
+      await nomApi.updateConfig({
+        weekStartDay,
+        defaultEntryToleranceMin: defaults.entryToleranceMin,
+        defaultExitToleranceMin: defaults.exitToleranceMin,
+        defaultMealBreakMin: defaults.mealBreakMin,
+        defaultMinOvertimeMin: defaults.minOvertimeMin,
+      });
       // Refresca la sesión para que la semana nueva aplique en toda la app.
       await dispatch(meThunk()).unwrap().catch(() => undefined);
       setToast(t("config.weekStartSaved"));
@@ -72,6 +87,45 @@ export default function GeneralSettingsPage() {
               <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading}>
                 {t("config.save")}
               </ITButton>
+            </div>
+          </div>
+        </ITCard>
+
+        <ITCard contentClassName="!p-5">
+          <div className="flex flex-col gap-3">
+            <div>
+              <ITText className="font-bold">{t("config.attendanceTitle")}</ITText>
+              <ITText muted className="mt-1 block !text-[12px]">{t("config.attendanceHint")}</ITText>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <ITInput
+                name="defaultEntryToleranceMin"
+                label={t("config.entryTolerance")}
+                type="number"
+                value={String(defaults.entryToleranceMin)}
+                onChange={(event) => setDefaults((prev) => ({ ...prev, entryToleranceMin: Number(event.target.value) }))}
+              />
+              <ITInput
+                name="defaultExitToleranceMin"
+                label={t("config.exitTolerance")}
+                type="number"
+                value={String(defaults.exitToleranceMin)}
+                onChange={(event) => setDefaults((prev) => ({ ...prev, exitToleranceMin: Number(event.target.value) }))}
+              />
+              <ITInput
+                name="defaultMealBreakMin"
+                label={t("config.mealBreak")}
+                type="number"
+                value={String(defaults.mealBreakMin)}
+                onChange={(event) => setDefaults((prev) => ({ ...prev, mealBreakMin: Number(event.target.value) }))}
+              />
+              <ITInput
+                name="defaultMinOvertimeMin"
+                label={t("config.minOvertime")}
+                type="number"
+                value={String(defaults.minOvertimeMin)}
+                onChange={(event) => setDefaults((prev) => ({ ...prev, minOvertimeMin: Number(event.target.value) }))}
+              />
             </div>
           </div>
         </ITCard>

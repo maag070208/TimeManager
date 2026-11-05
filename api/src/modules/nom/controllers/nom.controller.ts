@@ -31,6 +31,7 @@ import type { HolidayService } from "../services/holiday.service";
 import type { WorkRecordService } from "../services/work-record.service";
 import type { OvertimeRequestService } from "../services/overtime-request.service";
 import type { TeleworkComplianceService } from "../services/telework-compliance.service";
+import type { LeaveService } from "../services/leave.service";
 
 const tenantIdOrThrow = (): string => {
   const tenantId = currentTenantId();
@@ -57,7 +58,8 @@ export class NomController {
     private readonly holidays: HolidayService,
     private readonly record: WorkRecordService,
     private readonly overtimeRequests: OvertimeRequestService,
-    private readonly teleworkCompliance: TeleworkComplianceService
+    private readonly teleworkCompliance: TeleworkComplianceService,
+    private readonly leave: LeaveService
   ) {}
 
   getConfig = async (_req: Request, res: Response) => {
@@ -109,6 +111,69 @@ export class NomController {
 
 
 
+
+
+  listLeaveTypes = async (_req: Request, res: Response) => {
+    res.json(await this.leave.listTypes(tenantIdOrThrow()));
+  };
+
+  createLeaveType = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.leave.createType(
+        tenantIdOrThrow(),
+        {
+          key: String(req.body?.key ?? ""),
+          name: String(req.body?.name ?? ""),
+          kind: typeof req.body?.kind === "string" ? req.body.kind : "OTHER",
+          paid: req.body?.paid === true,
+        },
+        actorOf(req)
+      )
+    );
+  };
+
+  myLeaveBalance = async (req: Request, res: Response) => {
+    const year = Number(req.query.year) || new Date().getUTCFullYear();
+    res.json(await this.leave.balance(tenantIdOrThrow(), req.user!.id, year));
+  };
+
+  myLeaveRequests = async (req: Request, res: Response) => {
+    res.json(await this.leave.myRequests(req.user!.id));
+  };
+
+  createMyLeaveRequest = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.leave.createRequest(tenantIdOrThrow(), req.user!.id, {
+        typeId: String(req.body?.typeId ?? ""),
+        startDate: String(req.body?.startDate ?? ""),
+        endDate: String(req.body?.endDate ?? ""),
+        reason: typeof req.body?.reason === "string" ? req.body.reason : null,
+      })
+    );
+  };
+
+  cancelMyLeaveRequest = async (req: Request, res: Response) => {
+    res.json(await this.leave.cancel(req.user!.id, req.params.id));
+  };
+
+  listLeaveRequests = async (req: Request, res: Response) => {
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    res.json(await this.leave.list(tenantIdOrThrow(), status));
+  };
+
+  decideLeaveRequest = async (req: Request, res: Response) => {
+    res.json(
+      await this.leave.decide(
+        tenantIdOrThrow(),
+        req.params.id,
+        {
+          approve: req.body?.approve === true,
+          note: typeof req.body?.note === "string" ? req.body.note : null,
+        },
+        actorOf(req)
+      )
+    );
+  };
 
   teleworkPolicyTemplate = async (_req: Request, res: Response) => {
     const { teleworkPolicyTemplate } = await import("../services/nom-settings.service");

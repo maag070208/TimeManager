@@ -76,9 +76,21 @@ export class ScheduleService {
     const dup = await this.db.schedule.findFirst({ where: { name: data.name } });
     if (dup) throw new HttpError(409, "SCHEDULE_NAME_TAKEN");
 
+    const tenantId = requireTenantId();
+    const settings = await this.db.nomSettings.findUnique({
+      where: { tenantId },
+      select: {
+        defaultEntryToleranceMin: true,
+        defaultExitToleranceMin: true,
+        defaultMealBreakMin: true,
+        defaultMinOvertimeMin: true,
+      },
+    });
+    const mealBreakMin = data.mealBreakMin ?? settings?.defaultMealBreakMin ?? 0;
+
     const legality = validateScheduleLegality({
       days: data.days.map((day) => this.normalizeDay(day)),
-      mealBreakMin: data.mealBreakMin ?? 0,
+      mealBreakMin,
     });
     if (!legality.valid) {
       throw new HttpError(400, "SCHEDULE_ILLEGAL", {
@@ -91,10 +103,10 @@ export class ScheduleService {
     return this.db.schedule.create({
       data: {
         name: data.name,
-        entryToleranceMin: data.entryToleranceMin ?? 10,
-        exitToleranceMin: data.exitToleranceMin ?? 10,
-        mealBreakMin: data.mealBreakMin ?? 0,
-        minOvertimeMin: data.minOvertimeMin ?? 60,
+        entryToleranceMin: data.entryToleranceMin ?? settings?.defaultEntryToleranceMin ?? 10,
+        exitToleranceMin: data.exitToleranceMin ?? settings?.defaultExitToleranceMin ?? 10,
+        mealBreakMin,
+        minOvertimeMin: data.minOvertimeMin ?? settings?.defaultMinOvertimeMin ?? 60,
         crossesMidnight: data.crossesMidnight ?? false,
         days: { create: data.days.map((d) => ({ ...this.normalizeDay(d), tenantId: requireTenantId() })) },
       },

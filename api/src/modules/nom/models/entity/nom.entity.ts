@@ -8,6 +8,13 @@ export interface NomConfig {
   workdayLimitMinutes: number;
   /** Primer día de la semana del cliente (0=domingo … 6=sábado). */
   weekStartDay: number;
+  /** Defaults para horarios nuevos (tolerancias, comida y mínimo de extra). */
+  attendanceDefaults: {
+    entryToleranceMin: number;
+    exitToleranceMin: number;
+    mealBreakMin: number;
+    minOvertimeMin: number;
+  };
   weeklyLimitMinutes: number;
   /** `null` = retención deshabilitada (no se archiva). */
   retentionMonths: number | null;
@@ -36,6 +43,10 @@ export interface NomConfig {
 
 export interface NomSettingsUpdateInput {
   weekStartDay?: number | null;
+  defaultEntryToleranceMin?: number | null;
+  defaultExitToleranceMin?: number | null;
+  defaultMealBreakMin?: number | null;
+  defaultMinOvertimeMin?: number | null;
   workdayLimitMinutes?: number | null;
   weeklyLimitMinutes?: number | null;
   retentionMonths?: number | null;

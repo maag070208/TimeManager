@@ -144,6 +144,30 @@
     "save": "Guardar",
     "schedulesLink": "Configurar horarios y tolerancias de retardo",
     "retentionTitle": "Recordatorio",
-    "retentionText": "Los horarios se configuran por horario: tolerancia de entrada/salida, comida y mínimo de tiempo extra."
+    "retentionText": "Los horarios se configuran por horario: tolerancia de entrada/salida, comida y mínimo de tiempo extra.",
+    "attendanceTitle": "Política de asistencia",
+    "attendanceHint": "Valores por defecto para horarios nuevos: tolerancias, comida y mínimo de tiempo extra.",
+    "entryTolerance": "Tolerancia de entrada (min)",
+    "exitTolerance": "Tolerancia de salida (min)",
+    "mealBreak": "Comida (min)",
+    "minOvertime": "Mínimo de tiempo extra (min)"
+  },
+  "leave": {
+    "title": "Vacaciones y permisos",
+    "hint": "Consulta tus días disponibles y solicita vacaciones o permisos.",
+    "available": "Disponibles",
+    "used": "Usados",
+    "pending": "Pendientes de aprobar",
+    "type": "Tipo",
+    "from": "Desde",
+    "to": "Hasta",
+    "reason": "Motivo (opcional)",
+    "request": "Solicitar",
+    "status": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Aprobada",
+      "REJECTED": "Rechazada",
+      "CANCELLED": "Cancelada"
+    }
   }
 }

@@ -2,6 +2,9 @@ import { api } from "@shared/api/client";
 import type {
   MeTelework,
   OvertimeRequestRow,
+  LeaveBalance,
+  LeaveRequestRow,
+  LeaveType,
   RecordAgreement,
   WorkRecordAcknowledgment,
   MyPunch,
@@ -25,11 +28,17 @@ export interface NomConfigDto {
   weekStartDay: number;
   weeklyLimitMinutes: number;
   retentionMonths: number | null;
+  attendanceDefaults: {
+    entryToleranceMin: number;
+    exitToleranceMin: number;
+    mealBreakMin: number;
+    minOvertimeMin: number;
+  };
 }
 
 export const nomApi = {
   getConfig: () => api.get<NomConfigDto>(`${base}/config`),
-  updateConfig: (input: { weekStartDay?: number }) =>
+  updateConfig: (input: { weekStartDay?: number; defaultEntryToleranceMin?: number; defaultExitToleranceMin?: number; defaultMealBreakMin?: number; defaultMinOvertimeMin?: number }) =>
     api.put<NomConfigDto>(`${base}/config`, input),
   myPunches: (params: { from?: string; to?: string; limit?: number } = {}) => {
     const qs = new URLSearchParams();
@@ -39,6 +48,20 @@ export const nomApi = {
     const query = qs.toString();
     return api.get<MyPunch[]>(`${base}/me/punches${query ? `?${query}` : ""}`);
   },
+
+  /** Vacaciones y permisos del trabajador. */
+  leaveBalance: (year: number) => api.get<LeaveBalance>(`${base}/me/leave/balance?year=${year}`),
+  leaveTypes: () => api.get<LeaveType[]>(`${base}/leave/types`),
+  createType: (input: { key: string; name: string; paid?: boolean }) =>
+    api.post<LeaveType>(`${base}/leave/types`, input),
+  myLeaveRequests: () => api.get<LeaveRequestRow[]>(`${base}/me/leave/requests`),
+  createLeaveRequest: (input: { typeId: string; startDate: string; endDate: string; reason?: string }) =>
+    api.post<LeaveRequestRow>(`${base}/me/leave/requests`, input),
+  cancelLeaveRequest: (id: string) => api.post<LeaveRequestRow>(`${base}/me/leave/requests/${id}/cancel`, {}),
+  leaveRequests: (status?: string) =>
+    api.get<LeaveRequestRow[]>(`${base}/leave/requests${status ? `?status=${status}` : ""}`),
+  decideLeaveRequest: (id: string, input: { approve: boolean; note?: string }) =>
+    api.post<LeaveRequestRow>(`${base}/leave/requests/${id}/decide`, input),
 
   /** Prueba plena (R-01): acuerdo del método de registro del trabajador. */
   myRecordAgreement: () => api.get<RecordAgreement | null>(`${base}/me/record-agreement`),

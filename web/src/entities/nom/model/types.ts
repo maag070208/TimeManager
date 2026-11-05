@@ -127,3 +127,30 @@ export interface OvertimeRequestRow {
   workerDecidedAt: string | null;
   createdAt: string;
 }
+
+export interface LeaveType {
+  id: string;
+  key: string;
+  name: string;
+  kind: "VACATION" | "PAID_LEAVE" | "UNPAID_LEAVE" | "SICK_LEAVE" | "OTHER";
+  paid: boolean;
+}
+
+export interface LeaveBalance {
+  entitlementDays: number;
+  usedDays: number;
+  pendingDays: number;
+  availableDays: number;
+}
+
+export interface LeaveRequestRow {
+  id: string;
+  type: LeaveType;
+  startDate: string;
+  endDate: string;
+  days: number;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  reason: string | null;
+  decisionNote: string | null;
+  user?: { name: string; employeeNumber: string | null } | null;
+}

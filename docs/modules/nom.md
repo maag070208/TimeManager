@@ -164,3 +164,18 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **Dictámenes de unidad de inspección** (`inspection_certificates`): emisor, número único por cliente, vigencia y evidencia. Endpoints `GET/POST /nom/telework/inspections`, con validación de duplicados.
 - Ambos entran al **expediente NOM-037** (`/nom/telework/evidence`).
 - Pendiente F6: canal confidencial de violencia familiar (requiere decisión legal/privacidad) y retención mínima de 1 año de evidencias.
+
+## Política de asistencia por cliente
+
+- `NomSettings` guarda defaults para horarios nuevos: tolerancia de entrada/salida, comida y mínimo de tiempo extra (`defaultEntryToleranceMin`, `defaultExitToleranceMin`, `defaultMealBreakMin`, `defaultMinOvertimeMin`).
+- `POST /schedules` los aplica cuando el alta no especifica el valor; se editan en **Configuración del cliente** junto a la semana laboral.
+- Los horarios siguen pudiendo sobrescribir cada valor individualmente.
+
+## Vacaciones y permisos (configurable)
+
+- `leave_types` por cliente (VACACIONES, PERMISO_PAGADO, PERMISO_SIN_GOCE, INCAPACIDAD + los que agregue RH) con `kind` y `paid`.
+- `leave_requests` con rango, días, motivo, estado y aprobador.
+- Saldo devengado LFT art. 76: 12 días el primer año, +2 por año hasta 20 y +2 por cada 5 años; descuenta vacaciones aprobadas y pendientes.
+- Endpoints: `/nom/me/leave/balance|requests` (trabajador, con `/cancel`), `/nom/leave/types|requests` y decisión de RH.
+- UI: tarjeta de vacaciones en **Mi jornada** y pantalla **RH → Vacaciones** para aprobar/rechazar y configurar tipos.
+- Validaciones: rango, solape entre solicitudes, días hábiles y saldo suficiente para vacaciones.
