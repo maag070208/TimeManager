@@ -4,14 +4,14 @@ import {
   ITBadget,
   ITButton,
   ITCard,
-  ITFlex,
   ITInput,
   ITPage,
   ITText,
   ITTextarea,
+  ITDialog,
 } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
-import { LuBriefcaseBusiness, LuRefreshCw } from "react-icons/lu";
+import { LuBriefcaseBusiness, LuClipboardCheck, LuMessageSquare, LuPencil, LuPlus, LuRefreshCw, LuUsersRound } from "react-icons/lu";
 import {
   nomApi,
   type OutOfHoursContact,
@@ -23,6 +23,8 @@ import {
 import { usersApi, type User } from "@entities/user";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { HelpTip } from "@shared/ui/help-tip";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { TicState } from "@shared/ui/tic";
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -40,6 +42,9 @@ export default function TeleworkAdminPage() {
   const tr = t as unknown as (key: string, vars?: Record<string, unknown>) => string;
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [policy, setPolicy] = useState<TeleworkPolicyTexts | null>(null);
@@ -141,302 +146,160 @@ export default function TeleworkAdminPage() {
           <ContentSkeleton />
         ) : (
           <>
-            <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900 lg:col-span-12">
-              <span className="flex items-center gap-1.5">
-                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
-                  NOM-037 · teletrabajo
-                </ITText>
-                <HelpTip text="Cada cliente define su política de teletrabajo, desconexión y aviso de privacidad con versión. El alta registra el lugar; el trabajador consiente la política y contesta el checklist inicial y los periódicos." />
-              </span>
-              <ITText className="!text-2xl font-extrabold !text-slate-900">
-                {registrations.filter((row) => row.status === "ACTIVE").length} persona(s) en teletrabajo
+            <div className="lg:col-span-12">
+              <BentoKpiGrid
+                items={[
+                  { id: "people", label: "Teletrabajadores", value: registrations.filter((row) => row.status === "ACTIVE").length, caption: "activos", icon: <LuUsersRound size={14} />, tone: "success" },
+                  { id: "checklists", label: "Checklists", value: checklists.length, caption: "recibidos", icon: <LuClipboardCheck size={14} />, tone: "info" },
+                  { id: "contacts", label: "Comunicaciones", value: contacts.length, caption: "fuera de jornada", icon: <LuMessageSquare size={14} />, tone: "warning" },
+                  { id: "version", label: "Política", value: `v${policy?.policyVersion ?? 1}`, caption: `aviso v${policy?.privacyNoticeVersion ?? 1}`, icon: <LuBriefcaseBusiness size={14} /> },
+                ]}
+              />
+            </div>
+
+            <ITCard className="lg:col-span-8" contentClassName="!p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ITText className="font-bold">{t("admin.policyTitle")}</ITText>
+                  <HelpTip text="Textos que el trabajador acepta con versión. Al guardar sube la versión y debe aceptarlos de nuevo." />
+                </div>
+                <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setPolicyOpen(true)}>
+                  <LuPencil size={13} className="mr-1" /> Editar política
+                </ITButton>
+              </div>
+              <ITText muted className="mt-1 block !text-[11.5px]">
+                {t("admin.policyHint", { policy: policy?.policyVersion ?? 1, privacy: policy?.privacyNoticeVersion ?? 1 })}
               </ITText>
-              <ITText className="!text-[12px] !text-slate-600">
-                Política v{policy?.policyVersion ?? 1} · aviso v{policy?.privacyNoticeVersion ?? 1}
-              </ITText>
-              <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
+              <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
                 {[
-                  { label: "Teletrabajadores", value: registrations.filter((row) => row.status === "ACTIVE").length },
-                  { label: "Checklists", value: checklists.length },
-                  { label: "Comunicaciones", value: contacts.length },
-                  { label: "Versión de política", value: `v${policy?.policyVersion ?? 1}` },
-                ].map((stat) => (
-                  <div key={stat.label} className="rounded-xl bg-white/70 px-3 py-2">
-                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">{stat.label}</span>
-                    <span className="block text-[20px] font-black tabular-nums text-slate-900">{stat.value}</span>
+                  { label: t("telework.policyTitle"), text: policyForm.teleworkPolicy },
+                  { label: t("telework.disconnectTitle"), text: policyForm.disconnectPolicy },
+                  { label: t("telework.privacyTitle"), text: policyForm.privacyNotice },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                    <ITText className="block !text-[11px] font-semibold uppercase tracking-wide text-slate-500">{item.label}</ITText>
+                    <ITText className="mt-1 line-clamp-5 block !text-[12.5px] text-slate-700">{item.text || "Sin definir. Usa Editar política para capturarlo."}</ITText>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <ITCard className="lg:col-span-7" contentClassName="!p-5">
-              <ITFlex direction="column" gap={3}>
-                <ITFlex align="center" gap={2}>
-                  <ITText className="font-bold">{t("admin.policyTitle")}</ITText>
-                  <HelpTip text="Textos que el trabajador acepta con versión: teletrabajo (lugar, equipo y horario), desconexión (no responder fuera de jornada) y aviso de privacidad (datos tratados). Al guardar sube la versión." />
-                </ITFlex>
-                <ITText muted className="!text-[11px]">
-                  {t("admin.policyHint", {
-                    policy: policy?.policyVersion ?? 1,
-                    privacy: policy?.privacyNoticeVersion ?? 1,
-                  })}
-                </ITText>
-                <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-                  <ITTextarea
-                    name="teleworkPolicy"
-                    label={t("telework.policyTitle")}
-                    value={policyForm.teleworkPolicy}
-                    onChange={(value) => setPolicyForm((form) => ({ ...form, teleworkPolicy: value }))}
-                    rows={6}
-                  />
-                  <ITTextarea
-                    name="disconnectPolicy"
-                    label={t("telework.disconnectTitle")}
-                    value={policyForm.disconnectPolicy}
-                    onChange={(value) => setPolicyForm((form) => ({ ...form, disconnectPolicy: value }))}
-                    rows={6}
-                  />
-                  <ITTextarea
-                    name="privacyNotice"
-                    label={t("telework.privacyTitle")}
-                    value={policyForm.privacyNotice}
-                    onChange={(value) => setPolicyForm((form) => ({ ...form, privacyNotice: value }))}
-                    rows={6}
-                  />
-                </div>
-                <ITFlex justify="end">
-                  <ITButton
-                    variant="filled"
-                    color="primary"
-                    size="sm"
-                    className="tm-row-button"
-                    onClick={() =>
-                      void run(() =>
-                        nomApi.updateTeleworkPolicy({
-                          teleworkPolicy: policyForm.teleworkPolicy,
-                          disconnectPolicy: policyForm.disconnectPolicy,
-                          privacyNotice: policyForm.privacyNotice,
-                        })
-                      )
-                    }
-                  >
-                    {t("admin.savePolicy")}
-                  </ITButton>
-                </ITFlex>
-              </ITFlex>
             </ITCard>
 
-            <ITCard className="lg:col-span-5" contentClassName="!p-5">
-              <ITFlex direction="column" gap={3}>
-                <ITFlex align="center" gap={2}>
+            <ITCard className="lg:col-span-4" contentClassName="!p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
                   <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
-                  <HelpTip text="Alta del teletrabajador con su modo (remoto, híbrido o campo) y domicilio. La baja conserva el historial; el consentimiento de la política es requisito para que pueda marcar desde casa." />
-                </ITFlex>
-                <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-                  <ITSearchSelect
-                    name="registrationUser"
-                    label={t("admin.person")}
-                    value={newRegistration.userId}
-                    onChange={(event) =>
-                      setNewRegistration((form) => ({ ...form, userId: event.target.value }))
-                    }
-                    options={peopleOptions}
-                  />
-                  <ITSearchSelect
-                    name="registrationMode"
-                    label={t("admin.mode")}
-                    value={newRegistration.mode}
-                    onChange={(event) =>
-                      setNewRegistration((form) => ({ ...form, mode: event.target.value as TeleworkMode }))
-                    }
-                    options={[
-                      { value: "REMOTO", label: t("telework.mode.REMOTO") },
-                      { value: "HIBRIDO", label: t("telework.mode.HIBRIDO") },
-                      { value: "CAMPO", label: t("telework.mode.CAMPO") },
-                    ]}
-                  />
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <ITInput
-                      name="homeAddress"
-                      label={t("admin.homeAddress")}
-                      value={newRegistration.homeAddress}
-                      onChange={(event) =>
-                        setNewRegistration((form) => ({ ...form, homeAddress: event.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="flex items-end justify-end" style={{ gridColumn: "1 / -1" }}>
-                    <ITButton
-                      variant="filled"
-                      color="primary"
-                      size="sm"
-                      className="tm-row-button w-full"
-                      disabled={busy || !newRegistration.userId}
-                      onClick={() =>
-                        void run(async () => {
-                          await nomApi.registerTelework({
-                            userId: newRegistration.userId,
-                            mode: newRegistration.mode,
-                            homeAddress: newRegistration.homeAddress || undefined,
-                          });
-                          setNewRegistration({ userId: "", mode: "REMOTO", homeAddress: "" });
-                        })
-                      }
-                    >
-                      {t("admin.register")}
-                    </ITButton>
-                  </div>
+                  <HelpTip text="Alta del teletrabajador con modo y domicilio. La baja conserva historial." />
                 </div>
-
-                {registrations.length === 0 ? (
-                  <ITText muted>{t("admin.emptyRegistrations")}</ITText>
-                ) : (
-                  <ITFlex direction="column" gap={2}>
-                    {registrations.map((registration) => (
-                      <ITFlex
-                        key={registration.id}
-                        align="center"
-                        justify="between"
-                        gap={2}
-                        className="rounded-md border border-slate-100 px-3 py-2"
-                      >
-                        <ITFlex align="center" gap={2} wrap="wrap" className="min-w-0">
-                          <ITText className="font-semibold !text-[13px]">
-                            {registration.userName ?? registration.userId}
-                          </ITText>
-                          <ITBadget color={registration.status === "ACTIVE" ? "success" : "gray"} size="sm">
-                            {tr(`admin.status.${registration.status}`)}
-                          </ITBadget>
-                          <ITBadget color="info" size="sm">
-                            {tr(`telework.mode.${registration.mode}`)}
-                          </ITBadget>
-                          {registration.consentAcceptedAt ? (
-                            <ITText muted className="!text-[11px]">{t("admin.consentOk")}</ITText>
-                          ) : (
-                            <ITText muted className="!text-[11px]">{t("admin.consentPending")}</ITText>
-                          )}
-                        </ITFlex>
-                        {registration.status === "ACTIVE" && (
-                          <ITButton
-                            variant="outlined"
-                            color="secondary"
-                            size="sm"
-                            onClick={() =>
-                              void run(() =>
-                                nomApi.updateTeleworkRegistration(registration.id, { status: "ENDED" })
-                              )
-                            }
-                          >
-                            {t("admin.end")}
-                          </ITButton>
-                        )}
-                      </ITFlex>
-                    ))}
-                  </ITFlex>
-                )}
-              </ITFlex>
+                <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={() => setRegisterOpen(true)}>
+                  <LuPlus size={13} className="mr-1" /> Nuevo
+                </ITButton>
+              </div>
+              {registrations.length === 0 ? (
+                <div className="mt-3">
+                  <TicState kind="empty" size="sm" title="Sin teletrabajadores" description="Registra al primero con su modalidad y domicilio." />
+                </div>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2">
+                  {registrations.map((registration) => (
+                    <div key={registration.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2">
+                      <div className="min-w-0">
+                        <ITText className="block truncate font-semibold !text-[13px]">{registration.userName ?? registration.userId}</ITText>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          <ITBadget color={registration.status === "ACTIVE" ? "success" : "gray"} size="sm">{tr(`admin.status.${registration.status}`)}</ITBadget>
+                          <ITBadget color="info" size="sm">{tr(`telework.mode.${registration.mode}`)}</ITBadget>
+                          <ITBadget color={registration.consentAcceptedAt ? "success" : "warning"} size="sm">{registration.consentAcceptedAt ? t("admin.consentOk") : t("admin.consentPending")}</ITBadget>
+                        </div>
+                      </div>
+                      {registration.status === "ACTIVE" && (
+                        <ITButton variant="text" color="secondary" className="tm-row-button" onClick={() => void run(() => nomApi.updateTeleworkRegistration(registration.id, { status: "ENDED" }))}>{t("admin.end")}</ITButton>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </ITCard>
 
             <ITCard className="lg:col-span-7" contentClassName="!p-5">
-              <ITFlex direction="column" gap={2}>
-                <ITFlex align="center" gap={2}>
-                  <ITText className="font-bold">{t("admin.checklistsTitle")}</ITText>
-                  <HelpTip text="Checklist del lugar de trabajo (8 puntos de seguridad y ergonomía). El inicial se levanta al registrar el teletrabajo y el periódico se repite durante la relación laboral." />
-                </ITFlex>
-                {checklists.length === 0 ? (
-                  <ITText muted>{t("admin.emptyChecklists")}</ITText>
-                ) : (
-                  checklists.slice(0, 10).map((checklist) => (
-                    <ITFlex key={checklist.id} align="center" gap={2} wrap="wrap">
-                      <ITBadget color="info" size="sm">
-                        {tr(`checklist.kind.${checklist.kind}`)}
-                      </ITBadget>
-                      <ITText className="!text-[13px]">{checklist.userName ?? checklist.userId}</ITText>
-                      <ITText muted className="!text-[12px]">{dateOf(checklist.completedAt)}</ITText>
-                    </ITFlex>
-                  ))
-                )}
-              </ITFlex>
+              <div className="flex items-center gap-2">
+                <ITText className="font-bold">{t("admin.checklistsTitle")}</ITText>
+                <HelpTip text="Checklist del lugar de trabajo; el inicial se levanta al registrar y el periódico se repite." />
+              </div>
+              {checklists.length === 0 ? (
+                <div className="mt-2"><TicState kind="empty" size="sm" title="Sin checklists" description="Se reciben cuando el trabajador contesta el checklist inicial o periódico." /></div>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2">
+                  {checklists.slice(0, 10).map((checklist) => (
+                    <div key={checklist.id} className="flex items-center gap-2 rounded-xl border border-slate-100 px-3 py-2 text-[12.5px]">
+                      <ITBadget color="info" size="sm">{tr(`checklist.kind.${checklist.kind}`)}</ITBadget>
+                      <ITText className="!text-[12.5px]">{checklist.userName ?? checklist.userId}</ITText>
+                      <ITText muted className="ml-auto !text-[11.5px]">{dateOf(checklist.completedAt)}</ITText>
+                    </div>
+                  ))}
+                </div>
+              )}
             </ITCard>
 
             <ITCard className="lg:col-span-5" contentClassName="!p-5">
-              <ITFlex direction="column" gap={3}>
-                <ITFlex align="center" gap={2}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
                   <ITText className="font-bold">{t("admin.contactsTitle")}</ITText>
-                  <HelpTip text="Derecho a la desconexión: registra cada contacto fuera de jornada con su motivo y canal para justificarlo. Debe ser excepcional y queda auditado." />
-                </ITFlex>
-                <ITText muted className="!text-[11px]">
-                  {t("admin.contactsHint")}
-                </ITText>
-                <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-                  <ITSearchSelect
-                    name="contactUser"
-                    label={t("admin.person")}
-                    value={newContact.userId}
-                    onChange={(event) => setNewContact((form) => ({ ...form, userId: event.target.value }))}
-                    options={peopleOptions}
-                  />
-                  <ITSearchSelect
-                    name="contactChannel"
-                    label={t("admin.channel")}
-                    value={newContact.channel}
-                    onChange={(event) =>
-                      setNewContact((form) => ({
-                        ...form,
-                        channel: event.target.value as typeof form.channel,
-                      }))
-                    }
-                    options={[
-                      { value: "CALL", label: t("admin.channels.CALL") },
-                      { value: "MESSAGE", label: t("admin.channels.MESSAGE") },
-                      { value: "EMAIL", label: t("admin.channels.EMAIL") },
-                      { value: "OTHER", label: t("admin.channels.OTHER") },
-                    ]}
-                  />
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <ITInput
-                      name="contactReason"
-                      label={t("admin.reason")}
-                      value={newContact.reason}
-                      onChange={(event) => setNewContact((form) => ({ ...form, reason: event.target.value }))}
-                    />
-                  </div>
-                  <div className="flex items-end justify-end" style={{ gridColumn: "1 / -1" }}>
-                    <ITButton
-                      variant="filled"
-                      color="primary"
-                      size="sm"
-                      className="tm-row-button w-full"
-                      disabled={busy || !newContact.userId || newContact.reason.trim().length < 5}
-                      onClick={() =>
-                        void run(async () => {
-                          await nomApi.registerOutOfHoursContact({
-                            userId: newContact.userId,
-                            channel: newContact.channel,
-                            reason: newContact.reason.trim(),
-                          });
-                          setNewContact({ userId: "", channel: "CALL", reason: "" });
-                        })
-                      }
-                    >
-                      {t("admin.registerContact")}
-                    </ITButton>
-                  </div>
+                  <HelpTip text="Derecho a la desconexión: registra cada contacto con motivo y canal; queda auditado." />
                 </div>
-
-                {contacts.slice(0, 10).map((contact) => (
-                  <ITFlex key={contact.id} align="center" gap={2} wrap="wrap">
-                    <ITText className="!text-[13px]">{contact.userName ?? contact.userId}</ITText>
-                    <ITBadget color="warning" size="sm">
-                      {tr(`admin.channels.${contact.channel}`)}
-                    </ITBadget>
-                    <ITText muted className="!text-[12px]">
-                      {dateOf(contact.contactedAt)} · {contact.reason}
-                    </ITText>
-                  </ITFlex>
-                ))}
-              </ITFlex>
+                <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setContactOpen(true)}>
+                  <LuPlus size={13} className="mr-1" /> Registrar
+                </ITButton>
+              </div>
+              <ITText muted className="mt-1 block !text-[11.5px]">{t("admin.contactsHint")}</ITText>
+              {contacts.length === 0 ? (
+                <div className="mt-2"><TicState kind="empty" size="sm" title="Sin comunicaciones" description="No hay contactos fuera de jornada registrados." /></div>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2">
+                  {contacts.slice(0, 10).map((contact) => (
+                    <div key={contact.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 px-3 py-2">
+                      <ITText className="!text-[12.5px] font-semibold">{contact.userName ?? contact.userId}</ITText>
+                      <ITBadget color="warning" size="sm">{tr(`admin.channels.${contact.channel}`)}</ITBadget>
+                      <ITText muted className="w-full !text-[11.5px]">{dateOf(contact.contactedAt)} · {contact.reason}</ITText>
+                    </div>
+                  ))}
+                </div>
+              )}
             </ITCard>
+
+            <ITDialog isOpen={policyOpen} onClose={() => setPolicyOpen(false)} title={t("admin.policyTitle")} className="max-w-4xl">
+              <div className="flex flex-col gap-3">
+                <ITTextarea name="teleworkPolicy" label={t("telework.policyTitle")} value={policyForm.teleworkPolicy} onChange={(value) => setPolicyForm((form) => ({ ...form, teleworkPolicy: value }))} rows={6} />
+                <ITTextarea name="disconnectPolicy" label={t("telework.disconnectTitle")} value={policyForm.disconnectPolicy} onChange={(value) => setPolicyForm((form) => ({ ...form, disconnectPolicy: value }))} rows={5} />
+                <ITTextarea name="privacyNotice" label={t("telework.privacyTitle")} value={policyForm.privacyNotice} onChange={(value) => setPolicyForm((form) => ({ ...form, privacyNotice: value }))} rows={6} />
+                <div className="flex justify-end gap-2">
+                  <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => setPolicyOpen(false)}>Cancelar</ITButton>
+                  <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" disabled={busy} onClick={() => void run(async () => { await nomApi.updateTeleworkPolicy(policyForm); setPolicyOpen(false); })}>{t("admin.savePolicy")}</ITButton>
+                </div>
+              </div>
+            </ITDialog>
+
+            <ITDialog isOpen={registerOpen} onClose={() => setRegisterOpen(false)} title={t("admin.registrationsTitle")}>
+              <div className="flex flex-col gap-3">
+                <ITSearchSelect name="registrationUser" label={t("admin.person")} value={newRegistration.userId} onChange={(event) => setNewRegistration((form) => ({ ...form, userId: event.target.value }))} options={peopleOptions} />
+                <ITSearchSelect name="registrationMode" label={t("admin.mode")} value={newRegistration.mode} onChange={(event) => setNewRegistration((form) => ({ ...form, mode: event.target.value as TeleworkMode }))} options={[{ value: "REMOTO", label: t("telework.mode.REMOTO") }, { value: "HIBRIDO", label: t("telework.mode.HIBRIDO") }, { value: "CAMPO", label: t("telework.mode.CAMPO") }]} />
+                <ITInput name="homeAddress" label={t("admin.homeAddress")} value={newRegistration.homeAddress} onChange={(event) => setNewRegistration((form) => ({ ...form, homeAddress: event.target.value }))} />
+                <div className="flex justify-end gap-2">
+                  <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => setRegisterOpen(false)}>Cancelar</ITButton>
+                  <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" disabled={busy || !newRegistration.userId} onClick={() => void run(async () => { await nomApi.registerTelework({ userId: newRegistration.userId, mode: newRegistration.mode, homeAddress: newRegistration.homeAddress || undefined }); setNewRegistration({ userId: "", mode: "REMOTO", homeAddress: "" }); setRegisterOpen(false); })}>{t("admin.register")}</ITButton>
+                </div>
+              </div>
+            </ITDialog>
+
+            <ITDialog isOpen={contactOpen} onClose={() => setContactOpen(false)} title={t("admin.contactsTitle")}>
+              <div className="flex flex-col gap-3">
+                <ITSearchSelect name="contactUser" label={t("admin.person")} value={newContact.userId} onChange={(event) => setNewContact((form) => ({ ...form, userId: event.target.value }))} options={peopleOptions} />
+                <ITSearchSelect name="contactChannel" label={t("admin.channel")} value={newContact.channel} onChange={(event) => setNewContact((form) => ({ ...form, channel: event.target.value as typeof form.channel }))} options={[{ value: "CALL", label: t("admin.channels.CALL") }, { value: "MESSAGE", label: t("admin.channels.MESSAGE") }, { value: "EMAIL", label: t("admin.channels.EMAIL") }, { value: "OTHER", label: t("admin.channels.OTHER") }]} />
+                <ITInput name="contactReason" label={t("admin.reason")} value={newContact.reason} onChange={(event) => setNewContact((form) => ({ ...form, reason: event.target.value }))} />
+                <div className="flex justify-end gap-2">
+                  <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => setContactOpen(false)}>Cancelar</ITButton>
+                  <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" disabled={busy || !newContact.userId || newContact.reason.trim().length < 5} onClick={() => void run(async () => { await nomApi.registerOutOfHoursContact({ userId: newContact.userId, channel: newContact.channel, reason: newContact.reason.trim() }); setNewContact({ userId: "", channel: "CALL", reason: "" }); setContactOpen(false); })}>{t("admin.registerContact")}</ITButton>
+                </div>
+              </div>
+            </ITDialog>
           </>
         )}
       </div>
