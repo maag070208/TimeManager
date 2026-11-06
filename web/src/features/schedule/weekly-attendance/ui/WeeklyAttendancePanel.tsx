@@ -30,8 +30,10 @@ const shortMonth = (date: Date): string =>
   date.toLocaleDateString(dateLocale(), { month: "short" }).replace(/\./g, "");
 
 /** "2 – 8 nov" (mismo mes) o "29 oct – 4 nov" (mes distinto). */
-const money = (value: number): string =>
-  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 }).format(value);
+const money = (value: number | null | undefined): string =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 }).format(
+    typeof value === "number" && Number.isFinite(value) ? value : 0,
+  );
 
 const weekRangeLabel = ([start, end]: [Date, Date]): string =>
   start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()
@@ -187,7 +189,7 @@ export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance 
                 id: "dailyCost",
                 label: "Costo diario de plantilla",
                 value: money(summary.dailySalaryTotal),
-                caption: `${summary.withSalary} con salario configurado`,
+                caption: `${summary.withSalary ?? 0} con salario configurado`,
                 icon: <LuWallet size={14} />,
                 tone: "info",
               },
