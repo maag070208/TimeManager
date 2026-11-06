@@ -103,6 +103,7 @@ export default function PlansPage() {
       </ITStack>
 
       <PlanFormDialog
+        key={`${fx.editing?.id ?? "new"}-${fx.creating || fx.editing !== null}`}
         isOpen={fx.creating || fx.editing !== null}
         plan={fx.editing}
         onClose={fx.closeForm}
