@@ -1,0 +1,1 @@
+ALTER TABLE "tenants" ADD COLUMN "disabledModules" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];

@@ -46,6 +46,7 @@ const toView = (t: TenantWithPlan, usage: TenantUsage): TenantView => ({
       }
     : null,
   employeeLimit: t.employeeLimit,
+  disabledModules: t.disabledModules,
   brandColor: t.brandColor,
   logoDataUrl: t.logoDataUrl,
   emailFrom: t.emailFrom,
@@ -327,6 +328,7 @@ export class TenantService {
           ...(input.brandColor !== undefined ? { brandColor: input.brandColor } : {}),
           ...(input.logoDataUrl !== undefined ? { logoDataUrl: input.logoDataUrl } : {}),
           ...(input.emailFrom !== undefined ? { emailFrom: input.emailFrom } : {}),
+          ...(input.disabledModules !== undefined && { disabledModules: input.disabledModules }),
           ...(plan !== undefined ? { planId: plan?.id ?? null } : {}),
         },
         include: { plan: true },

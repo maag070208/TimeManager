@@ -10,6 +10,8 @@ export interface TenantInfo {
   timezone: string;
   /** Primer día de la semana laboral (0=domingo … 6=sábado; 3=miércoles). */
   weekStartDay?: number;
+  /** Módulos apagados por la plataforma. */
+  disabledModules?: string[];
   /** Branding (F3-05). `null` = marca TimeManager. */
   brandColor?: string | null;
   /** Logo del cliente como data URL. */
@@ -55,7 +57,7 @@ export interface TenantCreated {
 }
 
 export type TenantUpdateInput = Partial<
-  Pick<Tenant, "name" | "status" | "timezone" | "planId" | "employeeLimit">
+  Pick<Tenant, "name" | "status" | "timezone" | "planId" | "employeeLimit" | "disabledModules">
 >;
 
 export type TenantPaymentStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";

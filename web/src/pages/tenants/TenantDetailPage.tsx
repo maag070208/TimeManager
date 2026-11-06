@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
-import { LuArrowLeft, LuBuilding2, LuCalendarClock, LuCheck, LuChevronLeft, LuChevronRight, LuClock, LuWallet } from "react-icons/lu";
+import { LuArrowLeft, LuBuilding2, LuCalendarClock, LuCheck, LuChevronLeft, LuChevronRight, LuClock, LuLock, LuLockOpen, LuWallet } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { tenantApi } from "@entities/tenant";
+import { TENANT_MODULES } from "@shared/lib/tenant-modules";
 import type { Tenant, TenantPayment, TenantPaymentStatus, TenantPayments } from "@entities/tenant";
 
 const dateStrToLocal = (value: string): Date | undefined => {
@@ -102,6 +103,22 @@ export default function TenantDetailPage() {
     }
   };
 
+  const toggleModule = async (moduleId: string) => {
+    if (!tenant) return;
+    const current = tenant.disabledModules ?? [];
+    const next = current.includes(moduleId) ? current.filter((id) => id !== moduleId) : [...current, moduleId];
+    setBusy(`module:${moduleId}`);
+    try {
+      const updated = await tenantApi.update(id, { disabledModules: next });
+      setTenant(updated);
+      setToast(next.includes(moduleId) ? "Módulo apagado para el cliente." : "Módulo activado.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo cambiar el módulo.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   if (!tenant || !payments) {
     return (
       <ITPage title="Cliente" icon={<LuBuilding2 size={20} />} maxWidth="7xl">
@@ -166,6 +183,43 @@ export default function TenantDetailPage() {
             </div>
           ))}
         </div>
+
+        <ITCard contentClassName="!p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <ITText className="font-bold">Módulos y pantallas del cliente</ITText>
+              <ITText muted className="mt-1 block !text-[11.5px]">Apaga un módulo para ocultar sus pantallas y bloquear la ruta a los usuarios del cliente.</ITText>
+            </div>
+            <ITText muted className="!text-[11.5px]">{TENANT_MODULES.filter((module) => !(tenant.disabledModules ?? []).includes(module.id)).length} activos de {TENANT_MODULES.length}</ITText>
+          </div>
+          <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+            {TENANT_MODULES.map((module) => {
+              const active = !(tenant.disabledModules ?? []).includes(module.id);
+              return (
+                <div key={module.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2.5">
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-2 text-[12.5px] font-semibold text-slate-800">
+                      {active ? <LuLockOpen size={13} className="text-emerald-600" /> : <LuLock size={13} className="text-slate-400" />}
+                      {module.label}
+                    </span>
+                    <ITText muted className="mt-0.5 line-clamp-1 block !text-[10.5px]">{module.description}</ITText>
+                  </div>
+                  <ITBadget color={active ? "success" : "gray"} size="sm">{active ? "Activo" : "Apagado"}</ITBadget>
+                  <ITButton
+                    variant="outlined"
+                    color={active ? "secondary" : "success"}
+                    size="sm"
+                    className="tm-row-button shrink-0"
+                    disabled={busy === `module:${module.id}`}
+                    onClick={() => void toggleModule(module.id)}
+                  >
+                    {active ? "Apagar" : "Activar"}
+                  </ITButton>
+                </div>
+              );
+            })}
+          </div>
+        </ITCard>
 
         <div className="grid items-start gap-4 lg:grid-cols-12">
           <ITCard className="lg:col-span-8" contentClassName="!p-5">

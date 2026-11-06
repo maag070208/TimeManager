@@ -43,3 +43,10 @@ Alta, consulta y suspensión de clientes (tenants) del SaaS. Solo personal de pl
 
 - El servicio corre todo en `runWithTenant(null, …, true)`: la tabla `tenants` y los conteos son de plataforma aunque ADMIN venga con `X-Tenant-Id`.
 - CORS: `WEB_ORIGIN` acepta lista separada por comas y comodín de subdominio (`http://*.localhost:5006`, `https://*.timemanager.mx`) — `api/src/core/config/cors-origin.ts`.
+
+## Módulos por cliente (2026-11-06)
+
+`Tenant.disabledModules` guarda los módulos apagados por la plataforma. El
+detalle del cliente (`/tenants/:id`) permite activarlos/apagarlos; la web
+oculta el menú y bloquea la ruta directa con `isPathInDisabledModule`. El
+catálogo de módulos vive en `web/src/shared/lib/tenant-modules.ts`.

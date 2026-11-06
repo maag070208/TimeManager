@@ -62,6 +62,7 @@ export const TenantSchema = z
     /** Límites efectivos (plan + override del cliente). */
     limits: z.object({ people: z.number().int().nullable(), clocks: z.number().int().nullable() }),
     /** Branding (F3-05): color de acento, logo (data URL) y remitente propio. */
+    disabledModules: z.array(z.string()).default([]),
     brandColor: z.string().nullable(),
     logoDataUrl: z.string().nullable(),
     emailFrom: z.string().nullable(),
@@ -103,6 +104,7 @@ export const TenantUpdateDto = z
     brandColor: BrandColorSchema.nullish(),
     logoDataUrl: TenantLogoSchema.nullish(),
     emailFrom: EmailFromSchema.nullish(),
+    disabledModules: z.array(z.string()).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, "EMPTY_UPDATE")
   .openapi("TenantUpdate");

@@ -15,6 +15,7 @@ import { useAblyNotifications, type LiveNotification } from "./useAblyNotificati
 import ForcePasswordChange from "./ForcePasswordChange";
 import { PLATFORM_PATHS, TenantSwitcher, useClientContext } from "@features/tenant/tenant-switcher";
 import { getSelectedTenant } from "@shared/api/tenant";
+import { isPathInDisabledModule } from "@shared/lib/tenant-modules";
 import { setTenantBrand } from "@shared/lib/tenantBrand";
 import logoUrl from "@shared/assets/brand/timemanager-logo-for-light-bg.svg";
 import symbolUrl from "@shared/assets/brand/timemanager-symbol-for-light-bg.svg";
@@ -150,6 +151,11 @@ export default function PrivateRoutes() {
     return <Navigate to="/" replace />;
   }
 
+  // Módulos apagados por la plataforma: oculta el menú y bloquea la ruta directa.
+  if (user?.tenant && isPathInDisabledModule(location.pathname, user.tenant.disabledModules)) {
+    return <Navigate to="/" replace />;
+  }
+
   // El menú se arma desde el catálogo de pantallas (`APP_SCREENS`) y los
   // permisos efectivos (`GET /auth/me`); la web no reimplementa la matriz.
   const permissions = user?.permissions;
@@ -220,7 +226,16 @@ export default function PrivateRoutes() {
     };
   };
 
-  const navigationItems = APP_SCREENS.map(toNavigationItem).filter(
+  const pruneDisabledModules = (screens: readonly AppScreen[]): AppScreen[] =>
+    screens
+      .map((screen) => {
+        const children = screen.children ? pruneDisabledModules(screen.children) : undefined;
+        if (screen.path && isPathInDisabledModule(screen.path, user?.tenant?.disabledModules)) return null;
+        if (screen.children?.length && children?.length === 0) return null;
+        return children ? { ...screen, children } : screen;
+      })
+      .filter((screen): screen is AppScreen => screen !== null);
+  const navigationItems = pruneDisabledModules(APP_SCREENS).map(toNavigationItem).filter(
     (item): item is ITNavigationItem => item !== null
   );
 

@@ -76,6 +76,8 @@ model Tenant {
   brandColor  String?
   logoDataUrl String?
   emailFrom   String?
+  /// Módulos desactivados por la plataforma.
+  disabledModules String[] @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

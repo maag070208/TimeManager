@@ -171,6 +171,7 @@ export class AuthService {
             name: true,
             timezone: true,
             weekStartDay: true,
+            disabledModules: true,
             brandColor: true,
             logoDataUrl: true,
           },

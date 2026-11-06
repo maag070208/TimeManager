@@ -25,6 +25,7 @@ export const TenantInfoSchema = z
     name: z.string(),
     timezone: z.string(),
     weekStartDay: z.number().int().min(0).max(6),
+    disabledModules: z.array(z.string()).default([]),
   })
   .openapi("TenantInfo");
 
