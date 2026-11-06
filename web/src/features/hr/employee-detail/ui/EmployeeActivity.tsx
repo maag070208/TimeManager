@@ -13,6 +13,7 @@ import { formatDateTime } from "@shared/utils/dates";
 function Card({ icon, title, count, children }: { icon: React.ReactNode; title: string; count: number; children: React.ReactNode }) {
   return (
     <PanelCard
+      className="tm-hero-card"
       icon={icon}
       title={title}
       actions={<ITText as="span" className="rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums" style={{ background: "var(--color-secondary-100)" }}>{count}</ITText>}

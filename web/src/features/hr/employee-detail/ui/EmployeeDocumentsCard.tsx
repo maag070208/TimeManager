@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { ITBentoGrid, ITBentoSegments, ITBentoTile, ITCard, ITDropfile, FileTypeEnum, useITBentoCountUp, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { ITCard, ITDropfile, FileTypeEnum, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
 import { LuCircleCheck, LuFileImage, LuFileText, LuFiles, LuHourglass, LuX } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { EmployeeDocument, DocumentType } from "@entities/hr";
 import { TicState } from "@shared/ui/tic";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 
 interface Props {
   documentTypes: DocumentType[];
@@ -38,30 +39,15 @@ export default function EmployeeDocumentsCard({
   const pendingCount = Math.max(requiredCount - uploadedCount, 0);
   const percent = requiredCount > 0 ? Math.round((uploadedCount / requiredCount) * 100) : 0;
 
-  const uploadedShown = useITBentoCountUp(uploadedCount);
-  const pendingShown = useITBentoCountUp(pendingCount);
-  const filesShown = useITBentoCountUp(documents.length);
-
   return (
     <ITStack spacing={5}>
-      <ITBentoGrid>
-        <ITBentoTile
-          cols={6}
-          rows={2}
-          wide
-          tone="plain"
-          icon={<LuFiles size={15} />}
-          label={tt("detail.documentsTitle")}
-          value={uploadedShown}
-          aside={`/ ${requiredCount} (${percent}%)`}
-        >
-          <div className="mt-2">
-            <ITBentoSegments total={Math.max(requiredCount, 1)} done={uploadedCount} />
-          </div>
-        </ITBentoTile>
-        <ITBentoTile cols={3} rows={2} wide tone="sun" icon={<LuHourglass size={15} />} label={tt("detail.pending")} value={pendingShown} />
-        <ITBentoTile cols={3} rows={2} wide tone="lavender" icon={<LuFileText size={15} />} label={tt("detail.filesLabel")} value={filesShown} />
-      </ITBentoGrid>
+      <BentoKpiGrid
+        items={[
+          { id: "types", label: tt("detail.documentsTitle"), value: `${uploadedCount}/${requiredCount}`, caption: `${percent}% completo`, icon: <LuFiles size={14} />, tone: percent === 100 ? "success" : "info" },
+          { id: "pending", label: tt("detail.pending"), value: pendingCount, caption: pendingCount === 0 ? "Todo en orden" : "documentos por subir", icon: <LuHourglass size={14} />, tone: pendingCount === 0 ? "success" : "warning" },
+          { id: "files", label: tt("detail.filesLabel"), value: documents.length, caption: "archivos cargados", icon: <LuFileText size={14} />, tone: "neutral" },
+        ]}
+      />
 
       {documentTypes.length === 0 && (
         <TicState kind="empty" size="sm" title={tt("detail.noDocumentTypes")} description={tt("detail.noDocumentTypesHint")} />

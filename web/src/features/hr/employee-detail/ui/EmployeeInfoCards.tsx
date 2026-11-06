@@ -28,7 +28,7 @@ function InfoCard({ icon, tone, title, items }: { icon: React.ReactNode; tone: "
   const filled = items.filter((i) => i.value?.trim()).length;
   const complete = filled === items.length;
   return (
-    <ITCard>
+    <ITCard className="tm-hero-card">
       <header className="mb-4 flex items-center justify-between gap-3">
         <ITFlex align="center" gap={3} className="min-w-0">
           <ITText as="span"
@@ -109,7 +109,7 @@ export default function EmployeeInfoCards({ profile }: Props) {
 
   return (
     <ITStack spacing={5}>
-      <ITCard>
+      <ITCard className="tm-hero-card">
         <ITFlex align="center" wrap="wrap" gap={6}>
           <div className="min-w-[240px] flex-1">
             <ITText className="m-0 text-[13px] text-slate-500">{tt("detail.completeness")}</ITText>

@@ -198,7 +198,8 @@
     "noDocumentTypesHint": "Once they are set up, you will see them here to upload files.",
     "autosaving": "Saving…",
     "autosaved": "Saved ✓",
-    "autosaveError": "Could not save"
+    "autosaveError": "Could not save",
+    "sectionHint": "View and manage the information in this section."
   },
   "catalog": {
     "title": "Document Catalog",

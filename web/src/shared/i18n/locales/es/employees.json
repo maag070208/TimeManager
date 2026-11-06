@@ -198,7 +198,8 @@
     "noDocumentTypesHint": "Cuando se configuren, los verás aquí para subir los archivos.",
     "autosaving": "Guardando…",
     "autosaved": "Guardado ✓",
-    "autosaveError": "No se pudo guardar"
+    "autosaveError": "No se pudo guardar",
+    "sectionHint": "Consulta y administra la información de esta sección."
   },
   "catalog": {
     "title": "Catálogo de Documentos",

@@ -143,6 +143,16 @@ export default function EmployeeDetailPage() {
 
         <TabBar items={sections} value={section} onChange={setSection} />
 
+        <div className="tm-hero-card flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            {sections.find((item) => item.id === section)?.icon}
+          </span>
+          <div className="min-w-0 flex-1">
+            <ITText className="block !text-[14px] font-bold !text-slate-800">{sections.find((item) => item.id === section)?.label}</ITText>
+            <ITText muted className="line-clamp-1 !text-[11.5px]">{tt("detail.sectionHint")}</ITText>
+          </div>
+        </div>
+
         {section === "activity" && <EmployeeActivity userId={profile.id} />}
         {section === "documents" && (
           <EmployeeDocumentsCard
