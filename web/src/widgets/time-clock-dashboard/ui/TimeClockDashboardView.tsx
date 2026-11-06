@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaChartArea, FaChartBar, FaClock, FaFingerprint, FaServer, FaSyncAlt, FaUsers, FaVideo, FaChartLine, FaIdCard, FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
-import { ITButton, ITDataTable, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITCard, ITDataTable, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { dateLocale } from "@shared/i18n/format";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { PanelCard } from "@shared/ui/panel-card";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
+import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import type { ClockAlert, SummaryClock, TimeClockSummary } from "@entities/time-clock";
 import { timeClockApi, type TimeClockPerson } from "@entities/time-clock";
 import FingerprintReaderPanel from "./FingerprintReaderPanel";
@@ -162,7 +163,7 @@ function AlertLine({ alert }: { alert: ClockAlert }) {
 }
 
 /** Panel de un reloj: encabezado, métricas, gráfica, datos del equipo, checadas recientes y alertas. */
-function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerson: (p: OpenPerson) => void }) {
+function DevicePanel({ clock, onOpenPerson, onReload }: { clock: SummaryClock; onOpenPerson: (p: OpenPerson) => void; onReload: () => void }) {
   const { t } = useTranslation("time-clock");
   const [variant, setVariant] = useState<ChartVariant>("area");
   const fmt = (iso: string | null) =>
@@ -214,6 +215,7 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
 
   return (
     <PanelCard
+      className="tm-hero-card tm-hero-card--sky"
       title={clock.name ?? clock.serial}
       description={`${clock.device?.model ?? "—"} · ${clock.countsAttendance ? t("dashboard.counts") : t("dashboard.noCounts")}`}
       actions={
@@ -241,7 +243,24 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
         </div>
       </div>
 
-      {clock.countsAttendance && (
+      {clock.connection !== "ONLINE" && (
+        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl bg-rose-50/80 p-4">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
+            <FaExclamationTriangle size={15} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <ITText className="block !text-[12.5px] font-bold !text-rose-900">No pudimos conectar con el reloj</ITText>
+            <ITText className="block !text-[11.5px] !text-rose-700">
+              Última sincronización: {fmt(clock.lastSyncAt)}. Revisa que esté encendido y conectado a la red.
+            </ITText>
+          </div>
+          <ITButton variant="outlined" color="error" size="sm" className="tm-row-button" onClick={onReload}>
+            <FaSyncAlt size={11} className="mr-1" /> Reintentar
+          </ITButton>
+        </div>
+      )}
+
+      {clock.countsAttendance && clock.connection === "ONLINE" && (
         <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-4">
           <ITFlex align="center" justify="between" wrap="wrap" gap={2} className="mb-2">
             <ITText className="!text-[12px] font-bold !text-slate-700">{t("dashboard.todayByHour")}</ITText>
@@ -269,27 +288,25 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
         </div>
       )}
 
-      {clock.alerts.length > 0 && (
-        <ul className="mt-3 flex flex-col gap-2">
-          {clock.alerts.map((a) => (
-            <AlertLine key={a.code} alert={a} />
-          ))}
-        </ul>
-      )}
-
       <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-3">
         <ITText className="mb-2 block !text-[12px] font-bold !text-slate-700">{t("dashboard.recentPunches")}</ITText>
-        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
-          columns={columns as unknown as Column<Record<string, unknown>>[]}
-          fetchData={
-            fetchPunches as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>
-          }
-          debounceMs={350}
-          onRowClick={(row) => {
-            const punch = row as unknown as Punch;
-            if (punch.employeeNumber) onOpenPerson({ serial: clock.serial, employeeNumber: punch.employeeNumber });
-          }}
-        />
+        {clock.recentPunches.length === 0 ? (
+          <div className="flex items-center gap-2 rounded-xl bg-slate-50/70 px-3 py-3 text-[11.5px] text-slate-500">
+            <FaClock size={13} /> Sin checadas registradas hoy.
+          </div>
+        ) : (
+          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+            columns={columns as unknown as Column<Record<string, unknown>>[]}
+            fetchData={
+              fetchPunches as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>
+            }
+            debounceMs={350}
+            onRowClick={(row) => {
+              const punch = row as unknown as Punch;
+              if (punch.employeeNumber) onOpenPerson({ serial: clock.serial, employeeNumber: punch.employeeNumber });
+            }}
+          />
+        )}
       </div>
     </PanelCard>
   );
@@ -310,11 +327,10 @@ function PeoplePreview({ serial, onSeeAll, onOpenPerson }: { serial: string; onS
     timeClockApi
       .peopleList(serial)
       .then((r) => setPeople(r.people))
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+      .catch(() => setError(t("dashboard.personnel.unavailable")))
       .finally(() => setLoading(false));
-  }, [serial]);
+  }, [serial, t]);
 
-  // El personal siempre aparece: se lee al entrar y cada vez que cambia el reloj.
   useEffect(() => {
     setPeople(null);
     show();
@@ -322,52 +338,76 @@ function PeoplePreview({ serial, onSeeAll, onOpenPerson }: { serial: string; onS
 
   return (
     <PanelCard
+      className="tm-hero-card tm-hero-card--mint"
       title={t("dashboard.personnel.title")}
+      icon={<FaUsers size={15} />}
       description={people ? t("dashboard.personnel.count", { count: people.length }) : t("dashboard.personnel.hint")}
       actions={
-        <>
-          <ITButton variant="outlined" color="secondary" size="sm" disabled={loading} onClick={show}>
-            {t("dashboard.personnel.refresh")}
-          </ITButton>
-          <ITButton variant="filled" color="primary" size="sm" onClick={onSeeAll}>
-            {t("dashboard.personnel.seeAll")}
-          </ITButton>
-        </>
+        <ITButton variant="outlined" color="secondary" size="sm" className="tm-icon-button" disabled={loading} onClick={show} title={t("dashboard.personnel.refresh")}>
+          <FaSyncAlt size={12} className={loading ? "animate-spin" : ""} />
+        </ITButton>
       }
     >
-      {loading && <ITText className="text-xs text-slate-400">{t("dashboard.personnel.loading")}</ITText>}
-      {error && (
-        <div className="rounded-xl bg-amber-50 px-3 py-2 text-[11.5px] leading-snug text-amber-800">
-          {t("dashboard.personnel.unavailable")}
+      {loading && <ITText className="text-[11.5px] text-slate-400">{t("dashboard.personnel.loading")}</ITText>}
+      {error && !loading && (
+        <div className="rounded-2xl bg-amber-50/80 px-3 py-3 text-[11.5px] leading-snug text-amber-800">
+          <span className="mb-1 flex items-center gap-1.5 font-bold"><FaExclamationTriangle size={12} /> Sin lectura del reloj</span>
+          {error}
         </div>
       )}
-      {people && people.length === 0 && <ITText className="text-xs text-slate-400">{t("dashboard.personnel.empty")}</ITText>}
+      {people && people.length === 0 && <ITText className="text-[11.5px] text-slate-400">{t("dashboard.personnel.empty")}</ITText>}
       {people && people.length > 0 && (
-        <ul className="flex flex-col divide-y divide-slate-100">
+        <ul className="flex flex-col gap-1">
           {people.slice(0, 10).map((p) => (
             <li key={p.employeeNumber}>
               <button type="button" onClick={() => onOpenPerson({ serial, employeeNumber: p.employeeNumber })}
-                className="flex w-full items-center justify-between gap-3 py-2.5 text-left text-sm transition hover:text-slate-900">
-                <span className="truncate font-medium text-slate-800">{p.name}</span>
-                <span className="shrink-0 font-mono text-xs text-slate-400">{p.employeeNumber}</span>
+                className="flex w-full items-center gap-2.5 rounded-xl px-1.5 py-2 text-left transition hover:bg-slate-50">
+                <ProfileAvatar name={p.name} size="sm" />
+                <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-slate-800">{p.name}</span>
+                <span className="shrink-0 font-mono text-[10.5px] text-slate-400">{p.employeeNumber}</span>
               </button>
             </li>
           ))}
         </ul>
       )}
-      {people && people.length > 10 && (
-        <ITText className="mt-2 text-xs text-slate-400">{t("dashboard.personnel.more", { count: people.length - 10 })}</ITText>
+      <ITFlex justify="end" className="mt-2">
+        <ITButton variant="text" color="primary" size="sm" onClick={onSeeAll}>
+          {t("dashboard.personnel.seeAll")} →
+        </ITButton>
+      </ITFlex>
+    </PanelCard>
+  );
+}
+
+function AlertsPanel({ alerts }: { alerts: ClockAlert[] }) {
+  return (
+    <PanelCard
+      className="tm-hero-card tm-hero-card--amber"
+      title="Atención"
+      icon={<FaExclamationTriangle size={15} />}
+      description={alerts.length > 0 ? `${alerts.length} alerta(s) por revisar` : "Todo en orden"}
+      actions={alerts.length > 0 ? <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-black text-rose-700">{alerts.length}</span> : undefined}
+    >
+      {alerts.length === 0 ? (
+        <div className="flex items-center gap-2 rounded-2xl bg-emerald-50/80 px-3 py-3 text-[12px] font-semibold text-emerald-800">
+          <FaCheckCircle size={14} /> Sin alertas pendientes
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {alerts.map((a) => <AlertLine key={a.code} alert={a} />)}
+        </ul>
       )}
     </PanelCard>
   );
 }
 
-function Estado({ data, visibleClocks, serial, onSeeAll, onOpenPerson }: {
+function Estado({ data, visibleClocks, serial, onSeeAll, onOpenPerson, onReload }: {
   data: TimeClockSummary;
   visibleClocks: SummaryClock[];
   serial: string;
   onSeeAll: () => void;
   onOpenPerson: (p: OpenPerson) => void;
+  onReload: () => void;
 }) {
   const { t } = useTranslation("time-clock");
   const online = data.clocks.filter((c) => c.connection === "ONLINE").length;
@@ -376,8 +416,7 @@ function Estado({ data, visibleClocks, serial, onSeeAll, onOpenPerson }: {
   const alerts = [...data.alerts, ...data.clocks.flatMap((c) => c.alerts)];
 
   return (
-    <ITFlex direction="column" gap={6}>
-      {/* Cifras del reloj en la tira del mosaico, como el resto del sistema */}
+    <ITFlex direction="column" gap={4}>
       <BentoKpiGrid
         items={[
           { id: "online", label: t("dashboard.kpi.online"), value: `${online} / ${data.clocks.length}`, caption: t("dashboard.kpi.onlineHint"), tone: "success", icon: <FaServer size={13} /> },
@@ -387,24 +426,23 @@ function Estado({ data, visibleClocks, serial, onSeeAll, onOpenPerson }: {
         ]}
       />
 
-      {data.alerts.length > 0 && (
-        <PanelCard title={t("dashboard.alertsTitle")}>
-          <ul className="grid grid-cols-1 gap-2 md:!grid-cols-2">
-            {data.alerts.map((a) => (
-              <AlertLine key={`g-${a.code}`} alert={a} />
-            ))}
-          </ul>
-        </PanelCard>
-      )}
-
-      <div className="grid grid-cols-1 gap-6 xl:!grid-cols-3">
-        <div className="flex flex-col gap-6 xl:col-span-2">
+      <div className="grid grid-cols-1 items-start gap-4 xl:!grid-cols-[minmax(0,1fr)_340px]">
+        <div className="flex min-w-0 flex-col gap-4">
           {visibleClocks.map((c) => (
-            <DevicePanel key={c.serial} clock={c} onOpenPerson={onOpenPerson} />
+            <DevicePanel key={c.serial} clock={c} onOpenPerson={onOpenPerson} onReload={onReload} />
           ))}
-          {data.clocks.length === 0 && <ITText className="text-sm text-slate-400">{t("dashboard.noClocks")}</ITText>}
+          {data.clocks.length === 0 && (
+            <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center">
+              <ITText className="block !text-[13px] font-bold !text-slate-700">{t("dashboard.noClocks")}</ITText>
+              <ITButton variant="filled" color="primary" size="sm" className="tm-save-button mt-3" onClick={onReload}>
+                <FaSyncAlt size={12} className="mr-1" /> Reintentar
+              </ITButton>
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-6">
+
+        <div className="flex flex-col gap-4">
+          <AlertsPanel alerts={alerts} />
           {serial && <PeoplePreview serial={serial} onSeeAll={onSeeAll} onOpenPerson={onOpenPerson} />}
         </div>
       </div>
@@ -434,43 +472,36 @@ export default function TimeClockDashboardView() {
 
   return (
     <ITFlex direction="column" gap={5}>
-      <ITFlex align="center" justify="between" gap={3} wrap="wrap">
-        <TabBar
-          items={SECTIONS.map((s) => ({
-            id: s,
-            label: t(`dashboard.sections.${s}`),
-            icon: SECTION_ICON[s],
-          })) as TabBarItem<Section>[]}
-          value={section}
-          onChange={setSection}
-        />
-        <ITFlex align="center" gap={3} wrap="wrap">
-          {showClockPicker && (
-            <ITSearchSelect
-              name="timeClockDashboardClock"
-              label={t("dashboard.clock")}
-              options={[
-                ...(clocks.length > 1 ? [{ value: ALL_CLOCKS, label: t("dashboard.allClocks") }] : []),
-                ...clocks.map((c) => ({ value: c.serial, label: c.name ?? c.serial })),
-              ]}
-              value={selected ? picked : clocks.length > 1 ? ALL_CLOCKS : (clocks[0]?.serial ?? "")}
-              onChange={(value) => setPicked(String(value))}
-              className="min-w-[220px]"
-            />
-          )}
-          {fx.data && (
-            <ITText className="hidden text-xs text-slate-400 md:block">
-              {t("dashboard.generatedAt", { time: new Date(fx.data.generatedAt).toLocaleTimeString(dateLocale()) })}
-            </ITText>
-          )}
-          <ITButton variant="raised-text" color="primary" size="sm" disabled={fx.loading} onClick={fx.reload}>
-            <ITFlex align="center" gap={2}>
-              <FaSyncAlt size={11} className={fx.loading ? "animate-spin" : ""} />
-              {t("dashboard.refresh")}
-            </ITFlex>
-          </ITButton>
+      <ITCard className="bento-rise" contentClassName="!px-3 !py-2.5">
+        <ITFlex align="center" justify="between" gap={3} wrap="wrap">
+          <TabBar
+            items={SECTIONS.map((s) => ({
+              id: s,
+              label: t(`dashboard.sections.${s}`),
+              icon: SECTION_ICON[s],
+            })) as TabBarItem<Section>[]}
+            value={section}
+            onChange={setSection}
+          />
+          <div className="flex shrink-0 items-center gap-2">
+            {showClockPicker && (
+              <ITSearchSelect
+                name="timeClockDashboardClock"
+                options={[
+                  ...(clocks.length > 1 ? [{ value: ALL_CLOCKS, label: t("dashboard.allClocks") }] : []),
+                  ...clocks.map((c) => ({ value: c.serial, label: c.name ?? c.serial })),
+                ]}
+                value={selected ? picked : clocks.length > 1 ? ALL_CLOCKS : (clocks[0]?.serial ?? "")}
+                onChange={(value) => setPicked(String(value))}
+                className="w-[170px] min-w-[170px]"
+              />
+            )}
+            <ITButton variant="outlined" color="secondary" size="sm" className="tm-icon-button" disabled={fx.loading} onClick={fx.reload} title={t("dashboard.refresh")}>
+              <FaSyncAlt size={13} className={fx.loading ? "animate-spin" : ""} />
+            </ITButton>
+          </div>
         </ITFlex>
-      </ITFlex>
+      </ITCard>
 
       {fx.error && <ITText role="alert" className="text-sm text-red-600">{fx.error}</ITText>}
       {fx.loading && !fx.data && <ITText className="text-sm text-slate-400">{t("dashboard.loading")}</ITText>}
@@ -482,6 +513,7 @@ export default function TimeClockDashboardView() {
           serial={serial}
           onSeeAll={() => setSection("people")}
           onOpenPerson={setOpenPerson}
+          onReload={fx.reload}
         />
       )}
       {fx.data && section !== "status" && section !== "clocks" && section !== "reader" && !serial && <ITText className="text-sm text-slate-400">{t("dashboard.noClocks")}</ITText>}
