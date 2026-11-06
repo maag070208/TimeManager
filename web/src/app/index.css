@@ -517,7 +517,15 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
   line-height: 1 !important;
   white-space: nowrap !important;
 }
-.tm-icon-button { width: 30px !important; padding: 0 !important; }
+.tm-icon-button {
+  width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  border-radius: 12px !important;
+  border-width: 2px !important;
+  padding: 0 !important;
+}
+.tm-icon-button svg { width: 16px; height: 16px; }
 
 
 /* Misma ola en sentido inverso para héroes grandes. */

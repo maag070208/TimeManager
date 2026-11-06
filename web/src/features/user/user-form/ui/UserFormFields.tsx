@@ -137,7 +137,7 @@ export default function UserFormFields({
                 <ITFlex className="flex-1">
                   <ITSearchSelect name="u_role" label={tt("form.role")} options={roleOptions as never} value={form.role} onChange={(e) => onFieldChange("role", e.target.value as any)} required />
                 </ITFlex>
-                <ITButton variant="icon-only" size="sm" color="gray" onClick={() => setHelpOpen(true)} ariaLabel={tt("form.roleGuide")} title={tt("form.roleGuide")}>
+                <ITButton variant="outlined" className="tm-icon-button" size="sm" color="gray" onClick={() => setHelpOpen(true)} ariaLabel={tt("form.roleGuide")} title={tt("form.roleGuide")}>
                   <LuCircleHelp size={14} />
                 </ITButton>
               </ITFlex>

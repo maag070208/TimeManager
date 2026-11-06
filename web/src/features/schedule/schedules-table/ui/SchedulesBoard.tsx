@@ -260,7 +260,7 @@ export default function SchedulesBoard() {
       render: (h) => (
         <ITFlex align="center" gap={1}>
           <ITButton
-            variant="icon-only"
+            variant="outlined" className="tm-icon-button"
             color="secondary"
             size="sm"
             icon={<LuPencil size={12} />}

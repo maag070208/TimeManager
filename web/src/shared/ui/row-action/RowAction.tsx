@@ -23,9 +23,9 @@ interface Props {
 export default function RowAction({ icon, label, onClick, tone = "primary", disabled = false }: Props) {
   return (
     <ITButton
-      variant="filled"
+      variant="outlined"
       color={tone === "danger" ? "error" : tone}
-      size="lg"
+      className="tm-icon-button"
       title={label}
       ariaLabel={label}
       onClick={onClick}

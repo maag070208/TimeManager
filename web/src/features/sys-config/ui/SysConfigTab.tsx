@@ -243,7 +243,7 @@ export default function SysConfigTab() {
                   </ITText>
                 </ITFlex>
                 <ITButton
-                  variant="icon-only"
+                  variant="outlined" className="tm-icon-button"
                   color="error"
                   size="sm"
                   onClick={() => removeRecipient(email)}

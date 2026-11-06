@@ -270,7 +270,7 @@ export default function DepartmentsCatalog({
                   </ITText>
                   <div className="mt-auto flex items-center justify-end gap-1.5">
                     <ITButton
-                      variant="icon-only"
+                      variant="outlined" className="tm-icon-button"
                       color="secondary"
                       size="sm"
                       icon={<LuEye size={13} />}
@@ -280,7 +280,7 @@ export default function DepartmentsCatalog({
                     />
                     {canManage && (
                       <ITButton
-                        variant="icon-only"
+                        variant="outlined" className="tm-icon-button"
                         color="secondary"
                         size="sm"
                         icon={<LuPencil size={12} />}
@@ -291,7 +291,7 @@ export default function DepartmentsCatalog({
                     )}
                     {canManage && (
                       <ITButton
-                        variant="icon-only"
+                        variant="outlined" className="tm-icon-button"
                         color="error"
                         size="sm"
                         icon={<LuTrash2 size={12} />}
