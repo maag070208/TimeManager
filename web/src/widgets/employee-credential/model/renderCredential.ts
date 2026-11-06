@@ -18,6 +18,10 @@ const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sa
 
 /** Texto por defecto cuando un campo viene vacío. */
 const EMPTY = "—";
+const CRED_BAND = "#eaf6ef";
+const CRED_INK = "#0f2e3d";
+const CRED_MUTED = "#64748b";
+const CRED_ACCENT = "#10b981";
 
 /** Carga una imagen (los dataURL no contaminan el canvas) o devuelve `null`. */
 const loadImage = async (src: string): Promise<HTMLImageElement | null> => {
@@ -147,9 +151,18 @@ export const drawCredential = async (
   ctx.fillRect(0, 0, CREDENTIAL_W_PX, CREDENTIAL_H_PX);
 
   // Banda superior + acento.
-  ctx.fillStyle = PDF_COLORS.band;
+  ctx.fillStyle = CRED_BAND;
   ctx.fillRect(LAYOUT.band.x, LAYOUT.band.y, LAYOUT.band.w, LAYOUT.band.h);
-  ctx.fillStyle = getTenantBrandColor() ?? PDF_COLORS.bandAccent;
+  // Ola sutil dentro de la banda, en la línea visual del producto.
+  ctx.beginPath();
+  ctx.moveTo(0, LAYOUT.band.h);
+  ctx.bezierCurveTo(180, 84, 320, 132, 480, 102);
+  ctx.bezierCurveTo(650, 70, 800, 118, CREDENTIAL_W_PX, 86);
+  ctx.lineTo(CREDENTIAL_W_PX, LAYOUT.band.h);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(16, 185, 129, 0.16)";
+  ctx.fill();
+  ctx.fillStyle = getTenantBrandColor() ?? CRED_ACCENT;
   ctx.fillRect(LAYOUT.accent.x, LAYOUT.accent.y, LAYOUT.accent.w, LAYOUT.accent.h);
 
   // Logo sobre badge blanco.
@@ -164,10 +177,10 @@ export const drawCredential = async (
   }
 
   // Encabezados.
-  ctx.fillStyle = PDF_COLORS.white;
+  ctx.fillStyle = CRED_INK;
   ctx.font = `bold ${LAYOUT.title.size}px ${FONT}`;
   ctx.fillText(i18n.t("employees:credential.title"), LAYOUT.title.x, LAYOUT.title.baseline);
-  ctx.fillStyle = "#bfe0f0";
+  ctx.fillStyle = CRED_MUTED;
   ctx.font = `${LAYOUT.subtitle.size}px ${FONT}`;
   ctx.fillText(
     i18n.t("employees:credential.subtitle", { company: getTenantBrandName() ?? "TimeManager" }),
@@ -187,14 +200,14 @@ export const drawCredential = async (
 
     roundRectPath(ctx, fx, fy, fw, fh, radius);
     ctx.lineWidth = border;
-    ctx.strokeStyle = PDF_COLORS.band;
+    ctx.strokeStyle = CRED_ACCENT;
     ctx.stroke();
   } else {
     roundRectPath(ctx, fx, fy, fw, fh, radius);
-    ctx.fillStyle = PDF_COLORS.band;
+    ctx.fillStyle = CRED_INK;
     ctx.fill();
 
-    ctx.fillStyle = PDF_COLORS.white;
+    ctx.fillStyle = "#ffffff";
     ctx.font = `bold 84px ${FONT}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -222,7 +235,7 @@ export const drawCredential = async (
     ctx.lineTo(dx + dw, y + LAYOUT.row.separatorOffset);
     ctx.stroke();
 
-    ctx.fillStyle = PDF_COLORS.muted;
+    ctx.fillStyle = CRED_MUTED;
     ctx.font = `bold 13px ${FONT}`;
     setLetterSpacing(ctx, "1px");
     ctx.fillText(row.label.toUpperCase(), dx, y + LAYOUT.row.labelOffset);
@@ -251,7 +264,7 @@ export const drawCredential = async (
     ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
-  ctx.fillStyle = PDF_COLORS.muted;
+  ctx.fillStyle = CRED_MUTED;
   ctx.font = `${LAYOUT.qrLabel.size}px ${FONT}`;
   ctx.textAlign = "center";
   const labels = wrapLines(
@@ -266,14 +279,14 @@ export const drawCredential = async (
   ctx.textAlign = "left";
 
   // Pie.
-  ctx.strokeStyle = PDF_COLORS.bandAccent;
+  ctx.strokeStyle = CRED_ACCENT;
   ctx.lineWidth = LAYOUT.footerLine.h;
   ctx.beginPath();
   ctx.moveTo(LAYOUT.footerLine.x, LAYOUT.footerLine.y);
   ctx.lineTo(LAYOUT.footerLine.x + LAYOUT.footerLine.w, LAYOUT.footerLine.y);
   ctx.stroke();
 
-  ctx.fillStyle = PDF_COLORS.muted;
+  ctx.fillStyle = CRED_MUTED;
   ctx.font = `${LAYOUT.footerSize}px ${FONT}`;
   ctx.textAlign = "left";
   ctx.fillText(number, LAYOUT.footerLeftX, LAYOUT.footerBaseline);

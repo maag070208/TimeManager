@@ -543,13 +543,27 @@ export default function EmployeeProfileEditPage() {
       <div onKeyDown={handleEnter} className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <ITStack className="min-w-0" spacing={5}>
           {steps.map((section, index) => (
-            <FormSection key={section.label} number={index + 1} title={section.label} icon={section.icon} complete={section.complete}>
+            <FormSection
+              key={section.label}
+              number={index + 1}
+              title={section.label}
+              icon={section.icon}
+              complete={section.complete}
+              className={`tm-hero-card tm-hero-card--${["mint", "sky", "lavender"][index % 3]}`}
+              help={
+                index === 0
+                  ? "La foto e identidad alimentan la credencial y el expediente."
+                  : index === 1
+                    ? "Número, puesto y datos fiscales se usan en nómina y reportes."
+                    : "El contacto y domicilio se usan para avisos y emergencias."
+              }
+            >
               {section.content}
             </FormSection>
           ))}
         </ITStack>
 
-        <LiveSummary total={steps.length} done={steps.filter((section) => section.complete).length}>
+        <LiveSummary className="tm-hero-card tm-hero-card--amber" total={steps.length} done={steps.filter((section) => section.complete).length}>
           <LiveSummaryRow
             label={tt("detail.fields.name")}
             value={[form.name, form.paternalSurname, form.maternalSurname].map((part) => part?.trim()).filter(Boolean).join(" ")}
@@ -575,10 +589,10 @@ export default function EmployeeProfileEditPage() {
                 : tt("detail.autosaveError")}
           </ITText>
         )}
-        <ITButton variant="outlined" color="gray" className="!rounded-full" onClick={() => goBack(`/employees/${id}`)} disabled={detail.saving}>
+        <ITButton variant="outlined" color="secondary" className="tm-save-button" onClick={() => goBack(`/employees/${id}`)} disabled={detail.saving}>
           {tt("common:actions.cancel")}
         </ITButton>
-        <ITButton variant="rounded" color="primary" onClick={() => void handleFinish()} disabled={detail.saving}>
+        <ITButton variant="filled" color="primary" className="tm-save-button" onClick={() => void handleFinish()} disabled={detail.saving}>
           {detail.saving ? tt("detail.saving") : tt("detail.save")}
         </ITButton>
       </StickyActions>
