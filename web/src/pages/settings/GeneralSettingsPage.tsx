@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITInput, ITPage, ITSelect, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITInput, ITPage, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBuilding2, LuCalendarDays, LuSignature, LuSave, LuShieldCheck, LuWallet, LuClock } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -167,7 +168,7 @@ export default function GeneralSettingsPage() {
               </div>
             </div>
             <div className="grid gap-3 p-4" style={fieldSet}>
-              <ITSelect
+              <ITSearchSelect
                 name="weekStartDay"
                 label="Primer día de la semana"
                 value={String(form.weekStartDay)}
@@ -233,10 +234,10 @@ export default function GeneralSettingsPage() {
               <HelpTip text="Controla si se puede checar desde la web/app, si esas checadas suman jornada, si se exige aceptar el acuerdo de método y si un convenio colectivo requiere firma sindical." />
             </div>
             <div className="mt-3 grid gap-3" style={fieldSet}>
-              <ITSelect name="remotePunchEnabled" label="Checada desde la web" value={form.remotePunchEnabled ? "true" : "false"} onChange={(e) => set("remotePunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]} />
-              <ITSelect name="remoteCountsForWorkday" label="Cuenta para la jornada" value={form.remoteCountsForWorkday ? "true" : "false"} onChange={(e) => set("remoteCountsForWorkday", e.target.value === "true")} options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]} />
-              <ITSelect name="blockRemoteWithoutAgreement" label="Exigir acuerdo para checar web" value={form.blockRemoteWithoutAgreement ? "true" : "false"} onChange={(e) => set("blockRemoteWithoutAgreement", e.target.value === "true")} options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]} />
-              <ITSelect name="requireUnionForCollective" label="Convenio colectivo exige sindicato" value={form.requireUnionForCollective ? "true" : "false"} onChange={(e) => set("requireUnionForCollective", e.target.value === "true")} options={[{ value: "true", label: "Sí" }, { value: "false", label: "No, permitir trabajador" }]} />
+              <ITSearchSelect name="remotePunchEnabled" label="Checada desde la web" value={form.remotePunchEnabled ? "true" : "false"} onChange={(e) => set("remotePunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]} />
+              <ITSearchSelect name="remoteCountsForWorkday" label="Cuenta para la jornada" value={form.remoteCountsForWorkday ? "true" : "false"} onChange={(e) => set("remoteCountsForWorkday", e.target.value === "true")} options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]} />
+              <ITSearchSelect name="blockRemoteWithoutAgreement" label="Exigir acuerdo para checar web" value={form.blockRemoteWithoutAgreement ? "true" : "false"} onChange={(e) => set("blockRemoteWithoutAgreement", e.target.value === "true")} options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]} />
+              <ITSearchSelect name="requireUnionForCollective" label="Convenio colectivo exige sindicato" value={form.requireUnionForCollective ? "true" : "false"} onChange={(e) => set("requireUnionForCollective", e.target.value === "true")} options={[{ value: "true", label: "Sí" }, { value: "false", label: "No, permitir trabajador" }]} />
             </div>
           </ITCard>
         </div>

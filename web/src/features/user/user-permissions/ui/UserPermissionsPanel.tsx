@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ITAlert,
@@ -5,7 +6,6 @@ import {
   ITButton,
   ITDialog,
   ITInput,
-  ITSelect,
   ITToast, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
 import { FaUndo } from "react-icons/fa";
 import { LuShieldCheck } from "react-icons/lu";
@@ -163,7 +163,7 @@ export default function UserPermissionsPanel({ userId }: Props) {
                     {t(`roles:scopePlain.${row.effective}`)}
                   </ITBadget>
                   <div className="w-40 max-w-full">
-                    <ITSelect
+                    <ITSearchSelect
                       name={`perm_${row.permission}`}
                       size="sm"
                       options={optionsFor(row)}

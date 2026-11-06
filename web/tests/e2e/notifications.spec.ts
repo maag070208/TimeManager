@@ -19,7 +19,7 @@ test.describe("centro de notificaciones", () => {
 
     // Sin leer: punto azul en la fila y botón de marcar todo como leído.
     await expect(page.getByRole("img", { name: "Sin leer" })).toHaveCount(1);
-    await expect(page.getByRole("button", { name: "Marcar todo como leído" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Marcar todo como leído" }).first()).toBeVisible();
   });
 
   test("el aviso se marca leído al abrirlo y el estado persiste", async ({ page }) => {

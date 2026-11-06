@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useCallback, useEffect, useState } from "react";
 import {
   ITBadget,
@@ -6,7 +7,6 @@ import {
   ITFlex,
   ITInput,
   ITPage,
-  ITSelect,
   ITText,
   ITTextarea,
 } from "@axzydev/axzy_ui_system";
@@ -194,7 +194,7 @@ export default function TeleworkAdminPage() {
               <ITFlex direction="column" gap={3}>
                 <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
                 <ITFlex gap={2} wrap="wrap" align="end">
-                  <ITSelect
+                  <ITSearchSelect
                     name="registrationUser"
                     label={t("admin.person")}
                     value={newRegistration.userId}
@@ -203,7 +203,7 @@ export default function TeleworkAdminPage() {
                     }
                     options={peopleOptions}
                   />
-                  <ITSelect
+                  <ITSearchSelect
                     name="registrationMode"
                     label={t("admin.mode")}
                     value={newRegistration.mode}
@@ -318,14 +318,14 @@ export default function TeleworkAdminPage() {
                   {t("admin.contactsHint")}
                 </ITText>
                 <ITFlex gap={2} wrap="wrap" align="end">
-                  <ITSelect
+                  <ITSearchSelect
                     name="contactUser"
                     label={t("admin.person")}
                     value={newContact.userId}
                     onChange={(event) => setNewContact((form) => ({ ...form, userId: event.target.value }))}
                     options={peopleOptions}
                   />
-                  <ITSelect
+                  <ITSearchSelect
                     name="contactChannel"
                     label={t("admin.channel")}
                     value={newContact.channel}

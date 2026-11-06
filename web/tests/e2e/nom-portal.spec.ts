@@ -18,7 +18,7 @@ test.describe("NOM: portal del trabajador y teletrabajo", () => {
 
     await expect(page).toHaveURL(/#\/acme\/mi-jornada$/);
     await expect(page.getByText("Marca tu entrada y salida, consulta tus marcajes")).toBeVisible();
-    await expect(page.getByText("Marcaje de hoy")).toBeVisible();
+    await expect(page.getByText("Siguiente paso")).toBeVisible();
     await expect(page.getByText("Mis marcajes")).toBeVisible();
     await expect(page.getByText("Mi teletrabajo")).toBeVisible();
     // acme.staff no está dado de alta como teletrabajador en el seed.

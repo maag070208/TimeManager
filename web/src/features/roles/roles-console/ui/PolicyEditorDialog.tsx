@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ITButton, ITDialog, ITInput, ITSelect, ITTextarea, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITButton, ITDialog, ITInput, ITTextarea, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { FaBan, FaCheckCircle, FaChevronDown, FaChevronRight, FaPlus, FaTimes, FaTrash } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type {
@@ -225,7 +226,7 @@ export default function PolicyEditorDialog({
               ];
       return (
         <div className="w-44">
-          <ITSelect
+          <ITSearchSelect
             name={`cond_value_${index}`}
             size="sm"
             options={[{ value: "", label: t("policies.pickValue") }, ...options]}
@@ -258,7 +259,7 @@ export default function PolicyEditorDialog({
     >
       <ITStack spacing={4}>
         <DialogSection step={1} title={t("policies.wizard.action")} hint={t("policies.wizard.actionHint")}>
-          <ITSelect
+          <ITSearchSelect
             name="policy_action"
             size="sm"
             options={actions.map((item) => ({ value: item.key, label: `${item.label} · ${item.module}` }))}
@@ -302,7 +303,7 @@ export default function PolicyEditorDialog({
                     {index === 0 ? t("policies.if") : t("policies.and")}
                   </ITText>
                   <div className="w-40">
-                    <ITSelect
+                    <ITSearchSelect
                       name={`cond_field_${index}`}
                       size="sm"
                       options={(action?.fields ?? []).map((item) => ({ value: item.key, label: item.label }))}
@@ -318,7 +319,7 @@ export default function PolicyEditorDialog({
                     />
                   </div>
                   <div className="w-40">
-                    <ITSelect
+                    <ITSearchSelect
                       name={`cond_op_${index}`}
                       size="sm"
                       options={operators.map((operator) => ({ value: operator, label: tt(`policies.operator.${operator}`) }))}

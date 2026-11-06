@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { ITAlert, ITButton, ITCheckbox, ITConfirmDialog, ITDropdownMenu, ITInput, ITSelect, ITText, ITFlex } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITCheckbox, ITConfirmDialog, ITDropdownMenu, ITInput, ITText, ITFlex } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import type { ITDropdownMenuItem } from "@axzydev/axzy_ui_system";
 import {
   FaBan,
@@ -268,7 +269,7 @@ export default function UserAccessExplorer({
           onChange={(event) => setQuery(event.target.value)}
           iconLeft={<FaSearch size={11} />}
         />
-        <ITSelect
+        <ITSearchSelect
           name="explorer_role"
           size="sm"
           value={roleFilter}

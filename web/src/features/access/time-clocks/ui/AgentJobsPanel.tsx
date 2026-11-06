@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import {
   ITAlert,
   ITBadget,
@@ -5,7 +6,6 @@ import {
   ITCard,
   ITFlex,
   ITInput,
-  ITSelect,
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { LuCloudUpload, LuHistory, LuRefreshCw } from "react-icons/lu";
@@ -78,7 +78,7 @@ export default function AgentJobsPanel({ clocks }: { clocks: TimeClockDevice[] }
       )}
 
       <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
-        <ITSelect
+        <ITSearchSelect
           name="agentJobClock"
           label={fx.t("agentJobs.clock")}
           options={clocks.map((clock) => ({
@@ -88,7 +88,7 @@ export default function AgentJobsPanel({ clocks }: { clocks: TimeClockDevice[] }
           value={fx.clockSerial}
           onChange={(event) => fx.setClockSerial(event.target.value)}
         />
-        <ITSelect
+        <ITSearchSelect
           name="agentJobAction"
           label={fx.t("agentJobs.action")}
           options={actionOptions}

@@ -1,4 +1,5 @@
-import { ITSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITText } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBuilding2 } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { PLATFORM_OPTION, useTenantSwitcher } from "../model/useTenantSwitcher";
@@ -15,7 +16,7 @@ export default function TenantSwitcher() {
     ];
     return (
       <div className="w-28 sm:w-48" title={t("tenant.switchHint")}>
-        <ITSelect
+        <ITSearchSelect
           name="tenant"
           size="sm"
           options={options}

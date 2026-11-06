@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useEffect, useState } from "react";
 import {
   ITButton,
@@ -6,7 +7,6 @@ import {
   ITDialog,
   ITFlex,
   ITInput,
-  ITSelect,
   ITTabs,
   ITText,
   ITTextarea,
@@ -177,7 +177,7 @@ export default function EmployeeProfileEditDialog({
       </ITFlex>
       <ITFlex gap={4} wrap="wrap">
         <div className="flex-1 min-w-[200px]">
-          <ITSelect
+          <ITSearchSelect
             name="genderId"
             label={tt("detail.fields.gender")}
             value={form.genderId ?? ""}
@@ -277,7 +277,7 @@ export default function EmployeeProfileEditDialog({
   const medicalTab = (
     <ITFlex direction="column" gap={4} className="pt-4">
       <div className="max-w-xs">
-        <ITSelect
+        <ITSearchSelect
           name="bloodTypeId"
           label={tt("detail.fields.bloodType")}
           value={form.bloodTypeId ?? ""}

@@ -1,5 +1,6 @@
 import { Fragment, useMemo, useState } from "react";
-import { ITCheckbox, ITInput, ITSelect, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { ITCheckbox, ITInput, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { FaChevronDown, FaChevronRight, FaLock, FaSearch } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { PermissionCatalog } from "@entities/permission";
@@ -91,7 +92,7 @@ export default function PermissionMatrixPanel({ admin, onOpenRole }: Props) {
           />
         </div>
         <div className="w-48">
-          <ITSelect
+          <ITSearchSelect
             name="matrix_module"
             size="sm"
             value={moduleFilter}

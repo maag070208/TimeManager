@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { emitAppEvent, onAppEvent } from "@shared/lib/appEvents";
 import {
@@ -7,7 +8,6 @@ import {
   ITFlex,
   ITInput,
   ITPage,
-  ITSelect,
   ITText,
   ITTextarea, ITStack } from "@axzydev/axzy_ui_system";
 import { LuCamera, LuIdCard, LuMapPin, LuPhone, LuUserRound } from "react-icons/lu";
@@ -322,7 +322,7 @@ export default function EmployeeProfileEditPage() {
           </Row>
           <Row>
             <Cell>
-              <ITSelect
+              <ITSearchSelect
                 name="genderId"
                 label={tt("detail.fields.gender")}
                 value={form.genderId ?? ""}
@@ -339,7 +339,7 @@ export default function EmployeeProfileEditPage() {
               />
             </Cell>
             <Cell>
-              <ITSelect
+              <ITSearchSelect
                 name="bloodTypeId"
                 label={tt("detail.fields.bloodType")}
                 value={form.bloodTypeId ?? ""}
@@ -383,7 +383,7 @@ export default function EmployeeProfileEditPage() {
           </Row>
           <Row>
             <Cell>
-              <ITSelect
+              <ITSearchSelect
                 name="departmentId"
                 label={tt("detail.fields.department")}
                 options={[
@@ -397,7 +397,7 @@ export default function EmployeeProfileEditPage() {
               />
             </Cell>
             <Cell>
-              <ITSelect
+              <ITSearchSelect
                 name="subareaId"
                 label={tt("detail.fields.subarea")}
                 disabled={!form.departmentId}

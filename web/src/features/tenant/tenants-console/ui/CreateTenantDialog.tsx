@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ITAlert, ITButton, ITDialog, ITInput, ITSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITDialog, ITInput, ITText } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBuilding2, LuCopy, LuCheck } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { dyn } from "@shared/i18n";
@@ -101,14 +102,14 @@ export default function CreateTenantDialog({ isOpen, onClose, onCreated }: Props
             {t("platform.create.slugHint", { host: fx.form.slug ? tenantHost(fx.form.slug) : "…" })}
           </ITText>
         </div>
-        <ITSelect
+        <ITSearchSelect
           name="timezone"
           label={t("platform.create.timezone")}
           options={MX_TIMEZONES.map((tz) => ({ value: tz, label: tz.replace("America/", "").replace("_", " ") }))}
           value={fx.form.timezone}
           onChange={(e) => fx.set("timezone", e.target.value)}
         />
-        <ITSelect
+        <ITSearchSelect
           name="planId"
           label={t("platform.create.plan")}
           value={fx.form.planId}

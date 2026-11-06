@@ -1,4 +1,5 @@
-import { ITButton, ITFlex, ITSelect, ITText, ITTextarea } from "@axzydev/axzy_ui_system";
+import { ITButton, ITFlex, ITText, ITTextarea } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -101,7 +102,7 @@ export default function TimeClockRosterView() {
                   </ITFlex>
                   {fx.canRemove && (
                     <ITFlex direction="column" gap={2}>
-                      <ITSelect
+                      <ITSearchSelect
                         name={`category-${r.employeeNumber}`}
                         label={t("roster.form.category")}
                         options={categoryOptions}

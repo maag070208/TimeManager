@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import {
   ITAlert,
   ITButton,
@@ -6,7 +7,6 @@ import {
   ITFlex,
   ITInput,
   ITPage,
-  ITSelect,
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { FaMapMarkerAlt, FaPlus } from "react-icons/fa";
@@ -76,7 +76,7 @@ export default function SubareasPage() {
         title={tt("list.new")}
       >
         <ITFlex direction="column" gap={3}>
-          <ITSelect
+          <ITSearchSelect
             name="newDepartmentId"
             label={tt("list.colDepartment")}
             options={departmentOptions}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ITAlert, ITButton, ITCard, ITFlex, ITSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITCard, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { FaUndo } from "react-icons/fa";
 import {
   DEFAULT_WEEK_START_DAY,
@@ -83,7 +84,7 @@ export default function WeekStartCard({ onResult }: Props) {
         </ITAlert>
       )}
 
-      <ITSelect
+      <ITSearchSelect
         name="weekStartDay"
         label={t("sysConfig.weekStartLabel")}
         options={WEEKDAYS.map((d) => ({

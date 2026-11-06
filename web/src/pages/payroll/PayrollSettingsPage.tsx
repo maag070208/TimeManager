@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITSelect, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuCalculator, LuClock, LuPercent, LuReceipt, LuSave, LuShieldCheck, LuWallet } from "react-icons/lu";
 import { payrollApi } from "@entities/payroll";
 import { HelpTip } from "@shared/ui/help-tip";
@@ -246,7 +247,7 @@ export default function PayrollSettingsPage() {
               </div>
             </div>
             <div className="mt-3 grid gap-3" style={grid(200)}>
-              <ITSelect
+              <ITSearchSelect
                 name="isrEnabled"
                 label="Calcular ISR"
                 value={form.isrEnabled ? "true" : "false"}
@@ -254,7 +255,7 @@ export default function PayrollSettingsPage() {
                 options={[{ value: "false", label: "No" }, { value: "true", label: "Sí" }]}
               />
               {field("isrSubsidyMonthly", "Subsidio al empleo mensual")}
-              <ITSelect
+              <ITSearchSelect
                 name="imssEnabled"
                 label="Calcular IMSS"
                 value={form.imssEnabled ? "true" : "false"}

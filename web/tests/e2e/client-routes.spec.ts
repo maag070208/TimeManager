@@ -16,7 +16,7 @@ test.describe("ruta por cliente en el hash", () => {
     const form = loginForm(page);
     await expect(form).toBeVisible();
     await expect(page).toHaveURL(/#\/acme\/login$/);
-    await expect(page.getByText(ACME.slug, { exact: true })).toBeVisible();
+    await expect(page.getByText(ACME.name, { exact: false }).first()).toBeVisible();
 
     await page.locator('input[name="username"]').fill(ACME.admin);
     await page.locator('input[name="password"]').fill(E2E_PASSWORD);
@@ -57,10 +57,11 @@ test.describe("ruta por cliente en el hash", () => {
     await expect(page).toHaveURL(/#\/acme\/home$/);
   });
 
-  test("un slug desconocido cae en el login de ese cliente", async ({ page }) => {
+  test("un slug desconocido cae en el login de ese cliente y no muestra formulario", async ({ page }) => {
     await page.goto(`${PLATFORM.base}/#/noexiste/home`);
     await expect(page).toHaveURL(/#\/noexiste\/login$/);
-    await expect(loginForm(page)).toBeVisible();
+    await expect(page.getByText("Cliente no encontrado")).toBeVisible();
+    await expect(loginForm(page)).toHaveCount(0);
   });
 
   test("la plataforma sigue sin prefijo", async ({ page }) => {

@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   ITBadget,
@@ -6,7 +7,6 @@ import {
   ITFlex,
   ITInput,
   ITPage,
-  ITSelect,
   ITText,
   ITTextarea,
 } from "@axzydev/axzy_ui_system";
@@ -282,7 +282,7 @@ export default function MyWorkdayPage() {
                   </summary>
                   <div className="mt-3 flex flex-col gap-3">
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <ITSelect
+                      <ITSearchSelect
                         name="punchMode"
                         label={t("punch.mode")}
                         value={workMode}

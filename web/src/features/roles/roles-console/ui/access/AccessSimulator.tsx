@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ITAlert, ITInput, ITSearchSelect, ITSelect, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITInput, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { FaCheck, FaCheckCircle, FaIdCard, FaKey, FaMinus, FaTimes, FaTimesCircle, FaUserShield } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type {
@@ -273,7 +274,7 @@ export default function AccessSimulator({ catalog, actions, initialUserId = null
                   onChange={(event) => setFields((previous) => ({ ...previous, [field.key]: event.target.value }))}
                 />
               ) : (
-                <ITSelect
+                <ITSearchSelect
                   key={field.key}
                   name={`sim_${field.key}`}
                   size="sm"

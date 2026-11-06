@@ -12,8 +12,8 @@ test.describe("configuración del cliente admin", () => {
     await gotoRoute(page, "/settings/general");
     await configLoaded;
     await expect(page.getByText("Configuración del cliente")).toBeVisible();
-    await expect(page.getByText("Política de asistencia (horarios nuevos)")).toBeVisible();
-    await expect(page.getByText("Límites de jornada y retención")).toBeVisible();
+    await expect(page.getByText(/Política de asistencia/)).toBeVisible();
+    await expect(page.getByText("Límites y retención")).toBeVisible();
 
     // Cambiar a jueves y guardar.
     await page.selectOption('select[name="weekStartDay"]', "4");

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { ITAlert, ITButton, ITCard, ITFlex, ITSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITCard, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { FaUndo } from "react-icons/fa";
 import { APP_LANGUAGES, type AppLanguage } from "@shared/i18n/config";
 import type { AppDispatch } from "@app/store";
@@ -82,7 +83,7 @@ export default function SystemLanguageCard({ onResult }: Props) {
         </ITAlert>
       )}
 
-      <ITSelect
+      <ITSearchSelect
         name="systemLanguage"
         label={t("sysConfig.languageLabel")}
         options={APP_LANGUAGES.map((lng) => ({ value: lng, label: t(`sysConfig.languages.${lng}`) }))}

@@ -1,4 +1,5 @@
-import { ITAlert, ITButton, ITDialog, ITSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITDialog, ITText } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBadgeDollarSign } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { Tenant } from "@entities/tenant";
@@ -38,7 +39,7 @@ export default function PlanAssignDialog({ isOpen, tenant, onClose, onSaved }: P
         </div>
       )}
       <div className="grid gap-4">
-        <ITSelect
+        <ITSearchSelect
           name="planId"
           label={t("platform.plan.select")}
           value={fx.planId}

@@ -12,7 +12,7 @@ test.describe("inicio de plataforma", () => {
     await loginAs(page, "platform");
 
     await expect(page.getByRole("heading", { level: 1, name: "Panel de TimeManager" })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 3, name: "Clientes" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: "Clientes", exact: true })).toBeVisible();
 
     const table = page.getByRole("table");
     await expect(table).toBeVisible();

@@ -1,4 +1,5 @@
-import { ITButton, ITFlex, ITSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useTranslation } from "react-i18next";
 import { dateLocale } from "@shared/i18n/format";
 import { useTimeClockInspect, type InspectTab } from "../model/useTimeClockInspect";
@@ -40,7 +41,7 @@ export default function TimeClockInspectView({ clockSerial, tabs = ALL_TABS }: P
       {!hideToolbar && (
         <ITFlex align="center" gap={3} wrap="wrap">
           {!controlled && (
-            <ITSelect
+            <ITSearchSelect
               name="clock"
               label={t("inspect.clock")}
               options={fx.devices.map((d) => ({ value: d.clockSerial, label: d.name }))}
@@ -49,7 +50,7 @@ export default function TimeClockInspectView({ clockSerial, tabs = ALL_TABS }: P
             />
           )}
           {fx.tab === "events" && (
-            <ITSelect
+            <ITSearchSelect
               name="days"
               label={t("inspect.days")}
               options={[1, 2, 7, 30].map((n) => ({ value: String(n), label: t("inspect.daysOption", { count: n }) }))}

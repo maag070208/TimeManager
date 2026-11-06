@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaFingerprint } from "react-icons/fa";
-import { ITAlert, ITButton, ITFlex, ITSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { timeClockApi, type FingerprintStationInfo, type FingerprintStationTest } from "@entities/time-clock";
 
 const FINGERS = Array.from({ length: 10 }, (_, i) => i + 1);
@@ -46,7 +47,7 @@ export default function FingerprintReaderPanel() {
       )}
 
       <ITFlex align="end" gap={3} wrap="wrap">
-        <ITSelect
+        <ITSearchSelect
           name="readerFinger"
           label={t("dashboard.reader.finger")}
           options={FINGERS.map((n) => ({ value: String(n), label: String(n) }))}

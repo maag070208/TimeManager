@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITSelect, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuCalendarCheck, LuCheck, LuX } from "react-icons/lu";
 import { nomApi } from "@entities/nom";
 import type { LeaveRequestRow, LeaveType } from "@entities/nom";
@@ -192,7 +193,7 @@ export default function LeaveAdminPage() {
             <div className="mt-4 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
               <ITInput name="typeKey" label="Clave" value={typeKey} onChange={(e) => setTypeKey(e.target.value)} />
               <ITInput name="typeName" label="Nombre" value={typeName} onChange={(e) => setTypeName(e.target.value)} />
-              <ITSelect
+              <ITSearchSelect
                 name="typePaid"
                 label="Goce de sueldo"
                 value={typePaid}

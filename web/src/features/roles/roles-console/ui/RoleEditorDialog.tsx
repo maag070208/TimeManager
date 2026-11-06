@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ITButton, ITDialog, ITInput, ITSelect, ITTextarea, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITButton, ITDialog, ITInput, ITTextarea, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { FaChevronDown, FaChevronRight, FaClone, FaLock, FaRegFile } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { RoleAdmin, RoleCreateDto, RoleUpdateDto } from "@entities/permission";
@@ -236,7 +237,7 @@ export default function RoleEditorDialog({
             </div>
             {form.start === "copy" && (
               <div className="mt-2">
-                <ITSelect
+                <ITSearchSelect
                   name="role_copy_from"
                   size="sm"
                   placeholder={t("roleDialog.copyPlaceholder")}

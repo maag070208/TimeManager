@@ -1,3 +1,4 @@
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useState } from "react";
 import {
   FileTypeEnum,
@@ -9,8 +10,6 @@ import {
   ITFlex,
   ITGrid,
   ITInput,
-  ITSearchSelect,
-  ITSelect,
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { LuCircleCheck, LuCircleHelp, LuLock } from "react-icons/lu";
@@ -136,7 +135,7 @@ export default function UserFormFields({
             <ITGrid item xs={12} md={4}>
               <ITFlex align="end" gap={2}>
                 <ITFlex className="flex-1">
-                  <ITSelect name="u_role" label={tt("form.role")} options={roleOptions} value={form.role} onChange={(e) => onFieldChange("role", e.target.value as any)} required />
+                  <ITSearchSelect name="u_role" label={tt("form.role")} options={roleOptions as never} value={form.role} onChange={(e) => onFieldChange("role", e.target.value as any)} required />
                 </ITFlex>
                 <ITButton variant="icon-only" size="sm" color="gray" onClick={() => setHelpOpen(true)} ariaLabel={tt("form.roleGuide")} title={tt("form.roleGuide")}>
                   <LuCircleHelp size={14} />
@@ -181,10 +180,10 @@ export default function UserFormFields({
         <>
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
-              <ITSearchSelect name="u_dept" label={tt("form.department")} options={activeDepartments.map((d) => ({ value: d.id, label: d.name }))} value={form.departmentId} onChange={(value) => onDepartmentChange(String(value))} />
+              <ITSearchSelect name="u_dept" label={tt("form.department")} options={activeDepartments.map((d) => ({ value: d.id, label: d.name }))} value={form.departmentId} onChange={(event) => onDepartmentChange(event.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSearchSelect name="u_sub" label={tt("form.subarea")} options={(selectedDept?.subareas ?? []).map((s) => ({ value: s.id, label: s.name }))} value={form.subareaId} onChange={(value) => onFieldChange("subareaId", String(value))} />
+              <ITSearchSelect name="u_sub" label={tt("form.subarea")} options={(selectedDept?.subareas ?? []).map((s) => ({ value: s.id, label: s.name }))} value={form.subareaId} onChange={(event) => onFieldChange("subareaId", event.target.value)} />
             </ITGrid>
           </ITGrid>
         </>

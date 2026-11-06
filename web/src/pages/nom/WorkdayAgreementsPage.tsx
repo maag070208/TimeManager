@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITSelect, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITPage, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuSignature } from "react-icons/lu";
 import { nomApi } from "@entities/nom";
 import type { DistributionAgreement, RecordAgreementAdmin } from "@entities/nom";
@@ -93,7 +94,7 @@ export default function WorkdayAgreementsPage() {
         <ITCard contentClassName="!p-5">
           <ITText className="font-bold">Nuevo convenio de distribución (art. 58)</ITText>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ITSelect
+            <ITSearchSelect
               name="agreementUser"
               label="Persona"
               value={form.userId}
@@ -103,7 +104,7 @@ export default function WorkdayAgreementsPage() {
                 label: employee.employeeNumber ? `${employee.name} (${employee.employeeNumber})` : employee.name,
               }))}
             />
-            <ITSelect
+            <ITSearchSelect
               name="agreementKind"
               label="Tipo"
               value={form.kind}
@@ -116,7 +117,7 @@ export default function WorkdayAgreementsPage() {
               }
               options={[{ value: "INDIVIDUAL", label: "Individual" }, { value: "COLECTIVO", label: "Colectivo (sindicato)" }]}
             />
-            <ITSelect
+            <ITSearchSelect
               name="agreementParty"
               label="Parte que acepta"
               value={form.kind === "COLECTIVO" ? "UNION" : form.party}
