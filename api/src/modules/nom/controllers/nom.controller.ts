@@ -117,8 +117,22 @@ export class NomController {
 
 
 
-  listLeaveTypes = async (_req: Request, res: Response) => {
-    res.json(await this.leave.listTypes(tenantIdOrThrow()));
+  listLeaveTypes = async (req: Request, res: Response) => {
+    res.json(await this.leave.listTypes(tenantIdOrThrow(), req.query.includeInactive === "true"));
+  };
+
+  updateLeaveType = async (req: Request, res: Response) => {
+    res.json(
+      await this.leave.updateType(tenantIdOrThrow(), String(req.params.id), {
+        name: typeof req.body?.name === "string" ? req.body.name : undefined,
+        paid: typeof req.body?.paid === "boolean" ? req.body.paid : undefined,
+        active: typeof req.body?.active === "boolean" ? req.body.active : undefined,
+      }, actorOf(req))
+    );
+  };
+
+  deactivateLeaveType = async (req: Request, res: Response) => {
+    res.json(await this.leave.deactivateType(tenantIdOrThrow(), String(req.params.id), actorOf(req)));
   };
 
   createLeaveType = async (req: Request, res: Response) => {

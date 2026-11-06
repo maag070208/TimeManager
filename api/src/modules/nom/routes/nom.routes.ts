@@ -66,6 +66,8 @@ export const createNomRouter = (controller: NomController): Router => {
   // Vacaciones y permisos configurables por cliente.
   router.get("/leave/types", asyncHandler(controller.listLeaveTypes));
   router.post("/leave/types", canWrite, asyncHandler(controller.createLeaveType));
+  router.patch("/leave/types/:id", canWrite, asyncHandler(controller.updateLeaveType));
+  router.delete("/leave/types/:id", canWrite, asyncHandler(controller.deactivateLeaveType));
   router.get("/me/leave/balance", asyncHandler(controller.myLeaveBalance));
   router.get("/me/leave/requests", asyncHandler(controller.myLeaveRequests));
   router.post("/me/leave/requests", asyncHandler(controller.createMyLeaveRequest));

@@ -63,10 +63,10 @@ export class LeaveService {
     }
   }
 
-  async listTypes(tenantId: string) {
+  async listTypes(tenantId: string, includeInactive = false) {
     await this.ensureTypes(tenantId);
     return this.db.leaveType.findMany({
-      where: { tenantId, active: true },
+      where: { tenantId, ...(includeInactive ? {} : { active: true }) },
       orderBy: { name: "asc" },
     });
   }
@@ -100,6 +100,49 @@ export class LeaveService {
       newState: { key, paid: created.paid },
     });
     return created;
+  }
+
+  async updateType(
+    tenantId: string,
+    id: string,
+    input: { name?: string; paid?: boolean; active?: boolean },
+    actor: { id: string; name?: string }
+  ) {
+    const current = await this.db.leaveType.findFirst({ where: { id, tenantId } });
+    if (!current) throw new HttpError(404, "LEAVE_TYPE_NOT_FOUND");
+    const updated = await this.db.leaveType.update({
+      where: { id },
+      data: {
+        ...(input.name !== undefined && { name: input.name.trim() }),
+        ...(input.paid !== undefined && { paid: input.paid }),
+        ...(input.active !== undefined && { active: input.active }),
+      },
+    });
+    await this.audit?.({
+      action: "LEAVE_TYPE_UPDATED",
+      entityType: "LeaveType",
+      entityId: updated.id,
+      userId: actor.id,
+      userName: actor.name,
+      newState: { name: updated.name, paid: updated.paid, active: updated.active },
+    });
+    return updated;
+  }
+
+  /** Baja lógica: conserva solicitudes históricas y solo oculta el tipo. */
+  async deactivateType(tenantId: string, id: string, actor: { id: string; name?: string }) {
+    const current = await this.db.leaveType.findFirst({ where: { id, tenantId } });
+    if (!current) throw new HttpError(404, "LEAVE_TYPE_NOT_FOUND");
+    const updated = await this.db.leaveType.update({ where: { id }, data: { active: false } });
+    await this.audit?.({
+      action: "LEAVE_TYPE_DEACTIVATED",
+      entityType: "LeaveType",
+      entityId: updated.id,
+      userId: actor.id,
+      userName: actor.name,
+      newState: { active: false },
+    });
+    return updated;
   }
 
   /** Saldo de vacaciones de la persona para el año indicado. */

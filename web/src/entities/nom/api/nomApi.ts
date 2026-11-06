@@ -94,9 +94,12 @@ export const nomApi = {
 
   /** Vacaciones y permisos del trabajador. */
   leaveBalance: (year: number) => api.get<LeaveBalance>(`${base}/me/leave/balance?year=${year}`),
-  leaveTypes: () => api.get<LeaveType[]>(`${base}/leave/types`),
+  leaveTypes: (includeInactive = false) => api.get<LeaveType[]>(`${base}/leave/types${includeInactive ? "?includeInactive=true" : ""}`),
   createType: (input: { key: string; name: string; paid?: boolean }) =>
     api.post<LeaveType>(`${base}/leave/types`, input),
+  updateType: (id: string, input: { name?: string; paid?: boolean; active?: boolean }) =>
+    api.patch<LeaveType>(`${base}/leave/types/${id}`, input),
+  removeType: (id: string) => api.delete<LeaveType>(`${base}/leave/types/${id}`),
   myLeaveRequests: () => api.get<LeaveRequestRow[]>(`${base}/me/leave/requests`),
   createLeaveRequest: (input: { typeId: string; startDate: string; endDate: string; reason?: string }) =>
     api.post<LeaveRequestRow>(`${base}/me/leave/requests`, input),
