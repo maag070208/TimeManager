@@ -186,20 +186,12 @@ export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance 
                 icon: <LuTriangleAlert size={14} />,
               },
               {
-                id: "dailyCost",
-                label: "Costo diario de plantilla",
+                id: "cost",
+                label: "Costo de plantilla",
                 value: money(summary.dailySalaryTotal),
-                caption: `${summary.withSalary ?? 0} con salario configurado`,
+                caption: `Semana: ${money(summary.weeklySalaryCost)} · ${summary.withSalary ?? 0} con salario`,
                 icon: <LuWallet size={14} />,
                 tone: "info",
-              },
-              {
-                id: "weeklyCost",
-                label: "Costo semanal estimado",
-                value: money(summary.weeklySalaryCost),
-                caption: "7 días por persona",
-                icon: <LuWallet size={14} />,
-                tone: "warning",
               },
             ]}
           />
