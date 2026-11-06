@@ -115,14 +115,26 @@ export default function ScheduleForm({ id }: { id?: string }) {
           mealBreakMin: h.mealBreakMin,
           minOvertimeMin: h.minOvertimeMin,
           crossesMidnight: h.crossesMidnight,
-          days: h.days.map((d) => ({
-            weekday: d.weekday,
-            startTime: d.startTime,
-            endTime: d.endTime,
-            splitStartTime: d.splitStartTime,
-            splitEndTime: d.splitEndTime,
-            restDay: d.restDay,
-          })),
+          days: [1, 2, 3, 4, 5, 6, 7].map((weekday) => {
+            const existing = h.days.find((day) => day.weekday === weekday);
+            return existing
+              ? {
+                  weekday,
+                  startTime: existing.startTime,
+                  endTime: existing.endTime,
+                  splitStartTime: existing.splitStartTime,
+                  splitEndTime: existing.splitEndTime,
+                  restDay: existing.restDay,
+                }
+              : {
+                  weekday,
+                  startTime: "09:00",
+                  endTime: "18:00",
+                  splitStartTime: null,
+                  splitEndTime: null,
+                  restDay: true,
+                };
+          }),
         });
       })
       .catch((e: Error) => setError(e.message))
