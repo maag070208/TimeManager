@@ -463,6 +463,7 @@ export const en: Messages = {
     PAYROLL_SALARY_REQUIRED: "Configure the daily salary before calculating payroll",
     PAYROLL_ISR_TABLE_REQUIRED: "ISR is enabled but no table is configured",
     PAYROLL_IMSS_TABLE_REQUIRED: "IMSS is enabled but no rates are configured",
+    PAYROLL_POSITION_NOT_FOUND: "Payroll position not found",
     PAYMENT_NOT_FOUND: "Client payment not found",
     INVALID_WEEKLY_LIMIT: "The weekly limit must be between {{min}} and {{max}} minutes",
     WEEKLY_LEDGER_NOT_FOUND: "Weekly overtime ledger not found",

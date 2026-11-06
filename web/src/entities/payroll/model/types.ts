@@ -64,3 +64,18 @@ export interface PayrollCalculation {
     exempt: number;
   }>;
 }
+
+export interface PayrollPositionEmployee {
+  id: string;
+  name: string;
+}
+
+export interface PayrollPosition {
+  id: string;
+  name: string;
+  jobTitle: string | null;
+  dailySalary: number;
+  sbcDaily: number | null;
+  active: boolean;
+  employees: PayrollPositionEmployee[];
+}

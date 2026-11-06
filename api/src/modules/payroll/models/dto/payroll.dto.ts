@@ -90,3 +90,18 @@ export const PayrollCalculateDto = registry.register(
 
 export type PayrollSettingsUpdateInput = z.infer<typeof PayrollSettingsUpdateDto>;
 export type PayrollCalculateInput = z.infer<typeof PayrollCalculateDto>;
+
+export const PayrollPositionCreateDto = z.object({
+  name: z.string().trim().min(2).max(100),
+  jobTitle: z.string().trim().max(120).nullish(),
+  dailySalary: z.number().positive(),
+  sbcDaily: z.number().positive().nullish(),
+}).strict();
+
+export const PayrollPositionUpdateDto = PayrollPositionCreateDto.partial().extend({
+  active: z.boolean().optional(),
+}).strict();
+
+export const PayrollPositionAssignDto = z.object({
+  userIds: z.array(z.string().uuid()).max(500),
+}).strict();

@@ -5,6 +5,7 @@ import { LuCalculator, LuClock, LuPercent, LuReceipt, LuSave, LuShieldCheck, LuW
 import { payrollApi } from "@entities/payroll";
 import { HelpTip } from "@shared/ui/help-tip";
 import type { PayrollIsrBracket, PayrollImssRate, PayrollSettings } from "@entities/payroll";
+import PayrollPositionsPanel from "@features/payroll/payroll-positions/ui/PayrollPositionsPanel";
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -21,6 +22,7 @@ const fromSettings = (settings: PayrollSettings): FormState => ({
 
 /** Configuración fiscal y de prestaciones por cliente; todo es editable. */
 export default function PayrollSettingsPage() {
+  const [tab, setTab] = useState<"positions" | "settings">("positions");
   const [form, setForm] = useState<FormState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -129,6 +131,14 @@ export default function PayrollSettingsPage() {
         </div>
       }
     >
+      <div className="mb-4 inline-flex gap-2 rounded-2xl bg-white p-1.5 shadow-sm">
+        {([{ id: "positions", label: "Perfiles por cargo" }, { id: "settings", label: "Configuración general" }] as const).map((item) => (
+          <button key={item.id} type="button" onClick={() => setTab(item.id)} className={`rounded-xl px-3.5 py-1.5 text-[12.5px] font-semibold transition ${tab === item.id ? "bg-[#eaf6ef] text-emerald-900" : "text-slate-500 hover:bg-slate-50"}`}>
+            {item.label}
+          </button>
+        ))}
+      </div>
+      {tab === "positions" ? <PayrollPositionsPanel /> : (
       <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
         {error && (
           <div className="lg:col-span-12">
@@ -367,6 +377,7 @@ export default function PayrollSettingsPage() {
           </div>
         </aside>
       </div>
+      )}
       {toast && <ITToast message={toast} type="success" position="bottom-center" duration={2500} onClose={() => setToast(null)} />}
     </ITPage>
   );

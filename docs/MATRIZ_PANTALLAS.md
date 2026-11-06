@@ -62,7 +62,7 @@ Fecha de auditoría: **2026-11-06**. Alance: todas las rutas privadas y pública
 | 32 | Tiempo extra | `/schedules/overtime/approval` | `overtime.view` | `pages/overtime/OvertimeApprovalPage.tsx` | ✅ Cumple | `BentoFilterCards` por estatus, HelpTip y sin tabs duplicados. |
 | 33 | Pre-nómina | `/schedules/payroll` | `payroll.view` | `pages/schedules/PayrollPage.tsx` | ✅ Cumple | Pantalla de referencia; tablas, filtros y resumen. |
 | 34 | Historial de pre-nómina | `/schedules/payroll/history` | `payroll.view` | `pages/schedules/PayrollHistoryPage.tsx` | 🟡 Parcial | Hero de página listo; el panel de detalle conserva retícula propia. |
-| 35 | Nómina configurable | `/payroll/settings` | `payroll.close` | `pages/payroll/PayrollSettingsPage.tsx` | ✅ Cumple | Hero pastel, HelpTip y un solo guardar por viewport. |
+| 35 | Nómina configurable | `/payroll/settings` | `payroll.close` | `pages/payroll/PayrollSettingsPage.tsx` | ✅ Cumple | Pestañas: perfiles por cargo (tabla/filtros/alta/asignación) y configuración general. |
 | 36 | Convenios y acuerdos | `/hr/jornada-acuerdos` | `time_clock.write` | `pages/nom/WorkdayAgreementsPage.tsx` | ✅ Cumple | Hero pastel con conteos y HelpTips de art. 58. |
 | 37 | Vacaciones y permisos | `/hr/leave` | `time_clock.write` | `pages/leave/LeaveAdminPage.tsx` | ✅ Cumple | Hero pastel, KPIs en el aside y filtros de estatus. |
 | 38 | Teletrabajo | `/teletrabajo` | `time_clock.view` | `pages/nom/TeleworkAdminPage.tsx` | ✅ Cumple | Hero pastel y HelpTips de política/desconexión. |

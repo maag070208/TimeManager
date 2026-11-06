@@ -87,6 +87,7 @@ export interface User extends AuthUser {
   paternalSurname?: string | null;
   maternalSurname?: string | null;
   jobTitle?: string;
+  payrollPositionId?: string | null;
   area?: string;
   employeeNumber?: string;
   /** Primer nombre crudo; `name` ya viene compuesto con los apellidos. */

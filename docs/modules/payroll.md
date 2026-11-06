@@ -31,3 +31,21 @@ No timbra CFDI ni presenta ante el IMSS: esas integraciones son posteriores.
 
 `/payroll/settings` (Configuración → Nómina y prestaciones): captura de todos los
 parámetros, tablas JSON y cálculo de prueba.
+
+## Perfiles de nómina por cargo (2026-11-06)
+
+Además de la configuración global (`payroll_settings`), cada cliente puede crear
+perfiles en `payroll_positions` (nombre, cargo, salario diario y SBC) y asignar
+personas (`users.payrollPositionId`). La pantalla `/payroll/settings` abre en
+**Perfiles por cargo** con filtros bento, tabla paginada, alta/edición y diálogo
+para asignar personal; la pestaña **Configuración general** conserva la
+configuración fiscal y de prestaciones.
+
+Endpoints:
+- `GET /payroll/positions` (`payroll.view`)
+- `POST /payroll/positions` (`payroll.close`)
+- `PATCH /payroll/positions/:id` (`payroll.close`)
+- `PUT /payroll/positions/:id/assign` (`payroll.close`)
+
+El motor de cálculo sigue aceptando `dailySalary` explícito; consumir el perfil
+asignado en la pre-nómina queda como integración pendiente.

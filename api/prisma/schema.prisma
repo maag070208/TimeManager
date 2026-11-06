@@ -203,6 +203,8 @@ model User {
   recordAgreement       WorkRecordAgreement? @relation("WorkRecordAgreementUser")
   recordAgreementsSigned WorkRecordAgreement[] @relation("WorkRecordAgreementEmployer")
   payrollSettingsUpdated PayrollSettings[] @relation("PayrollSettingsUpdater")
+  payrollPositionId       String?
+  payrollPosition         PayrollPosition? @relation(fields: [payrollPositionId], references: [id], onDelete: SetNull)
   recordAcknowledgments WorkRecordAcknowledgment[] @relation("WorkRecordAcknowledgmentUser")
   overtimeRequests      OvertimeRequest[] @relation("OvertimeRequestUser")
   overtimeRequestsMade  OvertimeRequest[] @relation("OvertimeRequestRequester")
@@ -1628,6 +1630,26 @@ model PunchAdjustment {
 /// por año: 46 h 2027→2029, 40 h desde 2030).
 /// Configuración fiscal y de prestaciones por cliente. Todo es editable: el
 /// motor no hardcodea tablas de ISR/IMSS ni topes; si falta un dato, se reporta.
+/// Perfil de nómina por cargo: cada persona se asigna a uno y puede tener
+/// salario/SBC distintos del global.
+model PayrollPosition {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  jobTitle    String?
+  dailySalary Decimal  @db.Decimal(12, 2)
+  sbcDaily    Decimal? @db.Decimal(12, 2)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("payroll_positions")
+}
+
 model PayrollSettings {
   tenantId                 String   @id
   tenant                   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
