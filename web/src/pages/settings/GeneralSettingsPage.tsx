@@ -122,10 +122,12 @@ export default function GeneralSettingsPage() {
       description="Semana, asistencia, límites legales, checada web y convenios. Todo por cliente."
       icon={<LuBuilding2 size={20} />}
       actions={
-        <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button text-[12.5px] font-semibold shadow-none">
-          <LuSave size={14} className="mr-1.5" />
-          {saving ? "Guardando…" : "Guardar configuración"}
-        </ITButton>
+        <div className="lg:hidden">
+          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button text-[12.5px] font-semibold shadow-none">
+            <LuSave size={14} className="mr-1.5" />
+            {saving ? "Guardando…" : "Guardar configuración"}
+          </ITButton>
+        </div>
       }
     >
       <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
@@ -274,10 +276,12 @@ export default function GeneralSettingsPage() {
             </div>
           </ITCard>
 
-          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button w-full">
-            <LuSave size={14} className="mr-1.5" />
-            {saving ? "Guardando…" : "Guardar configuración"}
-          </ITButton>
+          <div className="hidden lg:block">
+            <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button w-full">
+              <LuSave size={14} className="mr-1.5" />
+              {saving ? "Guardando…" : "Guardar configuración"}
+            </ITButton>
+          </div>
         </aside>
       </div>
 

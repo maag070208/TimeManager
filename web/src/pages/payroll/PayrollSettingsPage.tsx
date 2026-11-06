@@ -119,10 +119,12 @@ export default function PayrollSettingsPage() {
       description="Salario, horas extra, prestaciones, ISR e IMSS por cliente. Cálculo y evidencia dentro de la plataforma; sin CFDI ni presentación externa."
       icon={<LuWallet size={20} />}
       actions={
-        <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving} className="tm-save-button text-[12.5px] font-semibold shadow-none">
-          <LuSave size={14} className="mr-1.5" />
-          {saving ? "Guardando…" : "Guardar configuración"}
-        </ITButton>
+        <div className="lg:hidden">
+          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving} className="tm-save-button text-[12.5px] font-semibold shadow-none">
+            <LuSave size={14} className="mr-1.5" />
+            {saving ? "Guardando…" : "Guardar configuración"}
+          </ITButton>
+        </div>
       }
     >
       <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
@@ -351,10 +353,12 @@ export default function PayrollSettingsPage() {
             )}
           </ITCard>
 
-          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving} className="tm-save-button w-full">
-            <LuSave size={14} className="mr-1.5" />
-            {saving ? "Guardando…" : "Guardar configuración"}
-          </ITButton>
+          <div className="hidden lg:block">
+            <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving} className="tm-save-button w-full">
+              <LuSave size={14} className="mr-1.5" />
+              {saving ? "Guardando…" : "Guardar configuración"}
+            </ITButton>
+          </div>
         </aside>
       </div>
       {toast && <ITToast message={toast} type="success" position="bottom-center" duration={2500} onClose={() => setToast(null)} />}
