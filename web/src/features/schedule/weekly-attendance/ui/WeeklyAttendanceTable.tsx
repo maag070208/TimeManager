@@ -66,6 +66,9 @@ const num = (value: string, strong = false) => (
   </ITText>
 );
 
+const money = (value: number): string =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 }).format(value);
+
 /** "Miércoles 23": día de la semana completo + número, en el idioma de la interfaz. */
 const dayTitle = (dayKey: string): string => {
   const label = new Date(`${dayKey}T12:00:00Z`).toLocaleDateString(dateLocale(), {
@@ -132,6 +135,22 @@ export default function WeeklyAttendanceTable({
           `${subOf(r.clockNumbers.join(", ") || r.employeeNumber || "—", r.departmentName)}${
             !r.linked ? ` · ${t("unlinked")}` : ""
           }`
+        ),
+    },
+    {
+      key: "salary",
+      label: "Sueldo diario",
+      type: "string",
+      width: 135,
+      sortable: false,
+      render: (r: WeeklyAttendanceRow) =>
+        r.payrollPosition ? (
+          <div className="min-w-0">
+            <ITText className="block !text-[12px] font-bold tabular-nums text-slate-700">{money(r.payrollPosition.dailySalary)}</ITText>
+            <ITText muted className="block !text-[10.5px]">{r.payrollPosition.name}</ITText>
+          </div>
+        ) : (
+          <ITText className="!text-[11px] text-slate-400">Sin puesto</ITText>
         ),
     },
     // Una columna por día de la semana: el rango horario (entrada–salida).

@@ -153,6 +153,7 @@ export interface WeeklyAttendanceRow {
   linked: boolean;
   scheduleName: string | null;
   withoutSchedule: boolean;
+  payrollPosition: { name: string; dailySalary: number; sbcDaily: number | null } | null;
   days: WeeklyAttendanceDay[];
   totals: WeeklyAttendanceTotals;
 }
@@ -160,7 +161,14 @@ export interface WeeklyAttendanceRow {
 export interface WeeklyAttendanceReport {
   range: { start: string; end: string; timezone: string; days: string[] };
   rows: WeeklyAttendanceRow[];
-  summary: WeeklyAttendanceTotals & { people: number; unlinked: number; withoutSchedule: number };
+  summary: WeeklyAttendanceTotals & {
+    people: number;
+    unlinked: number;
+    withoutSchedule: number;
+    dailySalaryTotal: number;
+    weeklySalaryCost: number;
+    withSalary: number;
+  };
 }
 
 // ---------------------------------------------------------------------------

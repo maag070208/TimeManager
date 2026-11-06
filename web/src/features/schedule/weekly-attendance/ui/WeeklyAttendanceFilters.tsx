@@ -108,8 +108,8 @@ export default function WeeklyAttendanceFilters({ fx }: { fx: UseWeeklyAttendanc
           disabled={!fx.report || fx.report.rows.length === 0}
         >
           <ITFlex align="center" gap={1}>
-            <LuFileSpreadsheet size={13} className="text-slate-900" />
-            <ITText as="span" className="text-[11px] font-bold !text-slate-900">
+            <LuFileSpreadsheet size={13} className="text-white" />
+            <ITText as="span" className="text-[11px] font-bold !text-white">
               {t("actionsBar.exportExcel")}
             </ITText>
           </ITFlex>

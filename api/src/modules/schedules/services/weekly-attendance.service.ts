@@ -143,6 +143,7 @@ export class WeeklyAttendanceService {
         jobTitle: true,
         active: true,
         department: { select: { id: true, name: true } },
+        payrollPosition: { select: { name: true, dailySalary: true, sbcDaily: true } },
         timeClockEmployees: { select: { employeeNumber: true } },
       },
       orderBy: { name: "asc" },
@@ -248,6 +249,13 @@ export class WeeklyAttendanceService {
         jobTitle: person.jobTitle,
         departmentId: person.department?.id ?? null,
         departmentName: person.department?.name ?? null,
+        payrollPosition: person.payrollPosition
+          ? {
+              name: person.payrollPosition.name,
+              dailySalary: Number(person.payrollPosition.dailySalary),
+              sbcDaily: person.payrollPosition.sbcDaily == null ? null : Number(person.payrollPosition.sbcDaily),
+            }
+          : null,
         active: person.active,
         linked,
         scheduleName,
@@ -264,12 +272,25 @@ export class WeeklyAttendanceService {
         )
       : rows;
 
-    const summary = { ...emptyTotals(), people: visible.length, unlinked: 0, withoutSchedule: 0 };
+    const summary = {
+      ...emptyTotals(),
+      people: visible.length,
+      unlinked: 0,
+      withoutSchedule: 0,
+      dailySalaryTotal: 0,
+      weeklySalaryCost: 0,
+      withSalary: 0,
+    };
     for (const r of visible) {
       for (const key of Object.keys(r.totals) as Array<keyof WeeklyAttendanceTotals>) summary[key] += r.totals[key];
       if (!r.linked) summary.unlinked += 1;
       if (r.withoutSchedule) summary.withoutSchedule += 1;
+      if (r.payrollPosition) {
+        summary.dailySalaryTotal += r.payrollPosition.dailySalary;
+        summary.withSalary += 1;
+      }
     }
+    summary.weeklySalaryCost = summary.dailySalaryTotal * 7;
 
     return {
       range: { start: range.start.toISOString(), end: range.end.toISOString(), timezone, days },

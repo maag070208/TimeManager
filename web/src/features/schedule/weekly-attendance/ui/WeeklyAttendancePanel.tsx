@@ -11,7 +11,7 @@ import {
   ITGrid,
   ITText,
 } from "@axzydev/axzy_ui_system";
-import { LuBell, LuChartColumn, LuCheckCheck, LuClock, LuHourglass, LuInfo, LuTriangleAlert, LuUsers } from "react-icons/lu";
+import { LuBell, LuChartColumn, LuCheckCheck, LuClock, LuHourglass, LuInfo, LuTriangleAlert, LuUsers, LuWallet } from "react-icons/lu";
 import { dyn } from "@shared/i18n/dyn";
 import { dateLocale } from "@shared/i18n";
 import { DialogHeader } from "@shared/ui/dialog-header";
@@ -30,6 +30,9 @@ const shortMonth = (date: Date): string =>
   date.toLocaleDateString(dateLocale(), { month: "short" }).replace(/\./g, "");
 
 /** "2 – 8 nov" (mismo mes) o "29 oct – 4 nov" (mes distinto). */
+const money = (value: number): string =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 }).format(value);
+
 const weekRangeLabel = ([start, end]: [Date, Date]): string =>
   start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()
     ? `${start.getDate()} – ${end.getDate()} ${shortMonth(end)}`
@@ -179,6 +182,22 @@ export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance 
                 caption: t("short.people", { total: summary.people }),
                 tone: summary.absences > 0 ? "danger" : "neutral",
                 icon: <LuTriangleAlert size={14} />,
+              },
+              {
+                id: "dailyCost",
+                label: "Costo diario de plantilla",
+                value: money(summary.dailySalaryTotal),
+                caption: `${summary.withSalary} con salario configurado`,
+                icon: <LuWallet size={14} />,
+                tone: "info",
+              },
+              {
+                id: "weeklyCost",
+                label: "Costo semanal estimado",
+                value: money(summary.weeklySalaryCost),
+                caption: "7 días por persona",
+                icon: <LuWallet size={14} />,
+                tone: "warning",
               },
             ]}
           />
