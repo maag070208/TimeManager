@@ -50,11 +50,14 @@ export class RemotePunchService {
   ): Promise<{ punch: RemotePunchDto; created: boolean }> {
     const user = await this.db.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, tenantId: true, tenant: { select: { timezone: true } } },
+      select: { id: true, name: true, tenantId: true, checkinMode: true, tenant: { select: { timezone: true } } },
     });
     if (!user) throw new HttpError(404, "USER_NOT_FOUND");
     if (!user.tenantId) throw new HttpError(400, "TENANT_REQUIRED");
 
+    if (user.checkinMode === "CLOCK") {
+      throw new HttpError(403, "REMOTE_PUNCH_NOT_ALLOWED");
+    }
     const config = await this.settings.resolve(user.tenantId);
     if (!config.remotePunchEnabled) throw new HttpError(403, "REMOTE_PUNCH_DISABLED");
 

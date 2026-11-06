@@ -62,6 +62,7 @@ const formFromProfile = (p: PersonalProfile): FormState => ({
   middleName: p.middleName ?? "",
   employeeNumber: p.employeeNumber ?? "",
   jobTitle: p.jobTitle ?? "",
+  checkinMode: p.checkinMode ?? "HYBRID",
   departmentId: p.department?.id ?? "",
   subareaId: p.subarea?.id ?? "",
   paternalSurname: p.paternalSurname ?? "",
@@ -373,6 +374,26 @@ export default function EmployeeProfileEditPage() {
             <Cell>
               <ITInput name="jobTitle" label={tt("detail.fields.position")} value={form.jobTitle ?? ""} onChange={field("jobTitle")} aria-invalid={!!errors.jobTitle} />
               {errors.jobTitle && <ITText as="span" role="alert" className="text-red-500 text-xs mt-1 block">{errors.jobTitle}</ITText>}
+            </Cell>
+          </Row>
+          <Row>
+            <Cell>
+              <ITSearchSelect
+                name="checkinMode"
+                label="Modo de checada"
+                value={form.checkinMode ?? "HYBRID"}
+                onChange={(value) => setForm((prev) => ({ ...prev, checkinMode: String(value) as FormState["checkinMode"] }))}
+                options={[
+                  { value: "WEB", label: "Solo checada web" },
+                  { value: "CLOCK", label: "Solo reloj físico" },
+                  { value: "HYBRID", label: "Híbrido: web y reloj" },
+                ]}
+              />
+            </Cell>
+            <Cell>
+              <ITText muted className="mt-6 block !text-[11.5px]">
+                Define por dónde puede marcar esta persona. La checada web se bloquea si eliges “Solo reloj físico”.
+              </ITText>
             </Cell>
           </Row>
           <Row>

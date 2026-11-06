@@ -1,0 +1,6 @@
+DO $$ BEGIN
+  CREATE TYPE "CheckinMode" AS ENUM ('WEB', 'CLOCK', 'HYBRID');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "checkinMode" "CheckinMode" NOT NULL DEFAULT 'HYBRID';

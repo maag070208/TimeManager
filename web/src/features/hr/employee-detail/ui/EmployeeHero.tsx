@@ -58,6 +58,10 @@ export default function EmployeeHero({ profile, onPhotoUpload, documents }: Prop
   const facts = [
     { label: tt("detail.fields.hireDate"), value: profile.hireDate ? formatDateOnly(profile.hireDate) : null },
     { label: tt("detail.fields.subarea"), value: profile.subarea?.name },
+    {
+      label: "Modo de checada",
+      value: profile.checkinMode === "WEB" ? "Solo web" : profile.checkinMode === "CLOCK" ? "Solo reloj físico" : "Híbrido",
+    },
   ].filter((f) => f.value?.trim());
 
   return (

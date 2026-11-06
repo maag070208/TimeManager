@@ -160,6 +160,7 @@ export const PersonalProfileUpdateDto = z
     // usuario solo los captura al dar de alta una cuenta sin expediente).
     employeeNumber: z.string().max(30).nullable().optional(),
     jobTitle: z.string().max(100).nullable().optional(),
+    checkinMode: z.enum(["WEB", "CLOCK", "HYBRID"]).optional(),
 
     genderId: z.string().nullable().optional(),
     bloodTypeId: z.string().nullable().optional(),

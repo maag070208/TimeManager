@@ -468,6 +468,7 @@ export const es = {
     WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",
     INVALID_RETENTION_MONTHS: "La retención debe estar entre {{min}} y {{max}} meses (vacío desactiva el archivado)",
     REMOTE_PUNCH_DISABLED: "El marcaje remoto está deshabilitado para este cliente",
+    REMOTE_PUNCH_NOT_ALLOWED: "Esta persona solo checa en reloj físico; cámbiale el modo de checada para permitir la web",
     INVALID_PUNCH_SEQUENCE: "Ya tienes un registro abierto de tipo {{type}}: ciérralo antes del siguiente",
     INVALID_GEO_POINT: "Envía latitud y longitud juntas, o ninguna",
     TELEWORK_ALREADY_REGISTERED: "Esa persona ya tiene un registro de teletrabajo activo",

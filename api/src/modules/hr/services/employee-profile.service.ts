@@ -198,6 +198,7 @@ export class EmployeeProfileService {
         email: data.email,
         employeeNumber: data.employeeNumber,
         jobTitle: data.jobTitle,
+        ...(data.checkinMode !== undefined ? { checkinMode: data.checkinMode } : {}),
         departmentId,
         subareaId,
         genderId: data.genderId,

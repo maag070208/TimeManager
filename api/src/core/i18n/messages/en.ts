@@ -470,6 +470,7 @@ export const en: Messages = {
     WEEKLY_LEDGER_NOT_FOUND: "Weekly overtime ledger not found",
     INVALID_RETENTION_MONTHS: "Retention must be between {{min}} and {{max}} months (empty disables archiving)",
     REMOTE_PUNCH_DISABLED: "Remote punching is disabled for this client",
+    REMOTE_PUNCH_NOT_ALLOWED: "This person can only punch on a physical clock; change their check-in mode to allow the web",
     INVALID_PUNCH_SEQUENCE: "You already have an open {{type}}: close it before the next one",
     INVALID_GEO_POINT: "Send both latitude and longitude, or neither",
     TELEWORK_ALREADY_REGISTERED: "That person already has an active telework registration",

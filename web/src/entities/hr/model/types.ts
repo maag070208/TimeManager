@@ -58,6 +58,8 @@ export interface PersonalProfile {
   active: boolean;
   jobTitle?: string | null;
   employeeNumber?: string | null;
+  /** Cómo marca asistencia: checada web, reloj físico o híbrido. */
+  checkinMode?: "WEB" | "CLOCK" | "HYBRID" | null;
   department?: { id: string; name: string } | null;
   subarea?: { id: string; name: string } | null;
 
@@ -104,6 +106,7 @@ export interface PersonalProfileUpdateInput {
   /** Datos laborales: también viven en el expediente. */
   employeeNumber?: string | null;
   jobTitle?: string | null;
+  checkinMode?: "WEB" | "CLOCK" | "HYBRID";
   departmentId?: string | null;
   subareaId?: string | null;
   paternalSurname?: string | null;

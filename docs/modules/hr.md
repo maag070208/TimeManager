@@ -56,3 +56,11 @@ La foto y los documentos del expediente son datos personales sensibles: **nada s
 - Datos personales sensibles (RFC/CURP/NSS, médicos, documentos): cifrado en reposo y acceso por rol ya son requisito NOM; en SaaS se vuelven requisito contractual por cliente.
 - Documentos en S3: prefijo de ruta por tenant para aislamiento y borrado por cliente (offboarding); el bucket es privado y las descargas caducan.
 - Catálogos (`Gender`, `BloodType`, `DocumentType`): decidir si son globales del sistema o personalizables por cliente (ver SAAS_PLAN).
+
+
+## Modo de checada por empleado (2026-11-06)
+
+`users.checkinMode` (`WEB`, `CLOCK`, `HYBRID`, default `HYBRID`) define por dónde
+puede marcar la persona. Se edita en el expediente → **Laboral → Modo de checada**.
+La checada web (`POST /nom/me/punch`) rechaza con `REMOTE_PUNCH_NOT_ALLOWED` a
+quien está en `CLOCK`; el reloj físico sigue disponible en todos los modos.
