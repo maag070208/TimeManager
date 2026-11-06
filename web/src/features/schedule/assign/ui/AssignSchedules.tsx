@@ -5,6 +5,7 @@ import {
   ITButton,
   ITCard,
   ITCheckbox,
+  ITConfirmDialog,
   ITFlex,
   ITInput,
   ITSearchSelect,
@@ -35,6 +36,7 @@ interface Row {
   jobTitle?: string;
   department: string | null;
   departmentId: string | null;
+  currentSchedule?: string | null;
 }
 
 /**
@@ -56,6 +58,8 @@ export default function AssignSchedules() {
   const [toRemove, setToRemove] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
   const [saving, setSaving] = useState(false);
+  const [pendingAssign, setPendingAssign] = useState<string[] | null>(null);
+  const [assignmentByUser, setAssignmentByUser] = useState<Map<string, string>>(new Map());
 
   const departments = useDepartmentOptions();
 
@@ -78,11 +82,22 @@ export default function AssignSchedules() {
       .catch(() => setAssigned([]));
   }, []);
 
+  const loadAllAssignments = useCallback(() => {
+    scheduleApi
+      .assignmentsTable({ page: 1, limit: 1000, filters: {} })
+      .then((res) => setAssignmentByUser(new Map(res.data.map((row) => [row.userId, row.scheduleName]))))
+      .catch(() => setAssignmentByUser(new Map()));
+  }, []);
+
   useEffect(() => {
     loadAssigned(scheduleId);
     setToAssign(new Set());
     setToRemove(new Set());
   }, [scheduleId, loadAssigned]);
+
+  useEffect(() => {
+    loadAllAssignments();
+  }, [loadAllAssignments]);
 
   const employeeById = useMemo(() => new Map(employees.map((e) => [e.id, e])), [employees]);
   const assignedIds = useMemo(() => new Set(assigned.map((a) => a.userId)), [assigned]);
@@ -125,9 +140,10 @@ export default function AssignSchedules() {
           jobTitle: e.jobTitle,
           department: e.department?.name ?? null,
           departmentId: e.departmentId ?? null,
+          currentSchedule: assignmentByUser.get(e.id) ?? null,
         }))
         .filter((p) => (!departmentId || p.departmentId === departmentId) && matches(p.name, p.employeeNumber)),
-    [employees, assignedIds, departmentId, matches],
+    [employees, assignedIds, departmentId, matches, assignmentByUser],
   );
 
   const toggle = (set: Set<string>, setter: (next: Set<string>) => void, id: string) => {
@@ -150,13 +166,40 @@ export default function AssignSchedules() {
       const res = await scheduleApi.assign({ scheduleId, userIds: ids, from: toDateInput(new Date()) });
       setToast(`Se asignó el horario a ${res.assigned} persona(s).`);
       setToAssign(new Set());
+      setPendingAssign(null);
       loadAssigned(scheduleId);
+      loadAllAssignments();
     } catch (e) {
       setError((e as Error).message ?? t("assign.error"));
     } finally {
       setSaving(false);
     }
   };
+
+  const requestAssign = (ids: string[]) => {
+    if (!scheduleId || ids.length === 0) return;
+    const changing = ids.filter((id) => {
+      const current = assignmentByUser.get(id);
+      return current && current !== currentSchedule?.name;
+    });
+    if (changing.length > 0) {
+      setPendingAssign(ids);
+      return;
+    }
+    void assign(ids);
+  };
+
+  const changesDescription = (ids: string[]) =>
+    ids
+      .filter((id) => {
+        const current = assignmentByUser.get(id);
+        return current && current !== currentSchedule?.name;
+      })
+      .map((id) => {
+        const person = employeeById.get(id);
+        return `${person?.name ?? "Persona"} (${assignmentByUser.get(id)} → ${currentSchedule?.name ?? "nuevo horario"})`;
+      })
+      .join("; ");
 
   const remove = async (ids: string[]) => {
     if (!scheduleId || ids.length === 0) return;
@@ -209,7 +252,12 @@ export default function AssignSchedules() {
                 <ProfileAvatar name={row.name} size="sm" />
                 <ITFlex direction="column" gap={0} className="min-w-0 flex-1">
                   <ITText className="truncate !text-[12.5px] font-semibold">{row.name}</ITText>
-                  <ITText muted className="truncate !text-[11px]">{personMeta(row.employeeNumber, row.jobTitle, row.department ?? undefined) || "—"}</ITText>
+                  <ITFlex align="center" gap={1} wrap="wrap">
+                    <ITText muted className="truncate !text-[11px]">{personMeta(row.employeeNumber, row.jobTitle, row.department ?? undefined) || "—"}</ITText>
+                    {side === "right" && row.currentSchedule && (
+                      <ITBadget color="info" size="sm">Actualmente: {row.currentSchedule}</ITBadget>
+                    )}
+                  </ITFlex>
                 </ITFlex>
                 <span onClick={(event) => event.stopPropagation()}>
                   <ITButton
@@ -217,7 +265,7 @@ export default function AssignSchedules() {
                     color={side === "left" ? "danger" : "success"}
                     size="sm"
                     title={side === "left" ? "Quitar horario" : "Asignar horario"}
-                    onClick={() => void (side === "left" ? remove([row.id]) : assign([row.id]))}
+                    onClick={() => (side === "left" ? void remove([row.id]) : requestAssign([row.id]))}
                   >
                     {side === "left" ? <FaMinus size={11} /> : <FaPlus size={11} />}
                   </ITButton>
@@ -267,7 +315,7 @@ export default function AssignSchedules() {
             className="tm-save-button"
             disabled={saving || toAssign.size === 0}
             title="Asignar seleccionados"
-            onClick={() => void assign([...toAssign])}
+            onClick={() => requestAssign([...toAssign])}
           >
             <FaArrowLeft size={12} />
             <ITText as="span" className="ml-1 font-bold text-[11px] lg:hidden xl:inline">Asignar ({toAssign.size})</ITText>
@@ -289,6 +337,18 @@ export default function AssignSchedules() {
       </div>
 
       <ITText muted className="!text-[11px]">{t("assign.immediate")} · Una persona solo puede tener un horario vigente; al asignar otro se reemplaza el anterior.</ITText>
+
+      <ITConfirmDialog
+        isOpen={!!pendingAssign}
+        onClose={() => setPendingAssign(null)}
+        onConfirm={() => pendingAssign && void assign(pendingAssign)}
+        title="Cambiar horario"
+        message={`Estas personas ya tienen otro horario vigente y se les reemplazará: ${changesDescription(pendingAssign ?? [])}.`}
+        confirmLabel="Cambiar horario"
+        cancelLabel="Cancelar"
+        variant="warning"
+        loading={saving}
+      />
 
       {toast && <ITToast message={toast} type="success" position="top-right" duration={3000} onClose={() => setToast(null)} />}
     </ITFlex>
