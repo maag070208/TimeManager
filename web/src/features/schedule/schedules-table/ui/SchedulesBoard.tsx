@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ITBentoPill,
-  ITBentoStatStrip,
   ITConfirmDialog,
   ITDataTable,
   ITFlex,
@@ -11,11 +10,12 @@ import {
   ITText,
 } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
-import { LuCalendarDays, LuPencil, LuSearch, LuTrash2 } from "react-icons/lu";
+import { LuCalendarCheck, LuCalendarDays, LuPencil, LuSearch, LuTrash2, LuUserCheck } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { scheduleApi, type Schedule, type ScheduleDay } from "@entities/schedule";
 import { TicState } from "@shared/ui/tic";
 import { FilterPills } from "@shared/ui/filter-pills";
+import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { RowAction } from "@shared/ui/row-action";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { emitAppEvent, onAppEvent } from "@shared/lib/appEvents";
@@ -280,12 +280,11 @@ export default function SchedulesBoard() {
 
   return (
     <ITStack spacing={4}>
-      {/* Cifras del catálogo: una fila, clic = filtra */}
-      <ITBentoStatStrip
+      <BentoFilterCards
         items={[
-          { id: "total", label: t("summary.total"), value: totals.total, caption: t("summary.totalCaption"), tone: "sea" },
-          { id: "active", label: t("summary.active"), value: totals.active, caption: t("summary.activeCaption"), tone: "mint" },
-          { id: "assigned", label: t("summary.assigned"), value: totals.assigned, caption: t("summary.assignedCaption"), tone: "sun" },
+          { id: "total", label: t("summary.total"), value: totals.total, caption: t("summary.totalCaption"), icon: <LuCalendarDays size={14} /> },
+          { id: "active", label: t("summary.active"), value: totals.active, caption: t("summary.activeCaption"), icon: <LuCalendarCheck size={14} /> },
+          { id: "assigned", label: t("summary.assigned"), value: totals.assigned, caption: t("summary.assignedCaption"), icon: <LuUserCheck size={14} /> },
         ]}
         activeId={filter === "all" ? "total" : filter === "active" ? "active" : undefined}
         onSelect={(id: string) => {
