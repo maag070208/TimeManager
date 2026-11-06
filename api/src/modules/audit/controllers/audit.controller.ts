@@ -6,6 +6,9 @@ export class AuditController {
 
   list = async (req: Request, res: Response) => {
     const data = await this.auditService.list({
+      tenantId: typeof req.query.tenantId === "string" ? req.query.tenantId : undefined,
+      module: typeof req.query.module === "string" ? req.query.module : undefined,
+      q: typeof req.query.q === "string" ? req.query.q : undefined,
       action: typeof req.query.action === "string" ? req.query.action : undefined,
       entityType: typeof req.query.entityType === "string" ? req.query.entityType : undefined,
       entityId: typeof req.query.entityId === "string" ? req.query.entityId : undefined,

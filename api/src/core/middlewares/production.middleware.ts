@@ -18,7 +18,7 @@ export const requestContextMiddleware = () => (req: Request, res: Response, next
       ? incoming.trim()
       : newRequestId();
   res.setHeader("X-Request-Id", requestId);
-  runWithRequestContext({ requestId }, next);
+  runWithRequestContext({ requestId, ip: req.ip ?? null, userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : null }, next);
 };
 
 const rateLimitHandler = (_req: Request, res: Response): void => {

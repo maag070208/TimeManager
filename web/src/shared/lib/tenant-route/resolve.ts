@@ -25,6 +25,7 @@ export const APP_ROOT_PATHS: ReadonlySet<string> = new Set([
   "roles",
   "plans",
   "notifications",
+  "audit",
   "hr",
   "time-clocks",
   "schedules",

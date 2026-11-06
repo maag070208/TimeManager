@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { decodeCursor, encodeCursor } from "@core/utils/table";
 import { prismaClient } from "@core/config/database";
+import { currentTenantId } from "@core/tenancy";
+import { currentRequestContext } from "@core/observability/request-context";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type {
   AuditLogInput,
@@ -19,13 +21,20 @@ export class AuditService {
   // audita: si la transacción falla, el log tampoco se escribe.
   createLog(input: AuditLogInput, client?: Prisma.TransactionClient) {
     const db = client ?? this.db;
+    const ctx = currentRequestContext();
     return db.auditLog.create({
       data: {
+        tenantId: input.tenantId ?? currentTenantId() ?? ctx?.tenantId ?? null,
+        module: input.module ?? input.entityType,
         action: input.action,
         entityType: input.entityType,
         entityId: input.entityId,
-        userId: input.userId ?? null,
+        userId: input.userId ?? ctx?.userId ?? null,
         userName: input.userName ?? null,
+        permissions: toJson(input.permissions ?? (ctx?.permissions ? { exceptions: ctx.permissions } : undefined)),
+        roles: toJson(input.roles ?? (ctx?.roles ? { roles: ctx.roles } : undefined)),
+        ipAddress: input.ipAddress ?? ctx?.ip ?? null,
+        userAgent: input.userAgent ?? ctx?.userAgent ?? null,
         previousState: toJson(input.previousState),
         newState: toJson(input.newState),
         metadata: toJson(input.metadata),
@@ -36,8 +45,18 @@ export class AuditService {
   async list(params: ListAuditLogsParams): Promise<AuditLogListResult> {
     const where: any = {};
 
+    if (params.tenantId) where.tenantId = params.tenantId;
+    if (params.module) where.module = params.module;
     if (params.action) where.action = params.action;
     if (params.entityType) where.entityType = params.entityType;
+    if (params.q) {
+      where.OR = [
+        { action: { contains: params.q, mode: "insensitive" } },
+        { module: { contains: params.q, mode: "insensitive" } },
+        { entityType: { contains: params.q, mode: "insensitive" } },
+        { userName: { contains: params.q, mode: "insensitive" } },
+      ];
+    }
     if (params.entityId) where.entityId = params.entityId;
     if (params.userId) where.userId = params.userId;
 

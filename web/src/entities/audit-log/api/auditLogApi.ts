@@ -3,6 +3,9 @@ import type { AuditLog, AuditLogListResult } from "../model/types";
 
 export const auditApi = {
   list: (params?: {
+    tenantId?: string;
+    module?: string;
+    q?: string;
     action?: string;
     entityType?: string;
     userId?: string;
@@ -12,6 +15,9 @@ export const auditApi = {
     limit?: number;
   }) => {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.set("tenantId", params.tenantId);
+    if (params?.module) searchParams.set("module", params.module);
+    if (params?.q) searchParams.set("q", params.q);
     if (params?.action) searchParams.set("action", params.action);
     if (params?.entityType) searchParams.set("entityType", params.entityType);
     if (params?.userId) searchParams.set("userId", params.userId);

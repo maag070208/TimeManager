@@ -431,16 +431,23 @@ model AuditLog {
   /// `null` = acción de plataforma (operadores TimeManager, sin cliente).
   tenantId      String?
   action        String
+  module        String?
   entityType    String
   entityId      String
   userId        String?
   userName      String?
+  /// Foto de roles/permisos con los que actuó la persona.
+  permissions   Json?
+  roles         Json?
+  ipAddress     String? @map("ip_address")
+  userAgent     String? @map("user_agent")
   previousState Json?
   newState      Json?
   metadata      Json?
   createdAt     DateTime @default(now())
 
   @@index([tenantId])
+  @@index([module])
   @@index([action])
   @@index([entityType, entityId])
   @@index([userId])

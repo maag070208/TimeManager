@@ -55,7 +55,8 @@
     "workdayAgreements": "Agreements",
     "payrollSettings": "Payroll",
     "clients": "Clients",
-    "platform": "Platform"
+    "platform": "Platform",
+    "audit": "Audit log"
   },
   "files": {
     "access": "access",

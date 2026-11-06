@@ -123,7 +123,12 @@ export const authenticate = (
       tenantId = target.id;
     }
     // Correlación de logs/métricas: quién y qué cliente atiende la petición.
-    setRequestPrincipal({ userId: user.id, tenantId });
+    setRequestPrincipal({
+      userId: user.id,
+      tenantId,
+      roles: [user.role, ...user.extraRoles.map((r) => r.role)],
+      permissions: user.permissionGrants.map((grant) => ({ permission: grant.permission, scope: grant.scope, expiresAt: grant.expiresAt })),
+    });
     // Todo lo que sigue corre dentro del contexto elegido: la extensión de
     // Prisma filtra/inyecta tenantId solo en este ámbito.
     runWithTenant(tenantId, () => next(), platform).catch((err) => next(err));

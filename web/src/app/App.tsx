@@ -40,6 +40,7 @@ import TeleworkAdminPage from "@pages/nom/TeleworkAdminPage";
 import RolesPage from "@pages/roles/RolesPage";
 import PlansPage from "@pages/plans/PlansPage";
 import GeneralSettingsPage from "@pages/settings/GeneralSettingsPage";
+import AuditLogPage from "@pages/audit/AuditLogPage";
 import CatalogsPage from "@pages/settings/CatalogsPage";
 import LeaveAdminPage from "@pages/leave/LeaveAdminPage";
 import WorkdayAgreementsPage from "@pages/nom/WorkdayAgreementsPage";
@@ -179,6 +180,14 @@ export default function App() {
           }
         />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route
+          path="/audit"
+          element={
+            <RequiresPermission permission="audit.view">
+              <AuditLogPage />
+            </RequiresPermission>
+          }
+        />
         <Route
           path="/settings/catalogs"
           element={

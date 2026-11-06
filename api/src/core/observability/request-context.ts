@@ -12,6 +12,12 @@ export interface RequestContext {
   tenantId?: string | null;
   /** Ruta normalizada (sin ids) para las métricas. */
   route?: string;
+  /** Roles efectivos al momento de la petición. */
+  roles?: string[];
+  /** Excepciones/permisos adicionales vigentes al momento. */
+  permissions?: Array<{ permission: string; scope: string; expiresAt?: Date | null }>;
+  ip?: string | null;
+  userAgent?: string | null;
 }
 
 const storage = new AsyncLocalStorage<RequestContext>();
@@ -25,9 +31,16 @@ export const currentRequestContext = (): RequestContext | null => storage.getSto
 export const newRequestId = (): string => randomUUID();
 
 /** Añade usuario/cliente al contexto cuando `authenticate` los resuelve. */
-export const setRequestPrincipal = (principal: { userId?: string | null; tenantId?: string | null }): void => {
+export const setRequestPrincipal = (principal: {
+  userId?: string | null;
+  tenantId?: string | null;
+  roles?: string[];
+  permissions?: Array<{ permission: string; scope: string; expiresAt?: Date | null }>;
+}): void => {
   const context = storage.getStore();
   if (!context) return;
   if (principal.userId !== undefined) context.userId = principal.userId;
   if (principal.tenantId !== undefined) context.tenantId = principal.tenantId;
+  if (principal.roles !== undefined) context.roles = principal.roles;
+  if (principal.permissions !== undefined) context.permissions = principal.permissions;
 };

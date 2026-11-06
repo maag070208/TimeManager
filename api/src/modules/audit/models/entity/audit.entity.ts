@@ -2,16 +2,25 @@ import type { Prisma } from "@prisma/client";
 
 export interface AuditLogInput {
   action: string;
+  module?: string;
   entityType: string;
   entityId: string;
+  tenantId?: string | null;
   userId?: string;
   userName?: string;
+  permissions?: Record<string, any>;
+  roles?: Record<string, any>;
+  ipAddress?: string | null;
+  userAgent?: string | null;
   previousState?: Record<string, any>;
   newState?: Record<string, any>;
   metadata?: Record<string, any>;
 }
 
 export interface ListAuditLogsParams {
+  tenantId?: string;
+  module?: string;
+  q?: string;
   action?: string;
   entityType?: string;
   entityId?: string;

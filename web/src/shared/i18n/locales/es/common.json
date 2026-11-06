@@ -55,7 +55,8 @@
     "workdayAgreements": "Convenios y acuerdos",
     "payrollSettings": "Nómina",
     "clients": "Clientes",
-    "platform": "Plataforma"
+    "platform": "Plataforma",
+    "audit": "Auditoría"
   },
   "files": {
     "access": "accesos",
