@@ -59,7 +59,11 @@ export default function AssignPayrollPositionPage() {
       const [nextPositions, nextPeople] = await Promise.all([payrollApi.positions(), usersApi.people()]);
       setPositions(nextPositions);
       setPeople(nextPeople);
-      setPositionId((current) => current || nextPositions[0]?.id || "");
+      setPositionId((current) => {
+        const selected = nextPositions.find((item) => item.id === current);
+        if (selected?.active) return current;
+        return nextPositions.find((item) => item.active)?.id ?? "";
+      });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo cargar la asignación.");
     } finally {
@@ -139,6 +143,10 @@ export default function AssignPayrollPositionPage() {
 
   const apply = async (assignIds?: string[], removeIds?: string[]) => {
     if (!positionId) return;
+    if (!position?.active) {
+      setError("El puesto está inactivo. Actívalo en el catálogo antes de asignar personal.");
+      return;
+    }
     const next = new Set(position?.employees.map((employee) => employee.id) ?? []);
     (removeIds ?? [...toRemove]).forEach((id) => next.delete(id));
     (assignIds ?? [...toAssign]).forEach((id) => next.add(id));

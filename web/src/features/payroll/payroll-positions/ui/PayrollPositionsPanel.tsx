@@ -82,7 +82,7 @@ export default function PayrollPositionsPanel() {
     { key: "actions", label: "", type: "actions", actions: (row) => (
       <div className="flex justify-end gap-1.5">
         <RowAction icon={<LuPencil size={14} />} label="Editar perfil" onClick={() => openEdit(row)} />
-        <RowAction icon={<LuUserCheck size={14} />} label="Asignar personal" tone="success" onClick={() => navigate(`/payroll/assign?position=${row.id}`)} />
+        <RowAction icon={<LuUserCheck size={14} />} label="Asignar personal" tone="success" disabled={!row.active} onClick={() => navigate(`/payroll/assign?position=${row.id}`)} />
         <RowAction icon={row.active ? <LuPowerOff size={14} /> : <LuPower size={14} />} label={row.active ? "Desactivar perfil" : "Activar perfil"} tone={row.active ? "warning" : "success"} onClick={() => setStatusTarget(row)} />
       </div>
     ) },
@@ -132,7 +132,7 @@ export default function PayrollPositionsPanel() {
         onConfirm={() => void confirmToggleActive()}
         title={statusTarget?.active ? "Desactivar perfil de nómina" : "Activar perfil de nómina"}
         message={statusTarget?.active
-          ? `El perfil "${statusTarget.name}" dejará de estar disponible para nuevas asignaciones. El personal ya asignado conserva su historial.`
+          ? `El puesto "${statusTarget.name}" quedará inactivo y se quitará a las personas asignadas. El historial de nómina se conserva.`
           : `El perfil "${statusTarget?.name ?? ""}" volverá a estar disponible para asignar personal.`}
         confirmLabel={statusTarget?.active ? "Desactivar" : "Activar"}
         cancelLabel="Cancelar"

@@ -462,6 +462,7 @@ export const es = {
     PAYROLL_ISR_TABLE_REQUIRED: "El ISR está activo pero no hay tarifa configurada",
     PAYROLL_IMSS_TABLE_REQUIRED: "El IMSS está activo pero no hay cuotas configuradas",
     PAYROLL_POSITION_NOT_FOUND: "Perfil de nómina no encontrado",
+    PAYROLL_POSITION_INACTIVE: "El puesto de nómina está inactivo; actívalo antes de asignar personal",
     PAYMENT_NOT_FOUND: "Pago del cliente no encontrado",
     INVALID_WEEKLY_LIMIT: "El límite semanal debe estar entre {{min}} y {{max}} minutos",
     WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",

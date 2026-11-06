@@ -37,9 +37,15 @@ parámetros, tablas JSON y cálculo de prueba.
 Además de la configuración global (`payroll_settings`), cada cliente puede crear
 perfiles en `payroll_positions` (nombre, cargo, salario diario y SBC) y asignar
 personas (`users.payrollPositionId`). La pantalla `/payroll/settings` abre en
-**Perfiles por cargo** con filtros bento, tabla paginada, alta/edición y diálogo
-para asignar personal; la pestaña **Configuración general** conserva la
+**Puestos de nómina** con filtros bento, tabla paginada y alta/edición enlazada
+con **Configuración → Catálogos**. La asignación de personal vive en
+`/payroll/assign`, con el mismo patrón de Asignar horario (filtros, selección
+masiva y acciones por fila); la pestaña **Configuración general** conserva la
 configuración fiscal y de prestaciones.
+
+Un puesto inactivo no puede asignarse: la API responde `PAYROLL_POSITION_INACTIVE`,
+al desactivarlo se desasigna a su personal y un trigger de PostgreSQL en `users`
+rechaza cualquier `payrollPositionId` inactivo, inexistente o de otro cliente.
 
 Endpoints:
 - `GET /payroll/positions` (`payroll.view`)

@@ -156,16 +156,23 @@ export class PayrollSettingsService {
   ) {
     const existing = await this.db.payrollPosition.findFirst({ where: { id, tenantId } });
     if (!existing) throw new HttpError(404, "PAYROLL_POSITION_NOT_FOUND");
-    await this.db.payrollPosition.update({
-      where: { id },
-      data: {
-        ...(input.name !== undefined && { name: input.name.trim() }),
-        ...(input.jobTitle !== undefined && { jobTitle: input.jobTitle?.trim() || null }),
-        ...(input.dailySalary !== undefined && { dailySalary: input.dailySalary }),
-        ...(input.sbcDaily !== undefined && { sbcDaily: input.sbcDaily }),
-        ...(input.active !== undefined && { active: input.active }),
-      },
-    });
+    if (!existing.active) throw new HttpError(400, "PAYROLL_POSITION_INACTIVE");
+    await this.db.$transaction([
+      this.db.payrollPosition.update({
+        where: { id },
+        data: {
+          ...(input.name !== undefined && { name: input.name.trim() }),
+          ...(input.jobTitle !== undefined && { jobTitle: input.jobTitle?.trim() || null }),
+          ...(input.dailySalary !== undefined && { dailySalary: input.dailySalary }),
+          ...(input.sbcDaily !== undefined && { sbcDaily: input.sbcDaily }),
+          ...(input.active !== undefined && { active: input.active }),
+        },
+      }),
+      // Un puesto inactivo deja de ser válido para el personal: se desasigna.
+      ...(input.active === false
+        ? [this.db.user.updateMany({ where: { tenantId, payrollPositionId: id }, data: { payrollPositionId: null } })]
+        : []),
+    ]);
     await this.audit?.({ action: "PAYROLL_POSITION_UPDATED", entityType: "PayrollPosition", entityId: id, userId: actor.id, userName: actor.name, newState: { ...input } });
     return this.listPositions(tenantId).then((rows) => rows.find((item) => item.id === id));
   }
@@ -173,6 +180,7 @@ export class PayrollSettingsService {
   async assignPosition(tenantId: string, id: string, userIds: string[]) {
     const existing = await this.db.payrollPosition.findFirst({ where: { id, tenantId } });
     if (!existing) throw new HttpError(404, "PAYROLL_POSITION_NOT_FOUND");
+    if (!existing.active) throw new HttpError(400, "PAYROLL_POSITION_INACTIVE");
     await this.db.$transaction([
       this.db.user.updateMany({
         where: { tenantId, payrollPositionId: id, id: { notIn: userIds } },

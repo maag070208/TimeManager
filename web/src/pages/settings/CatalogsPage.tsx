@@ -299,7 +299,7 @@ export default function CatalogsPage() {
         onClose={() => setRemoving(null)}
         onConfirm={() => void remove()}
         title="Dar de baja del catálogo"
-        message="El registro dejará de estar disponible para nuevos movimientos. El historial y los datos existentes se conservan."
+        message="El registro dejará de estar disponible para nuevos movimientos. Si es un puesto de nómina, se quitará a las personas asignadas. El historial y los datos existentes se conservan."
         confirmLabel="Dar de baja"
         cancelLabel="Cancelar"
         variant="danger"
