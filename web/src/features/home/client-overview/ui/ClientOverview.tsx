@@ -8,6 +8,7 @@ import { dyn } from "@shared/i18n";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { PanelCard } from "@shared/ui/panel-card";
 import { TicState } from "@shared/ui/tic";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { useClientOverview } from "../model/useClientOverview";
 
 const hours = (min: number) => (min / 60).toFixed(1).replace(/\.0$/, "");
@@ -17,27 +18,6 @@ function Block<T>({ value, children }: { value: T | null | undefined; children: 
   if (value === undefined) return <ContentSkeleton size="sm" />;
   if (value === null) return <TicState kind="error" size="sm" description={t("client.loadError")} />;
   return <>{children(value)}</>;
-}
-
-const Waves = ({ color = "rgba(255,255,255,0.14)", alt = false }: { color?: string; alt?: boolean }) => (
-  <svg aria-hidden viewBox="0 0 600 70" preserveAspectRatio="none" className={`${alt ? "dash-waves-alt" : "dash-waves"} pointer-events-none absolute inset-x-0 bottom-0 h-[58px] w-[200%]`}>
-    <path d="M0,42 C90,14 150,62 240,40 C330,18 390,60 480,36 C540,24 570,30 600,42 L600,70 L0,70 Z" fill={color} />
-    <path d="M0,52 C100,30 160,66 260,48 C360,28 420,62 520,44 C560,38 580,42 600,52 L600,70 L0,70 Z" fill={color} opacity="0.5" />
-  </svg>
-);
-
-function Kpi({ label, value, caption, icon, wave }: { label: string; value: ReactNode; caption: string; icon: ReactNode; wave: string }) {
-  return (
-    <div className="dash-kpi dash-card relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm" style={{ borderColor: "#eef1f5" }}>
-      <Waves color={wave} />
-      <span className="relative flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-600">{icon}</span>
-        {label}
-      </span>
-      <span className="relative mt-1 block text-[26px] font-black tabular-nums text-slate-900">{value}</span>
-      <span className="relative text-[11.5px] text-slate-500">{caption}</span>
-    </div>
-  );
 }
 
 export default function ClientOverview() {
@@ -73,6 +53,19 @@ export default function ClientOverview() {
     fx.can.overtime && { label: "Tiempo extra", to: "/schedules/overtime/approval", icon: <LuCalendarClock size={15} /> },
     fx.can.records && { label: "Nómina", to: "/schedules/payroll", icon: <LuFolderOpen size={15} /> },
   ].filter(Boolean) as Array<{ label: string; to: string; icon: ReactNode }>;
+
+  const kpiItems = [
+    ...(fx.people ? [
+      { id: "active", label: t("client.people.active"), value: fx.people.active, caption: t("client.people.title"), icon: <LuUsersRound size={14} />, tone: "neutral" as const },
+      { id: "hires", label: t("client.people.hires"), value: fx.people.hiresThisMonth, caption: `${fx.people.departuresThisMonth} ${t("client.people.departures").toLowerCase()}`, icon: <LuCalendarDays size={14} />, tone: "success" as const },
+    ] : []),
+    ...(fx.records ? [
+      { id: "records", label: t("client.records.complete"), value: `${fx.records.summary.complete}/${fx.records.summary.employees}`, caption: `${fx.records.summary.missingRequired} sin documento`, icon: <LuFolderOpen size={14} />, tone: "info" as const },
+    ] : []),
+    ...(fx.setup ? [
+      { id: "setup", label: "Pendientes", value: fx.setup.unlinkedClockNumbers + fx.setup.personalWithoutClock + fx.setup.personalWithoutSchedule, caption: "relojes / horarios", icon: <LuSettings2 size={14} />, tone: "warning" as const },
+    ] : []),
+  ];
 
   const attendanceHero = fx.attendance && (() => {
     const a = fx.attendance!;
@@ -148,7 +141,7 @@ export default function ClientOverview() {
           {onboardingSteps && pendingSteps > 0 ? (
             <PanelCard icon={<LuCircleCheck size={16} />} title={t("client.onboarding.title")} description={`${doneSteps} de ${onboardingSteps.length} completados`}>
               <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                <div className="dash-bar h-full rounded-full bg-[var(--color-primary-600)]" style={{ width: `${Math.round((doneSteps / Math.max(1, onboardingSteps.length)) * 100)}%` }} />
+                <div className="dash-bar h-full rounded-full bg-emerald-500" style={{ width: `${Math.round((doneSteps / Math.max(1, onboardingSteps.length)) * 100)}%` }} />
               </div>
               <ol className="flex flex-col gap-1.5">
                 {onboardingSteps.map((step) => (
@@ -182,32 +175,7 @@ export default function ClientOverview() {
         </div>
       </div>
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-        {fx.can.records && fx.people && (
-          <Block value={fx.people}>
-            {(p) => (
-              <>
-                <Kpi label={t("client.people.active")} value={p.active} caption={t("client.people.title")} icon={<LuUsersRound size={13} />} wave="rgba(15,46,61,0.10)" />
-                <Kpi label={t("client.people.hires")} value={p.hiresThisMonth} caption={`${p.departuresThisMonth} ${t("client.people.departures").toLowerCase()}`} icon={<LuCalendarDays size={13} />} wave="rgba(16,185,129,0.14)" />
-              </>
-            )}
-          </Block>
-        )}
-        {fx.can.records && fx.records && (
-          <Block value={fx.records}>
-            {(r) => (
-              <Kpi label={t("client.records.complete")} value={`${r.summary.complete}/${r.summary.employees}`} caption={`${r.summary.missingRequired} sin documento`} icon={<LuFolderOpen size={13} />} wave="rgba(14,165,233,0.12)" />
-            )}
-          </Block>
-        )}
-        {fx.can.setup && fx.setup && (
-          <Block value={fx.setup}>
-            {(s) => (
-              <Kpi label="Pendientes" value={s.unlinkedClockNumbers + s.personalWithoutClock + s.personalWithoutSchedule} caption="relojes / horarios" icon={<LuSettings2 size={13} />} wave="rgba(245,158,11,0.16)" />
-            )}
-          </Block>
-        )}
-      </div>
+      <BentoKpiGrid items={kpiItems} />
 
       <div className="grid items-start gap-4 lg:grid-cols-12">
         {fx.can.attendance && fx.attendance && (fx.attendance.counts.PRESENT + fx.attendance.counts.LATE + fx.attendance.counts.NOT_ARRIVED) > 0 && (
