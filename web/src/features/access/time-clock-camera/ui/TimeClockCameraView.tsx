@@ -96,15 +96,9 @@ export default function TimeClockCameraView({ clockSerial }: { clockSerial: stri
         </div>
       )}
 
-      <ITDataTable
-        showViewToggle={false}
+      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={fetchData as never}
-        defaultItemsPerPage={25}
-        itemsPerPageOptions={[25, 50, 100]}
-        layout="fixed"
-        density="compact"
-        rowHeight={44}
       />
       {camera.streams.length === 0 && (
         <ITText className="text-center text-sm text-slate-400">{t("camera.noStreams")}</ITText>

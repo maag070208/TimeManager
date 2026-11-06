@@ -275,16 +275,12 @@ export default function EmployeeRecordsBoard({ fx, hideKpis = false }: Props) {
             />
           </div>
 
-          <ITDataTable
+          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             reloadTrigger={tableReload}
-            showViewToggle={false}
             columns={columns as any}
             fetchData={fetchData as any}
             onRowClick={(row) => fx.select((row as unknown as RecordGapsRow).userId)}
             size="lg"
-            layout="fixed"
-            defaultItemsPerPage={25}
-            itemsPerPageOptions={[25, 50, 100]}
             className="border-0"
           />
 

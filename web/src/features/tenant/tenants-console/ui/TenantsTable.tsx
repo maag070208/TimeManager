@@ -1,6 +1,7 @@
 import { ITButton, ITDataTable, ITText, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuArrowRight, LuBadgeDollarSign, LuClock3, LuKeyRound, LuPause, LuPlay } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import type { Tenant } from "@entities/tenant";
 import { tenantHost, tenantUrl } from "@shared/api/tenant";
 import { ToneChip } from "@shared/ui/tone-chip";
@@ -27,6 +28,7 @@ const Usage = ({ usage, limit }: { usage: number; limit: number | null }) => (
 /** Clientes de la plataforma: subdominio, estado, uso, plan y acciones. */
 export default function TenantsTable({ rows, canManage, onEnter, onToggleStatus, onEditPlan, onManageAgent, onManageClocks }: Props) {
   const { t, i18n } = useTranslation("home");
+  const navigate = useNavigate();
   const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { day: "numeric", month: "short", year: "numeric" });
 
   const columns: Column<Tenant>[] = [
@@ -139,17 +141,13 @@ export default function TenantsTable({ rows, canManage, onEnter, onToggleStatus,
   };
 
   return (
-    <ITDataTable
+    <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
       columns={columns as unknown as Column<Record<string, unknown>>[]}
       fetchData={fetchData as unknown as (params: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>}
       reloadTrigger={rows.map((row) => `${row.id}:${row.status}:${row.planId ?? ""}:${row.usage.activeUsers}:${row.usage.clocks}`).join("|")}
-      defaultItemsPerPage={8}
-      itemsPerPageOptions={[8, 16, 32]}
-      layout="auto"
-      density="compact"
-      showViewToggle={false}
       variant="minimal"
       containerClassName="overflow-x-auto"
+      onRowClick={(row) => navigate(`/tenants/${(row as unknown as Tenant).id}`)}
     />
   );
 }

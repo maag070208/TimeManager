@@ -272,7 +272,7 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
 
       <div className="flex flex-col gap-2 border-t border-dashed border-slate-200 pt-4">
         <span className="text-xs font-semibold text-slate-500">{t("dashboard.recentPunches")}</span>
-        <ITDataTable showViewToggle={false}
+        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={
             fetchPunches as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>
@@ -283,13 +283,6 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
             const punch = row as unknown as Punch;
             if (punch.employeeNumber) onOpenPerson({ serial: clock.serial, employeeNumber: punch.employeeNumber });
           }}
-          defaultItemsPerPage={25}
-          itemsPerPageOptions={[25, 50, 100]}
-          layout="fixed"
-          density="compact"
-          rowHeight={50}
-          virtualized
-          virtualizedMaxHeight={460}
         />
       </div>
     </PanelCard>

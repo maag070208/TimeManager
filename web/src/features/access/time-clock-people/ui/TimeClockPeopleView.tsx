@@ -247,7 +247,7 @@ export default function TimeClockPeopleView({ clockSerial }: Props) {
       {fx.biometricsError && <ITText role="alert" className="text-sm text-red-600">{fx.biometricsError}</ITText>}
       {fx.toast && <ITText role="status" className="text-sm text-emerald-700" onClick={fx.dismissToast}>{fx.toast}</ITText>}
 
-      <ITDataTable showViewToggle={false}
+      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={
           fetchData as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>
@@ -256,13 +256,6 @@ export default function TimeClockPeopleView({ clockSerial }: Props) {
         debounceMs={350}
         variant="bordered"
         onRowClick={(row) => openFicha(row as unknown as Row)}
-        defaultItemsPerPage={25}
-        itemsPerPageOptions={[25, 50, 100]}
-        layout="fixed"
-        density="compact"
-        rowHeight={50}
-        virtualized
-        virtualizedMaxHeight={460}
       />
 
       {viewing && (

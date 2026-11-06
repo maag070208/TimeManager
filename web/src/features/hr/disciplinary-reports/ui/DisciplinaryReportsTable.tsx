@@ -203,7 +203,7 @@ export default function DisciplinaryReportsTable({
 
   return (
     <div className={flashNew ? "ticket-row-flash" : undefined}>
-    <ITDataTable showViewToggle={false}
+    <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
       // Otro mosaico del resumen = otra lista: la tabla se remonta.
       key={tableKey ?? JSON.stringify(externalFilters ?? {})}
       externalFilters={externalFilters}
@@ -215,13 +215,6 @@ export default function DisciplinaryReportsTable({
       }
       reloadTrigger={reloadKey}
       onRowClick={(row) => onView(row as unknown as DisciplinaryReport)}
-      defaultItemsPerPage={25}
-      itemsPerPageOptions={[25, 50, 100]}
-      layout="fixed"
-      density="compact"
-      rowHeight={50}
-      virtualized
-      virtualizedMaxHeight={460}
     />
     </div>
   );

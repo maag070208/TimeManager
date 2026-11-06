@@ -165,15 +165,9 @@ export default function PersonClockPanel({ clockSerial, employeeNumber, editable
               {punches?.length ?? 0}
             </ITText>
           </ITFlex>
-          <ITDataTable
-            showViewToggle={false}
+          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             columns={punchColumns as unknown as Column<Record<string, unknown>>[]}
             fetchData={punchesFetch as never}
-            defaultItemsPerPage={10}
-            itemsPerPageOptions={[10, 25]}
-            layout="fixed"
-            density="compact"
-            rowHeight={42}
           />
         </section>
       </div>

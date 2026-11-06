@@ -379,7 +379,7 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
           </ITFlex>
         </ITFlex>
 
-        <ITDataTable showViewToggle={false}
+        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           key={fx.tableKey}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={
@@ -388,13 +388,6 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
             ) => Promise<{ data: Record<string, unknown>[]; total: number }>
           }
           externalFilters={fx.externalFilters}
-          defaultItemsPerPage={25}
-          itemsPerPageOptions={[25, 50, 100]}
-          layout="fixed"
-          density="compact"
-          rowHeight={50}
-          virtualized
-          virtualizedMaxHeight={460}
         />
 
         {multiDay && (

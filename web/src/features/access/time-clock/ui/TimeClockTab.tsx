@@ -310,7 +310,7 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
           )
         }
       >
-        <ITDataTable showViewToggle={false}
+        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={
             fetchTableData as unknown as (
@@ -321,13 +321,6 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
           reloadTrigger={reloadKey}
           debounceMs={350}
           size="lg"
-          defaultItemsPerPage={25}
-          itemsPerPageOptions={[25, 50, 100]}
-          layout="fixed"
-          density="compact"
-          rowHeight={50}
-          virtualized
-          virtualizedMaxHeight={460}
         />
 
         <ITFlex align="center" gap={1} className="mt-3">

@@ -387,7 +387,7 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
           </ITAlert>
         )}
 
-        <ITDataTable showViewToggle={false}
+        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={
             fetchTableData as unknown as (
@@ -397,13 +397,7 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
           externalFilters={externalFilters}
           reloadTrigger={reloadKey}
           debounceMs={350}
-          defaultItemsPerPage={25}
-          itemsPerPageOptions={[25, 50, 100]}
-          layout="fixed"
-          density="compact"
-          rowHeight={50}
-          virtualized
-          virtualizedMaxHeight={460}
+          onRowClick={(row) => openLink(row as never)}
         />
       </PanelCard>
 

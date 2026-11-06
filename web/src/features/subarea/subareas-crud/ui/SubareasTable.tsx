@@ -113,7 +113,7 @@ export default function SubareasTable({
   ];
 
   return (
-    <ITDataTable showViewToggle={false}
+    <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
       columns={columns as any}
       fetchData={
         fetchData as unknown as (
@@ -123,13 +123,6 @@ export default function SubareasTable({
       reloadTrigger={reloadKey}
       size="lg"
       onRowClick={(row) => onEdit(row as unknown as Subarea)}
-      defaultItemsPerPage={25}
-      itemsPerPageOptions={[25, 50, 100]}
-      layout="fixed"
-      density="compact"
-      rowHeight={50}
-      virtualized
-      virtualizedMaxHeight={460}
     />
   );
 }

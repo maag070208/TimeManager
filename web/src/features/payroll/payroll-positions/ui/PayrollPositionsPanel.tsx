@@ -107,7 +107,7 @@ export default function PayrollPositionsPanel() {
         <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={openNew}><LuPlus size={14} className="mr-1" /> Nuevo perfil</ITButton>
       </div>
       <BentoFilterCards items={[{ id: "all", label: "Perfiles", value: positions.length, caption: `${assigned} personas asignadas` }, { id: "active", label: "Activos", value: positions.filter((position) => position.active).length, caption: "disponibles" }, { id: "inactive", label: "Inactivos", value: positions.filter((position) => !position.active).length, caption: "fuera de uso" }]} activeId={filter} onSelect={(id) => setFilter(id as Filter)} />
-      <ITDataTable showViewToggle={false} columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} defaultItemsPerPage={8} itemsPerPageOptions={[8, 16, 32]} layout="auto" density="compact" variant="minimal" />
+      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50} columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} variant="minimal" onRowClick={(row) => openEdit(row as unknown as PayrollPosition)} />
       <ITDialog isOpen={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? "Nuevo perfil de nómina" : "Editar perfil de nómina"}>
         <div className="flex flex-col gap-3">
           <ITInput name="payrollProfileName" label="Nombre del perfil" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} placeholder="Operativo, Administrativo…" />

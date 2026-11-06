@@ -461,21 +461,14 @@ export default function AssignSchedules() {
             description={departmentId || q.trim() ? t("assign.noPeopleFiltered") : t("assign.pendingCaption")}
           />
         ) : (
-          <ITDataTable
-            showViewToggle={false}
+          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             columns={columns as unknown as Column<Record<string, unknown>>[]}
             fetchData={
               fetchData as unknown as (
                 p: ITDataTableFetchParams
               ) => Promise<ITDataTableResponse<Record<string, unknown>>>
             }
-            defaultItemsPerPage={25}
-            itemsPerPageOptions={[25, 50, 100]}
-            layout="fixed"
-            density="compact"
-            rowHeight={52}
-            virtualized
-            virtualizedMaxHeight={520}
+            onRowClick={(row) => togglePick(row as unknown as AssignRow)}
           />
         )}
 

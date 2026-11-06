@@ -320,18 +320,12 @@ export default function DocumentCatalogPage() {
         </PanelCard>
       ) : (
         <PanelCard title={tt("catalog.title")} icon={<LuFileText size={15} />} actions={<HelpTip text="Los tipos de documento definen qué se le pide al personal (INE, contrato, comprobante). Marca como obligatorios los indispensables: el tablero de Expedientes avisa a quien no los tenga." />}>
-          <ITDataTable showViewToggle={false}
+          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             columns={columns as any}
             fetchData={fetchData as any}
             reloadTrigger={reloadKey}
             size="lg"
-            defaultItemsPerPage={25}
-            itemsPerPageOptions={[25, 50, 100]}
-            layout="fixed"
-            density="compact"
-            rowHeight={50}
-            virtualized
-            virtualizedMaxHeight={460}
+            onRowClick={(row) => openEdit(row as unknown as DocumentType)}
           />
         </PanelCard>
       )}

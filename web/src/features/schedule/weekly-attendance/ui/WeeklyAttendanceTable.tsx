@@ -305,32 +305,18 @@ export default function WeeklyAttendanceTable({
   };
 
   return mode === "DETAIL" ? (
-    <ITDataTable showViewToggle={false}
+    <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
       key={`detail:${queryKey}`}
       columns={detailColumns as unknown as Column<Record<string, unknown>>[]}
       fetchData={detailFetch as never}
       {...common}
-      defaultItemsPerPage={25}
-      itemsPerPageOptions={[25, 50, 100]}
-      layout="fixed"
-      density="compact"
-      rowHeight={50}
-      virtualized
-      virtualizedMaxHeight={460}
     />
   ) : (
-    <ITDataTable showViewToggle={false}
+    <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
       key={`summary:${queryKey}`}
       columns={summaryColumns as unknown as Column<Record<string, unknown>>[]}
       fetchData={summaryFetch as never}
       {...common}
-      defaultItemsPerPage={25}
-      itemsPerPageOptions={[25, 50, 100]}
-      layout="fixed"
-      density="compact"
-      rowHeight={50}
-      virtualized
-      virtualizedMaxHeight={460}
     />
   );
 }

@@ -141,15 +141,9 @@ export default function DepartmentSummaryCard({ rows, t: translate, isReviewed, 
 
   return (
     <ITCard className="!border-0" contentClassName="!p-0">
-      <ITDataTable
-        showViewToggle={false}
+      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={fetchData as never}
-        defaultItemsPerPage={10}
-        itemsPerPageOptions={[10, 25, 50]}
-        layout="fixed"
-        density="compact"
-        rowHeight={46}
       />
       <ITFlex align="center" justify="between" gap={3} wrap="wrap" className="px-4 py-2.5">
         <ITText muted className="!text-[11px]">
