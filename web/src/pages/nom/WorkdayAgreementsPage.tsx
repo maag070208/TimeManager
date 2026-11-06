@@ -157,24 +157,24 @@ export default function WorkdayAgreementsPage() {
               ]}
               disabled={form.kind === "COLECTIVO"}
             />
-            <ITDatePicker
-              name="agreementFrom"
-              label="Vigente desde"
-              value={dateStrToLocal(form.effectiveFrom)}
-              onChange={(event) => {
-                const value = event.target.value;
-                setForm((prev) => ({ ...prev, effectiveFrom: value instanceof Date ? localToDateStr(value) : "" }));
-              }}
-            />
-            <ITDatePicker
-              name="agreementTo"
-              label="Vigente hasta (opcional)"
-              value={dateStrToLocal(form.effectiveTo)}
-              onChange={(event) => {
-                const value = event.target.value;
-                setForm((prev) => ({ ...prev, effectiveTo: value instanceof Date ? localToDateStr(value) : "" }));
-              }}
-            />
+            <div className="sm:col-span-2">
+              <ITDatePicker
+                name="agreementPeriod"
+                label="Vigencia del convenio"
+                range
+                value={[dateStrToLocal(form.effectiveFrom) ?? null, dateStrToLocal(form.effectiveTo) ?? null]}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (!Array.isArray(value)) return;
+                  const [from, to] = value;
+                  setForm((prev) => ({
+                    ...prev,
+                    effectiveFrom: from ? localToDateStr(from) : "",
+                    effectiveTo: to ? localToDateStr(to) : "",
+                  }));
+                }}
+              />
+            </div>
           </div>
           <div className="mt-3">
             <ITTextarea
