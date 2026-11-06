@@ -54,11 +54,11 @@ export default function EmployeeDocumentsCard({
       )}
 
       <div className="grid grid-cols-1 gap-4 md:!grid-cols-2 xl:!grid-cols-3">
-        {documentTypes.map((type) => {
+        {documentTypes.map((type, index) => {
           const files = byType.get(type.id) ?? [];
           const covered = files.length > 0;
           return (
-            <ITCard key={type.id} className="flex flex-col">
+            <ITCard key={type.id} className={`tm-hero-card tm-hero-card--${["mint", "sky", "amber", "lavender"][index % 4]} flex flex-col`}>
               <header className="flex items-start gap-3">
                 <ITText as="span"
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"

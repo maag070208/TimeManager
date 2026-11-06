@@ -10,10 +10,10 @@ import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { formatDateTime } from "@shared/utils/dates";
 
 /** Tarjeta de una sección de actividad: `PanelCard` con ícono y conteo; cuerpo con altura máxima. */
-function Card({ icon, title, count, children }: { icon: React.ReactNode; title: string; count: number; children: React.ReactNode }) {
+function Card({ icon, title, count, tone, children }: { icon: React.ReactNode; title: string; count: number; tone: "sky" | "lavender"; children: React.ReactNode }) {
   return (
     <PanelCard
-      className="tm-hero-card"
+      className={`tm-hero-card tm-hero-card--${tone}`}
       icon={icon}
       title={title}
       actions={<ITText as="span" className="rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums" style={{ background: "var(--color-secondary-100)" }}>{count}</ITText>}
@@ -79,7 +79,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
       </ITFlex>
 
       <div className="grid grid-cols-1 items-start gap-4 lg:!grid-cols-2">
-        <Card icon={<LuFileText size={15} />} title={t("detail.activity.tabs.documents")} count={documents.length}>
+        <Card icon={<LuFileText size={15} />} title={t("detail.activity.tabs.documents")} count={documents.length} tone="sky">
           <ul className="divide-y divide-slate-100">
             {documents.map((document) => (
               <li key={document.id} className="px-2 py-3">
@@ -95,7 +95,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
           )}
         </Card>
 
-        <Card icon={<LuFingerprint size={15} />} title={t("detail.activity.tabs.punches")} count={punches.length}>
+        <Card icon={<LuFingerprint size={15} />} title={t("detail.activity.tabs.punches")} count={punches.length} tone="lavender">
           <ul className="divide-y divide-slate-100">
             {punches.map((punch) => (
               <li key={punch.id} className="flex items-center justify-between gap-3 px-2 py-3">

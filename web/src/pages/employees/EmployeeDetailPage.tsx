@@ -143,7 +143,7 @@ export default function EmployeeDetailPage() {
 
         <TabBar items={sections} value={section} onChange={setSection} />
 
-        <div className="tm-hero-card flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3">
+        <div className={`tm-hero-card tm-hero-card--${{ activity: "sky", documents: "amber", clock: "lavender", info: "mint" }[section]} flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3`}>
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
             {sections.find((item) => item.id === section)?.icon}
           </span>

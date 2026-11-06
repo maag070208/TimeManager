@@ -24,11 +24,13 @@ function Cell({ item }: { item: Item }) {
   );
 }
 
+const CARD_TONE = { primary: "sky", info: "lavender", warning: "amber", success: "mint", danger: "rose" } as const;
+
 function InfoCard({ icon, tone, title, items }: { icon: React.ReactNode; tone: "primary" | "info" | "warning" | "success" | "danger"; title: string; items: Item[] }) {
   const filled = items.filter((i) => i.value?.trim()).length;
   const complete = filled === items.length;
   return (
-    <ITCard className="tm-hero-card">
+    <ITCard className={`tm-hero-card tm-hero-card--${CARD_TONE[tone]}`}>
       <header className="mb-4 flex items-center justify-between gap-3">
         <ITFlex align="center" gap={3} className="min-w-0">
           <ITText as="span"
@@ -109,7 +111,7 @@ export default function EmployeeInfoCards({ profile }: Props) {
 
   return (
     <ITStack spacing={5}>
-      <ITCard className="tm-hero-card">
+      <ITCard className="tm-hero-card tm-hero-card--lavender">
         <ITFlex align="center" wrap="wrap" gap={6}>
           <div className="min-w-[240px] flex-1">
             <ITText className="m-0 text-[13px] text-slate-500">{tt("detail.completeness")}</ITText>

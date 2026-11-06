@@ -548,6 +548,11 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .tm-hero-card > * { position: relative; z-index: 1; }
+.tm-hero-card {
+  --tm-wave-color: rgba(16, 185, 129, 0.16);
+  --tm-wave-duration: 18s;
+  --tm-wave-direction: normal;
+}
 .tm-hero-card::after {
   content: "";
   position: absolute;
@@ -555,15 +560,22 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
   right: -100%;
   bottom: 0;
   height: 58px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 70' preserveAspectRatio='none'%3E%3Cpath d='M0,42 C90,14 150,62 240,40 C330,18 390,60 480,36 C540,24 570,30 600,42 L600,70 L0,70 Z' fill='%2310b981' fill-opacity='0.14'/%3E%3Cpath d='M0,52 C100,30 160,66 260,48 C360,28 420,62 520,44 C560,38 580,42 600,52 L600,70 L0,70 Z' fill='%2310b981' fill-opacity='0.10'/%3E%3C/svg%3E");
-  background-size: 600px 58px;
-  animation: tm-hero-wave 18s linear infinite reverse;
+  background-color: var(--tm-wave-color);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 70' preserveAspectRatio='none'%3E%3Cpath d='M0,42 C90,14 150,62 240,40 C330,18 390,60 480,36 C540,24 570,30 600,42 L600,70 L0,70 Z' fill='black'/%3E%3Cpath d='M0,52 C100,30 160,66 260,48 C360,28 420,62 520,44 C560,38 580,42 600,52 L600,70 L0,70 Z' fill='black' fill-opacity='0.55'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 70' preserveAspectRatio='none'%3E%3Cpath d='M0,42 C90,14 150,62 240,40 C330,18 390,60 480,36 C540,24 570,30 600,42 L600,70 L0,70 Z' fill='black'/%3E%3Cpath d='M0,52 C100,30 160,66 260,48 C360,28 420,62 520,44 C560,38 580,42 600,52 L600,70 L0,70 Z' fill='black' fill-opacity='0.55'/%3E%3C/svg%3E");
+  -webkit-mask-size: 600px 58px;
+  mask-size: 600px 58px;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  animation: tm-hero-wave var(--tm-wave-duration) linear infinite var(--tm-wave-direction);
   pointer-events: none;
 }
-@keyframes tm-hero-wave {
-  from { background-position-x: 0; }
-  to { background-position-x: -600px; }
-}
+.tm-hero-card--mint { --tm-wave-color: rgba(16, 185, 129, 0.16); --tm-wave-duration: 18s; --tm-wave-direction: normal; }
+.tm-hero-card--sky { --tm-wave-color: rgba(14, 165, 233, 0.16); --tm-wave-duration: 24s; --tm-wave-direction: reverse; }
+.tm-hero-card--lavender { --tm-wave-color: rgba(139, 92, 246, 0.15); --tm-wave-duration: 28s; --tm-wave-direction: normal; }
+.tm-hero-card--amber { --tm-wave-color: rgba(245, 158, 11, 0.18); --tm-wave-duration: 15s; --tm-wave-direction: reverse; }
+.tm-hero-card--rose { --tm-wave-color: rgba(244, 63, 94, 0.13); --tm-wave-duration: 20s; --tm-wave-direction: normal; }
+.tm-hero-card--slate { --tm-wave-color: rgba(100, 116, 139, 0.12); --tm-wave-duration: 30s; --tm-wave-direction: reverse; }
 @media (prefers-reduced-motion: reduce) {
   .tm-hero-card::after { animation: none !important; }
 }
