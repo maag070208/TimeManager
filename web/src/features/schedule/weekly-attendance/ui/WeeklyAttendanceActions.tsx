@@ -56,82 +56,71 @@ export default function WeeklyAttendanceActions({
         <ITFlex align="center" gap={2} className="min-w-0">
           <ITText
             as="span"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
             style={{
-              color: closed ? "var(--color-success)" : "#0f766e",
-              backgroundColor: closed
-                ? "color-mix(in srgb, var(--color-success) 14%, transparent)"
-                : "#eaf6ef",
+              color: closed ? "var(--color-success)" : allReviewed ? "var(--color-success)" : "var(--color-warning)",
+              backgroundColor: closed || allReviewed ? "color-mix(in srgb, var(--color-success) 12%, transparent)" : "color-mix(in srgb, var(--color-warning) 14%, transparent)",
             }}
           >
-            <LuShieldCheck size={15} />
+            <LuShieldCheck size={17} />
           </ITText>
-          <ITText muted className="!text-[12px]">
-            {note}
-          </ITText>
+          <div className="min-w-0">
+            <ITText className="block !text-[12px] font-bold !text-slate-800">Revisión de la semana</ITText>
+            <ITText muted className="block !text-[11.5px]">{note}</ITText>
+          </div>
         </ITFlex>
 
-        <ITFlex align="center" gap={2} wrap="wrap" className="shrink-0">
-          <ITButton
-            variant="outlined"
-            color="gray"
-            size="sm"
-            className="tm-row-button"
-            onClick={() => navigate("/schedules/payroll/history")}
-          >
+        <ITFlex align="center" gap={1.5} wrap="wrap" className="shrink-0">
+          <ITButton variant="text" color="gray" size="sm" className="tm-row-button" onClick={() => navigate("/schedules/payroll/history")}>
             <ITFlex align="center" gap={1}>
               <LuHistory size={13} />
-              <ITText as="span" className="text-[11px] font-bold">{t("actionsBar.history")}</ITText>
+              <ITText as="span" className="text-[11px] font-semibold">{t("actionsBar.history")}</ITText>
             </ITFlex>
           </ITButton>
 
+          <span aria-hidden className="mx-1 hidden h-5 w-px bg-slate-200 sm:block" />
+
           {closed ? (
             canClose && (
-              <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={reviews.reopen} disabled={reviews.busy}>
+              <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={reviews.reopen} disabled={reviews.busy}>
                 <ITFlex align="center" gap={1}>
                   <LuShieldCheck size={13} />
-                  <ITText as="span" className="text-[11px] font-bold">{t("actionsBar.reopen")}</ITText>
+                  <ITText as="span" className="text-[11px] font-semibold">{t("actionsBar.reopen")}</ITText>
                 </ITFlex>
               </ITButton>
             )
           ) : (
             <>
+              <ITButton
+                variant="outlined"
+                color="secondary"
+                size="sm"
+                className="tm-row-button"
+                onClick={onVerify}
+                disabled={reviews.busy || !hasWeekData}
+              >
+                <ITFlex align="center" gap={1}>
+                  <LuListChecks size={13} />
+                  <ITText as="span" className="text-[11px] font-semibold">{t("actionsBar.verifyByDepartment")}</ITText>
+                </ITFlex>
+              </ITButton>
               {canReview && !allReviewed && (
-                <>
-                  <ITButton
-                    variant="outlined"
-                    color="primary"
-                    size="sm"
-                    className="tm-row-button"
-                    onClick={onVerifyAll}
-                    disabled={reviews.busy || !hasWeekData}
-                  >
-                    <ITFlex align="center" gap={1}>
-                      <LuCheckCheck size={13} />
-                      <ITText as="span" className="text-[11px] font-bold">
-                        {t("actionsBar.verifyAll")}
-                      </ITText>
-                    </ITFlex>
-                  </ITButton>
-                  <ITButton
-                    variant="outlined"
-                    color="primary"
-                    size="sm"
-                    className="tm-row-button"
-                    onClick={onVerify}
-                    disabled={reviews.busy || !hasWeekData}
-                  >
-                    <ITFlex align="center" gap={1}>
-                      <LuListChecks size={13} />
-                      <ITText as="span" className="text-[11px] font-bold">
-                        {t("actionsBar.verifyByDepartment")}
-                      </ITText>
-                    </ITFlex>
-                  </ITButton>
-                </>
+                <ITButton
+                  variant="filled"
+                  color="primary"
+                  size="sm"
+                  className="tm-row-button"
+                  onClick={onVerifyAll}
+                  disabled={reviews.busy || !hasWeekData}
+                >
+                  <ITFlex align="center" gap={1}>
+                    <LuCheckCheck size={13} />
+                    <ITText as="span" className="text-[11px] font-semibold !text-white">{t("actionsBar.verifyAll")}</ITText>
+                  </ITFlex>
+                </ITButton>
               )}
               <ITButton
-                variant="filled"
+                variant={allReviewed ? "filled" : "outlined"}
                 color="warning"
                 size="sm"
                 className="tm-row-button"
@@ -140,8 +129,8 @@ export default function WeeklyAttendanceActions({
                 title={allReviewed ? undefined : t("actionsBar.notePending")}
               >
                 <ITFlex align="center" gap={1}>
-                  <LuShieldCheck size={13} className="text-slate-900" />
-                  <ITText as="span" className="text-[11px] font-bold !text-slate-900">
+                  <LuShieldCheck size={13} />
+                  <ITText as="span" className={`text-[11px] font-semibold ${allReviewed ? "!text-slate-900" : "!text-slate-400"}`}>
                     {t("actionsBar.close")}
                   </ITText>
                 </ITFlex>
