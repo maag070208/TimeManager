@@ -28,6 +28,7 @@ import { nomApi, type LeaveType } from "@entities/nom";
 import { personalApi, type DocumentType } from "@entities/hr";
 import { departmentsApi, type Department } from "@entities/department";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
+import { usersApi } from "@entities/user";
 
 type CatalogKey = "leave" | "documents" | "departments" | "positions";
 
@@ -62,6 +63,7 @@ export default function CatalogsPage() {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [positions, setPositions] = useState<PayrollPosition[]>([]);
+  const [jobTitles, setJobTitles] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -71,16 +73,21 @@ export default function CatalogsPage() {
 
   const load = useCallback(async () => {
     try {
-      const [nextLeave, nextDocs, nextDepts, nextPositions] = await Promise.all([
+      const [nextLeave, nextDocs, nextDepts, nextPositions, people] = await Promise.all([
         nomApi.leaveTypes(true),
         personalApi.documentTypes(true),
         departmentsApi.list(true),
         payrollApi.positions(),
+        usersApi.people(),
       ]);
       setLeaveTypes(nextLeave);
       setDocumentTypes(nextDocs);
       setDepartments(nextDepts);
       setPositions(nextPositions);
+      setJobTitles([...new Set([
+        ...people.map((person) => person.jobTitle?.trim()),
+        ...nextPositions.map((position) => position.jobTitle?.trim()),
+      ].filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b)));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudieron cargar los catálogos.");
     }
@@ -274,7 +281,14 @@ export default function CatalogsPage() {
           )}
           {editing?.catalog === "positions" && (
             <>
-              <ITInput name="catalogJobTitle" label="Puesto de trabajo" value={form.jobTitle} onChange={(event) => setForm((f) => ({ ...f, jobTitle: event.target.value }))} />
+              <ITSearchSelect
+                name="catalogJobTitle"
+                label="Puesto de trabajo"
+                value={form.jobTitle}
+                onChange={(value) => setForm((f) => ({ ...f, jobTitle: String(value) }))}
+                options={[...new Set([form.jobTitle, ...jobTitles].filter(Boolean))].map((value) => ({ value, label: value }))}
+                placeholder="Analista, Gerente…"
+              />
               <ITInput name="catalogSalary" type="number" label="Salario diario" value={form.dailySalary} onChange={(event) => setForm((f) => ({ ...f, dailySalary: event.target.value }))} />
             </>
           )}

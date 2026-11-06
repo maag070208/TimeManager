@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITDataTable, ITDialog, ITInput, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITDataTable, ITDialog, ITInput, ITSearchSelect, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuPencil, LuPlus, LuPower, LuPowerOff, LuUserCheck, LuWallet } from "react-icons/lu";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
+import { usersApi } from "@entities/user";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { HelpTip } from "@shared/ui/help-tip";
 import { DialogHeader } from "@shared/ui/dialog-header";
@@ -14,6 +15,7 @@ const money = (value: number) => value.toLocaleString("es-MX", { style: "currenc
 export default function PayrollPositionsPanel() {
   const navigate = useNavigate();
   const [positions, setPositions] = useState<PayrollPosition[]>([]);
+  const [jobTitles, setJobTitles] = useState<string[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -25,7 +27,12 @@ export default function PayrollPositionsPanel() {
 
   const load = async () => {
     try {
-      setPositions(await payrollApi.positions());
+      const [nextPositions, people] = await Promise.all([payrollApi.positions(), usersApi.people()]);
+      setPositions(nextPositions);
+      setJobTitles([...new Set([
+        ...people.map((person) => person.jobTitle?.trim()),
+        ...nextPositions.map((position) => position.jobTitle?.trim()),
+      ].filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b)));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudieron cargar los perfiles de nómina.");
     }
@@ -107,7 +114,14 @@ export default function PayrollPositionsPanel() {
         />
         <div className="flex flex-col gap-3">
           <ITInput name="payrollProfileName" label="Nombre del perfil" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} placeholder="Operativo, Administrativo…" />
-          <ITInput name="payrollProfileJob" label="Cargo" value={form.jobTitle} onChange={(event) => setForm((prev) => ({ ...prev, jobTitle: event.target.value }))} placeholder="Analista, Gerente…" />
+          <ITSearchSelect
+            name="payrollProfileJob"
+            label="Cargo"
+            value={form.jobTitle}
+            onChange={(value: string | number) => setForm((prev) => ({ ...prev, jobTitle: String(value) }))}
+            options={[...new Set([form.jobTitle, ...jobTitles].filter(Boolean))].map((value) => ({ value, label: value }))}
+            placeholder="Analista, Gerente…"
+          />
           <ITInput name="payrollProfileSalary" label="Salario diario (MXN)" type="number" value={form.dailySalary} onChange={(event) => setForm((prev) => ({ ...prev, dailySalary: event.target.value }))} />
           <ITInput name="payrollProfileSbc" label="SBC diario (opcional)" type="number" value={form.sbcDaily} onChange={(event) => setForm((prev) => ({ ...prev, sbcDaily: event.target.value }))} />
           <div className="flex justify-end gap-2 pt-2">
