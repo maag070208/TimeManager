@@ -12,7 +12,7 @@ Esta matriz es la **fuente única para generar pruebas**. Cada fila debe termina
 | Subpantallas/tabs | **39** |
 | Modales/diálogos reales | **71** |
 | Suites E2E existentes | **21 archivos / 75 casos** |
-| Specs unitarias e integración existentes | **~260 casos** |
+| Specs unitarias e integración existentes | **55 archivos API + 1 web** |
 
 **Prioridades:** `P0` = bloquea operación o seguridad (se automatiza primero). `P1` = flujo principal del módulo. `P2` = borde, ayuda o lectura secundaria.
 
@@ -102,6 +102,13 @@ Esta matriz es la **fuente única para generar pruebas**. Cada fila debe termina
 | CLK-08 | Relojes | Inspect del reloj | `/time-clocks/inspect` | `time_clocks.manage` | — | Selector; periodo; actualizar; tabs Resumen/Personas/Tarjetas/Eventos; tablas; identidad/hora | `/inspect/overview`, `/users`, `/cards`, `/events?days` | Tabs/periodo; paginación; sin respuesta | Unit: tipos de evento | P2 |
 | CLK-09 | Relojes | Relojes checadores | `/time-clocks` | `time_clocks.manage`; agent jobs `time_clock.write` | CLK-M01..M04, AGT-01 | Tarjetas estado; detalle config; probar conexión; sincronizar; editar; baja; historial; jobs agente | `/time-clock/status`, `/clocks/:serial/settings`, CRUD `/clocks`, `/sync`, `/agent/jobs` | Probar ok/error; sync 409/503; URL inválida/duplicada; baja+alta; jobs | Integración: register/sync mock | P0 |
 | AGT-01 | Agente | Trabajos del agente | `/time-clocks` | Encolar `time_clock.write` | — | Reloj, acción SYNC/PERSON_ADD/REMOVE/CARD_ADD; encolar; recientes; read-only | `POST /agent/jobs`, `GET /agent/jobs/recent` | CARD_ADD; validaciones; read-only; fallidos | Unit: DTO por acción; Integración: agent.flow | P2 |
+
+### 1.6 Configuración
+
+| ID | Módulo | Pantalla | Ruta | Permiso | Modales | Acciones clave | Datos/endpoints | E2E propuesto | Unit/Integración | P |
+|---|---|---|---|---|---|---|---|---|---|---|
+| SET-01 | Configuración | Configuración general | `/settings/general` | `time_clock.write` | SET-M1, M2 | Tabs Operación/Asistencia/Límites y retención/Checada web; guardar; archivar registros vencidos; zona horaria de solo lectura; ayuda contextual | `GET/PUT /nom/config`, `POST /nom/retention/archive`, `GET /auth/me` | Guardar por tab; recorte de límites; archivar con confirmación; toggles de checada web | Integración: `nom.flow`; Unit: validación de límites | P1 |
+| SET-02 | Configuración | Catálogos | `/settings/catalogs` | Ruta `time_clock.write` o `hr.records`; escrituras `catalogs.manage` | SET-M3, M4 | Tabs Permisos/Documentos/Departamentos/Puestos; alta/edición/baja lógica; tablas con búsqueda | `/nom/leave/types`, `/hr/catalogs/document-types`, `/departments`, `/payroll/positions` | CRUD por tab; baja lógica; HelpTip; permisos ADMIN vs CLIENT_ADMIN | Integración: `leave.flow` + nueva de catálogos | P1 |
 
 ## 2. Matriz de subpantallas y tabs
 
