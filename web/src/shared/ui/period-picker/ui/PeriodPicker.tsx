@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { ITButton, ITDatePicker, ITFlex, ITSegmentedControl } from "@axzydev/axzy_ui_system";
+import { ITButton, ITDatePicker, ITFlex } from "@axzydev/axzy_ui_system";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { REPORT_PERIODS, type ReportPeriod } from "@shared/lib/reportPeriod";
+import { FilterPills } from "@shared/ui/filter-pills";
 
 export interface PeriodPickerLabels {
   /** Etiqueta de cada periodo en el segmentado. */
@@ -43,7 +44,7 @@ export default function PeriodPicker({
   name = "period",
 }: PeriodPickerProps) {
   const periodOptions = useMemo(
-    () => REPORT_PERIODS.map((value) => ({ value, label: labels.periods[value] })),
+    () => REPORT_PERIODS.map((value) => ({ id: value, label: labels.periods[value] })),
     [labels.periods]
   );
 
@@ -59,14 +60,14 @@ export default function PeriodPicker({
 
   return (
     <>
-      <ITSegmentedControl
-        options={periodOptions}
+      <FilterPills
+        items={periodOptions}
         value={period}
         onChange={(value) => onPeriodChange(value as ReportPeriod)}
       />
       <ITFlex align="end" gap={2} className="min-w-[280px] flex-1">
-        <ITButton variant="outlined" color="gray" onClick={onPrevious} title={labels.previous}>
-          <FaChevronLeft size={11} />
+        <ITButton variant="outlined" color="secondary" className="tm-icon-button" onClick={onPrevious} title={labels.previous}>
+          <FaChevronLeft size={12} />
         </ITButton>
         <ITFlex className="min-w-0 flex-1">
           {period === "DAY" ? (
@@ -88,8 +89,8 @@ export default function PeriodPicker({
             />
           )}
         </ITFlex>
-        <ITButton variant="outlined" color="gray" onClick={onNext} title={labels.next}>
-          <FaChevronRight size={11} />
+        <ITButton variant="outlined" color="secondary" className="tm-icon-button" onClick={onNext} title={labels.next}>
+          <FaChevronRight size={12} />
         </ITButton>
       </ITFlex>
     </>

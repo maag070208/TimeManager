@@ -198,7 +198,7 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
               name={r.employeeName}
               size="md"
             />
-            <ITFlex className="min-w-0">
+            <ITFlex direction="column" gap={0} className="min-w-0">
               <ITText className="truncate text-[13px] font-bold text-slate-800">{r.employeeName}</ITText>
               <ITText className="truncate text-[11px] text-slate-500">{subtitle}</ITText>
             </ITFlex>
