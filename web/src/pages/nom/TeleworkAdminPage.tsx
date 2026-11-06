@@ -152,9 +152,21 @@ export default function TeleworkAdminPage() {
                 {registrations.filter((row) => row.status === "ACTIVE").length} persona(s) en teletrabajo
               </ITText>
               <ITText className="!text-[12px] !text-slate-600">
-                Política v{policy?.policyVersion ?? 1} · aviso v{policy?.privacyNoticeVersion ?? 1} ·{" "}
-                {checklists.length} checklist(s) recibido(s) · {contacts.length} comunicación(es) fuera de jornada.
+                Política v{policy?.policyVersion ?? 1} · aviso v{policy?.privacyNoticeVersion ?? 1}
               </ITText>
+              <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
+                {[
+                  { label: "Teletrabajadores", value: registrations.filter((row) => row.status === "ACTIVE").length },
+                  { label: "Checklists", value: checklists.length },
+                  { label: "Comunicaciones", value: contacts.length },
+                  { label: "Versión de política", value: `v${policy?.policyVersion ?? 1}` },
+                ].map((stat) => (
+                  <div key={stat.label} className="rounded-xl bg-white/70 px-3 py-2">
+                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">{stat.label}</span>
+                    <span className="block text-[20px] font-black tabular-nums text-slate-900">{stat.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <ITCard className="lg:col-span-7" contentClassName="!p-5">
@@ -169,31 +181,35 @@ export default function TeleworkAdminPage() {
                     privacy: policy?.privacyNoticeVersion ?? 1,
                   })}
                 </ITText>
-                <ITTextarea
-                  name="teleworkPolicy"
-                  label={t("telework.policyTitle")}
-                  value={policyForm.teleworkPolicy}
-                  onChange={(value) => setPolicyForm((form) => ({ ...form, teleworkPolicy: value }))}
-                  rows={5}
-                />
-                <ITTextarea
-                  name="disconnectPolicy"
-                  label={t("telework.disconnectTitle")}
-                  value={policyForm.disconnectPolicy}
-                  onChange={(value) => setPolicyForm((form) => ({ ...form, disconnectPolicy: value }))}
-                  rows={4}
-                />
-                <ITTextarea
-                  name="privacyNotice"
-                  label={t("telework.privacyTitle")}
-                  value={policyForm.privacyNotice}
-                  onChange={(value) => setPolicyForm((form) => ({ ...form, privacyNotice: value }))}
-                  rows={5}
-                />
-                <ITFlex>
+                <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+                  <ITTextarea
+                    name="teleworkPolicy"
+                    label={t("telework.policyTitle")}
+                    value={policyForm.teleworkPolicy}
+                    onChange={(value) => setPolicyForm((form) => ({ ...form, teleworkPolicy: value }))}
+                    rows={6}
+                  />
+                  <ITTextarea
+                    name="disconnectPolicy"
+                    label={t("telework.disconnectTitle")}
+                    value={policyForm.disconnectPolicy}
+                    onChange={(value) => setPolicyForm((form) => ({ ...form, disconnectPolicy: value }))}
+                    rows={6}
+                  />
+                  <ITTextarea
+                    name="privacyNotice"
+                    label={t("telework.privacyTitle")}
+                    value={policyForm.privacyNotice}
+                    onChange={(value) => setPolicyForm((form) => ({ ...form, privacyNotice: value }))}
+                    rows={6}
+                  />
+                </div>
+                <ITFlex justify="end">
                   <ITButton
                     variant="filled"
                     color="primary"
+                    size="sm"
+                    className="tm-row-button"
                     onClick={() =>
                       void run(() =>
                         nomApi.updateTeleworkPolicy({
@@ -216,7 +232,7 @@ export default function TeleworkAdminPage() {
                   <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
                   <HelpTip text="Alta del teletrabajador con su modo (remoto, híbrido o campo) y domicilio. La baja conserva el historial; el consentimiento de la política es requisito para que pueda marcar desde casa." />
                 </ITFlex>
-                <ITFlex gap={2} wrap="wrap" align="end">
+                <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                   <ITSearchSelect
                     name="registrationUser"
                     label={t("admin.person")}
@@ -239,32 +255,38 @@ export default function TeleworkAdminPage() {
                       { value: "CAMPO", label: t("telework.mode.CAMPO") },
                     ]}
                   />
-                  <ITInput
-                    name="homeAddress"
-                    label={t("admin.homeAddress")}
-                    value={newRegistration.homeAddress}
-                    onChange={(event) =>
-                      setNewRegistration((form) => ({ ...form, homeAddress: event.target.value }))
-                    }
-                  />
-                  <ITButton
-                    variant="filled"
-                    color="primary"
-                    disabled={busy || !newRegistration.userId}
-                    onClick={() =>
-                      void run(async () => {
-                        await nomApi.registerTelework({
-                          userId: newRegistration.userId,
-                          mode: newRegistration.mode,
-                          homeAddress: newRegistration.homeAddress || undefined,
-                        });
-                        setNewRegistration({ userId: "", mode: "REMOTO", homeAddress: "" });
-                      })
-                    }
-                  >
-                    {t("admin.register")}
-                  </ITButton>
-                </ITFlex>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <ITInput
+                      name="homeAddress"
+                      label={t("admin.homeAddress")}
+                      value={newRegistration.homeAddress}
+                      onChange={(event) =>
+                        setNewRegistration((form) => ({ ...form, homeAddress: event.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="flex items-end justify-end" style={{ gridColumn: "1 / -1" }}>
+                    <ITButton
+                      variant="filled"
+                      color="primary"
+                      size="sm"
+                      className="tm-row-button w-full"
+                      disabled={busy || !newRegistration.userId}
+                      onClick={() =>
+                        void run(async () => {
+                          await nomApi.registerTelework({
+                            userId: newRegistration.userId,
+                            mode: newRegistration.mode,
+                            homeAddress: newRegistration.homeAddress || undefined,
+                          });
+                          setNewRegistration({ userId: "", mode: "REMOTO", homeAddress: "" });
+                        })
+                      }
+                    >
+                      {t("admin.register")}
+                    </ITButton>
+                  </div>
+                </div>
 
                 {registrations.length === 0 ? (
                   <ITText muted>{t("admin.emptyRegistrations")}</ITText>
@@ -346,7 +368,7 @@ export default function TeleworkAdminPage() {
                 <ITText muted className="!text-[11px]">
                   {t("admin.contactsHint")}
                 </ITText>
-                <ITFlex gap={2} wrap="wrap" align="end">
+                <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                   <ITSearchSelect
                     name="contactUser"
                     label={t("admin.person")}
@@ -371,30 +393,36 @@ export default function TeleworkAdminPage() {
                       { value: "OTHER", label: t("admin.channels.OTHER") },
                     ]}
                   />
-                  <ITInput
-                    name="contactReason"
-                    label={t("admin.reason")}
-                    value={newContact.reason}
-                    onChange={(event) => setNewContact((form) => ({ ...form, reason: event.target.value }))}
-                  />
-                  <ITButton
-                    variant="filled"
-                    color="primary"
-                    disabled={busy || !newContact.userId || newContact.reason.trim().length < 5}
-                    onClick={() =>
-                      void run(async () => {
-                        await nomApi.registerOutOfHoursContact({
-                          userId: newContact.userId,
-                          channel: newContact.channel,
-                          reason: newContact.reason.trim(),
-                        });
-                        setNewContact({ userId: "", channel: "CALL", reason: "" });
-                      })
-                    }
-                  >
-                    {t("admin.registerContact")}
-                  </ITButton>
-                </ITFlex>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <ITInput
+                      name="contactReason"
+                      label={t("admin.reason")}
+                      value={newContact.reason}
+                      onChange={(event) => setNewContact((form) => ({ ...form, reason: event.target.value }))}
+                    />
+                  </div>
+                  <div className="flex items-end justify-end" style={{ gridColumn: "1 / -1" }}>
+                    <ITButton
+                      variant="filled"
+                      color="primary"
+                      size="sm"
+                      className="tm-row-button w-full"
+                      disabled={busy || !newContact.userId || newContact.reason.trim().length < 5}
+                      onClick={() =>
+                        void run(async () => {
+                          await nomApi.registerOutOfHoursContact({
+                            userId: newContact.userId,
+                            channel: newContact.channel,
+                            reason: newContact.reason.trim(),
+                          });
+                          setNewContact({ userId: "", channel: "CALL", reason: "" });
+                        })
+                      }
+                    >
+                      {t("admin.registerContact")}
+                    </ITButton>
+                  </div>
+                </div>
 
                 {contacts.slice(0, 10).map((contact) => (
                   <ITFlex key={contact.id} align="center" gap={2} wrap="wrap">
