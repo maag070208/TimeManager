@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { ITButton, ITCard, ITFlex, ITInput, ITSegmentedControl, ITSlideToggle, ITStack, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITCard, ITFlex, ITInput, ITSlideToggle, ITStack, ITText } from "@axzydev/axzy_ui_system";
 import { FaChevronDown, FaChevronRight, FaLock, FaSearch } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { PermissionCatalog } from "@entities/permission";
 import { HelpTip } from "@shared/ui/help-tip";
+import { FilterPills } from "@shared/ui/filter-pills";
 import {
   groupByModule,
   isScopedPermission,
@@ -89,14 +90,13 @@ export default function RolePermissionsEditor({ admin, role }: Props) {
         </div>
         {/* Filtros y “Abrir todos” a la derecha, separados de la búsqueda */}
         <ITFlex align="center" gap={2} className="ml-auto">
-          <ITSegmentedControl
-            size="sm"
-            value={filter}
-            onChange={(value) => setFilter(value as Filter)}
-            options={(["all", "granted", "missing", "sensitive"] as const).map((value) => ({
-              value,
+          <FilterPills
+            items={(["all", "granted", "missing", "sensitive"] as const).map((value) => ({
+              id: value,
               label: t(`editor.filter.${value}`),
             }))}
+            value={filter}
+            onChange={(value) => setFilter(value as Filter)}
           />
           {!searching && (
             <ITButton
