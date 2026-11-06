@@ -182,8 +182,8 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - `leave_types` por cliente (VACACIONES, PERMISO_PAGADO, PERMISO_SIN_GOCE, INCAPACIDAD + los que agregue RH) con `kind` y `paid`.
 - `leave_requests` con rango, días, motivo, estado y aprobador.
 - Saldo devengado LFT art. 76: 12 días el primer año, +2 por año hasta 20 y +2 por cada 5 años; descuenta vacaciones aprobadas y pendientes.
-- Endpoints: `/nom/me/leave/balance|requests` (trabajador, con `/cancel`), `/nom/leave/types|requests` y decisión de RH.
-- UI: tarjeta de vacaciones en **Mi jornada** y pantalla **RH → Vacaciones** para aprobar/rechazar y configurar tipos.
+- Endpoints: `/nom/me/leave/balance|requests` (trabajador, con `/cancel`), `/nom/leave/types` (GET/POST/PATCH/DELETE, baja lógica con `includeInactive`) y `/nom/leave/requests` con decisión de RH.
+- UI: tarjeta de vacaciones en **Mi jornada**, pantalla **RH → Vacaciones** para aprobar/rechazar y **Configuración → Catálogos** para administrar tipos de permiso (alta, edición y baja lógica).
 - Validaciones: rango, solape entre solicitudes, días hábiles y saldo suficiente para vacaciones.
 
 ## Evidencia consistente (Fase 1 del plan de cierre de huecos)
