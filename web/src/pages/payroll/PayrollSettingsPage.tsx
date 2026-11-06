@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITSelect, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
 import { LuCalculator, LuClock, LuPercent, LuReceipt, LuSave, LuShieldCheck, LuWallet } from "react-icons/lu";
 import { payrollApi } from "@entities/payroll";
+import { HelpTip } from "@shared/ui/help-tip";
 import type { PayrollIsrBracket, PayrollImssRate, PayrollSettings } from "@entities/payroll";
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
@@ -186,6 +187,7 @@ export default function PayrollSettingsPage() {
             <div className="flex items-center gap-2">
               <LuClock size={16} className="text-slate-500" />
               <ITText className="font-bold">Horas extra</ITText>
+              <HelpTip text="Horas base = divisor del salario diario (normalmente 8). Hasta el tope se pagan al multiplicador doble; el excedente al triple." />
             </div>
             <div className="mt-3 grid gap-3" style={grid(200)}>
               {fieldInt("overtimeDoubleHoursPerWeek", "Tope de horas dobles / semana")}
@@ -201,6 +203,7 @@ export default function PayrollSettingsPage() {
             <div className="flex items-center gap-2">
               <LuReceipt size={16} className="text-slate-500" />
               <ITText className="font-bold">Prestaciones</ITText>
+              <HelpTip text="Aguinaldo y prima vacacional se prorratean por días trabajados. Las exenciones se capturan en UMA; vales y fondo se prorratean al periodo y su tope exento es mensual." />
             </div>
             <div className="mt-3 grid gap-3" style={grid(200)}>
               {fieldInt("aguinaldoDays", "Días de aguinaldo")}
@@ -220,6 +223,7 @@ export default function PayrollSettingsPage() {
             <div className="flex items-center gap-2">
               <LuShieldCheck size={16} className="text-slate-500" />
               <ITText className="font-bold">Finiquito</ITText>
+              <HelpTip text="Prima de antigüedad: días por año con tope diario configurable. Indemnización: meses y días por año solo para despido injustificado." />
             </div>
             <div className="mt-3 grid gap-3" style={grid(200)}>
               {fieldInt("primaAntiguedadDaysPerYear", "Prima antigüedad días/año")}
@@ -234,6 +238,7 @@ export default function PayrollSettingsPage() {
               <div className="flex items-center gap-2">
                 <LuPercent size={16} className="text-slate-500" />
                 <ITText className="font-bold">ISR e IMSS</ITText>
+                <HelpTip text="Tablas configurables por cliente. ISR usa brackets {lower,fixed,rate} sobre el gravado mensual; IMSS usa porcentajes obrero/patrón sobre SBC × días. Si están activos y falta la tabla, el cálculo falla." />
               </div>
               <div className="flex gap-2">
                 <ITBadget color={form.isrEnabled ? "success" : "gray"} size="sm">ISR {form.isrEnabled ? "activo" : "inactivo"}</ITBadget>

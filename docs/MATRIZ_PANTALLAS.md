@@ -14,6 +14,7 @@ Fecha: 2026-11-05. Objetivo: **una sola familia visual** (patrón bento TimeMana
 8. **Colores**: `#0f2e3d` hero, slate 50/100 cards, success/warning/danger solo estado.
 9. **Responsive**: una columna en móvil; el panel lateral baja al final.
 10. **Sin** modales gigantes para configuración; secciones y panel lateral.
+11. **Tooltips**: cada sección/campo complejo lleva icono de ayuda (`HelpTip`, portal para no recortarse) que explica qué hace y su impacto.
 
 ## Matriz
 
@@ -55,7 +56,7 @@ Fecha: 2026-11-05. Objetivo: **una sola familia visual** (patrón bento TimeMana
 | 34 | Historial de pre-nómina | `/schedules/payroll/history` | `payroll.view` | `pages/schedules/PayrollHistoryPage` | Por refinar | B4 |
 | 35 | Nómina configurable | `/payroll/settings` | `payroll.close` | `pages/payroll/PayrollSettingsPage` | **Bento ✅** | — |
 | 36 | Convenios y acuerdos | `/hr/jornada-acuerdos` | `time_clock.write` | `pages/nom/WorkdayAgreementsPage` | **Bento ✅** | — |
-| 37 | Vacaciones y permisos | `/hr/leave` | `time_clock.write` | `pages/leave/LeaveAdminPage` | Por refinar | B5 |
+| 37 | Vacaciones y permisos | `/hr/leave` | `time_clock.write` | `pages/leave/LeaveAdminPage` | **Bento ✅** | — |
 | 38 | Teletrabajo | `/teletrabajo` | `time_clock.view` | `pages/nom/TeleworkAdminPage` | Por refinar | B5 |
 | 39 | Configuración del cliente | `/settings/general` | `time_clock.write` | `pages/settings/GeneralSettingsPage` | **Bento ✅** | — |
 | 40 | Roles y permisos | `/roles` | `roles.manage` | `pages/roles/RolesPage` | Por refinar | B1 |

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@app/store";
 import { meThunk } from "@entities/user";
 import { nomApi, type NomConfigDto } from "@entities/nom";
+import { HelpTip } from "@shared/ui/help-tip";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
@@ -142,9 +143,12 @@ export default function GeneralSettingsPage() {
         <div className="flex flex-col gap-4 lg:col-span-8">
           <ITCard contentClassName="!p-0">
             <div className="rounded-2xl bg-[#0f2e3d] px-5 py-4 text-white">
-              <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-white/60">
-                Operación del cliente
-              </ITText>
+              <span className="flex items-center gap-1.5">
+                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-white/60">
+                  Operación del cliente
+                </ITText>
+                <HelpTip text="El primer día define cómo se agrupan los días en horarios, pre-nómina, tiempo extra y reportes. La zona horaria la define el cliente." />
+              </span>
               <ITText className="!text-2xl font-extrabold !text-white">
                 Semana {weekDay.toLowerCase()} → {DAYS[(form.weekStartDay + 6) % 7].toLowerCase()}
               </ITText>
@@ -185,6 +189,7 @@ export default function GeneralSettingsPage() {
               <LuClock size={16} className="text-slate-500" />
               <ITText className="font-bold">Política de asistencia</ITText>
               <ITText muted className="!text-[11px]">(horarios nuevos)</ITText>
+              <HelpTip text="Valores por defecto al crear un horario: tolerancia de entrada/salida (minutos de gracia antes de marcar retardo), comida y mínimo de tiempo extra para que cuente." />
             </div>
             <div className="mt-3 grid gap-3" style={fieldSet}>
               <ITInput name="entryToleranceMin" label="Tolerancia de entrada (min)" type="number" value={String(form.entryToleranceMin)} onChange={(e) => set("entryToleranceMin", Number(e.target.value))} />
@@ -201,6 +206,7 @@ export default function GeneralSettingsPage() {
             <div className="flex items-center gap-2">
               <LuShieldCheck size={16} className="text-slate-500" />
               <ITText className="font-bold">Límites y retención</ITText>
+              <HelpTip text="Topes de jornada (solo puedes ser más estricto que la ley) y meses que se conservan los registros antes de moverlos al archivo legal. El archivado nunca borra evidencia." />
             </div>
             <div className="mt-3 grid gap-3" style={fieldSet}>
               <ITInput name="workdayLimitMinutes" label="Máximo diario (min)" type="number" value={String(form.workdayLimitMinutes)} onChange={(e) => set("workdayLimitMinutes", Number(e.target.value))} />
@@ -224,6 +230,7 @@ export default function GeneralSettingsPage() {
             <div className="flex items-center gap-2">
               <LuShieldCheck size={16} className="text-slate-500" />
               <ITText className="font-bold">Checada web y decisiones legales</ITText>
+              <HelpTip text="Controla si se puede checar desde la web/app, si esas checadas suman jornada, si se exige aceptar el acuerdo de método y si un convenio colectivo requiere firma sindical." />
             </div>
             <div className="mt-3 grid gap-3" style={fieldSet}>
               <ITSelect name="remotePunchEnabled" label="Checada desde la web" value={form.remotePunchEnabled ? "true" : "false"} onChange={(e) => set("remotePunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]} />
@@ -236,7 +243,10 @@ export default function GeneralSettingsPage() {
 
         <aside className="flex flex-col gap-4 lg:col-span-4 lg:sticky lg:top-4">
           <ITCard contentClassName="!p-5">
-            <ITText className="font-bold">Resumen</ITText>
+            <span className="flex items-center gap-1.5">
+              <ITText className="font-bold">Resumen</ITText>
+              <HelpTip text="Vista rápida de la configuración activa. Los cambios se aplican al guardar." />
+            </span>
             <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
               {summaryTiles.map((tile) => (
                 <div key={tile.label} className="rounded-xl bg-slate-50 p-3">
