@@ -1,5 +1,7 @@
 import { ITPage } from "@shared/ui/page";
 import { FaRegClock } from "react-icons/fa";
+import { LuPlus } from "react-icons/lu";
+import { ITButton, ITText } from "@axzydev/axzy_ui_system";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { SchedulesBoard } from "@features/schedule";
@@ -21,6 +23,13 @@ export default function SchedulesPage() {
         { label: t("title") },
       ]}
       backAction={() => goBack("/")}
+      actions={
+        <ITButton variant="filled" color="primary" className="tm-row-button" onClick={() => navigate("/schedules/new")}>
+          <ITText as="span" className="flex items-center gap-1.5 font-bold text-[11px]">
+            <LuPlus size={13} /> Nuevo horario
+          </ITText>
+        </ITButton>
+      }
     >
       <SchedulesBoard />
     </ITPage>
