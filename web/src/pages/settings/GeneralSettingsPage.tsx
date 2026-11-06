@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITDatePicker, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBuilding2, LuCalendarDays, LuCircleHelp, LuSignature, LuSave, LuShieldCheck, LuWallet, LuClock } from "react-icons/lu";
@@ -26,6 +26,7 @@ export default function GeneralSettingsPage() {
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [tab, setTab] = useState<"operation" | "attendance" | "limits" | "checks">("operation");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [weekRef, setWeekRef] = useState(() => new Date());
   const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState({
     weekStartDay: 3,
@@ -57,7 +58,7 @@ export default function GeneralSettingsPage() {
           weeklyLimitMinutes: next.weeklyLimitMinutes ?? 2880,
           retentionMonths: next.retentionMonths ? String(next.retentionMonths) : "",
           remotePunchEnabled: next.remotePunchEnabled ?? true,
-          remoteCountsForWorkday: next.remoteCountsForWorkday ?? true,
+          remoteCountsForWorkday: next.remotePunchEnabled === false ? false : true,
           blockRemoteWithoutAgreement: next.blockRemoteWithoutAgreement ?? true,
           requireUnionForCollective: next.requireUnionForCollective ?? true,
         });
@@ -99,7 +100,7 @@ export default function GeneralSettingsPage() {
         weeklyLimitMinutes: form.weeklyLimitMinutes,
         retentionMonths: form.retentionMonths ? Number(form.retentionMonths) : null,
         remotePunchEnabled: form.remotePunchEnabled,
-        remoteCountsForWorkday: form.remoteCountsForWorkday,
+        remoteCountsForWorkday: form.remotePunchEnabled,
         blockRemoteWithoutAgreement: form.blockRemoteWithoutAgreement,
         requireUnionForCollective: form.requireUnionForCollective,
       });
@@ -121,6 +122,23 @@ export default function GeneralSettingsPage() {
     { label: "Comida", value: `${form.mealBreakMin} min`, icon: <LuClock size={13} /> },
     { label: "Tope diario", value: `${Math.round(form.workdayLimitMinutes / 60)} h`, icon: <LuShieldCheck size={13} /> },
   ];
+
+  const weekStart = (() => {
+    const date = new Date(weekRef);
+    const diff = (date.getDay() - form.weekStartDay + 7) % 7;
+    date.setDate(date.getDate() - diff);
+    return date;
+  })();
+  const weekEnd = (() => {
+    const date = new Date(weekStart);
+    date.setDate(date.getDate() + 6);
+    return date;
+  })();
+  const weekLabel = (date: Date) => {
+    const text = date.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+  const weekRange = `${weekLabel(weekStart)} al ${weekLabel(weekEnd)}`;
 
   return (
     <ITPage
@@ -186,8 +204,26 @@ export default function GeneralSettingsPage() {
                 />
                 <ITInput name="timezone" label="Zona horaria" value={tenant?.timezone ?? "—"} disabled onChange={() => undefined} />
               </div>
+              <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3">
+                <ITFlex align="end" gap={3} wrap="wrap">
+                  <div className="min-w-[220px] flex-1">
+                    <ITDatePicker
+                      name="weekReference"
+                      label="Consulta una semana"
+                      value={weekRef}
+                      onChange={(event) => {
+                        const next = event.target.value;
+                        if (next instanceof Date) setWeekRef(next);
+                      }}
+                    />
+                  </div>
+                  <ITText className="min-w-[240px] flex-1 !text-[12.5px] text-slate-700">
+                    Semana del <b>{weekRange}</b>. Así se agrupa el cálculo semanal del cliente en asistencia, tiempo extra y pre-nómina.
+                  </ITText>
+                </ITFlex>
+              </div>
               <ITText muted className="mt-3 block !text-[12px]">
-                Así se agrupan los días en horarios, pre-nómina, tiempo extra, asistencia y bitácoras. La zona horaria la define el cliente.
+                La zona horaria la define el cliente. Cambiar el primer día no mueve registros ya guardados.
               </ITText>
             </ITCard>
           )}
@@ -255,8 +291,34 @@ export default function GeneralSettingsPage() {
                 Controla solo la checada desde navegador o app; los relojes físicos siguen funcionando igual.
               </ITText>
               <div className="mt-4 grid gap-3" style={fieldSet}>
-                <ITSearchSelect name="remotePunchEnabled" label="Checada desde la web" value={form.remotePunchEnabled ? "true" : "false"} onChange={(e) => set("remotePunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]} />
-                <ITSearchSelect name="remoteCountsForWorkday" label="Cuenta para la jornada" value={form.remoteCountsForWorkday ? "true" : "false"} onChange={(e) => set("remoteCountsForWorkday", e.target.value === "true")} options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]} />
+                <ITSearchSelect
+                  name="remotePunchEnabled"
+                  label="Checada desde la web"
+                  value={form.remotePunchEnabled ? "true" : "false"}
+                  onChange={(e) => {
+                    const enabled = e.target.value === "true";
+                    set("remotePunchEnabled", enabled);
+                    set("remoteCountsForWorkday", enabled);
+                  }}
+                  options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]}
+                />
+                <div>
+                  <ITSearchSelect
+                    name="remoteCountsForWorkday"
+                    label="Cuenta para la jornada"
+                    value={form.remotePunchEnabled ? "true" : "false"}
+                    onChange={(e) => set("remoteCountsForWorkday", e.target.value === "true")}
+                    options={form.remotePunchEnabled
+                      ? [{ value: "true", label: "Sí, siempre cuenta" }]
+                      : [{ value: "false", label: "No aplica: checada web deshabilitada" }]}
+                    disabled
+                  />
+                  {form.remotePunchEnabled && (
+                    <ITText as="span" className="mt-1 block !text-[11px] text-emerald-700">
+                      Si la checada web está permitida, cuenta para la jornada automáticamente.
+                    </ITText>
+                  )}
+                </div>
                 <ITSearchSelect name="blockRemoteWithoutAgreement" label="Exigir acuerdo para checar web" value={form.blockRemoteWithoutAgreement ? "true" : "false"} onChange={(e) => set("blockRemoteWithoutAgreement", e.target.value === "true")} options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]} />
                 <ITSearchSelect name="requireUnionForCollective" label="Convenio colectivo exige sindicato" value={form.requireUnionForCollective ? "true" : "false"} onChange={(e) => set("requireUnionForCollective", e.target.value === "true")} options={[{ value: "true", label: "Sí" }, { value: "false", label: "No, permitir trabajador" }]} />
               </div>
