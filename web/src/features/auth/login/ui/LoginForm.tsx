@@ -7,6 +7,9 @@ import "./login.css";
 interface LoginFormProps {
   /** Cliente del subdominio; `null` = acceso de plataforma. */
   tenantSlug?: string | null;
+  tenantName?: string | null;
+  tenantChecking?: boolean;
+  tenantInvalid?: boolean;
   username: string;
   password: string;
   setUsername: React.Dispatch<React.SetStateAction<string>>;
@@ -22,6 +25,9 @@ interface LoginFormProps {
 
 export default function LoginForm({
   tenantSlug,
+  tenantName,
+  tenantChecking,
+  tenantInvalid,
   username,
   password,
   setUsername,
@@ -47,15 +53,31 @@ export default function LoginForm({
             {tt("login.title")}
           </ITText>
           <ITText className="login-muted login-rise login-rise-2 mt-2 block text-[13px] leading-relaxed">{tt("login.subtitle")}</ITText>
-          <ITText as="span" className="login-muted mt-3 block text-[12px]">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {tenantSlug ? (
-              <>
-                {tt("login.tenant")} <strong className="font-semibold">{tenantSlug}</strong>
-              </>
+              tenantChecking ? (
+                <ITText as="span" className="login-muted text-[12px]">{tt("login.tenantChecking")}</ITText>
+              ) : tenantInvalid ? (
+                <ITText as="span" className="rounded-full bg-red-50 px-2.5 py-1 text-[11.5px] font-semibold text-red-700">
+                  {tt("login.tenantInvalid")}
+                </ITText>
+              ) : (
+                <ITText as="span" className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] font-semibold text-emerald-700">
+                  {tt("login.tenantAccess", { name: tenantName ?? tenantSlug })}
+                </ITText>
+              )
             ) : (
-              tt("login.platform")
+              <ITText as="span" className="login-muted text-[12px]">{tt("login.platform")}</ITText>
             )}
-          </ITText>
+          </div>
+          {tenantInvalid && (
+            <div className="mt-4">
+              <ITAlert variant="warning">{tt("login.tenantInvalidHint")}</ITAlert>
+              <Link to="/login" className="login-muted mt-3 inline-block text-[12px] font-semibold underline-offset-4 hover:underline">
+                {tt("login.platformAccess")} →
+              </Link>
+            </div>
+          )}
 
           {deactivatedMsg && (
             <div className="mt-6">

@@ -169,3 +169,33 @@
     animation: none !important;
   }
 }
+
+
+/* Entrada sutil del login y del panel de marca. */
+@keyframes login-card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes login-brand-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes login-ring-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-10px, -8px, 0) scale(1.02); }
+}
+.login-card { animation: login-card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.login-brand { animation: login-brand-in 0.6s ease-out both; }
+.login-brand .login-ring { animation: login-ring-float 9s ease-in-out infinite; }
+.login-brand .login-ring--accent { animation-duration: 12s; animation-direction: reverse; }
+
+@media (max-width: 639px) {
+  .login-card { border-radius: 0 !important; }
+  .login-brand { padding: 18px 20px !important; }
+  .login-brand img { height: 40px !important; }
+  .login-form-panel { padding: 26px 20px 30px !important; }
+  .login-heading { margin-top: 14px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-card, .login-brand, .login-brand .login-ring { animation: none !important; }
+}

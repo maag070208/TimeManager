@@ -4,7 +4,7 @@ import { LuCalendarClock, LuFileChartColumn, LuFingerprint, LuTimer } from "reac
 import { useTranslation } from "react-i18next";
 import { ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import logoForDarkBg from "@shared/assets/brand/timemanager-logo-for-dark-bg.svg";
-import { useLoginBranding } from "../model/useLoginBranding";
+import type { PublicBranding } from "@entities/user";
 import "./login.css";
 
 const AVATAR_SEEDS = ["entrada", "comida", "turno-noche", "salida"] as const;
@@ -27,9 +27,8 @@ const FEATURES: {
  * Panel de marca del login: logotipo oficial sobre azul marino con acentos
  * ámbar. En móvil se reduce a la cabecera con el logotipo.
  */
-export default function LoginBrandPanel() {
+export default function LoginBrandPanel({ branding }: { branding: PublicBranding | null }) {
   const { t: tt } = useTranslation(["auth"]);
-  const branding = useLoginBranding();
   const accent = branding?.brandColor ?? undefined;
 
   return (
@@ -46,6 +45,11 @@ export default function LoginBrandPanel() {
         <ITText className="login-on-brand-muted mt-1 block pl-1 text-[10.5px] font-semibold uppercase tracking-[0.18em]">
           {branding?.name ?? tt("login.brand.eyebrow")}
         </ITText>
+        {branding?.name && (
+          <ITText className="login-on-brand-muted mt-1 block pl-1 text-[11px] font-semibold tracking-[0.08em]">
+            {tt("login.tenantActive")}
+          </ITText>
+        )}
       </div>
 
       <div className="relative mt-8 hidden lg:block">
