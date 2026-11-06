@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITDatePicker, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBuilding2, LuCalendarDays, LuCircleHelp, LuSignature, LuSave, LuShieldCheck, LuWallet, LuClock } from "react-icons/lu";
@@ -26,6 +26,7 @@ export default function GeneralSettingsPage() {
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [tab, setTab] = useState<"operation" | "attendance" | "limits" | "checks">("operation");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [retentionRef, setRetentionRef] = useState(() => new Date());
   const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState({
     weekStartDay: 3,
@@ -121,6 +122,14 @@ export default function GeneralSettingsPage() {
     { label: "Comida", value: `${form.mealBreakMin} min`, icon: <LuClock size={13} /> },
     { label: "Tope diario", value: `${Math.round(form.workdayLimitMinutes / 60)} h`, icon: <LuShieldCheck size={13} /> },
   ];
+
+  const retentionCutoff = (() => {
+    const months = Number(form.retentionMonths);
+    if (!form.retentionMonths || !Number.isFinite(months) || months <= 0) return null;
+    const date = new Date(retentionRef);
+    date.setMonth(date.getMonth() - months);
+    return date.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
+  })();
 
   return (
     <ITPage
@@ -235,7 +244,27 @@ export default function GeneralSettingsPage() {
                   Ley {config.legal.year}: {Math.round(config.legal.workdayLimitMinutes / 60)} h/día y {Math.round(config.legal.weeklyLimitMinutes / 60)} h/semana. Solo topes más estrictos.
                 </ITText>
               )}
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50/40 p-3">
+                <ITFlex align="end" gap={3} wrap="wrap">
+                  <div className="min-w-[220px] flex-1">
+                    <ITDatePicker
+                      name="retentionReference"
+                      label="Fecha de corte"
+                      value={retentionRef}
+                      onChange={(event) => {
+                        const next = event.target.value;
+                        if (next instanceof Date) setRetentionRef(next);
+                      }}
+                    />
+                  </div>
+                  <ITText className="min-w-[260px] flex-1 !text-[12.5px] text-slate-700">
+                    {retentionCutoff
+                      ? <>Con una retención de <b>{form.retentionMonths} meses</b>, al corte elegido se archivan los registros anteriores al <b>{retentionCutoff}</b>.</>
+                      : "Indica los meses de retención para calcular la fecha de archivo."}
+                  </ITText>
+                </ITFlex>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <ITButton variant="outlined" color="secondary" size="sm" disabled={archiving} onClick={() => setConfirmArchive(true)}>
                   {archiving ? "Archivando…" : "Archivar registros vencidos"}
                 </ITButton>
