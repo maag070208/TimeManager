@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITButton, ITDialog, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITCard, ITDialog, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { LuUserCog, LuUserPen } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCan } from "@entities/user";
 import { usePrefersReducedMotion } from "@shared/lib/usePrefersReducedMotion";
 import { DialogHeader } from "@shared/ui/dialog-header";
+import { HelpTip } from "@shared/ui/help-tip";
 import { Tic, type TicAnim } from "@shared/ui/tic";
 import { useUserForm, UserFormFields } from "..";
 
@@ -57,7 +58,7 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
     <ITDialog
       isOpen={!!userId}
       onClose={onClose}
-      className="max-w-3xl"
+      className="max-w-4xl"
     >
       <DialogHeader icon={<LuUserPen size={20} />} title={tt("form.titleEdit")} subtitle={tt("form.descriptionEdit")} />
       <div
@@ -99,7 +100,7 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
         )}
 
         {editsPerson && (
-          <section>
+          <ITCard className="tm-hero-card tm-hero-card--sky" contentClassName="!p-4">
           <ITText as="h3" className="m-0 mb-3 !text-[14px] font-bold !text-slate-700">{tt("form.sectionPersonal")}</ITText>
           <UserFormFields
             step="personal"
@@ -115,10 +116,13 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
             roleGuidance={userForm.roleGuidance}
             roleOptions={userForm.ROLE_OPTIONS}
           />
-          </section>
+          </ITCard>
         )}
-        <section>
-        <ITText as="h3" className="m-0 mb-3 !text-[14px] font-bold !text-slate-700">{tt("form.sectionAccess")}</ITText>
+        <ITCard className="tm-hero-card tm-hero-card--mint" contentClassName="!p-4">
+        <ITFlex align="center" gap={2} className="mb-3">
+          <ITText as="h3" className="m-0 !text-[14px] font-bold !text-slate-700">{tt("form.sectionAccess")}</ITText>
+          <HelpTip text="El rol y los roles adicionales definen a qué pantallas entra la persona; el alcance fino se ajusta en Roles y permisos." />
+        </ITFlex>
         <UserFormFields
           step="access"
           isEdit
@@ -134,9 +138,12 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
           extraRoleOptions={userForm.EXTRA_ROLE_OPTIONS}
           onToggleExtraRole={userForm.toggleExtraRole}
         />
-        </section>
-        <section>
-        <ITText as="h3" className="m-0 mb-3 !text-[14px] font-bold !text-slate-700">{tt("form.sectionOrganization")}</ITText>
+        </ITCard>
+        <ITCard className="tm-hero-card tm-hero-card--amber" contentClassName="!p-4">
+        <ITFlex align="center" gap={2} className="mb-3">
+          <ITText as="h3" className="m-0 !text-[14px] font-bold !text-slate-700">{tt("form.sectionOrganization")}</ITText>
+          <HelpTip text="Departamento y subárea se usan para filtros, reportes y aprobaciones de nómina." />
+        </ITFlex>
         <UserFormFields
           step="org"
           isEdit
@@ -150,8 +157,7 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
           roleGuidance={userForm.roleGuidance}
           roleOptions={userForm.ROLE_OPTIONS}
         />
-
-        </section>
+        </ITCard>
       </ITFlex>
       </div>
 
@@ -159,12 +165,13 @@ export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
       <div className="mt-5 flex items-center justify-between gap-3">
         <Tic anim={anim} size={44} animated={!reduced} label={tt("form.guideLabel")} />
         <ITFlex gap={2}>
-          <ITButton variant="outlined" color="gray" className="!rounded-full" onClick={onClose}>
+          <ITButton variant="outlined" color="secondary" className="tm-save-button" onClick={onClose}>
             <ITText className="!text-[12px] font-bold">{tt("common:actions.cancel")}</ITText>
           </ITButton>
           <ITButton
-            variant="rounded"
+            variant="filled"
             color="primary"
+            className="tm-save-button"
             onClick={() => void handleSave()}
             disabled={userForm.saving || loading}
           >

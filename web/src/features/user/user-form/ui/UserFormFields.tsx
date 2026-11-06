@@ -128,11 +128,11 @@ export default function UserFormFields({
       {step === "access" && (
         <>
           <ITGrid container columns={12} spacing={4}>
-            <ITGrid item xs={12} md={4}>
+            <ITGrid item xs={12} md={6}>
               <ITInput name="u_username" label={tt("form.username")} value={form.username} onChange={(e) => onFieldChange("username", e.target.value)} onBlur={blob("username")} required error={fieldError("username")} />
               <UniqueHint state={uniqueness?.username} />
             </ITGrid>
-            <ITGrid item xs={12} md={4}>
+            <ITGrid item xs={12} md={6}>
               <ITFlex align="end" gap={2}>
                 <ITFlex className="flex-1">
                   <ITSearchSelect name="u_role" label={tt("form.role")} options={roleOptions as never} value={form.role} onChange={(e) => onFieldChange("role", e.target.value as any)} required />
@@ -142,7 +142,7 @@ export default function UserFormFields({
                 </ITButton>
               </ITFlex>
             </ITGrid>
-            <ITGrid item xs={12} md={4}>
+            <ITGrid item xs={12} md={12}>
               <ITInput name="u_password" type="password" label={`${tt("form.password")} ${!isEdit ? "*" : ""}`} value={form.password} onChange={(e) => onFieldChange("password", e.target.value)} onBlur={blob("password")} required={!isEdit} placeholder={isEdit ? tt("form.passwordPlaceholder") : ""} error={fieldError("password")} />
               {isEdit && (
                 <ITFlex align="center" gap={2} className="mt-1">
