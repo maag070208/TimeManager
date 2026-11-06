@@ -559,3 +559,7 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
 @media (prefers-reduced-motion: reduce) {
   .tm-hero-card::after { animation: none !important; }
 }
+
+
+/* Fondo base blanco en toda la app. */
+html, body, #root { background-color: #ffffff; }
