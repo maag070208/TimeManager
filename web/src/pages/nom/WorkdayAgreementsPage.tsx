@@ -185,15 +185,17 @@ export default function WorkdayAgreementsPage() {
               onChange={(value) => setForm((prev) => ({ ...prev, evidenceText: value }))}
             />
           </div>
-          <ITButton
-            variant="filled"
-            color="primary"
-            className="mt-3"
-            disabled={busy === "create" || !form.userId || form.evidenceText.trim().length < 20}
-            onClick={() => void create()}
-          >
-            Registrar convenio
-          </ITButton>
+          <div className="mt-3 flex justify-end">
+            <ITButton
+              variant="filled"
+              color="primary"
+              className="tm-save-button"
+              disabled={busy === "create" || !form.userId || form.evidenceText.trim().length < 20}
+              onClick={() => void create()}
+            >
+              Registrar convenio
+            </ITButton>
+          </div>
         </ITCard>
 
         <ITCard className="tm-hero-card tm-hero-card--sky" contentClassName="!p-5">
