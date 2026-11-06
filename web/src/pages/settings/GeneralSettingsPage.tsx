@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
-import { LuBuilding2, LuCalendarDays, LuSignature, LuSave, LuShieldCheck, LuWallet, LuClock } from "react-icons/lu";
+import { LuBuilding2, LuCalendarDays, LuCircleHelp, LuSignature, LuSave, LuShieldCheck, LuWallet, LuClock } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@app/store";
 import { meThunk } from "@entities/user";
 import { nomApi, type NomConfigDto } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
+import SettingsHelpDialog from "./SettingsHelpDialog";
 import { TabBar } from "@shared/ui/tab-bar";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -24,6 +25,7 @@ export default function GeneralSettingsPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [tab, setTab] = useState<"operation" | "attendance" | "limits" | "checks">("operation");
+  const [helpOpen, setHelpOpen] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState({
     weekStartDay: 3,
@@ -128,6 +130,12 @@ export default function GeneralSettingsPage() {
       icon={<LuBuilding2 size={20} />}
       actions={
         <div className="flex items-center gap-2">
+          <ITButton variant="outlined" color="secondary" className="tm-row-button" onClick={() => setHelpOpen(true)}>
+            <ITFlex align="center" gap={1}>
+              <LuCircleHelp size={13} />
+              <ITText className="font-bold text-[11px]">Ayuda</ITText>
+            </ITFlex>
+          </ITButton>
           <Link to="/settings/catalogs" className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[12px] font-bold text-slate-700 transition hover:bg-slate-50">
             Catálogos
           </Link>
@@ -179,7 +187,7 @@ export default function GeneralSettingsPage() {
                 <ITInput name="timezone" label="Zona horaria" value={tenant?.timezone ?? "—"} disabled onChange={() => undefined} />
               </div>
               <ITText muted className="mt-3 block !text-[12px]">
-                Aplica a horarios, pre-nómina, tiempo extra, asistencia y bitácoras.
+                Así se agrupan los días en horarios, pre-nómina, tiempo extra, asistencia y bitácoras. La zona horaria la define el cliente.
               </ITText>
             </ITCard>
           )}
@@ -198,7 +206,10 @@ export default function GeneralSettingsPage() {
                 <ITInput name="mealBreakMin" label="Comida (min)" type="number" value={String(form.mealBreakMin)} onChange={(e) => set("mealBreakMin", Number(e.target.value))} />
                 <ITInput name="minOvertimeMin" label="Mínimo de tiempo extra (min)" type="number" value={String(form.minOvertimeMin)} onChange={(e) => set("minOvertimeMin", Number(e.target.value))} />
               </div>
-              <Link to="/schedules" className="mt-3 inline-block text-[12px] font-semibold underline-offset-4 hover:underline">
+              <ITText muted className="mt-3 block !text-[12px]">
+                Solo se usan al crear horarios nuevos; no cambian los horarios que ya existen.
+              </ITText>
+              <Link to="/schedules" className="mt-2 inline-block text-[12px] font-semibold underline-offset-4 hover:underline">
                 Configurar horarios por puesto →
               </Link>
             </ITCard>
@@ -216,8 +227,11 @@ export default function GeneralSettingsPage() {
                 <ITInput name="weeklyLimitMinutes" label="Máximo semanal (min)" type="number" value={String(form.weeklyLimitMinutes)} onChange={(e) => set("weeklyLimitMinutes", Number(e.target.value))} />
                 <ITInput name="retentionMonths" label="Retención (meses, vacío = sin archivar)" type="number" value={form.retentionMonths} onChange={(e) => set("retentionMonths", e.target.value)} />
               </div>
+              <ITText muted className="mt-2 block !text-[12px]">
+                Los topes solo pueden ser más estrictos que la ley. La retención indica cuándo se mueven los registros al archivo legal, sin borrarlos.
+              </ITText>
               {config?.legal && (
-                <ITText muted className="mt-2 block !text-[11.5px]">
+                <ITText muted className="mt-1 block !text-[11.5px]">
                   Ley {config.legal.year}: {Math.round(config.legal.workdayLimitMinutes / 60)} h/día y {Math.round(config.legal.weeklyLimitMinutes / 60)} h/semana. Solo topes más estrictos.
                 </ITText>
               )}
@@ -237,6 +251,9 @@ export default function GeneralSettingsPage() {
                 <ITText className="font-bold">Checada web y decisiones legales</ITText>
                 <HelpTip text="Controla si se puede checar desde la web/app, si esas checadas suman jornada y si se exige aceptar el acuerdo de método." />
               </div>
+              <ITText muted className="mt-3 block !text-[12px]">
+                Controla solo la checada desde navegador o app; los relojes físicos siguen funcionando igual.
+              </ITText>
               <div className="mt-4 grid gap-3" style={fieldSet}>
                 <ITSearchSelect name="remotePunchEnabled" label="Checada desde la web" value={form.remotePunchEnabled ? "true" : "false"} onChange={(e) => set("remotePunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]} />
                 <ITSearchSelect name="remoteCountsForWorkday" label="Cuenta para la jornada" value={form.remoteCountsForWorkday ? "true" : "false"} onChange={(e) => set("remoteCountsForWorkday", e.target.value === "true")} options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]} />
@@ -303,6 +320,8 @@ export default function GeneralSettingsPage() {
           </div>
         </aside>
       </div>
+
+      <SettingsHelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <ITConfirmDialog
         isOpen={confirmArchive}
