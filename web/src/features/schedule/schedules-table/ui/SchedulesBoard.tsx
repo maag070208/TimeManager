@@ -171,30 +171,27 @@ export default function SchedulesBoard() {
       sortable: false,
       render: (h) => (
         <ITFlex align="center" gap={1}>
-          {[...h.days]
-            .sort((a, b) => a.weekday - b.weekday)
-            .map((d) => {
-              const worked = dayMinutes(d, h.mealBreakMin) > 0;
-              const overnight = !d.restDay && !!d.startTime && !!d.endTime && d.endTime < d.startTime;
-              return (
-                <ITText
-                  key={d.weekday}
-                  as="span"
-                  title={overnight ? "Turno que termina al día siguiente" : d.restDay ? t("inactive") : undefined}
-                  aria-label={overnight ? "Termina al día siguiente" : d.restDay ? t("inactive") : undefined}
-                  className={`relative flex h-6 items-center justify-center rounded-md !text-[10.5px] font-bold ${overnight ? "w-8" : "w-6"}`}
-                  style={{
-                    background: worked
-                      ? "color-mix(in srgb, var(--color-primary) 14%, transparent)"
-                      : "color-mix(in srgb, currentColor 7%, transparent)",
-                    color: worked ? "var(--color-primary)" : "var(--color-text-muted)",
-                  }}
-                >
-                  {dayAbbr(d.weekday)}
-                  {overnight && <span className="ml-0.5 text-[7px] font-black">+1</span>}
-                </ITText>
-              );
-            })}
+          {[1, 2, 3, 4, 5, 6, 7].map((weekday) => {
+            const d = h.days.find((day) => day.weekday === weekday);
+            const worked = d ? dayMinutes(d, h.mealBreakMin) > 0 : false;
+            const overnight = !!d && !d.restDay && !!d.startTime && !!d.endTime && d.endTime < d.startTime;
+            return (
+              <ITText
+                key={weekday}
+                as="span"
+                title={overnight ? "Turno que termina al día siguiente" : !worked ? t("inactive") : undefined}
+                aria-label={overnight ? "Termina al día siguiente" : !worked ? t("inactive") : undefined}
+                className={`relative flex h-6 items-center justify-center rounded-md !text-[10.5px] font-black ${overnight ? "w-8" : "w-6"}`}
+                style={{
+                  background: worked ? "#e6f7ee" : "#eef2f7",
+                  color: worked ? "#0e9f6e" : "#94a3b8",
+                }}
+              >
+                {dayAbbr(weekday)}
+                {overnight && <span className="ml-0.5 text-[7px] font-black">+1</span>}
+              </ITText>
+            );
+          })}
         </ITFlex>
       ),
     },
