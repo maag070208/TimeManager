@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITDataTable, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { LuCalendarCheck, LuCheck, LuX } from "react-icons/lu";
-import { Link } from "react-router-dom";
 import { nomApi } from "@entities/nom";
 import type { LeaveRequestRow } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
@@ -105,7 +104,7 @@ export default function LeaveAdminPage() {
     <ITPage
       className="min-w-full! max-w-none!"
       title="Vacaciones y permisos"
-      description="Solicitudes del personal, saldos y tipos configurables por cliente."
+      description="Solicitudes de vacaciones y permisos del personal del cliente."
       icon={<LuCalendarCheck size={20} />}
     >
       <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
@@ -128,8 +127,8 @@ export default function LeaveAdminPage() {
           />
         </div>
 
-        <div className="flex flex-col gap-4 lg:col-span-8">
-          <ITCard contentClassName="!p-5">
+        <div className="flex flex-col gap-4 lg:col-span-12">
+          <ITCard className="tm-hero-card tm-hero-card--amber" contentClassName="!p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <ITText className="font-bold">Pendientes de aprobar ({pending.length})</ITText>
@@ -171,42 +170,32 @@ export default function LeaveAdminPage() {
             </div>
           </ITCard>
 
-          <ITCard contentClassName="!p-5">
+          <ITCard className="tm-hero-card tm-hero-card--sky" contentClassName="!p-5">
             <div className="flex items-center gap-2">
               <ITText className="font-bold">Historial</ITText>
               <HelpTip text="Todas las solicitudes del cliente con su estado y quién las decidió. La aprobación queda en auditoría para la prenómina y el expediente." />
             </div>
-            <div className="mt-3">
-              <ITDataTable
-                columns={historyColumns as unknown as Column<Record<string, unknown>>[]}
-                fetchData={fetchHistory as never}
-                showViewToggle={false}
-                defaultItemsPerPage={50}
-                itemsPerPageOptions={[25, 50, 100]}
-                layout="fixed"
-                density="compact"
-                virtualized
-                virtualizedMaxHeight={400}
-                rowHeight={50}
-              />
-            </div>
+            {requests.length === 0 ? (
+              <TicState kind="empty" size="sm" title="Sin historial todavía" description="Las solicitudes aparecerán aquí con su estado y decisión." />
+            ) : (
+              <div className="mt-3">
+                <ITDataTable
+                  columns={historyColumns as unknown as Column<Record<string, unknown>>[]}
+                  fetchData={fetchHistory as never}
+                  showViewToggle={false}
+                  defaultItemsPerPage={50}
+                  itemsPerPageOptions={[25, 50, 100]}
+                  layout="fixed"
+                  density="compact"
+                  virtualized
+                  virtualizedMaxHeight={400}
+                  rowHeight={50}
+                />
+              </div>
+            )}
           </ITCard>
         </div>
 
-        <aside className="flex flex-col gap-4 lg:col-span-4 lg:sticky lg:top-4">
-          <ITCard contentClassName="!p-5">
-            <div className="flex items-center gap-2">
-              <ITText className="font-bold">Tipos de permiso</ITText>
-              <HelpTip text="El catálogo de tipos de permiso se administra en Configuración para mantener todos los catálogos del cliente en un solo lugar." />
-            </div>
-            <ITText muted className="mt-2 block !text-[12.5px]">
-              Agrega, revisa y edita los tipos de permiso desde Configuración → Catálogos.
-            </ITText>
-            <Link to="/settings/catalogs" className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-3 py-2 text-[12px] font-bold text-slate-700 transition hover:bg-slate-50">
-              Administrar catálogos →
-            </Link>
-          </ITCard>
-        </aside>
       </div>
       {toast && <ITToast message={toast} type="success" position="bottom-center" duration={2500} onClose={() => setToast(null)} />}
     </ITPage>
