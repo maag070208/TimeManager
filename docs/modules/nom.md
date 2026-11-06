@@ -193,6 +193,14 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **RJ-04:** `punch_adjustments` guarda `targetType` (CLOCK/REMOTE/ACCESS) y `targetId`; las discrepancias de Mi jornada aplican a marcajes remotos y el reporte usa la hora/tipo corregidos. La checada original permanece inmutable.
 - **RJ-06:** export `stps-registro-jornada-v2` con `primeraEntrada`, `ultimaSalida` y `origen` por día, sección de detalle de marcajes (reloj vigente, remoto y archivo), `minor` desde el ledger y SHA-256 calculado sobre el texto final entregado.
 
+## Decisiones legales configurables (D-1/D-3/D-4)
+
+`nom_settings` expone `blockRemoteWithoutAgreement` (default true: sin acuerdo de método con
+REMOTE no hay checada web), `requireUnionForCollective` (default true: convenio colectivo se firma
+con el sindicato) y `remoteCountsForWorkday`. Se editan en **Configuración del cliente**.
+La UI RH `/hr/jornada-acuerdos` da de alta convenios art. 58, muestra su aceptación y permite la
+firma patronal de los acuerdos de método; el botón de archivado de retención vive en Configuración.
+
 ## Checada multicanal (reloj, web, app)
 
 - **Reloj físico**: `time_clock_punches` (ISAPI), inmutable y sincronizado por el agente.

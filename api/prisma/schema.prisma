@@ -1610,6 +1610,10 @@ model NomSettings {
   remotePunchEnabled   Boolean   @default(true)
   /// ¿Las checadas web/app cuentan para la jornada cuando no hay reloj? (RJ-02)
   remoteCountsForWorkday Boolean @default(true)
+  /// D-4: bloquear checada web si el trabajador no aceptó un acuerdo con REMOTE.
+  blockRemoteWithoutAgreement Boolean @default(true)
+  /// D-1: en convenio colectivo exigir representación sindical (parte UNION).
+  requireUnionForCollective Boolean @default(true)
   /// Política de teletrabajo editable por cliente (NOM-037 / F2-08).
   teleworkPolicy       String?
   /// Política de desconexión digital (NOM-037 / F2-08).

@@ -23,6 +23,7 @@ import {
   stopSuite,
   unique,
 } from "./harness";
+import { localDateKey } from "@core/utils/timezone";
 
 const prismaClient = async () =>
   (await import("@core/config/database")).prismaClient;
@@ -550,6 +551,22 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     const session = await login({ username: employee.username, tenant: tenant.slug });
     const clientEventId = randomUUID();
 
+    // D-4: sin acuerdo de método con REMOTE la checada web se bloquea.
+    const blockedNoAgreement = await api("POST", "/nom/me/punch", {
+      token: session.token,
+      body: { type: "ENTRY", workMode: "REMOTO", clientEventId },
+    });
+    expectError(blockedNoAgreement, 403, "REMOTE_AGREEMENT_REQUIRED", "sin acuerdo de método");
+
+    await api("POST", "/nom/me/record-agreement/accept", {
+      token: session.token,
+      body: {
+        methods: ["CLOCK", "REMOTE"],
+        roundingPolicy: "Minutos exactos",
+        correctionRules: "Ajuste aprobado",
+      },
+    });
+
     const entry = await api("POST", "/nom/me/punch", {
       token: session.token,
       body: { type: "ENTRY", workMode: "REMOTO", clientEventId },
@@ -616,7 +633,7 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     assert.equal(exit.body?.punch?.latitude, 19.4326);
 
     // El portal ve los marcajes remotos junto a reloj/accesos.
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateKey(new Date(), "America/Mexico_City");
     const mine = await api("GET", `/nom/me/punches?from=${today}&to=${today}`, {
       token: session.token,
     });

@@ -6,7 +6,9 @@ import type {
   LeaveRequestRow,
   LeaveType,
   RecordAgreement,
+  RecordAgreementAdmin,
   RecordAgreementProposal,
+  DistributionAgreement,
   WorkRecordAcknowledgment,
   MyPunch,
   OutOfHoursChannel,
@@ -31,6 +33,8 @@ export interface NomConfigDto {
   retentionMonths: number | null;
   remotePunchEnabled: boolean;
   remoteCountsForWorkday: boolean;
+  blockRemoteWithoutAgreement: boolean;
+  requireUnionForCollective: boolean;
   legal?: {
     year: number;
     weeklyLimitMinutes: number;
@@ -58,6 +62,8 @@ export const nomApi = {
     retentionMonths?: number | null;
     remotePunchEnabled?: boolean;
     remoteCountsForWorkday?: boolean;
+    blockRemoteWithoutAgreement?: boolean;
+    requireUnionForCollective?: boolean;
   }) =>
     api.put<NomConfigDto>(`${base}/config`, input),
   myPunches: (params: { from?: string; to?: string; limit?: number } = {}) => {
@@ -68,6 +74,23 @@ export const nomApi = {
     const query = qs.toString();
     return api.get<MyPunch[]>(`${base}/me/punches${query ? `?${query}` : ""}`);
   },
+
+  distributionAgreements: () => api.get<DistributionAgreement[]>(`${base}/distribution-agreements`),
+  createDistributionAgreement: (input: {
+    userId: string;
+    kind: "INDIVIDUAL" | "COLECTIVO";
+    party: "WORKER" | "UNION";
+    effectiveFrom: string;
+    effectiveTo?: string | null;
+    evidenceText: string;
+  }) => api.post<DistributionAgreement>(`${base}/distribution-agreements`, input),
+  recordAgreements: () => api.get<RecordAgreementAdmin[]>(`${base}/record-agreements`),
+  signRecordAgreement: (id: string) => api.post<RecordAgreement>(`${base}/record-agreements/${id}/employer-sign`, {}),
+  archiveRetention: (dryRun: boolean) =>
+    api.post<{ punches: number; accessEvents: number; remotePunches: number; adjustments: number; dryRun: boolean }>(
+      `${base}/retention/archive`,
+      { dryRun }
+    ),
 
   /** Vacaciones y permisos del trabajador. */
   leaveBalance: (year: number) => api.get<LeaveBalance>(`${base}/me/leave/balance?year=${year}`),

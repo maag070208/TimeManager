@@ -30,6 +30,7 @@ export type NavLabelKey =
   | "nav.accessTimeClockEmployees"
   | "nav.clockDashboard"
   | "nav.leave"
+  | "nav.workdayAgreements"
   | "nav.generalSettings"
   | "nav.clockAttendance"
   | "nav.timeClock"
@@ -96,6 +97,7 @@ const ALL_SCREENS: readonly AppScreen[] = [
       { id: "employeeRecords", labelKey: "nav.employeeRecords", path: "/employees/records", requirement: { anyOf: ["hr.records"] }, actions: [] },
       { id: "hrReports", labelKey: "nav.hrReports", path: "/employees/disciplinary-reports", requirement: { anyOf: ["hr.records"] }, actions: ["hr.disciplinary_reports"] },
       { id: "leave", labelKey: "nav.leave", path: "/hr/leave", requirement: { anyOf: ["time_clock.write"] } },
+      { id: "workdayAgreements", labelKey: "nav.workdayAgreements", path: "/hr/jornada-acuerdos", requirement: { anyOf: ["time_clock.write"] } },
       { id: "telework", labelKey: "nav.telework", path: "/teletrabajo", requirement: { anyOf: ["time_clock.view"] } },
       {
         id: "clockAttendance",

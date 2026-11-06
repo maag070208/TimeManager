@@ -458,6 +458,8 @@ export const en: Messages = {
     AGREEMENT_NOT_FOUND: "Workday agreement not found",
     AGREEMENT_ALREADY_ACCEPTED: "That agreement was already accepted",
     AGREEMENT_NOT_ACCEPTED_BY_WORKER: "The worker has not accepted the work record agreement yet",
+    REMOTE_AGREEMENT_REQUIRED: "Before checking in from the web, accept the work record agreement including remote punches",
+    AGREEMENT_UNION_REQUIRED: "A collective agreement must be signed with union representation",
     INVALID_WEEKLY_LIMIT: "The weekly limit must be between {{min}} and {{max}} minutes",
     WEEKLY_LEDGER_NOT_FOUND: "Weekly overtime ledger not found",
     INVALID_RETENTION_MONTHS: "Retention must be between {{min}} and {{max}} months (empty disables archiving)",

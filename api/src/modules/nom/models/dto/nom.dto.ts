@@ -32,6 +32,8 @@ export const NomSettingsUpdateDto = z
     retentionMonths: z.number().int().min(1).max(120).nullable().optional(),
     remotePunchEnabled: z.boolean().optional(),
     remoteCountsForWorkday: z.boolean().optional(),
+    blockRemoteWithoutAgreement: z.boolean().optional(),
+    requireUnionForCollective: z.boolean().optional(),
   })
   .strict();
 

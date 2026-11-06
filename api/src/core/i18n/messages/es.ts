@@ -456,6 +456,8 @@ export const es = {
     AGREEMENT_NOT_FOUND: "Convenio de jornada no encontrado",
     AGREEMENT_ALREADY_ACCEPTED: "Ese convenio ya fue aceptado",
     AGREEMENT_NOT_ACCEPTED_BY_WORKER: "El trabajador todavía no acepta el acuerdo de método de registro",
+    REMOTE_AGREEMENT_REQUIRED: "Antes de checar desde la web, acepta el acuerdo de método de registro que incluya la checada remota",
+    AGREEMENT_UNION_REQUIRED: "Un convenio colectivo debe firmarse con la representación sindical (parte sindicato)",
     INVALID_WEEKLY_LIMIT: "El límite semanal debe estar entre {{min}} y {{max}} minutos",
     WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",
     INVALID_RETENTION_MONTHS: "La retención debe estar entre {{min}} y {{max}} meses (vacío desactiva el archivado)",

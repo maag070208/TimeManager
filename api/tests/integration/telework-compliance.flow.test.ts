@@ -72,6 +72,12 @@ describe("F4 NOM-037: brechas P0", () => {
       },
     });
 
+    // D-4: la checada web exige acuerdo de método con REMOTE.
+    await api("POST", "/nom/me/record-agreement/accept", {
+      token: staff.token,
+      body: { methods: ["CLOCK", "REMOTE"] },
+    });
+
     const validated = await api("POST", `/nom/telework/checklists/${checklist.id}/validate`, {
       token: hr.token,
       body: { result: "NO_APTO", notes: "Espacio sin ventilación" },

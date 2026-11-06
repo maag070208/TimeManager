@@ -51,7 +51,8 @@
     "myWorkday": "Mi jornada",
     "telework": "Teletrabajo (NOM-037)",
     "generalSettings": "Configuración",
-    "leave": "Vacaciones"
+    "leave": "Vacaciones",
+    "workdayAgreements": "Convenios y acuerdos"
   },
   "files": {
     "access": "accesos",

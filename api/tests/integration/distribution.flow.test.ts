@@ -120,6 +120,19 @@ describe("convenio art. 58 y jornada diaria", () => {
     assert.equal(row!.totals.scheduledMin, 480, "la jornada de hoy se topa a 8 h");
     assert.equal(row!.totals.extraMin, 60, "la hora extra diaria se detecta");
 
+    // D-1: un convenio colectivo sin sindicato se rechaza.
+    const badCollective = await api("POST", "/nom/distribution-agreements", {
+      token: admin.token,
+      body: {
+        userId: worker.id,
+        kind: "COLECTIVO",
+        party: "WORKER",
+        effectiveFrom: today,
+        evidenceText: "Convenio colectivo sin representación sindical (debe rechazarse).",
+      },
+    });
+    expectError(badCollective, 400, "AGREEMENT_UNION_REQUIRED", "colectivo sin sindicato");
+
     const agreement = await api("POST", "/nom/distribution-agreements", {
       token: admin.token,
       body: {

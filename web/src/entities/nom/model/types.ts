@@ -163,3 +163,23 @@ export interface LeaveRequestRow {
   decisionNote: string | null;
   user?: { name: string; employeeNumber: string | null } | null;
 }
+
+export interface DistributionAgreement {
+  id: string;
+  userId: string | null;
+  scheduleId: string | null;
+  kind: "INDIVIDUAL" | "COLECTIVO";
+  party: "WORKER" | "UNION";
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  evidenceText: string;
+  acceptedAt: string | null;
+  createdById: string | null;
+  user?: { name: string; employeeNumber: string | null } | null;
+  acceptedBy?: { name: string } | null;
+}
+
+export interface RecordAgreementAdmin extends RecordAgreement {
+  userId: string;
+  user?: { name: string; employeeNumber: string | null } | null;
+}

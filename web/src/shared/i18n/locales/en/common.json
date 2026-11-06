@@ -51,7 +51,8 @@
     "myWorkday": "My workday",
     "telework": "Telework (NOM-037)",
     "generalSettings": "Settings",
-    "leave": "Vacation"
+    "leave": "Vacation",
+    "workdayAgreements": "Agreements"
   },
   "files": {
     "access": "access",

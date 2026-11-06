@@ -39,6 +39,8 @@ export interface NomConfig {
   remotePunchEnabled: boolean;
   /** RJ-02: el marcaje remoto suma jornada si no hay reloj ese día. */
   remoteCountsForWorkday: boolean;
+  blockRemoteWithoutAgreement: boolean;
+  requireUnionForCollective: boolean;
   /** Textos NOM-037 y aviso de privacidad vigentes (F2-08). */
   policy: TeleworkPolicyTexts;
 }
@@ -55,6 +57,8 @@ export interface NomSettingsUpdateInput {
   /** Interruptor del marcaje remoto (F2-07). */
   remotePunchEnabled?: boolean;
   remoteCountsForWorkday?: boolean;
+  blockRemoteWithoutAgreement?: boolean;
+  requireUnionForCollective?: boolean;
 }
 
 /** Snapshot de la checada al momento de pedir el ajuste (valor anterior). */

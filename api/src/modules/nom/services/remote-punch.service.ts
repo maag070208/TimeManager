@@ -58,6 +58,20 @@ export class RemotePunchService {
     const config = await this.settings.resolve(user.tenantId);
     if (!config.remotePunchEnabled) throw new HttpError(403, "REMOTE_PUNCH_DISABLED");
 
+    // D-4: si el cliente lo exige, no hay checada web sin acuerdo de método
+    // aceptado que incluya REMOTE (prueba de dos partes; la firma patronal se
+    // valida aparte cuando el cliente la exige).
+    if (config.blockRemoteWithoutAgreement) {
+      const agreement = await this.db.workRecordAgreement.findUnique({
+        where: { userId: user.id },
+        select: { methods: true, acceptedAt: true },
+      });
+      const methods = Array.isArray(agreement?.methods) ? (agreement.methods as string[]) : [];
+      if (!agreement?.acceptedAt || !methods.includes("REMOTE")) {
+        throw new HttpError(403, "REMOTE_AGREEMENT_REQUIRED");
+      }
+    }
+
     // NOM-037 5.4/5.5: si la Comisión validó el lugar como NO_APTO, no se
     // permite marcar desde ese lugar.
     const registration = await this.db.teleworkRegistration.findFirst({

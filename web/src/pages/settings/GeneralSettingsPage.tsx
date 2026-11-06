@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITButton, ITCard, ITInput, ITPage, ITSelect, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITCard, ITConfirmDialog, ITInput, ITPage, ITSelect, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import { LuSettings } from "react-icons/lu";
 import { Link } from "react-router-dom";
@@ -20,6 +20,8 @@ export default function GeneralSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState({
     weekStartDay: 3,
     entryToleranceMin: 10,
@@ -31,6 +33,8 @@ export default function GeneralSettingsPage() {
     retentionMonths: "",
     remotePunchEnabled: true,
     remoteCountsForWorkday: true,
+    blockRemoteWithoutAgreement: true,
+    requireUnionForCollective: true,
   });
 
   useEffect(() => {
@@ -49,6 +53,8 @@ export default function GeneralSettingsPage() {
           retentionMonths: next.retentionMonths ? String(next.retentionMonths) : "",
           remotePunchEnabled: next.remotePunchEnabled ?? true,
           remoteCountsForWorkday: next.remoteCountsForWorkday ?? true,
+          blockRemoteWithoutAgreement: next.blockRemoteWithoutAgreement ?? true,
+          requireUnionForCollective: next.requireUnionForCollective ?? true,
         });
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."))
@@ -57,6 +63,22 @@ export default function GeneralSettingsPage() {
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const archive = async () => {
+    setArchiving(true);
+    setError(null);
+    try {
+      const result = await nomApi.archiveRetention(false);
+      setToast(
+        `Archivado: ${result.punches} checadas, ${result.accessEvents} eventos, ${result.remotePunches} remotos y ${result.adjustments} ajustes.`
+      );
+      setConfirmArchive(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo archivar.");
+    } finally {
+      setArchiving(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -73,6 +95,8 @@ export default function GeneralSettingsPage() {
         retentionMonths: form.retentionMonths ? Number(form.retentionMonths) : null,
         remotePunchEnabled: form.remotePunchEnabled,
         remoteCountsForWorkday: form.remoteCountsForWorkday,
+        blockRemoteWithoutAgreement: form.blockRemoteWithoutAgreement,
+        requireUnionForCollective: form.requireUnionForCollective,
       });
       await dispatch(meThunk()).unwrap().catch(() => undefined);
       setToast("Configuración guardada.");
@@ -158,7 +182,37 @@ export default function GeneralSettingsPage() {
               onChange={(event) => set("remoteCountsForWorkday", event.target.value === "true")}
               options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]}
             />
+            <ITSelect
+              name="blockRemoteWithoutAgreement"
+              label="Exigir acuerdo para checar en web"
+              value={form.blockRemoteWithoutAgreement ? "true" : "false"}
+              onChange={(event) => set("blockRemoteWithoutAgreement", event.target.value === "true")}
+              options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]}
+            />
+            <ITSelect
+              name="requireUnionForCollective"
+              label="Convenio colectivo exige sindicato"
+              value={form.requireUnionForCollective ? "true" : "false"}
+              onChange={(event) => set("requireUnionForCollective", event.target.value === "true")}
+              options={[{ value: "true", label: "Sí" }, { value: "false", label: "No, permitir trabajador" }]}
+            />
           </div>
+        </ITCard>
+
+        <ITCard contentClassName="!p-5">
+          <ITText className="font-bold">Retención y archivado</ITText>
+          <ITText muted className="mt-1 block !text-[11.5px]">
+            Mueve a las tablas de archivo los registros vencidos respetando el piso legal. La corrida queda auditada.
+          </ITText>
+          <ITButton
+            variant="outlined"
+            color="secondary"
+            className="mt-3"
+            disabled={archiving}
+            onClick={() => setConfirmArchive(true)}
+          >
+            {archiving ? "Archivando…" : "Archivar registros vencidos ahora"}
+          </ITButton>
         </ITCard>
 
         <ITCard contentClassName="!p-5">
@@ -176,6 +230,17 @@ export default function GeneralSettingsPage() {
           </ITButton>
         </div>
       </div>
+      <ITConfirmDialog
+        isOpen={confirmArchive}
+        onClose={() => setConfirmArchive(false)}
+        onConfirm={() => void archive()}
+        title="Archivar registros vencidos"
+        message="Se moverán a las tablas de archivo las checadas, eventos, marcajes web y ajustes que ya cumplieron la retención. La evidencia no se borra."
+        confirmLabel="Archivar"
+        cancelLabel="Cancelar"
+        variant="warning"
+        loading={archiving}
+      />
       {toast && <ITToast message={toast} type="success" position="bottom-center" duration={2500} onClose={() => setToast(null)} />}
     </ITPage>
   );

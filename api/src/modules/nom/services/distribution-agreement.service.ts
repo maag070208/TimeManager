@@ -47,6 +47,15 @@ export class DistributionAgreementService {
     }
   ) {
     if (!input.userId && !input.scheduleId) throw new HttpError(400, "AGREEMENT_TARGET_REQUIRED");
+    // D-1: el convenio colectivo se firma con la representación sindical.
+    const settings = await this.db.nomSettings.findUnique({ where: { tenantId } });
+    if (
+      (input.kind ?? "INDIVIDUAL") === "COLECTIVO" &&
+      (input.party ?? "WORKER") !== "UNION" &&
+      (settings?.requireUnionForCollective ?? true)
+    ) {
+      throw new HttpError(400, "AGREEMENT_UNION_REQUIRED");
+    }
     if (input.evidenceText.trim().length < 20) throw new HttpError(400, "AGREEMENT_EVIDENCE_TOO_SHORT");
     const from = new Date(`${input.effectiveFrom}T00:00:00.000Z`);
     const to = input.effectiveTo ? new Date(`${input.effectiveTo}T00:00:00.000Z`) : null;

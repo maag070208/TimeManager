@@ -184,6 +184,8 @@ export class NomSettingsService {
       retentionMonths,
       remotePunchEnabled: settings?.remotePunchEnabled ?? true,
       remoteCountsForWorkday: settings?.remoteCountsForWorkday ?? true,
+      blockRemoteWithoutAgreement: settings?.blockRemoteWithoutAgreement ?? true,
+      requireUnionForCollective: settings?.requireUnionForCollective ?? true,
       policy,
       source: {
         workdayLimit: settings?.workdayLimitMinutes != null ? "tenant" : sysWorkday != null ? "sys_config" : "legal_default",
@@ -295,6 +297,12 @@ export class NomSettingsService {
           : {}),
         ...(input.remoteCountsForWorkday !== undefined
           ? { remoteCountsForWorkday: input.remoteCountsForWorkday }
+          : {}),
+        ...(input.blockRemoteWithoutAgreement !== undefined
+          ? { blockRemoteWithoutAgreement: input.blockRemoteWithoutAgreement }
+          : {}),
+        ...(input.requireUnionForCollective !== undefined
+          ? { requireUnionForCollective: input.requireUnionForCollective }
           : {}),
         updatedById: actor.id,
       },

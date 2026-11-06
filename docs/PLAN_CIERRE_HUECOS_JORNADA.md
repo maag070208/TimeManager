@@ -76,7 +76,9 @@ si es multi-tenant. Nada de E2E salvo petición explícita.
 - **RJ-07 ✅** versiones append-only del acuerdo de método, firma del trabajador y del patrón con hash/IP, y UI que muestra el texto/métodos que se firman.
 - **RJ-09 ✅** todo exceso de un menor se clasifica ilegal (nunca doble/triple) y se marcan `ART_66_EXCEDE_DIA`/`ART_66_EXCEDE_DIAS`.
 - **Evidencia final:** unitarios **115/115**, integración **191/191** (56 suites), `tsc` limpio.
-- **Pendientes de producto:** pantalla RH para crear convenios/firmar acuerdos y botón web de archivado; decisiones legales §7 siguen abiertas.
+- **UI administrativa ✅** `/hr/jornada-acuerdos`: alta de convenios art. 58, lista con aceptación y firma patronal de acuerdos de método. **Configuración del cliente** incluye bloqueo de checada web sin acuerdo, exigencia sindical en convenio colectivo y botón de archivado de retención.
+- **STPS ✅** guía de adaptación en STPS_ADAPTACION.md; layout v2 versionado hasta publicación oficial.
+- **Revisión legal ✅** paquete en LEGAL_REVISION_ACUERDOS.md con textos, decisiones iniciales y preguntas al abogado.
 
 ## 3. P0 — Evidencia que se cae en inspección o juicio
 
@@ -347,15 +349,19 @@ RJ-03 (si no, exporta datos que el cálculo desmiente); RJ-04 reutiliza RJ-03.
 
 ## 7. Decisiones abiertas
 
+- **D-1 [DECISIÓN INICIAL]** `requireUnionForCollective` (default `true`): convenio colectivo exige parte sindical. Validar con abogado; ver LEGAL_REVISION_ACUERDOS.md.
 - **D-1 [ABIERTA] Convenio art. 58:** ¿por persona, por horario o ambos? ¿Basta aceptación
   individual o se exige representación sindical en centros con contrato colectivo? Impacta el modelo
   de RJ-01.
 - **D-2 [ABIERTA] Remoto vs reloj el mismo día:** ¿el reloj manda y el remoto se registra como
   conflicto (recomendado), o se suman? Impacta RJ-02 y la prenómina.
+- **D-3 [DECISIÓN INICIAL]** Firma patrón = usuario RH + hash/IP + versión; falta validar si se exige e.firma/documento.
 - **D-3 [ABIERTA] Firma del patrón:** ¿usuario RH con hash/IP alcanza como firma patronal, o se
   requiere documento firmado/e.firma adjunto? Impacta RJ-07 y su validez probatoria.
+- **D-4 [DECISIÓN INICIAL]** `blockRemoteWithoutAgreement` default `true`: sin acuerdo con REMOTE no hay checada web.
 - **D-4 [ABIERTA] Bloqueo de marcaje sin acuerdo:** ¿se bloquea de fábrica o se deja configurable?
   Recomendado configurable con default bloqueado para remoto.
+- **D-5 [DECISIÓN INICIAL]** Mantener layout propio `v2` hasta publicación; ver STPS_ADAPTACION.md.
 - **D-5 [ABIERTA] Layout del export:** mantener layout propio versionado (`v2`) hasta que la STPS
   publique el oficial, y adaptar entonces. Recomendado sí; evita dos migraciones de formato.
 
