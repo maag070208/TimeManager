@@ -66,72 +66,124 @@ export default function ClientOverview() {
     </ITButton>
   );
 
+  const quickActions = [
+    fx.can.attendance && { label: "Asistencia", to: canTimeClockView ? "/hr/time-clock" : "/mi-jornada", icon: <LuClock3 size={15} /> },
+    fx.can.records && { label: "Personal", to: "/employees", icon: <LuUsersRound size={15} /> },
+    fx.can.setup && { label: "Horarios", to: "/schedules", icon: <LuCalendarDays size={15} /> },
+    fx.can.overtime && { label: "Tiempo extra", to: "/schedules/overtime/approval", icon: <LuCalendarClock size={15} /> },
+    fx.can.records && { label: "Nómina", to: "/schedules/payroll", icon: <LuFolderOpen size={15} /> },
+  ].filter(Boolean) as Array<{ label: string; to: string; icon: ReactNode }>;
+
+  const attendanceHero = fx.attendance && (() => {
+    const a = fx.attendance!;
+    const scheduled = a.counts.PRESENT + a.counts.LATE + a.counts.NOT_ARRIVED;
+    const withoutSchedule = fx.setup?.personalWithoutSchedule ?? 0;
+    return (
+      <ITCard contentClassName="!p-0">
+        <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#0f2e3d_0%,#173f53_60%,#0f2e3d_100%)] p-5 text-white">
+          <Waves />
+          <div className="relative flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <ITText className="!text-[10.5px] font-semibold uppercase tracking-[0.12em] !text-white/60">Hoy</ITText>
+              <ITText className="!text-[20px] font-extrabold !text-white">{today}</ITText>
+            </div>
+            <div className="flex items-center gap-2">
+              <ITBadget color="success" size="sm">{a.counts.onSite} en sitio</ITBadget>
+              {seeAll(canTimeClockView ? "/hr/time-clock" : "/mi-jornada")}
+            </div>
+          </div>
+
+          {scheduled === 0 && withoutSchedule > 0 ? (
+            <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/10 px-4 py-3">
+              <div>
+                <ITText className="!text-[24px] font-black !text-white">{withoutSchedule} sin horario</ITText>
+                <ITText className="!text-[12px] !text-white/70">Nadie tiene horario asignado hoy; así no podemos calcular asistencia.</ITText>
+              </div>
+              <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={() => navigate("/schedules")}>
+                Asignar horarios <LuArrowRight size={12} />
+              </ITButton>
+            </div>
+          ) : (
+            <div className="relative mt-4">
+              <div className="flex items-end justify-between gap-2">
+                <span className="text-[34px] font-black leading-none">{a.counts.onSite}<span className="text-[18px] font-bold text-white/60"> / {scheduled} en sitio</span></span>
+                <span className="text-[11.5px] text-white/60">{scheduled === 0 ? "Sin checadas hoy" : "Jornada en curso"}</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
+                <div className="dash-bar h-full rounded-full bg-emerald-400" style={{ width: `${scheduled ? Math.round((a.counts.onSite / scheduled) * 100) : 0}%` }} />
+              </div>
+              <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
+                {[
+                  { label: t("client.attendance.present"), value: a.counts.PRESENT, color: "text-emerald-300" },
+                  { label: t("client.attendance.late"), value: a.counts.LATE, color: "text-amber-300" },
+                  { label: t("client.attendance.notArrived"), value: a.counts.NOT_ARRIVED, color: "text-rose-300" },
+                ].map((stat) => (
+                  <div key={stat.label} className="rounded-lg bg-white/10 px-2.5 py-2">
+                    <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-white/60">{stat.label}</span>
+                    <span className={`block text-[20px] font-black tabular-nums ${stat.color}`}>{stat.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {quickActions.length > 0 && (
+            <div className="relative mt-4 flex flex-wrap gap-1.5 border-t border-white/10 pt-3">
+              {quickActions.map((action) => (
+                <button key={action.label} type="button" onClick={() => navigate(action.to)} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-white/90 transition hover:bg-white/20">
+                  {action.icon} {action.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </ITCard>
+    );
+  })();
+
   return (
     <div className="flex flex-col gap-4">
-      {onboardingSteps && pendingSteps > 0 && (
-        <PanelCard icon={<LuCircleCheck size={16} />} title={t("client.onboarding.title")} description={t("client.onboarding.description")}>
-          <div className="mb-3 flex items-center gap-3">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-              <div className="dash-bar h-full rounded-full bg-[var(--color-primary-600)]" style={{ width: `${Math.round((doneSteps / Math.max(1, onboardingSteps.length)) * 100)}%` }} />
-            </div>
-            <span className="text-[11.5px] font-semibold text-slate-500">{doneSteps}/{onboardingSteps.length}</span>
-          </div>
-          <ol className="grid gap-2 sm:grid-cols-2">
-            {onboardingSteps.map((step, i) => (
-              <li key={step.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${step.done ? "border-emerald-100 bg-emerald-50/50" : "border-slate-100 bg-white"}`}>
-                {step.done ? <LuCircleCheck size={18} className="shrink-0 text-emerald-600" /> : <LuCircle size={18} className="shrink-0 text-slate-300" />}
-                <div className="min-w-0 flex-1">
-                  <ITText className={`block text-[13px] font-semibold ${step.done ? "text-slate-500" : "text-slate-800"}`}>{i + 1}. {tr(`client.onboarding.${step.id}`)}</ITText>
-                  {!step.done && <ITText className="block text-[11.5px] text-slate-500">{tr(`client.onboarding.${step.id}Hint`, { count: step.hintCount })}</ITText>}
-                </div>
-                {step.done ? (
-                  <ITBadget color="success" size="sm">{t("client.onboarding.done")}</ITBadget>
-                ) : (
-                  <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => navigate(step.to)}>
-                    {t("client.onboarding.go")} <LuArrowRight size={12} />
-                  </ITButton>
-                )}
-              </li>
-            ))}
-          </ol>
-        </PanelCard>
-      )}
-
-      {fx.can.attendance && fx.attendance && (
-        <Block value={fx.attendance}>
-          {(a) => (
-            <ITCard contentClassName="!p-0">
-              <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#0f2e3d_0%,#173f53_60%,#0f2e3d_100%)] p-5 text-white">
-                <Waves />
-                <div className="relative flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <ITText className="!text-[10.5px] font-semibold uppercase tracking-[0.10em] !text-white/60">Resumen de hoy</ITText>
-                    <ITText className="!text-[22px] font-extrabold !text-white">{today}</ITText>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ITBadget color="success" size="sm">{a.counts.onSite} en sitio ahora</ITBadget>
-                    {seeAll(canTimeClockView ? "/hr/time-clock" : "/mi-jornada")}
-                  </div>
-                </div>
-                <div className="relative mt-4 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
-                  {[
-                    { label: t("client.attendance.present"), value: a.counts.PRESENT, color: "text-emerald-300" },
-                    { label: t("client.attendance.late"), value: a.counts.LATE, color: "text-amber-300" },
-                    { label: t("client.attendance.notArrived"), value: a.counts.NOT_ARRIVED, color: "text-rose-300" },
-                  ].map((stat) => (
-                    <div key={stat.label} className="rounded-xl bg-white/10 px-3 py-2.5">
-                      <span className="block text-[10.5px] font-semibold uppercase tracking-wide text-white/60">{stat.label}</span>
-                      <span className={`block text-[26px] font-black tabular-nums ${stat.color}`}>{stat.value}</span>
-                    </div>
-                  ))}
-                </div>
+      <div className="grid items-start gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-8">{attendanceHero ?? <div />}</div>
+        <div className="lg:col-span-4">
+          {onboardingSteps && pendingSteps > 0 ? (
+            <PanelCard icon={<LuCircleCheck size={16} />} title={t("client.onboarding.title")} description={`${doneSteps} de ${onboardingSteps.length} completados`}>
+              <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="dash-bar h-full rounded-full bg-[var(--color-primary-600)]" style={{ width: `${Math.round((doneSteps / Math.max(1, onboardingSteps.length)) * 100)}%` }} />
               </div>
-            </ITCard>
+              <ol className="flex flex-col gap-1.5">
+                {onboardingSteps.map((step) => (
+                  <li key={step.id} className="flex items-center gap-2 rounded-lg px-1 py-1.5">
+                    {step.done ? <LuCircleCheck size={16} className="shrink-0 text-emerald-600" /> : <LuCircle size={16} className="shrink-0 text-slate-300" />}
+                    <div className="min-w-0 flex-1">
+                      <ITText className={`block truncate !text-[12px] font-semibold ${step.done ? "!text-slate-400" : "!text-slate-800"}`}>{tr(`client.onboarding.${step.id}`)}</ITText>
+                      {!step.done && <ITText className="block !text-[10.5px] text-slate-500">{tr(`client.onboarding.${step.id}Hint`, { count: step.hintCount })}</ITText>}
+                    </div>
+                    {!step.done && (
+                      <ITButton variant="outlined" color="primary" size="sm" className="tm-icon-button" aria-label={`${t("client.onboarding.go")}: ${tr(`client.onboarding.${step.id}`)}`} title={`${t("client.onboarding.go")}: ${tr(`client.onboarding.${step.id}`)}`} onClick={() => navigate(step.to)}>
+                        <LuArrowRight size={13} />
+                      </ITButton>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </PanelCard>
+          ) : (
+            <PanelCard icon={<LuArrowRight size={16} />} title="Accesos rápidos">
+              <div className="flex flex-col gap-1.5">
+                {quickActions.map((action) => (
+                  <button key={action.label} type="button" onClick={() => navigate(action.to)} className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-[12.5px] font-semibold text-slate-700 transition hover:bg-slate-50">
+                    <span className="flex items-center gap-2">{action.icon} {action.label}</span>
+                    <LuArrowRight size={13} className="text-slate-300" />
+                  </button>
+                ))}
+              </div>
+            </PanelCard>
           )}
-        </Block>
-      )}
+        </div>
+      </div>
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" }}>
+      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
         {fx.can.records && fx.people && (
           <Block value={fx.people}>
             {(p) => (
@@ -159,7 +211,7 @@ export default function ClientOverview() {
       </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-12">
-        {fx.can.attendance && fx.attendance && (
+        {fx.can.attendance && fx.attendance && (fx.attendance.counts.PRESENT + fx.attendance.counts.LATE + fx.attendance.counts.NOT_ARRIVED) > 0 && (
           <PanelCard className="lg:col-span-7" icon={<LuClock3 size={16} />} title={t("client.attendance.title")} actions={seeAll(canTimeClockView ? "/hr/time-clock" : "/mi-jornada")}>
             <Block value={fx.attendance}>
               {(a) => {
@@ -178,6 +230,26 @@ export default function ClientOverview() {
                 );
               }}
             </Block>
+          </PanelCard>
+        )}
+
+        {fx.can.setup && fx.setup && (fx.attendance ? (fx.attendance.counts.PRESENT + fx.attendance.counts.LATE + fx.attendance.counts.NOT_ARRIVED) === 0 : true) && (
+          <PanelCard className="lg:col-span-7" icon={<LuSettings2 size={16} />} title="Pendientes de configuración" description="Para que la asistencia empiece a calcularse.">
+            <div className="flex flex-col gap-2">
+              {[
+                { label: "Personas sin horario asignado", value: fx.setup.personalWithoutSchedule, to: "/schedules", icon: <LuCalendarDays size={14} /> },
+                { label: "Personas sin reloj vinculado", value: fx.setup.personalWithoutClock, to: "/hr/time-clock/employees", icon: <LuClock3 size={14} /> },
+                { label: "Números de reloj sin vincular", value: fx.setup.unlinkedClockNumbers, to: "/hr/time-clock/employees", icon: <LuSettings2 size={14} /> },
+              ].filter((row) => row.value > 0).map((row) => (
+                <button key={row.label} type="button" onClick={() => navigate(row.to)} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2.5 text-left transition hover:bg-slate-100">
+                  <span className="flex items-center gap-2 text-[12.5px] text-slate-700">{row.icon} {row.label}</span>
+                  <span className="flex items-center gap-2"><strong className="text-[15px] text-slate-900">{row.value}</strong> <LuArrowRight size={13} className="text-slate-400" /></span>
+                </button>
+              ))}
+              {fx.setup.personalWithoutSchedule + fx.setup.personalWithoutClock + fx.setup.unlinkedClockNumbers === 0 && (
+                <ITText className="block rounded-xl bg-emerald-50/60 px-3 py-4 text-center !text-[12.5px] text-emerald-800">Configuración completa.</ITText>
+              )}
+            </div>
           </PanelCard>
         )}
 
@@ -204,7 +276,7 @@ export default function ClientOverview() {
           </PanelCard>
         )}
 
-        {fx.can.records && fx.people && (
+        {fx.can.records && fx.people && (fx.people.birthdays.length > 0 || fx.people.anniversaries.length > 0) && (
           <PanelCard className="lg:col-span-7" icon={<LuUsersRound size={16} />} title={t("client.people.title")} actions={seeAll("/employees")}>
             <Block value={fx.people}>
               {(p) => {
@@ -229,7 +301,7 @@ export default function ClientOverview() {
           </PanelCard>
         )}
 
-        {fx.can.overtime && fx.overtime && (
+        {fx.can.overtime && fx.overtime && (fx.overtime.pendingExtraMin > 0 || fx.overtime.approvedExtraMin > 0 || fx.overtime.topPending.length > 0) && (
           <PanelCard className="lg:col-span-5" icon={<LuCalendarClock size={16} />} title={t("client.overtime.title")} actions={seeAll("/schedules/overtime/approval")}>
             <Block value={fx.overtime}>
               {(o) => (

@@ -49,9 +49,9 @@ test.describe("inicio de un cliente", () => {
 
     // Bloques del inicio (no la consola de plataforma).
     await expect(page.getByRole("heading", { level: 3, name: "Primeros pasos" })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 3, name: "Asistencia de hoy" })).toBeVisible();
-    await expect(page.getByText("A tiempo", { exact: true })).toBeVisible();
-    await expect(page.getByText("Sin llegar", { exact: true })).toBeVisible();
+    await expect(page.getByText("Hoy", { exact: true })).toBeVisible();
+    await expect(page.getByText(/sin horario/).first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: "Pendientes de configuración" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "Panel de TimeManager" })).toHaveCount(0);
   });
 
@@ -59,8 +59,8 @@ test.describe("inicio de un cliente", () => {
     await loginAs(page, "staff", "acme");
 
     await expect(page.getByRole("heading", { level: 1, name: "Hola, Sergio" })).toBeVisible();
-    // CLIENT_STAFF solo tiene `attendance.view`: ve la asistencia, no los bloques de gestión.
-    await expect(page.getByRole("heading", { level: 3, name: "Asistencia de hoy" })).toBeVisible();
+    // CLIENT_STAFF solo tiene `attendance.view`: ve su resumen, no los bloques de gestión.
+    await expect(page.getByText("Hoy", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { level: 3, name: "Primeros pasos" })).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 3, name: "Expedientes" })).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 3, name: "Personal" })).toHaveCount(0);
