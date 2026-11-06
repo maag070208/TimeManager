@@ -25,7 +25,7 @@ const formatDate = (iso: string | null): string =>
 /**
  * Agente local del cliente (F3-12): emitir el token de dispositivo una sola
  * vez, rotarlo, revocarlo o reactivarlo. El agente lo usa en
- * `TimeManagerAgent` para registrarse contra el API.
+ * `CheckLab Agent` para registrarse contra el API.
  */
 export default function AgentTokenDialog({ isOpen, tenant, onClose }: Props) {
   const fx = useAgentTokens(isOpen ? tenant : null);

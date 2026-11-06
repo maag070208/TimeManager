@@ -1,9 +1,9 @@
 {
-  "name": "timemanager-agent",
-  "productName": "TimeManagerAgent",
+  "name": "checklab-agent",
+  "productName": "CheckLab Agent",
   "version": "0.1.0",
   "private": true,
-  "description": "Agente local de TimeManager: sincroniza los relojes Hikvision del cliente (ISAPI) y ejecuta los trabajos que pide el panel.",
+  "description": "Agente local de CheckLab: sincroniza los relojes Hikvision del cliente (ISAPI) y ejecuta los trabajos que pide el panel.",
   "author": "axzy.dev",
   "license": "UNLICENSED",
   "main": "electron/main.cjs",
@@ -36,8 +36,8 @@
     "vite": "^6.1.0"
   },
   "build": {
-    "appId": "dev.axzy.timemanager.agent",
-    "productName": "TimeManagerAgent",
+    "appId": "dev.axzy.checklab.agent",
+    "productName": "CheckLab Agent",
     "directories": {
       "output": "release"
     },
@@ -61,8 +61,8 @@
       "oneClick": true,
       "perMachine": false,
       "createDesktopShortcut": "always",
-      "shortcutName": "TimeManagerAgent",
-      "artifactName": "TimeManagerAgent-Setup-${version}.${ext}",
+      "shortcutName": "CheckLab Agent",
+      "artifactName": "CheckLabAgent-Setup-${version}.${ext}",
       "installerIcon": "resources/icon.ico",
       "uninstallerIcon": "resources/icon.ico",
       "installerHeaderIcon": "resources/icon.ico",
@@ -79,7 +79,7 @@
         }
       ],
       "category": "Utility",
-      "artifactName": "TimeManagerAgent-${version}.${ext}",
+      "artifactName": "CheckLabAgent-${version}.${ext}",
       "icon": "resources/icon.png",
       "syncDesktopName": true
     },
@@ -95,8 +95,8 @@
         }
       ],
       "category": "public.app-category.productivity",
-      "artifactName": "TimeManagerAgent-${version}-${arch}.${ext}"
+      "artifactName": "CheckLabAgent-${version}-${arch}.${ext}"
     }
   },
-  "desktopName": "TimeManagerAgent"
+  "desktopName": "CheckLab Agent"
 }

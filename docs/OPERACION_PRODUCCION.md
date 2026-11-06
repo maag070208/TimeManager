@@ -1,6 +1,6 @@
 # Operación en producción (local-first)
 
-Cómo correr TimeManager en producción: procesos, RLS, cola, conexiones,
+Cómo correr CheckLab en producción: procesos, RLS, cola, conexiones,
 observabilidad y despliegue. Complementa [ARQUITECTURA.md](ARQUITECTURA.md)
 (decisiones y cargas objetivo) y [PLAN_IMPLEMENTACION.md](PLAN_IMPLEMENTACION.md).
 

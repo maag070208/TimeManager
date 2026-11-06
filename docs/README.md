@@ -1,4 +1,4 @@
-# Documentación — TimeManager
+# Documentación — CheckLab
 
 Documentación viva del producto. Se actualiza junto con el código; si un módulo cambia de alcance o de endpoints, se actualiza su ficha en el mismo PR/commit.
 

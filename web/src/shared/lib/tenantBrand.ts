@@ -1,13 +1,13 @@
 /**
  * Branding del cliente vigente para documentos generados fuera del árbol de
  * React (PDFs, credencial en canvas) y para la marca del correo. Lo registra
- * `app/` al cambiar la sesión; `null` = sin cliente (marca TimeManager).
+ * `app/` al cambiar la sesión; `null` = sin cliente (marca CheckLab).
  */
 export interface TenantBrand {
   name: string | null;
-  /** Color de acento (`#RRGGBB`); `null` = paleta TimeManager. */
+  /** Color de acento (`#RRGGBB`); `null` = paleta CheckLab. */
   color: string | null;
-  /** Logo del cliente como data URL; `null` = logo TimeManager. */
+  /** Logo del cliente como data URL; `null` = logo CheckLab. */
   logoDataUrl: string | null;
 }
 

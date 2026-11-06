@@ -14,16 +14,16 @@ if (!localStorage.getItem("it-theme-dark-mode")) {
   localStorage.setItem("it-theme-dark-mode", "light");
 }
 
-/** Paleta de marca TimeManager (brand/TimeManager-brand-package). Espejo en `--tm-*` de index.css. */
+/** Paleta de marca CheckLab (CheckLab brand package). Espejo en `--tm-*` de index.css. */
 const customTheme: ITThemePalette = {
   primary: "#1D2636",
   secondary: "#4A5568",
   ternary: "#F4F6FA",
-  alert: "#E8920F",
+  alert: "#F59E0B",
   warning: "#F2A93B",
   danger: "#BA1A1A",
   info: "#2F6FDB",
-  success: "#22A06B",
+  success: "#0E9F6E",
   layout: {
     sidebarBg: "#ffffff",
     sidebarText: "#1D2636",

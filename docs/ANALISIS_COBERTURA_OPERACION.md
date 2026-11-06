@@ -272,7 +272,7 @@ que cerrar P0 y P1 del cuadro.
 2. ¿Los retardos descuentan nómina, generan acta o ambos? ¿Con qué regla (minutos, fracción,
    acumulación)?
 3. ¿Checada web permitida sólo remoto/campo o también presencial con geocerca?
-4. ¿Vacaciones y permisos con goce se capturan en TimeManager o se importan de otro sistema?
+4. ¿Vacaciones y permisos con goce se capturan en CheckLab o se importan de otro sistema?
 5. ¿La prenómina debe calcular importes o sólo entregar minutos/incidencias al sistema de nómina
    externo (contador/CFDI)?
 6. ¿Qué industrias priorizamos para las plantillas (hotelería, seguridad, maquila, salud)?

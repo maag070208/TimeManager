@@ -100,7 +100,7 @@ export const TenantUpdateDto = z
     timezone: TimezoneSchema.optional(),
     planId: z.string().trim().min(1).nullish(),
     employeeLimit: z.number().int().positive().nullish(),
-    // Branding por cliente (F3-05). `null` = quitar y volver a la marca TimeManager.
+    // Branding por cliente (F3-05). `null` = quitar y volver a la marca CheckLab.
     brandColor: BrandColorSchema.nullish(),
     logoDataUrl: TenantLogoSchema.nullish(),
     emailFrom: EmailFromSchema.nullish(),

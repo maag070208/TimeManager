@@ -142,7 +142,7 @@ export class AuthService {
   /**
    * Branding público de un cliente para la pantalla de login (F3-05). No
    * revela nada sensible: nombre, color y logo. Con un slug desconocido
-   * devuelve nulls (la UI usa la marca TimeManager).
+   * devuelve nulls (la UI usa la marca CheckLab).
    */
   async branding(tenantSlug?: string): Promise<{
     slug: string | null;

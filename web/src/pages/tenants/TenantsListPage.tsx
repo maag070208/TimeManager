@@ -28,7 +28,7 @@ export default function TenantsListPage() {
     <ITPage
       className="min-w-full! max-w-none!"
       title="Clientes"
-      description="Alta, plan, estado y módulos de cada cliente de TimeManager."
+      description="Alta, plan, estado y módulos de cada cliente de CheckLab."
       icon={<LuBuilding2 size={20} />}
       actions={
         fx.canManage ? (

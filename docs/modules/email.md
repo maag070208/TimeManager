@@ -9,8 +9,8 @@ Las tres exigen sesión de plataforma (ADMIN) y `system.configure`.
 
 ## Branding por cliente (F3-05)
 
-- Al encolar, `email-queue` sustituye `%%TM_COMPANY%%` por el nombre del cliente y `%%TM_BRAND_COLOR%%` por su `brandColor` (fallback: acento TimeManager) en asunto y HTML. El encabezado de la plantilla ya llevaba el nombre; el acento ahora también es del cliente.
-- Al enviar (worker), `sendEmail` resuelve el branding del contexto del correo: usa el **logo inline del cliente** (`tenant.logoDataUrl`, con el logo TimeManager como fallback) y el **remitente propio** (`tenant.emailFrom`) con fallback a `RESEND_FROM_EMAIL`/SMTP. Un `From` configurado como `Nombre <correo>` se respeta tal cual.
+- Al encolar, `email-queue` sustituye `%%TM_COMPANY%%` por el nombre del cliente y `%%TM_BRAND_COLOR%%` por su `brandColor` (fallback: acento CheckLab) en asunto y HTML. El encabezado de la plantilla ya llevaba el nombre; el acento ahora también es del cliente.
+- Al enviar (worker), `sendEmail` resuelve el branding del contexto del correo: usa el **logo inline del cliente** (`tenant.logoDataUrl`, con el logo CheckLab como fallback) y el **remitente propio** (`tenant.emailFrom`) con fallback a `RESEND_FROM_EMAIL`/SMTP. Un `From` configurado como `Nombre <correo>` se respeta tal cual.
 - Requisito externo: el dominio del `emailFrom` debe estar verificado en Resend.
 
 ## Modelos
@@ -40,7 +40,7 @@ una excepción de permiso a un usuario de cliente no debe abrirla (defensa en pr
 
 ## Marca y destinatarios
 
-- Marca TimeManager (azul marino `#1D2636`, ámbar `#F2A93B`, ícono PNG inline `cid:timemanager-logo`); remitente `TimeManager <RESEND_FROM_EMAIL>`.
+- Marca CheckLab (azul marino `#1D2636`, ámbar `#F2A93B`, ícono PNG inline `cid:timemanager-logo`); remitente `CheckLab <RESEND_FROM_EMAIL>`.
 - El encabezado y algunos asuntos llevan el **nombre del cliente**: las plantillas ponen `EMAIL_COMPANY_TOKEN` y `enqueueEmail` lo reemplaza con el cliente del contexto (`tenantBrand`, cache de 60 s; se invalida al renombrar).
 - Botón de entrada: `webLoginUrl(slug)` arma la URL desde la entrada con comodín de `WEB_ORIGIN` (`https://*.timemanager.mx` → `https://acme.timemanager.mx/login`).
 - **Avisos de RH** (`enqueueNotificationEmail`): dentro de un cliente van a sus `CLIENT_ADMIN` y `HUMAN_RESOURCES` activos con correo; la lista global `NOTIFICATION_EMAILS` / `EMAIL_NOTIFICATION_RECIPIENTS` solo se usa en plataforma. Antes todo iba a la lista global (fuga entre clientes).

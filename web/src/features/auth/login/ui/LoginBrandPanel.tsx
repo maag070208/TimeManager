@@ -1,9 +1,10 @@
 import { Blobatar } from "@blobatar/react";
+import { Lottie } from "lottie-react";
 import type { IconType } from "react-icons";
 import { LuCalendarClock, LuFileChartColumn, LuFingerprint, LuTimer } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { ITFlex, ITText } from "@axzydev/axzy_ui_system";
-import logoForDarkBg from "@shared/assets/brand/timemanager-logo-for-dark-bg.svg";
+import logoIntro from "@shared/assets/lottie/checklab-logo-intro-for-dark-bg.json";
 import type { PublicBranding } from "@entities/user";
 import "./login.css";
 
@@ -37,11 +38,17 @@ export default function LoginBrandPanel({ branding }: { branding: PublicBranding
       <div aria-hidden className="login-ring login-ring--accent pointer-events-none absolute -bottom-24 -right-24 h-[18rem] w-[18rem] rounded-full" />
 
       <div className="login-rise relative">
-        <img
-          src={branding?.logoDataUrl ?? logoForDarkBg}
-          alt={branding?.name ?? tt("login.brand.logoAlt")}
-          className="h-[48px] w-auto lg:h-[60px]"
-        />
+        {branding?.logoDataUrl ? (
+          <img
+            src={branding.logoDataUrl}
+            alt={branding.name ?? tt("login.brand.logoAlt")}
+            className="h-[48px] w-auto lg:h-[60px]"
+          />
+        ) : (
+          <div className="login-logo-anim h-[52px] w-[190px] lg:h-[60px] lg:w-[220px]" role="img" aria-label={tt("login.brand.logoAlt")}>
+            <Lottie src={logoIntro} loop={false} autoplay />
+          </div>
+        )}
         <ITText className="login-on-brand-muted mt-1 block pl-1 text-[10.5px] font-semibold uppercase tracking-[0.18em]">
           {branding?.name ?? tt("login.brand.eyebrow")}
         </ITText>

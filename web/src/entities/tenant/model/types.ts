@@ -12,7 +12,7 @@ export interface TenantInfo {
   weekStartDay?: number;
   /** Módulos apagados por la plataforma. */
   disabledModules?: string[];
-  /** Branding (F3-05). `null` = marca TimeManager. */
+  /** Branding (F3-05). `null` = marca CheckLab. */
   brandColor?: string | null;
   /** Logo del cliente como data URL. */
   logoDataUrl?: string | null;

@@ -1,7 +1,7 @@
-# Estado del plan y pendientes — TimeManager
+# Estado del plan y pendientes — CheckLab
 
 Documento de revisión previo a implementar los requerimientos nuevos (ruta por
-cliente, 3 planes con límite de personal y `TimeManagerAgent`). **No hay código
+cliente, 3 planes con límite de personal y `CheckLab Agent`). **No hay código
 nuevo de estas tres cosas todavía**: este MD es la propuesta para que la apruebes.
 
 Última actualización: 2026-11-05. Complementa a
@@ -112,12 +112,12 @@ Decisiones sugeridas (marcadas para tu aprobación):
 
 ---
 
-## 4. Requerimiento nuevo C — `TimeManagerAgent`
+## 4. Requerimiento nuevo C — `CheckLab Agent`
 
 ### Objetivo
 
 App de **escritorio (Electron)** con nuestro design system
-(`@axzydev/axzy_ui_system`) y tema TimeManager, instalada en una PC del cliente.
+(`@axzydev/axzy_ui_system`) y tema CheckLab, instalada en una PC del cliente.
 Es la que se conecta al **reloj Hikvision por la red local** (ISAPI), lee las
 checadas y las envía al API; además ejecuta las órdenes de escritura sobre el
 equipo (alta/baja de personas, tarjetas, huellas) que se piden desde la nube.
@@ -127,7 +127,7 @@ SaaS.
 
 ```
 ┌───────────── PC del cliente ─────────────┐
-│  TimeManagerAgent (Electron)             │
+│  CheckLab Agent (Electron)             │
 │   UI (estado, relojes, logs, ajustes)    │
 │   Servicio local (Node)                  │
 │     ├── ISAPI → reloj (sync checadas)    │

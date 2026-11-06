@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import type * as nodemailer from "nodemailer";
-import { LOGO_TIMEMANAGER_PNG_BASE64 } from "@core/assets/logoTimeManager";
+import { LOGO_TIMEMANAGER_PNG_BASE64 } from "@core/assets/logoCheckLab";
 import { env } from "@core/config/env.config";
 import { currentTenantId, tenantBrand } from "@core/tenancy";
 import { EMAIL_LOGO_CID } from "@core/services/email-templates";
@@ -29,14 +29,14 @@ const logoAttachment = (logoDataUrl?: string | null): EmailAttachment => ({
   cid: EMAIL_LOGO_CID,
 });
 
-/** Logo inline del cliente (data URL) o el de TimeManager (F3-05). */
+/** Logo inline del cliente (data URL) o el de CheckLab (F3-05). */
 const logoBufferOf = (logoDataUrl?: string | null): Buffer => {
   const match = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/.exec(logoDataUrl ?? "");
   if (match) {
     try {
       return Buffer.from(match[2], "base64");
     } catch {
-      /* cae al logo TimeManager */
+      /* cae al logo CheckLab */
     }
   }
   return Buffer.from(LOGO_TIMEMANAGER_PNG_BASE64, "base64");
@@ -53,7 +53,7 @@ export const resolveFromHeader = (
 ): string => {
   const fromAddr = configured ?? env.RESEND_FROM_EMAIL ?? env.SMTP_FROM ?? env.SMTP_USER ?? "noreply@axzy.dev";
   if (fromAddr.includes("<")) return fromAddr;
-  return `${brandName ?? "TimeManager"} <${fromAddr}>`;
+  return `${brandName ?? "CheckLab"} <${fromAddr}>`;
 };
 
 /**

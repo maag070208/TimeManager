@@ -1,4 +1,4 @@
-/** Agente local (TimeManagerAgent) de un cliente, tal como lo ve la consola. */
+/** Agente local (CheckLab Agent) de un cliente, tal como lo ve la consola. */
 export interface AgentAdmin {
   id: string;
   name: string;

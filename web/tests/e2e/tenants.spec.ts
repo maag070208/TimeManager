@@ -21,7 +21,7 @@ test.describe("consola de clientes", () => {
   test("lista los clientes acme y beta con su estado", async ({ page }) => {
     await enter(page);
 
-    await expect(page.getByText("Panel de TimeManager").first()).toBeVisible();
+    await expect(page.getByText("Panel de CheckLab").first()).toBeVisible();
     await expect(rowOf(page, "Cliente E2E Acme")).toBeVisible();
     await expect(rowOf(page, "Cliente E2E Beta")).toBeVisible();
     await expect(rowOf(page, "Cliente E2E Acme").getByText("acme.localhost").first()).toBeVisible();

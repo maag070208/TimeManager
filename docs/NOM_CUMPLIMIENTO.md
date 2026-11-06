@@ -11,7 +11,7 @@ obligaciones que el sistema debe cubrir juntas. Las disposiciones generales de l
 que detallan la forma del registro aún no se publican: este documento es un mapeo
 técnico, no una certificación legal. Validar con asesor cuando se publiquen.
 
-## Requisitos → estado en TimeManager
+## Requisitos → estado en CheckLab
 
 | # | Requisito | Estado | Evidencia / pendiente |
 |---|---|---|---|

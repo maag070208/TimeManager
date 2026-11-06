@@ -6,7 +6,7 @@ export const en: Messages = {
     // Live notifications (Ably via token)
     ABLY_NOT_CONFIGURED: "Live notifications are not configured",
     ABLY_TOKEN_FAILED: "The live notifications token could not be issued",
-    // Local agent (TimeManagerAgent)
+    // Local agent (CheckLab Agent)
     INVALID_AGENT_TOKEN: "Invalid, rotated or revoked agent token",
     AGENT_NOT_FOUND: "Agent not found",
     AGENT_CLOCK_NOT_FOUND: "The clock is not registered for this client",
@@ -18,7 +18,7 @@ export const en: Messages = {
     TAX_RATE_NOT_FOUND: "VAT rate not found",
     TAX_RATE_TAKEN: "A VAT rate with that name or value already exists",
     TENANT_HEADER_FORBIDDEN: "Only platform staff can pick a tenant with X-Tenant-Id",
-    ROLE_NOT_FOR_CLIENT: "The {{role}} role belongs to the TimeManager team: it cannot be given to a client's staff",
+    ROLE_NOT_FOR_CLIENT: "The {{role}} role belongs to the CheckLab team: it cannot be given to a client's staff",
     TENANT_NOT_FOUND: "Client not found",
     TENANT_REQUIRED: "This operation requires a client context (sign in as client staff or pick a client)",
     TENANT_SLUG_TAKEN: "A client with the subdomain \"{{slug}}\" already exists",
@@ -743,12 +743,12 @@ export const en: Messages = {
   },
   emails: {
     tagline: "Attendance tracking",
-    signIn: "Sign in to TimeManager",
+    signIn: "Sign in to CheckLab",
     tenantWelcome: {
-      subject: "{{company}} is now on TimeManager",
+      subject: "{{company}} is now on CheckLab",
       title: "Your account is ready",
       preview: "Sign in and get {{company}}'s attendance ready.",
-      body: "Hello {{name}}, {{company}} now has its own space on TimeManager. With this account you manage your staff, their schedules and their punches.",
+      body: "Hello {{name}}, {{company}} now has its own space on CheckLab. With this account you manage your staff, their schedules and their punches.",
       cardTitle: "Your sign-in details",
       signInUrl: "Sign-in",
       passwordHint: "The password is temporary: you'll be asked to change it when you sign in.",
@@ -781,7 +781,7 @@ export const en: Messages = {
       body: "{{name}} exceeded the {{scope}} workday limit configured for the client.",
       hint: "This is an automatic notice for Human Resources. Review the attendance record; corrections must be captured as punch adjustments.",
     },
-    footer: "Automatic message from TimeManager · Please don't reply to this email.",
+    footer: "Automatic message from CheckLab · Please don't reply to this email.",
     greeting: "Hello {{name}},",
     fields: {
       authorizedBy: "Authorized by",
@@ -803,11 +803,11 @@ export const en: Messages = {
       username: "Username",
     },
     welcome: {
-      subject: "Your %%TM_COMPANY%% account on TimeManager",
+      subject: "Your %%TM_COMPANY%% account on CheckLab",
       title: "Welcome to the system",
       preview: "Your account to check your attendance is ready.",
       cardTitle: "Sign-in credentials",
-      body: "Hello {{name}}, your TimeManager account was created so you can check your attendance, schedules and records.",
+      body: "Hello {{name}}, your CheckLab account was created so you can check your attendance, schedules and records.",
       hint: "You'll be asked to change your password the first time you sign in.",
     },
     welcomeAdmin: {

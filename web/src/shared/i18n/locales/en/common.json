@@ -121,7 +121,7 @@
     "title": "Map"
   },
   "pdf": {
-    "footer": "TimeManager — Attendance tracking",
+    "footer": "CheckLab — Attendance tracking",
     "pageOf": "Page {{current}} of {{total}}",
     "page": "Page",
     "of": "of",

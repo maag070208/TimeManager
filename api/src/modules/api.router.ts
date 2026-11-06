@@ -245,7 +245,7 @@ apiRouter.use("/nom", nomRouter);
 const { router: payrollRouter } = createPayrollModule(auditPort.createLog);
 apiRouter.use("/payroll", payrollRouter);
 apiRouter.use("/time-clock", timeClockRouter);
-// Agente local del cliente (TimeManagerAgent): token de dispositivo propio,
+// Agente local del cliente (CheckLab Agent): token de dispositivo propio,
 // ingesta de checadas y cola de trabajos hacia el reloj. No usa `authenticate`.
 apiRouter.use("/agent", createAgentModule(auditPort.createLog).router);
 

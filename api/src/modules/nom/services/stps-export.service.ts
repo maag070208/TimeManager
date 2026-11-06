@@ -354,7 +354,7 @@ export class StpsExportService {
     }
 
     const lines = [
-      "# TimeManager — Registro electrónico de jornada (LFT art. 132 fr. XXXIV)",
+      "# CheckLab — Registro electrónico de jornada (LFT art. 132 fr. XXXIV)",
       `# schema: ${SCHEMA_VERSION}`,
       `# cliente: ${tenant.name} (${tenant.id})`,
       `# periodo: ${params.period} ${from}..${to} (${range.timezone})`,

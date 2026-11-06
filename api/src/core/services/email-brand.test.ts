@@ -26,7 +26,7 @@ test("usa el nombre y color del cliente en el HTML y el asunto", async () => {
   assert.equal(subject, "Bienvenido a Acme");
 });
 
-test("sin branding usa la marca y el acento de TimeManager", async () => {
+test("sin branding usa la marca y el acento de CheckLab", async () => {
   const { applyBrandTokens } = await loadQueue();
   const { EMAIL_BRAND_COLOR_TOKEN, EMAIL_COMPANY_TOKEN, EMAIL_DEFAULT_BRAND_COLOR } = await loadTemplates();
 
@@ -35,7 +35,7 @@ test("sin branding usa la marca y el acento de TimeManager", async () => {
     { name: null, color: null },
     { escape: true }
   );
-  assert.equal(branded, `TimeManager|${EMAIL_DEFAULT_BRAND_COLOR}`);
+  assert.equal(branded, `CheckLab|${EMAIL_DEFAULT_BRAND_COLOR}`);
 });
 
 test("las plantillas llevan el token del color del cliente", async () => {

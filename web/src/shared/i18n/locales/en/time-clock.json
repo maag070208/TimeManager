@@ -358,7 +358,7 @@
       "notConfigured": "Not configured",
       "source": {
         "tenant": "on-site (client)",
-        "platform": "central (TimeManager)",
+        "platform": "central (CheckLab)",
         "env": ".env fallback",
         "none": "—"
       }

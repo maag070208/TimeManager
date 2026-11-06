@@ -1,6 +1,6 @@
 {
   "platform": {
-    "title": "TimeManager console",
+    "title": "CheckLab console",
     "description": "Your clients, their status and usage.",
     "newClient": "New client",
     "kpis": {
@@ -110,7 +110,7 @@
     },
     "agents": {
       "title": "Local agent · {{name}}",
-      "subtitle": "Device credential for TimeManagerAgent, the app that syncs the clocks from the client's network.",
+      "subtitle": "Device credential for CheckLab Agent, the app that syncs the clocks from the client's network.",
       "nameLabel": "Computer name",
       "namePlaceholder": "Front desk PC",
       "create": "Create agent",
@@ -118,7 +118,7 @@
       "loading": "Loading agents…",
       "empty": "This client has no agents yet.",
       "tokenOnce": "New token (shown only once; copy it now):",
-      "tokenHint": "Paste it in TimeManagerAgent → API connection. Only its hash is stored; if lost, rotate it.",
+      "tokenHint": "Paste it in CheckLab Agent → API connection. Only its hash is stored; if lost, rotate it.",
       "copy": "Copy",
       "copied": "Copied",
       "active": "Active",

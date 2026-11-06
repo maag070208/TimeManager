@@ -53,7 +53,7 @@ const normalizeUrl = (value: string): string => {
  * Estación de enrolamiento de huellas configurable (F1B-12).
  *
  * Precedencia: override del cliente (estación en sitio) → default de
- * plataforma (estación central de TimeManager) → `FINGERPRINT_STATION_*` del
+ * plataforma (estación central de CheckLab) → `FINGERPRINT_STATION_*` del
  * `.env` (fallback de desarrollo/E2E). La contraseña se guarda cifrada con
  * AES-256-GCM y **nunca** se devuelve por la API (solo `hasPassword`).
  */

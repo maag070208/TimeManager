@@ -1,4 +1,4 @@
-// Sprite de Tic (32x32 px), la mascota de TimeManager. Animaciones: idle, wave, work, ok, err, think, point, help, info, success, warn, search, sleep, love, idea, loading, empty, notify, offline, lock, 404, upload, assigned, fixing, urgent, resolved, coffee, thanks, dance, birthday, eat, beach, christmas, halloween, key, bell
+// Sprite de Tic (32x32 px), la mascota de CheckLab. Animaciones: idle, wave, work, ok, err, think, point, help, info, success, warn, search, sleep, love, idea, loading, empty, notify, offline, lock, 404, upload, assigned, fixing, urgent, resolved, coffee, thanks, dance, birthday, eat, beach, christmas, halloween, key, bell
 
 var C={o:'#0E131C',b:'#F2A93B',d:'#C97A17',l:'#FFD27A',i:'#8F520F',z:'#F4F6FA',x:'#C5CEDD',c:'#3F5378',p:'#2A3A58',j:'#7C93BD',w:'#FFFFFF',g:'#E2B65C',y:'#EBC770',h:'#D0A044',u:'#0F5C80',k:'#F28B6B',s:'#7FD0EB',r:'#E0342F',n:'#3FAE5A',q:'#F2C230',m:'#7A4A2A',a:'#9AA5AD',v:'#7B4FA0',e:'#F28C28'};
 function build(a,f){

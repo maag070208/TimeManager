@@ -139,7 +139,7 @@ export default function WeeklyAttendancePdf({ report, mode, rows, meta }: Weekly
   const detailRows = rows as WeeklyAttendanceDetailRow[];
 
   return (
-    <Document title={title} author="TimeManager">
+    <Document title={title} author="CheckLab">
       <Page size="LETTER" orientation="landscape" style={pdfTheme.page}>
         <View fixed>
           <PdfLetterhead title={title} generatedAt={new Date().toLocaleString("es-MX")} />

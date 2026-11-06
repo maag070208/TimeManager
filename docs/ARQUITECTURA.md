@@ -1,6 +1,6 @@
 # Arquitectura y escalamiento — API, base de datos y web
 
-Cómo llevar TimeManager a miles de usuarios concurrentes sin reescribir el producto. Complementa a [SAAS_PLAN.md](SAAS_PLAN.md) (multi-cliente) con las decisiones técnicas de capacidad.
+Cómo llevar CheckLab a miles de usuarios concurrentes sin reescribir el producto. Complementa a [SAAS_PLAN.md](SAAS_PLAN.md) (multi-cliente) con las decisiones técnicas de capacidad.
 
 Base: análisis del repo al 2026-11-04. Cada sección marca **lo que ya está bien**, **lo que falta** y **cuándo hace falta** (fase del roadmap de SAAS_PLAN).
 

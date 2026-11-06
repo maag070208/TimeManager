@@ -153,7 +153,7 @@ export class EmployeeRecordsService {
     const emailed = user?.email
       ? await enqueueEmail({
           to: user.email,
-          subject: `[TimeManager] ${title}`,
+          subject: `[CheckLab] ${title}`,
           html: this.emailHtml(gaps.name, lines, lng),
           action: "hr.missingRecords",
           entityType: "User",

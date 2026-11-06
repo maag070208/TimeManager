@@ -1,6 +1,6 @@
 {
   "platform": {
-    "title": "Panel de TimeManager",
+    "title": "Panel de CheckLab",
     "description": "Tus clientes, su estado y su uso.",
     "newClient": "Nuevo cliente",
     "kpis": {
@@ -110,7 +110,7 @@
     },
     "agents": {
       "title": "Agente local · {{name}}",
-      "subtitle": "Credencial de dispositivo para TimeManagerAgent, la app que sincroniza los relojes desde la red del cliente.",
+      "subtitle": "Credencial de dispositivo para CheckLab Agent, la app que sincroniza los relojes desde la red del cliente.",
       "nameLabel": "Nombre del equipo",
       "namePlaceholder": "PC recepción",
       "create": "Crear agente",
@@ -118,7 +118,7 @@
       "loading": "Cargando agentes…",
       "empty": "Este cliente todavía no tiene agentes.",
       "tokenOnce": "Token nuevo (se muestra una sola vez; cópialo ahora):",
-      "tokenHint": "Pégalo en TimeManagerAgent → Conexión con el API. En la base solo queda su hash; si se pierde, hay que rotarlo.",
+      "tokenHint": "Pégalo en CheckLab Agent → Conexión con el API. En la base solo queda su hash; si se pierde, hay que rotarlo.",
       "copy": "Copiar",
       "copied": "Copiado",
       "active": "Activo",

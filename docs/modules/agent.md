@@ -1,4 +1,4 @@
-# agent — Agente local (TimeManagerAgent)
+# agent — Agente local (CheckLab Agent)
 
 El API en la nube no alcanza las IPs privadas de los relojes del cliente: el
 **agente** es una app Electron instalada en una PC del sitio que abre conexión
@@ -7,7 +7,7 @@ de escritura. Es el "brazo local" del SaaS; la fuente de verdad sigue siendo el
 API.
 
 ```
-PC del cliente: TimeManagerAgent (Electron + React)
+PC del cliente: CheckLab Agent (Electron + React)
    ├── ISAPI (LAN)  → reloj Hikvision: eventos por cursor, altas/bajas de persona, tarjetas, huellas
    └── HTTPS saliente → /api/v1/agent/* (token de dispositivo por cliente)
 ```
@@ -91,7 +91,7 @@ cambian. `retryDelayMs` documenta el backoff compartido.
 ## App del agente (`agent/`)
 
 Paquete del monorepo (`timemanager-agent`), Electron + Vite + React 19 con
-`@axzydev/axzy_ui_system` y tema TimeManager. Ver `agent/README.md` para correr,
+`@axzydev/axzy_ui_system` y tema CheckLab. Ver `agent/README.md` para correr,
 compilar y empaquetar (NSIS x64 + AppImage).
 
 - **Main process** (`electron/main.cjs`): ventana + IPC, config en

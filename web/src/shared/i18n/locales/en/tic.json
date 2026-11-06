@@ -1,6 +1,6 @@
 {
   "title": "Tic",
-  "description": "The TimeManager mascot: all its animations and the scenes where it lives.",
+  "description": "The CheckLab mascot: all its animations and the scenes where it lives.",
   "state": {
     "empty": {
       "title": "All quiet here",
@@ -24,7 +24,7 @@
     }
   },
   "guide": {
-    "label": "Tic, the TimeManager mascot",
+    "label": "Tic, the CheckLab mascot",
     "default": "I'll keep you company while you fill in the form.",
     "close": "Close guide",
     "saving": "Saving…",

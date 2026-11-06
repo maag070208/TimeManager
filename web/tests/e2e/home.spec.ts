@@ -11,7 +11,7 @@ test.describe("inicio de plataforma", () => {
   test("el ADMIN de plataforma ve la consola de clientes en /", async ({ page }) => {
     await loginAs(page, "platform");
 
-    await expect(page.getByRole("heading", { level: 1, name: "Panel de TimeManager" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Panel de CheckLab" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 3, name: "Clientes", exact: true })).toBeVisible();
 
     const table = page.getByRole("table");
@@ -29,12 +29,12 @@ test.describe("inicio de plataforma", () => {
 
   test("la plataforma sin cliente elegido no entra a pantallas de cliente", async ({ page }) => {
     await loginAs(page, "platform");
-    await expect(page.getByRole("heading", { level: 1, name: "Panel de TimeManager" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Panel de CheckLab" })).toBeVisible();
 
     // `/employees` es pantalla de cliente: PrivateRoutes devuelve a la consola.
     await page.goto(`${PLATFORM.base}/#/employees`);
     await expect(page).toHaveURL(/localhost:5106\/#\/$/);
-    await expect(page.getByRole("heading", { level: 1, name: "Panel de TimeManager" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Panel de CheckLab" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "Personal" })).toHaveCount(0);
   });
 });
@@ -52,7 +52,7 @@ test.describe("inicio de un cliente", () => {
     await expect(page.getByText("Hoy", { exact: true })).toBeVisible();
     await expect(page.getByText(/sin horario/).first()).toBeVisible();
     await expect(page.getByRole("heading", { level: 3, name: "Pendientes de configuración" })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "Panel de TimeManager" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1, name: "Panel de CheckLab" })).toHaveCount(0);
   });
 
   test("el personal solo ve su inicio y no entra a rutas prohibidas", async ({ page }) => {

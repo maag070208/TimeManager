@@ -4,7 +4,7 @@ export const es = {
     // Notificaciones en vivo (Ably por token)
     ABLY_NOT_CONFIGURED: "Las notificaciones en vivo no están configuradas",
     ABLY_TOKEN_FAILED: "No se pudo emitir el token de notificaciones en vivo",
-    // Agente local (TimeManagerAgent)
+    // Agente local (CheckLab Agent)
     INVALID_AGENT_TOKEN: "Token de agente inválido, rotado o revocado",
     AGENT_NOT_FOUND: "Agente no encontrado",
     AGENT_CLOCK_NOT_FOUND: "El reloj no está dado de alta para este cliente",
@@ -16,7 +16,7 @@ export const es = {
     TAX_RATE_NOT_FOUND: "Tasa de IVA no encontrada",
     TAX_RATE_TAKEN: "Ya existe una tasa de IVA con ese nombre o valor",
     TENANT_HEADER_FORBIDDEN: "Solo el personal de plataforma puede elegir cliente con X-Tenant-Id",
-    ROLE_NOT_FOR_CLIENT: "El rol {{role}} es del equipo de TimeManager: no se puede dar a personal de un cliente",
+    ROLE_NOT_FOR_CLIENT: "El rol {{role}} es del equipo de CheckLab: no se puede dar a personal de un cliente",
     TENANT_NOT_FOUND: "Cliente no encontrado",
     TENANT_REQUIRED: "Esta operación requiere un cliente en contexto (entra como personal del cliente o elige un cliente)",
     TENANT_SLUG_TAKEN: "Ya existe un cliente con el subdominio \"{{slug}}\"",
@@ -745,12 +745,12 @@ export const es = {
   },
   emails: {
     tagline: "Control de asistencia",
-    signIn: "Entrar a TimeManager",
+    signIn: "Entrar a CheckLab",
     tenantWelcome: {
-      subject: "{{company}} ya está en TimeManager",
+      subject: "{{company}} ya está en CheckLab",
       title: "Tu cuenta está lista",
       preview: "Entra y deja lista la asistencia de {{company}}.",
-      body: "Hola {{name}}, {{company}} ya tiene su espacio en TimeManager. Con esta cuenta administras a tu personal, sus horarios y sus checadas.",
+      body: "Hola {{name}}, {{company}} ya tiene su espacio en CheckLab. Con esta cuenta administras a tu personal, sus horarios y sus checadas.",
       cardTitle: "Tus datos de acceso",
       signInUrl: "Entrada",
       passwordHint: "La contraseña es provisional: al entrar se te pedirá cambiarla.",
@@ -783,7 +783,7 @@ export const es = {
       body: "{{name}} superó el límite {{scope}} de jornada configurado para el cliente.",
       hint: "Este es un aviso automático para Recursos Humanos. Revisa el registro de asistencia; las correcciones deben capturarse como ajustes de checada.",
     },
-    footer: "Mensaje automático de TimeManager · No respondas a este correo.",
+    footer: "Mensaje automático de CheckLab · No respondas a este correo.",
     greeting: "Hola {{name}},",
     fields: {
       authorizedBy: "Autorizado por",
@@ -805,11 +805,11 @@ export const es = {
       username: "Usuario",
     },
     welcome: {
-      subject: "Tu cuenta de %%TM_COMPANY%% en TimeManager",
+      subject: "Tu cuenta de %%TM_COMPANY%% en CheckLab",
       title: "Bienvenido al sistema",
       preview: "Tu cuenta para consultar tu asistencia está lista.",
       cardTitle: "Credenciales de acceso",
-      body: "Hola {{name}}, se creó tu cuenta en TimeManager para consultar tu asistencia, horarios y expediente.",
+      body: "Hola {{name}}, se creó tu cuenta en CheckLab para consultar tu asistencia, horarios y expediente.",
       hint: "Al entrar por primera vez se te pedirá cambiar la contraseña.",
     },
     welcomeAdmin: {

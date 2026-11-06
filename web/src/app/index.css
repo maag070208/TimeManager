@@ -8,12 +8,12 @@
 :root {
   --layout-bg: #f4f6fa;
 
-  /* Marca TimeManager: azul marino, blanco y ámbar (#E8920F para texto/íconos sobre claro). */
+  /* Marca CheckLab: azul marino #1D2636, blanco #F4F6FA, menta y ámbar. */
   --tm-navy: #1d2636;
   --tm-navy-deep: #121822;
   --tm-paper: #f4f6fa;
-  --tm-amber: #f2a93b;
-  --tm-amber-ink: #e8920f;
+  --tm-amber: #f59e0b;
+  --tm-amber-ink: #d97706;
   --tm-amber-text: #8a5300;
 }
 

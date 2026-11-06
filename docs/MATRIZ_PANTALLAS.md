@@ -11,7 +11,7 @@ Fecha de auditoría: **2026-11-06**. Alance: todas las rutas privadas y pública
 
 **Leyenda:** ✅ Cumple · 🟡 Parcial · ❌ No cumple · ➖ No aplica (pantalla pública/marca).
 
-## Regla visual vigente (bento TimeManager)
+## Regla visual vigente (bento CheckLab)
 
 1. **Ancho completo** (`ITPage` con `min-w-full! max-w-none!` o `noPadding` + `px-8`).
 2. **Contexto**: hero pastel de un solo color (sin degradados ni fondos negros) o fila de KPIs blancos con waves.

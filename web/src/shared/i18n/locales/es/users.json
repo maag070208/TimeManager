@@ -127,7 +127,7 @@
       },
       "ADMIN": {
         "title": "Administrador de la plataforma",
-        "summary": "Equipo TimeManager con control total de la plataforma y de todos los clientes.",
+        "summary": "Equipo CheckLab con control total de la plataforma y de todos los clientes.",
         "actions": [
           "Configura roles, permisos y sistema",
           "Administra usuarios de cualquier cliente",
@@ -136,7 +136,7 @@
       },
       "SUPPORT": {
         "title": "Soporte",
-        "summary": "Equipo TimeManager que atiende a los clientes.",
+        "summary": "Equipo CheckLab que atiende a los clientes.",
         "actions": [
           "Consulta usuarios, relojes y asistencia",
           "Edita usuarios y vincula relojes",

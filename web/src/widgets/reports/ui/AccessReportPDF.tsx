@@ -188,7 +188,7 @@ export default function AccessReportPDF({ rows, summary, meta, title }: Props) {
     );
 
   return (
-    <Document title={reportTitle} author="TimeManager">
+    <Document title={reportTitle} author="CheckLab">
       {pages.map((pageRows, pageIdx) => (
         <Page key={pageIdx} size="LETTER" style={pdfTheme.page}>
           <PdfLetterhead

@@ -11,7 +11,7 @@ test("bienvenida de cliente: nombre escapado, entrada, botón y pasos", () => {
     tempPassword: "Abc12345",
     loginUrl: "https://acme.timemanager.mx/login",
   });
-  assert.equal(subject, "Acme <script> ya está en TimeManager");
+  assert.equal(subject, "Acme <script> ya está en CheckLab");
   assert.ok(html.includes("Acme &lt;script&gt;"));
   assert.ok(!html.includes("<script>"));
   assert.ok(html.includes('href="https://acme.timemanager.mx/login"'));

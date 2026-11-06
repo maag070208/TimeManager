@@ -17,8 +17,8 @@ import { PLATFORM_PATHS, TenantSwitcher, useClientContext } from "@features/tena
 import { getSelectedTenant } from "@shared/api/tenant";
 import { isPathInDisabledModule } from "@shared/lib/tenant-modules";
 import { setTenantBrand } from "@shared/lib/tenantBrand";
-import logoUrl from "@shared/assets/brand/timemanager-logo-for-light-bg.svg";
-import symbolUrl from "@shared/assets/brand/timemanager-symbol-for-light-bg.svg";
+import logoUrl from "@shared/assets/brand/checklab-logo-for-light-bg.svg";
+import symbolUrl from "@shared/assets/brand/checklab-symbol-for-light-bg.svg";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {
@@ -275,11 +275,11 @@ export default function PrivateRoutes() {
       logo: (
         <img
           src={user?.tenant?.logoDataUrl ?? symbolUrl}
-          alt={user?.tenant?.name ?? "TimeManager"}
+          alt={user?.tenant?.name ?? "CheckLab"}
           className="h-8 w-8 object-contain"
         />
       ),
-      text: user?.tenant?.name ?? "TimeManager",
+      text: user?.tenant?.name ?? "CheckLab",
     },
     // Panel flotante con la persona al pie (mismo lenguaje bento del resto).
     variant: "bento",
@@ -304,7 +304,7 @@ export default function PrivateRoutes() {
     logo: (
       <img
         src={logoUrl}
-        alt="TimeManager"
+        alt="CheckLab"
         className="h-12 w-auto object-contain"
       />
     ),

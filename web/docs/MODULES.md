@@ -1,4 +1,4 @@
-# TimeManager — Web (mapa de módulos)
+# CheckLab — Web (mapa de módulos)
 
 Mapa de módulos y funcionalidades del frontend web (`web/`). El producto es el
 servicio de checadas (registro electrónico de jornada + RH de soporte); las
@@ -64,8 +64,8 @@ Cada cliente se resuelve de la URL (`shared/lib/tenant-route`, `shared/api/tenan
 
 | Rol | Quién | Alcance |
 |-----|-------|---------|
-| `ADMIN` | Equipo TimeManager (super admin) | Todos los permisos, incluidos `roles.manage` y `system.configure` |
-| `SUPPORT` | Equipo TimeManager (soporte) | Usuarios (ver/editar), relojes, horarios, asistencia, auditoría y planes (ver); sin expedientes ni nómina |
+| `ADMIN` | Equipo CheckLab (super admin) | Todos los permisos, incluidos `roles.manage` y `system.configure` |
+| `SUPPORT` | Equipo CheckLab (soporte) | Usuarios (ver/editar), relojes, horarios, asistencia, auditoría y planes (ver); sin expedientes ni nómina |
 | `CLIENT_ADMIN` | Administrador del cliente | Todo lo operativo de su empresa; sin `roles.manage` ni `system.configure` |
 | `HUMAN_RESOURCES` | RH del cliente | Expedientes, altas de personal, checadas, horarios, horas extra, nómina y reportes |
 | `CLIENT_STAFF` | Personal del cliente | Solo su propia asistencia (`attendance.view: OWN`) y su jornada/teletrabajo |
@@ -191,7 +191,7 @@ producto en `public/landing/*.jpg`.
 
 - Archivos: `src/pages/landing/LandingPage.tsx` + `landing.css`; ruta pública en
   `app/App.tsx` (`/landing`, reservada en `APP_ROOT_PATHS` para que el slug del
-  cliente no la capture). Enlace “Conoce TimeManager” desde el login.
+  cliente no la capture). Enlace “Conoce CheckLab” desde el login.
 - Secciones: hero, bento de producto (asistencia, personal, horarios, portal
   móvil, reloj + agente, multi-cliente, cumplimiento), galería, agente,
   planes 500/750/1000, FAQ y CTA.

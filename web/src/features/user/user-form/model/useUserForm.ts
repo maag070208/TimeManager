@@ -133,7 +133,7 @@ export const useUserForm = (userId?: string) => {
   const dispatch = useDispatch<AppDispatch>();
   const canWriteClock = useCan("time_clock.write");
   // Dentro de un cliente solo se ofrecen roles de cliente (`staff`); ADMIN y
-  // SUPPORT son del equipo TimeManager (el API también lo rechaza).
+  // SUPPORT son del equipo CheckLab (el API también lo rechaza).
   const sessionUser = useSelector((s: RootState) => s.auth.user);
   const inClient = !!sessionUser?.tenant || !!getSelectedTenant();
   const rolesCatalog = useRolesCatalog().filter((role) => !inClient || role.staff);

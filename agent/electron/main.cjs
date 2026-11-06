@@ -1,9 +1,9 @@
 "use strict";
 
 /**
- * Proceso principal de TimeManagerAgent.
+ * Proceso principal de CheckLab Agent.
  *
- * - Ventana React (tema TimeManager) con el estado del agente.
+ * - Ventana React (tema CheckLab) con el estado del agente.
  * - Servicio local (`agent-service.cjs`) que habla ISAPI con el reloj y HTTPS
  *   con el API; arranca al abrir la app y sobrevive a la ventana cerrada en la
  *   bandeja de macOS/Windows mientras el proceso siga vivo.
@@ -47,7 +47,7 @@ const registerAutoStart = (enabled) => {
           [
             "[Desktop Entry]",
             "Type=Application",
-            "Name=TimeManagerAgent",
+            "Name=CheckLab Agent",
             `Exec="${process.execPath}"`,
             "X-GNOME-Autostart-enabled=true",
             "Terminal=false",
@@ -88,7 +88,7 @@ const createWindow = () => {
   if (!fs.existsSync(indexHtml)) {
     void dialog.showMessageBox({
       type: "error",
-      title: "TimeManagerAgent",
+      title: "CheckLab Agent",
       message: "Falta compilar la interfaz.",
       detail: "Ejecuta `pnpm build` (o `pnpm app`) en la carpeta agent/ antes de abrir la app.",
     });
@@ -106,7 +106,7 @@ const bootstrap = () => {
     safeStorage: require("electron").safeStorage,
   });
   logger = new Logger(path.join(userData(), "logs", "agent.log"));
-  logger.info(`TimeManagerAgent v${VERSION} arrancando en ${process.platform}.`);
+  logger.info(`CheckLab Agent v${VERSION} arrancando en ${process.platform}.`);
 
   service = new AgentService({
     config: store,
@@ -158,7 +158,7 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(bootstrap).catch((error) => {
-    dialog.showErrorBox("TimeManagerAgent", error instanceof Error ? error.message : String(error));
+    dialog.showErrorBox("CheckLab Agent", error instanceof Error ? error.message : String(error));
     app.quit();
   });
 

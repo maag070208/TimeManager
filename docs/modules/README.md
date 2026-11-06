@@ -28,7 +28,7 @@ Una ficha por módulo de `api/src/modules/`. Cada ficha describe qué hace, sus 
 | `email` | Cola y bitácora de correos, reintentos | 3 | [email](email.md) |
 | `tenants` | Clientes de la plataforma: alta, suspensión, uso (solo plataforma) | 4 | [tenants](tenants.md) |
 | `plans` | Catálogo de planes: límites de personal y relojes, precio de lista y enforcement (solo plataforma) | 5 | [plans](plans.md) |
-| `agent` | Agente local por cliente (TimeManagerAgent): token de dispositivo, ingesta de checadas, cola de trabajos y consola de alta/rotación | 13 | [agent](agent.md) |
+| `agent` | Agente local por cliente (CheckLab Agent): token de dispositivo, ingesta de checadas, cola de trabajos y consola de alta/rotación | 13 | [agent](agent.md) |
 
 ## Estado frente al SaaS
 

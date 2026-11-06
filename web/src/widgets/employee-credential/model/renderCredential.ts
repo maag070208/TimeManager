@@ -1,5 +1,5 @@
 import type { PersonalProfile } from "@entities/hr";
-import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
+import { LOGO_CHECKLAB_BASE64 } from "@shared/assets/logoCheckLab";
 import { PDF_COLORS } from "@shared/pdf/theme";
 import { CREDENTIAL_H_PX, CREDENTIAL_W_PX, LAYOUT } from "./cardSpec";
 import { i18n } from "@shared/i18n";
@@ -170,7 +170,7 @@ export const drawCredential = async (
   ctx.arc(LAYOUT.logoBadge.cx, LAYOUT.logoBadge.cy, LAYOUT.logoBadge.r, 0, Math.PI * 2);
   ctx.fillStyle = PDF_COLORS.white;
   ctx.fill();
-  const logo = await loadImage(getTenantBrandLogo() ?? LOGO_TIMEMANAGER_BASE64);
+  const logo = await loadImage(getTenantBrandLogo() ?? LOGO_CHECKLAB_BASE64);
   if (logo) {
     const { x, y, w, h } = LAYOUT.logo;
     drawImageContain(ctx, logo, x, y, w, h);
@@ -183,7 +183,7 @@ export const drawCredential = async (
   ctx.fillStyle = CRED_MUTED;
   ctx.font = `${LAYOUT.subtitle.size}px ${FONT}`;
   ctx.fillText(
-    i18n.t("employees:credential.subtitle", { company: getTenantBrandName() ?? "TimeManager" }),
+    i18n.t("employees:credential.subtitle", { company: getTenantBrandName() ?? "CheckLab" }),
     LAYOUT.subtitle.x,
     LAYOUT.subtitle.baseline
   );

@@ -9,7 +9,7 @@ import {
 import { formatDate } from "@shared/utils/dates";
 import { useTranslation } from "react-i18next";
 import type { DisciplinaryReport } from "@entities/hr";
-import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
+import { LOGO_CHECKLAB_BASE64 } from "@shared/assets/logoCheckLab";
 
 interface Props {
   disciplinaryReport: DisciplinaryReport;
@@ -143,11 +143,11 @@ export default function DisciplinaryReportPdf({ disciplinaryReport }: Props) {
   const signatureRh = disciplinaryReport.createdBy.name || "—";
 
   return (
-    <Document title={tt("doc.documentTitle")} author="TimeManager">
+    <Document title={tt("doc.documentTitle")} author="CheckLab">
       <Page size="LETTER" style={styles.page}>
         <View style={styles.topHeader}>
           <View style={styles.logoBox}>
-            <Image src={LOGO_TIMEMANAGER_BASE64} style={styles.logo} />
+            <Image src={LOGO_CHECKLAB_BASE64} style={styles.logo} />
           </View>
           <View style={styles.metaBox}>
             <View style={styles.metaRow}>

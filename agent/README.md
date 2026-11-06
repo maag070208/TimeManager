@@ -1,14 +1,14 @@
-# TimeManagerAgent
+# CheckLab Agent
 
-Agente local de **TimeManager**: app de escritorio (Electron) que vive en la red
+Agente local de **CheckLab**: app de escritorio (Electron) que vive en la red
 del cliente, habla **ISAPI** con su reloj Hikvision y sube las checadas al API
 SaaS. También ejecuta los trabajos de escritura que pide el panel (alta/baja de
 personas, tarjetas y huellas) porque el API en la nube no alcanza IPs privadas.
 
 ```
 PC del cliente
-  TimeManagerAgent (Electron)
-    UI React (tema TimeManager, @axzydev/axzy_ui_system)
+  CheckLab Agent (Electron)
+    UI React (tema CheckLab, @axzydev/axzy_ui_system)
     Servicio local (Node, main process)
       ├── ISAPI → reloj (lectura por cursor + escrituras de trabajos)
       ├── cola local en disco (reintentos, sin pérdida si se cae la red)
@@ -42,8 +42,8 @@ estado por el preload solo dentro de la app.
 ```bash
 cd agent
 pnpm build        # typecheck (tsc) + UI a dist/
-pnpm dist:win     # NSIS x64  → release/TimeManagerAgent-Setup-<versión>.exe
-pnpm dist:linux   # AppImage  → release/TimeManagerAgent-<versión>.AppImage
+pnpm dist:win     # NSIS x64  → release/CheckLab Agent-Setup-<versión>.exe
+pnpm dist:linux   # AppImage  → release/CheckLab Agent-<versión>.AppImage
 ```
 
 `electron-builder` compila ambos instaladores desde el mismo `package.json`
@@ -96,7 +96,7 @@ agent/
     config-store.cjs    config + cola local en userData
     logger.cjs          log en memoria + archivo rotado + export
     sync-core.test.cjs  unit del núcleo (node:test, sin Electron)
-  src/                  UI React (tema TimeManager)
+  src/                  UI React (tema CheckLab)
   resources/icon.png        icono de la app
 ```
 

@@ -109,7 +109,7 @@ export default function OvertimePDF({ rows, summary, meta, canApprove }: Overtim
       ];
 
   return (
-    <Document title={t("pdf.title")} author="TimeManager">
+    <Document title={t("pdf.title")} author="CheckLab">
       <Page size="LETTER" orientation="landscape" style={pdfTheme.page}>
         <View fixed>
           <PdfLetterhead title={t("pdf.title")} generatedAt={today} />

@@ -1,6 +1,6 @@
-# Plan SaaS — TimeManager multi-cliente
+# Plan SaaS — CheckLab multi-cliente
 
-Objetivo: vender TimeManager como SaaS a N clientes, donde cada cliente (tenant) tiene su propio personal, departamentos, horarios, relojes, checadas, reportes y configuración — con aislamiento total de datos entre clientes.
+Objetivo: vender CheckLab como SaaS a N clientes, donde cada cliente (tenant) tiene su propio personal, departamentos, horarios, relojes, checadas, reportes y configuración — con aislamiento total de datos entre clientes.
 
 Documento de planeación vivo: las decisiones marcadas **[ABIERTA]** necesitan respuesta antes de codificar la fase correspondiente.
 
@@ -89,7 +89,7 @@ Modelo de plan (p. ej. por número de empleados activos + módulos): básico (ch
 - El serial del reloj se registra a un tenant en el alta; la sincronización autentica por API key del reloj ligada al tenant (no por sesión de usuario).
 - **Un reloj por cliente**, instalado en su red local (`192.168.x`): las credenciales del API hacia el Hikvision (usuario/contraseña) deben ir por reloj en la BD, cifradas (F1B-10); el `.env` solo es default de desarrollo.
 - El API en la nube **no alcanza** la red del cliente: falta decidir gateway/agente on-prem con conexión saliente o VPN por cliente (A4 / F1B-11).
-- La **estación de enrolamiento de huellas es de TimeManager** (central, no del cliente): se configura en `sys_config` y el enrolamiento apunta al reloj del cliente destino (F1B-12).
+- La **estación de enrolamiento de huellas es de CheckLab** (central, no del cliente): se configura en `sys_config` y el enrolamiento apunta al reloj del cliente destino (F1B-12).
 - Un reloj jamás se mueve de tenant sin re-provisioning (borra personas y checadas del reloj anterior).
 
 ---

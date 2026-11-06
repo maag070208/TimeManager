@@ -77,7 +77,7 @@ export default function UserAccessExplorer({
   const navigate = useNavigate();
   const canExceptions = useCan("users.permissions");
   // Cliente activo: el de la sesión (usuario de cliente) o el elegido por la
-  // plataforma. Con cliente no se ofrecen los roles del equipo TimeManager: la
+  // plataforma. Con cliente no se ofrecen los roles del equipo CheckLab: la
   // API los rechaza con 403.
   const sessionTenant = useSelector((s: RootState) => s.auth.user?.tenant ?? null);
   const client = sessionTenant ?? getSelectedTenant();

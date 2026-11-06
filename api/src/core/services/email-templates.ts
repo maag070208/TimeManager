@@ -3,7 +3,7 @@
  * `sys_config.LANGUAGE`). HTML con escape de variables dinámicas para evitar
  * XSS por contenido controlado por el usuario.
  *
- * Marca TimeManager (banda azul marino `#1D2636`, acento ámbar `#F2A93B`) con
+ * Marca CheckLab (banda azul marino `#1D2636`, acento ámbar `#F2A93B`) con
  * el nombre del cliente en el encabezado (`EMAIL_COMPANY_TOKEN`, lo resuelve la
  * cola al encolar). Outlook-safe: solo `<table>`/`<tr>`/`<td>` con estilos
  * inline — nada de flex/grid.
@@ -22,7 +22,7 @@ const escapeHtml = (value: string): string =>
 
 /**
  * Token del color de acento del cliente (F3-05). `enqueueEmail` lo sustituye
- * por `tenant.brandColor` (o el acento TimeManager si el cliente no tiene).
+ * por `tenant.brandColor` (o el acento CheckLab si el cliente no tiene).
  */
 export const EMAIL_BRAND_COLOR_TOKEN = "%%TM_BRAND_COLOR%%";
 export const EMAIL_DEFAULT_BRAND_COLOR = "#5fb8dd";
@@ -49,7 +49,7 @@ const EMAIL_COLORS = {
 type CardVariant = "default" | "danger" | "success" | "warning";
 
 /**
- * CID del logo inline de TimeManager. El HTML de cada template referencia
+ * CID del logo inline de CheckLab. El HTML de cada template referencia
  * `<img src="cid:EMAIL_LOGO_CID">`; `mail.ts` adjunta el PNG con ese `cid`,
  * porque Gmail/Outlook descartan las imágenes `data:` URI.
  */
@@ -57,7 +57,7 @@ export const EMAIL_LOGO_CID = "timemanager-logo";
 
 /**
  * Marcador del nombre del cliente en asunto y encabezado. `enqueueEmail` lo
- * reemplaza por el cliente del contexto (o "TimeManager" en plataforma).
+ * reemplaza por el cliente del contexto (o "CheckLab" en plataforma).
  */
 export const EMAIL_COMPANY_TOKEN = "%%TM_COMPANY%%";
 
@@ -122,7 +122,7 @@ const layoutEmail = ({ language, title, preview, content }: LayoutInput): string
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                   <tr>
                     <td valign="middle" width="48" style="width:48px;">
-                      <img src="cid:${EMAIL_LOGO_CID}" alt="TimeManager" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:10px;border:0;outline:none;text-decoration:none;"/>
+                      <img src="cid:${EMAIL_LOGO_CID}" alt="CheckLab" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:10px;border:0;outline:none;text-decoration:none;"/>
                     </td>
                     <td valign="middle" style="padding-left:12px;">
                       <div style="font-size:16px;font-weight:700;color:${EMAIL_COLORS.white};line-height:1.2;">${EMAIL_COMPANY_TOKEN}</div>

@@ -127,7 +127,7 @@
       },
       "ADMIN": {
         "title": "Platform administrator",
-        "summary": "TimeManager team with full control of the platform and every client.",
+        "summary": "CheckLab team with full control of the platform and every client.",
         "actions": [
           "Configures roles, permissions and system",
           "Manages users of any client",
@@ -136,7 +136,7 @@
       },
       "SUPPORT": {
         "title": "Support",
-        "summary": "TimeManager team that assists clients.",
+        "summary": "CheckLab team that assists clients.",
         "actions": [
           "Views users, time clocks and attendance",
           "Edits users and links time clocks",

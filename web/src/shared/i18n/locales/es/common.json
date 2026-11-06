@@ -121,7 +121,7 @@
     "title": "Mapa"
   },
   "pdf": {
-    "footer": "TimeManager — Control de asistencia",
+    "footer": "CheckLab — Control de asistencia",
     "pageOf": "Página {{current}} de {{total}}",
     "page": "Página",
     "of": "de",

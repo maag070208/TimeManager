@@ -1,6 +1,6 @@
 {
   "title": "Tic",
-  "description": "La mascota de TimeManager: todas sus animaciones y los escenarios donde vive.",
+  "description": "La mascota de CheckLab: todas sus animaciones y los escenarios donde vive.",
   "state": {
     "empty": {
       "title": "Todo tranquilo por aquí",
@@ -24,7 +24,7 @@
     }
   },
   "guide": {
-    "label": "Tic, la mascota de TimeManager",
+    "label": "Tic, la mascota de CheckLab",
     "default": "Te acompaño mientras llenas el formulario.",
     "close": "Cerrar guía",
     "saving": "Guardando…",

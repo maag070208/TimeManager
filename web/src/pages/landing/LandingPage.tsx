@@ -28,9 +28,9 @@ import "./landing.css";
 
 const DEMO_URL =
   "mailto:hola@axzy.dev?subject=" +
-  encodeURIComponent("Demo de TimeManager") +
+  encodeURIComponent("Demo de CheckLab") +
   "&body=" +
-  encodeURIComponent("Hola, quiero una demo de TimeManager. Mi empresa es ___ y tenemos aprox. ___ personas.");
+  encodeURIComponent("Hola, quiero una demo de CheckLab. Mi empresa es ___ y tenemos aprox. ___ personas.");
 
 const NAV = [
   { id: "producto", label: "Producto" },
@@ -85,12 +85,12 @@ const PLANS = [
 
 const FAQ = [
   {
-    q: "¿TimeManager cumple con el registro electrónico de jornada?",
+    q: "¿CheckLab cumple con el registro electrónico de jornada?",
     a: "El sistema registra inicio y fin de jornada de todas las modalidades (reloj, acceso y marcaje remoto), guarda las checadas de forma inmutable, documenta cada corrección con su aprobador y genera el export de registros con hash. El formato oficial y la retención definitiva dependen de las disposiciones que publique la STPS para 2027; el sistema queda listo para ajustarse.",
   },
   {
     q: "¿Cómo se conecta el reloj checador?",
-    a: "Instalamos un reloj Hikvision en tu sitio y el TimeManagerAgent (app de escritorio) se conecta a él por tu red local, lee las checadas y las envía al sistema en bloques configurables. No necesitas abrir puertos ni contratar VPN: el agente solamente hace conexiones de salida.",
+    a: "Instalamos un reloj Hikvision en tu sitio y el CheckLab Agent (app de escritorio) se conecta a él por tu red local, lee las checadas y las envía al sistema en bloques configurables. No necesitas abrir puertos ni contratar VPN: el agente solamente hace conexiones de salida.",
   },
   {
     q: "¿Sirve para home office y personal en campo?",
@@ -301,7 +301,7 @@ export default function LandingPage() {
           </div>
 
           <div className="relative z-10" data-reveal>
-            <BrowserFrame src="/landing/home.jpg" alt="Inicio del cliente con asistencia y personal" url="acme.timemanager.mx" />
+            <BrowserFrame src="/landing/home.jpg" alt="Inicio del cliente con asistencia y personal" url="acme.checklab.mx" />
             <div className="lp-card lp-float absolute -bottom-6 -left-2 hidden max-w-[220px] p-4 sm:block">
               <div className="flex items-center gap-2">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full" style={{ background: "var(--lp-glow)", color: "var(--lp-accent-ink)" }}>
@@ -356,7 +356,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="mt-5 px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/attendance.jpg" alt="Pantalla de entradas y salidas" url="acme.timemanager.mx/#/hr/time-clock/entries-exits" />
+                <BrowserFrame className="lp-shot" src="/landing/attendance.jpg" alt="Pantalla de entradas y salidas" url="acme.checklab.mx/#/hr/time-clock/entries-exits" />
               </div>
             </article>
 
@@ -370,7 +370,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-auto px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/personal.jpg" alt="Listado de personal" url="acme.timemanager.mx/#/employees" />
+                <BrowserFrame className="lp-shot" src="/landing/personal.jpg" alt="Listado de personal" url="acme.checklab.mx/#/employees" />
               </div>
             </article>
 
@@ -384,7 +384,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-4 px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/schedules.jpg" alt="Pantalla de horarios" url="acme.timemanager.mx/#/schedules" />
+                <BrowserFrame className="lp-shot" src="/landing/schedules.jpg" alt="Pantalla de horarios" url="acme.checklab.mx/#/schedules" />
               </div>
             </article>
 
@@ -425,7 +425,7 @@ export default function LandingPage() {
                   Tu reloj Hikvision, sin abrir la red
                 </h3>
                 <p className="mt-2 max-w-md text-[13.5px] leading-relaxed">
-                  El TimeManagerAgent se instala en una PC del cliente, se conecta al reloj por LAN y envía las
+                  El CheckLab Agent se instala en una PC del cliente, se conecta al reloj por LAN y envía las
                   checadas al sistema en bloques configurables. Cola local si se cae el internet.
                 </p>
                 <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] font-bold">
@@ -433,11 +433,11 @@ export default function LandingPage() {
                   <LuArrowRight size={14} className="lp-muted" />
                   <span className="lp-chip">Agente</span>
                   <LuArrowRight size={14} className="lp-muted" />
-                  <span className="lp-chip">API TimeManager</span>
+                  <span className="lp-chip">API CheckLab</span>
                 </div>
               </div>
               <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.timemanager.mx/#/time-clocks" />
+                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.checklab.mx/#/time-clocks" />
               </div>
             </article>
 
@@ -452,7 +452,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/multi-cliente.jpg" alt="Consola de clientes de plataforma" url="timemanager.mx" />
+                <BrowserFrame className="lp-shot" src="/landing/multi-cliente.jpg" alt="Consola de clientes de plataforma" url="checklab.mx" />
               </div>
             </article>
 
@@ -466,7 +466,7 @@ export default function LandingPage() {
                   </h3>
                   <p className="lp-muted mt-2 text-[14px] leading-relaxed">
                     La reforma a la LFT obliga a registrar electrónicamente inicio y fin de jornada de todos los
-                    trabajadores. TimeManager cubre el flujo completo y deja el rastro auditable; la NOM-037 de
+                    trabajadores. CheckLab cubre el flujo completo y deja el rastro auditable; la NOM-037 de
                     teletrabajo se atiende con políticas, consentimiento y control de desconexión.
                   </p>
                   <div className="mt-5 flex flex-wrap gap-2">
@@ -494,13 +494,13 @@ export default function LandingPage() {
             <SectionTitle eyebrow="Así se ve" title="Así se ve el sistema" text="Pantallas del producto con datos de demostración; nombres y clientes ilustrativos." />
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               <div data-reveal>
-                <BrowserFrame className="lp-shot" src="/landing/clock-dashboard.jpg" alt="Dashboard del reloj" url="acme.timemanager.mx/#/time-clocks/dashboard" />
+                <BrowserFrame className="lp-shot" src="/landing/clock-dashboard.jpg" alt="Dashboard del reloj" url="acme.checklab.mx/#/time-clocks/dashboard" />
               </div>
               <div data-reveal>
-                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.timemanager.mx/#/time-clocks" />
+                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.checklab.mx/#/time-clocks" />
               </div>
               <div data-reveal>
-                <BrowserFrame className="lp-shot" src="/landing/portal.jpg" alt="Portal del trabajador" url="acme.timemanager.mx/#/mi-jornada" />
+                <BrowserFrame className="lp-shot" src="/landing/portal.jpg" alt="Portal del trabajador" url="acme.checklab.mx/#/mi-jornada" />
               </div>
             </div>
           </div>
@@ -509,8 +509,8 @@ export default function LandingPage() {
         {/* ── Agente ──────────────────────────────────────────── */}
         <section id="reloj" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6 lg:py-28">
           <SectionTitle
-            eyebrow="TimeManagerAgent"
-            title="El brazo de TimeManager en la red del cliente"
+            eyebrow="CheckLab Agent"
+            title="El brazo de CheckLab en la red del cliente"
             text="Una app de escritorio con nuestra interfaz: conecta el reloj, sincroniza las checadas y ejecuta las altas del padrón."
           />
           <div className="mt-12 grid gap-5 md:grid-cols-3">

@@ -1,4 +1,4 @@
-# TimeManager
+# CheckLab
 
 Sistema de RH y registro de checadas (API + web), recortado de un ERP original.
 Base de datos: PostgreSQL en la nube (Railway/Render), vía `DATABASE_URL`.

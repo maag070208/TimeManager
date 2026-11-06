@@ -11,7 +11,7 @@ const isActive = (job: AgentJob): boolean => job.status === "PENDING" || job.sta
 
 /**
  * Cola del agente local desde el panel de relojes (F3-07): encola altas/bajas
- * de personas y tarjetas para que el `TimeManagerAgent` del cliente las
+ * de personas y tarjetas para que el `CheckLab Agent` del cliente las
  * ejecute contra el reloj, y muestra el estado de los últimos trabajos.
  */
 export const useAgentJobs = (clocks: TimeClockDevice[]) => {

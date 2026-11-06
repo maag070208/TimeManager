@@ -59,7 +59,7 @@ cada reloj puede tener una **API key para ingesta directa** de checadas:
 
 ## Estación de huellas (F1B-12)
 
-- `FingerprintStationConfig` guarda una fila por alcance: `tenantId = null` es la **estación central** de TimeManager y una fila con `tenantId` es el **override del cliente** (estación instalada en su sitio). La contraseña va cifrada (AES-256-GCM) y la API nunca la devuelve.
+- `FingerprintStationConfig` guarda una fila por alcance: `tenantId = null` es la **estación central** de CheckLab y una fila con `tenantId` es el **override del cliente** (estación instalada en su sitio). La contraseña va cifrada (AES-256-GCM) y la API nunca la devuelve.
 - Resolución en cada captura: override del cliente → estación central → `FINGERPRINT_STATION_*` del `.env` (fallback de desarrollo/E2E). No hace falta reiniciar: `GET /time-clock/fingerprint-station` informa `{configured, url, source, hasPassword}` del cliente en contexto.
 - Edición **solo plataforma** (`time_clocks.manage` + usuario sin cliente): `GET/PUT /time-clock/fingerprint-station/config` con `tenantId` opcional (omitido = central) y `clear` para borrar el override. `POST /fingerprint-station/test` captura un dedo con la estación efectiva y descarta la plantilla.
 - El enrolamiento (`POST /employees/:userId/fingerprint/capture|apply`) usa la estación efectiva; funciona igual con estación central o en sitio.

@@ -527,7 +527,7 @@ describe("Export formal y autoservicio de configuración", () => {
     );
     expectStatus(csvExport, 200, "export CSV");
     assert.match(String(csvExport.headers.get("content-type")), /text\/csv/);
-    assert.ok(csvExport.text.startsWith("# TimeManager"));
+    assert.ok(csvExport.text.startsWith("# CheckLab"));
     assert.ok(csvExport.text.includes("# sha256: "));
     assert.ok(csvExport.text.includes("fecha,numeroEmpleado,nombre"));
     assert.ok(csvExport.text.includes("extraDoble,extraTriple,excedenteIlegal"));

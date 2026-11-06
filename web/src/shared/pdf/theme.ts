@@ -1,7 +1,7 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
 // Paleta de marca — el azul viene muestreado directamente del logo de
-// TimeManager, así todos los PDF del sistema se sienten
+// CheckLab, así todos los PDF del sistema se sienten
 // parte de la misma identidad visual.
 export const PDF_COLORS = {
   band: "#0a4560",

@@ -209,7 +209,7 @@ consentimiento, checklist de 8 puntos (autollenado), registro de contactos fuera
 | 5.11 | Exámenes médicos (NOM-030) y seguimiento de avisos de accidente | Registro de exámenes y avisos de riesgo de trabajo del teletrabajador | P2 |
 | 5.13 | Atención en casos de violencia familiar | Canal confidencial y protocolo por cliente (acceso restringido) | P2 |
 | 6.x | Avisos escritos del trabajador (cambio de domicilio, alteraciones, riesgos) con fecha de elaboración, nombre, fecha de ocurrencia y descripción | `TeleworkNotice` desde `/mi-jornada` con esos campos | P1 |
-| 4.11 / 7.3 e) | Derecho a la desconexión | Además de registrar contactos: **el propio TimeManager no debe molestar fuera de horario**. Notificaciones in-app/correo/push al teletrabajador se difieren a su siguiente jornada (salvo urgentes marcadas), y RH ve un indicador de contactos fuera de horario por persona | P0 |
+| 4.11 / 7.3 e) | Derecho a la desconexión | Además de registrar contactos: **el propio CheckLab no debe molestar fuera de horario**. Notificaciones in-app/correo/push al teletrabajador se difieren a su siguiente jornada (salvo urgentes marcadas), y RH ve un indicador de contactos fuera de horario por persona | P0 |
 | 9 | Dictamen de unidad de inspección (opcional, vigencia 2 años) | Repositorio de dictámenes con vencimiento | P2 |
 | 10.4 | Evidencias en papel o digitales, conservadas al menos 1 año | Retención mínima de 1 año para evidencias NOM-037 y "Expediente NOM-037" exportable por cliente | P1 |
 

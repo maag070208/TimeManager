@@ -7,7 +7,7 @@ import "./index.css";
 
 localStorage.setItem("it-theme-dark-mode", "light");
 
-/** Paleta de marca TimeManager (la misma de la web y los correos). */
+/** Paleta de marca CheckLab (la misma de la web y los correos). */
 const theme: ITThemePalette = {
   primary: "#1D2636",
   secondary: "#4A5568",

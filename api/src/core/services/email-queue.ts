@@ -75,7 +75,7 @@ export const applyBrandTokens = (
   brand: { name: string | null; color: string | null },
   { escape }: { escape: boolean }
 ): string => {
-  const company = brand.name ?? "TimeManager";
+  const company = brand.name ?? "CheckLab";
   const color = brand.color ?? EMAIL_DEFAULT_BRAND_COLOR;
   return text
     .split(EMAIL_COMPANY_TOKEN).join(escape ? escapeHtml(company) : company)

@@ -14,10 +14,10 @@ export const buildOpenApiDocument = () => {
   return generator.generateDocument({
     openapi: "3.0.0",
     info: {
-      title: "TimeManager API",
+      title: "CheckLab API",
       version: "1.0.0",
       description:
-        "TimeManager API. JWT authentication (Bearer). Roles: ADMIN, SUPPORT, CLIENT_ADMIN, HUMAN_RESOURCES, CLIENT_STAFF.",
+        "CheckLab API. JWT authentication (Bearer). Roles: ADMIN, SUPPORT, CLIENT_ADMIN, HUMAN_RESOURCES, CLIENT_STAFF.",
     },
     servers: [
       {

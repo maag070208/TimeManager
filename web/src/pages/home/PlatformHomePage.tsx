@@ -148,7 +148,7 @@ const nextChargeDate = (createdAt: string): Date => {
   return candidate;
 };
 
-/** Inicio del equipo TimeManager: clientes, estado y uso. */
+/** Inicio del equipo CheckLab: clientes, estado y uso. */
 export default function PlatformHomePage() {
   const { t } = useTranslation("home");
   const navigate = useNavigate();

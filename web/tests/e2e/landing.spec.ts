@@ -9,7 +9,7 @@ test.describe("Landing pública", () => {
     await expect(page.getByRole("link", { name: /Solicitar demo/i }).first()).toBeVisible();
     await expect(page.getByText(/Todo lo que tu operación necesita/i)).toBeVisible();
     await expect(page.getByText(/Precios simples por tamaño de empresa/i)).toBeVisible();
-    await expect(page.getByText("TimeManagerAgent").first()).toBeVisible();
+    await expect(page.getByText("CheckLab Agent").first()).toBeVisible();
     // Planes: tres tarjetas con sus límites.
     await expect(page.getByText("500 personas")).toBeVisible();
     await expect(page.getByText("750 personas")).toBeVisible();
@@ -38,7 +38,7 @@ test.describe("Landing pública", () => {
 
   test("desde el login se puede volver a la landing", async ({ page }) => {
     await page.goto(`${PLATFORM.base}/#/login`);
-    await page.getByRole("link", { name: /Conoce TimeManager/i }).click();
+    await page.getByRole("link", { name: /Conoce CheckLab/i }).click();
     await expect(page).toHaveURL(/\/landing/);
     await expect(page.getByRole("heading", { level: 1, name: /El registro de jornada/i })).toBeVisible();
   });

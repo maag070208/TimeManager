@@ -2,7 +2,7 @@
   {
     "key": "ADMIN",
     "name": "ADMINISTRADOR",
-    "description": "Equipo TimeManager: administración total de la plataforma.",
+    "description": "Equipo CheckLab: administración total de la plataforma.",
     "module": "Plataforma",
     "staff": false,
     "system": true,
@@ -12,7 +12,7 @@
   {
     "key": "SUPPORT",
     "name": "SOPORTE",
-    "description": "Equipo TimeManager: soporte a clientes (usuarios, relojes y consulta de asistencia).",
+    "description": "Equipo CheckLab: soporte a clientes (usuarios, relojes y consulta de asistencia).",
     "module": "Plataforma",
     "staff": false,
     "system": true,

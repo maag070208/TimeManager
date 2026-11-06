@@ -21,7 +21,7 @@ export default function Tic({
   speed = 140,
   className,
   style,
-  label = "Tic, la mascota de TimeManager",
+  label = "Tic, la mascota de CheckLab",
   animated = true,
 }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);

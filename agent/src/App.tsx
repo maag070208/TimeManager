@@ -153,7 +153,7 @@ export default function App() {
       <div className="agent-shell flex h-full items-center justify-center p-8">
         <ITCard className="max-w-lg">
           <ITText as="h1" className="text-lg font-semibold">
-            TimeManagerAgent necesita Electron
+            CheckLab Agent necesita Electron
           </ITText>
           <ITText muted className="mt-2 block text-sm">
             Esta ventana se abrió en un navegador. Para usar el agente ejecuta
@@ -171,16 +171,20 @@ export default function App() {
   return (
     <div className="agent-shell flex h-full flex-col">
       <header className="flex items-center gap-3 bg-[#1D2636] px-6 py-3 text-[#F4F6FA] shadow-md">
-        <svg viewBox="16 16 88 88" className="h-9 w-9 shrink-0" aria-hidden="true">
-          <path d="M75.96 29.98 A34 34 0 1 1 44.04 29.98" fill="none" stroke="#F4F6FA" strokeWidth="8" strokeLinecap="round" />
-          <path d="M38 30 H82" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
-          <path d="M60 30 V60" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
-          <path d="M60 60 L77 70" stroke="#F4F6FA" strokeWidth="6" strokeLinecap="round" />
-          <circle cx="60" cy="60" r="5" fill="#F2A93B" />
+        <svg viewBox="14 14 92 92" className="h-9 w-9 shrink-0" aria-hidden="true">
+          <defs><mask id="agentBrandMask" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120"><rect width="120" height="120" fill="#fff" /><circle cx="87" cy="88" r="20" fill="#000" /></mask></defs>
+          <g mask="url(#agentBrandMask)">
+            <rect x="31" y="22" width="58" height="76" rx="11" fill="none" stroke="#F4F6FA" strokeWidth="8" />
+            <path d="M51 33 H69" stroke="#F4F6FA" strokeWidth="6" strokeLinecap="round" />
+            <circle cx="60" cy="54" r="9" fill="#F4F6FA" />
+            <path d="M41 86 Q41 69 60 69 Q79 69 79 86 Z" fill="#F4F6FA" stroke="#F4F6FA" strokeWidth="2" strokeLinejoin="round" />
+          </g>
+          <circle cx="87" cy="88" r="14.5" fill="#34D399" />
+          <path d="M80.5 88 L85 92.5 L94 82.5" fill="none" stroke="#1D2636" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <div className="flex-1">
           <ITText as="h1" className="text-base font-semibold leading-tight" style={{ color: "inherit" }}>
-            TimeManagerAgent
+            CheckLab Agent
           </ITText>
           <ITText as="span" className="text-xs opacity-75" style={{ color: "inherit" }}>
             Sincronización local del reloj · v{state?.version ?? "0.1.0"}
@@ -297,7 +301,7 @@ export default function App() {
                 </div>
               ) : (
                 <ITText muted className="block py-6 text-center text-sm">
-                  Sin relojes todavía. Da de alta un reloj en el panel de TimeManager y vuelve a registrar el agente.
+                  Sin relojes todavía. Da de alta un reloj en el panel de CheckLab y vuelve a registrar el agente.
                 </ITText>
               )}
             </ITCard>

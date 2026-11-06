@@ -19,7 +19,7 @@ export default function ClientHomePage() {
       className="m-0! p-0! px-8! min-w-full! pb-12!"
       noPadding
       title={t("client.greeting", { name: firstName })}
-      description={t("client.description", { company: client?.name ?? "TimeManager", date: today })}
+      description={t("client.description", { company: client?.name ?? "CheckLab", date: today })}
       icon={<LuHouse size={20} />}
     >
       <ClientOverview />

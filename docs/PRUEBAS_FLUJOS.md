@@ -1,6 +1,6 @@
 # Pruebas de flujos completos
 
-Batería para probar TimeManager de punta a punta con datos aislados (nunca contra Railway).
+Batería para probar CheckLab de punta a punta con datos aislados (nunca contra Railway).
 
 ## Capas
 

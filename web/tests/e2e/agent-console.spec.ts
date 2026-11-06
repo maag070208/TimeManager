@@ -5,7 +5,7 @@ import { loginReady } from "./session";
 /**
  * Agente local desde la web (F3-12 + F3-07).
  *
- * La consola de plataforma emite/rota/revoca el token del `TimeManagerAgent`;
+ * La consola de plataforma emite/rota/revoca el token del `CheckLab Agent`;
  * el panel de relojes del cliente encola trabajos que el agente ejecutará en
  * su red. El stack E2E ya trae lo necesario (seed: `e2e.admin` de plataforma y
  * el reloj "Entrada principal" de acme apuntando al mock ISAPI con escritura

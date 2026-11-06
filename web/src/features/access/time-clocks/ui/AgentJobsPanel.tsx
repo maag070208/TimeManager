@@ -28,7 +28,7 @@ const clockLabel = (clockSerial: string | null): string => clockSerial ?? "—";
 
 /**
  * Cola del agente local (F3-07): el panel encola altas/bajas de personas y
- * tarjetas, y el `TimeManagerAgent` del cliente las ejecuta contra el reloj
+ * tarjetas, y el `CheckLab Agent` del cliente las ejecuta contra el reloj
  * porque la nube no alcanza su red local.
  */
 export default function AgentJobsPanel({ clocks }: { clocks: TimeClockDevice[] }) {

@@ -16,7 +16,7 @@ const BASE = PLATFORM.base;
 const route = (path: string) => `${BASE}/#${path}`;
 
 async function enter(page: Page): Promise<void> {
-  await loginReady(page, BASE, PLATFORM.admin, /Panel de TimeManager/);
+  await loginReady(page, BASE, PLATFORM.admin, /Panel de CheckLab/);
 }
 
 /** Elige el cliente acme en el selector de la barra superior y espera la recarga. */
@@ -81,7 +81,7 @@ test.describe("consola de roles", () => {
 
   /**
    * Regla ROLE_NOT_FOR_CLIENT: ADMIN/SUPPORT son roles del equipo de
-   * TimeManager y no pueden darse a personal de un cliente. Con el cliente acme
+   * CheckLab y no pueden darse a personal de un cliente. Con el cliente acme
    * elegido (X-Tenant-Id), el menú "Agregar rol" debe ofrecer SOLO roles de
    * cliente. (Este caso llegó a fallar: el menú ofrecía ADMINISTRADOR/SOPORTE y
    * la API los rechazaba con 403; ya está corregido en el working tree.)

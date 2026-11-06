@@ -1,5 +1,5 @@
 import { Image, Text, View } from "@react-pdf/renderer";
-import { LOGO_TIMEMANAGER_BASE64 } from "@shared/assets/logoTimeManager";
+import { LOGO_CHECKLAB_BASE64 } from "@shared/assets/logoCheckLab";
 import { pdfTheme } from "./theme";
 import { i18n } from "@shared/i18n";
 import { getTenantBrandColor, getTenantBrandLogo, getTenantBrandName } from "@shared/lib/tenantBrand";
@@ -28,10 +28,10 @@ export default function PdfLetterhead({ title, pageIndex, pageCount, generatedAt
       <View style={pdfTheme.band}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={pdfTheme.logoBadge}>
-            <Image src={getTenantBrandLogo() ?? LOGO_TIMEMANAGER_BASE64} style={pdfTheme.logoImg} />
+            <Image src={getTenantBrandLogo() ?? LOGO_CHECKLAB_BASE64} style={pdfTheme.logoImg} />
           </View>
           <View style={pdfTheme.bandTextWrap}>
-            <Text style={pdfTheme.bandHotel}>{getTenantBrandName() ?? "TimeManager"}</Text>
+            <Text style={pdfTheme.bandHotel}>{getTenantBrandName() ?? "CheckLab"}</Text>
             <Text style={pdfTheme.bandDoc}>{title}</Text>
           </View>
         </View>
