@@ -54,7 +54,8 @@
     "leave": "Vacaciones",
     "workdayAgreements": "Convenios y acuerdos",
     "payrollSettings": "Nómina",
-    "clients": "Clientes"
+    "clients": "Clientes",
+    "platform": "Plataforma"
   },
   "files": {
     "access": "accesos",

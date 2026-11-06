@@ -243,11 +243,20 @@ export default function PrivateRoutes() {
     action: () => navigate("/tenants"),
     isActive: location.pathname === "/tenants" || location.pathname.startsWith("/tenants/"),
   };
+  const screenItems = pruneDisabledModules(APP_SCREENS)
+    .map(toNavigationItem)
+    .filter((item): item is ITNavigationItem => item !== null);
+  const startItems = screenItems.filter((item) => item.id === "start");
+  const restItems = screenItems.filter((item) => item.id !== "start");
+  if (isPlatformStaff && platformWithoutClient) {
+    for (const item of restItems) {
+      if (item.id === "settings") item.label = tt("nav.platform");
+    }
+  }
   const navigationItems = [
+    ...startItems,
     ...(isPlatformStaff ? [clientsItem] : []),
-    ...pruneDisabledModules(APP_SCREENS).map(toNavigationItem).filter(
-      (item): item is ITNavigationItem => item !== null
-    ),
+    ...restItems,
   ];
 
   const handleLogout = () => {

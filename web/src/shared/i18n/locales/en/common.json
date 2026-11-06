@@ -54,7 +54,8 @@
     "leave": "Vacation",
     "workdayAgreements": "Agreements",
     "payrollSettings": "Payroll",
-    "clients": "Clients"
+    "clients": "Clients",
+    "platform": "Platform"
   },
   "files": {
     "access": "access",
