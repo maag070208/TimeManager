@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITDataTable, ITDialog, ITInput, ITSearchSelect, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuPencil, LuPlus, LuPower, LuPowerOff, LuUserCheck, LuWallet } from "react-icons/lu";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
-import { usersApi } from "@entities/user";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { HelpTip } from "@shared/ui/help-tip";
 import { DialogHeader } from "@shared/ui/dialog-header";
@@ -27,12 +26,9 @@ export default function PayrollPositionsPanel() {
 
   const load = async () => {
     try {
-      const [nextPositions, people] = await Promise.all([payrollApi.positions(), usersApi.people()]);
+      const nextPositions = await payrollApi.positions();
       setPositions(nextPositions);
-      setJobTitles([...new Set([
-        ...people.map((person) => person.jobTitle?.trim()),
-        ...nextPositions.map((position) => position.jobTitle?.trim()),
-      ].filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b)));
+      setJobTitles([...new Set(nextPositions.map((position) => position.jobTitle?.trim()).filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b)));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudieron cargar los perfiles de nómina.");
     }
