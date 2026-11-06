@@ -18,8 +18,9 @@ test.describe("Mi jornada (portal del trabajador)", () => {
     await expect(page.getByRole("button", { name: /Registrar entrada/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Salida a comer/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Regreso de comer/i })).toBeVisible();
-    // Teletrabajo (desde/hasta) + vacaciones/permisos (desde/hasta).
-    await expect(page.locator('input[type="date"]')).toHaveCount(4);
+    // Rango de marcajes y rango de vacaciones/permisos con el ITDatePicker del kit.
+    await expect(page.locator('input[name="punchesRange"]')).toBeVisible();
+    await expect(page.locator('input[name="leaveRange"]')).toBeVisible();
     // Sin errores de contexto: la sesión pertenece al cliente.
     await expect(page.getByText(/requiere un cliente en contexto/i)).toHaveCount(0);
     await expect(loginForm(page)).toHaveCount(0);

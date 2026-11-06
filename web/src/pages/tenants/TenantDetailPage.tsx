@@ -1,9 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { LuArrowLeft, LuBuilding2, LuCalendarClock, LuCheck, LuChevronLeft, LuChevronRight, LuClock, LuWallet } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { tenantApi } from "@entities/tenant";
 import type { Tenant, TenantPayment, TenantPaymentStatus, TenantPayments } from "@entities/tenant";
+
+const dateStrToLocal = (value: string): Date | undefined => {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+};
+const localToDateStr = (value: Date): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const money = (value: number) => value.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
 const dateLabel = (iso: string | null) =>
@@ -223,10 +236,15 @@ export default function TenantDetailPage() {
               <ITInput name="concept" label="Concepto" value={form.concept} onChange={(e) => setForm((p) => ({ ...p, concept: e.target.value }))} />
               <ITInput name="period" label="Periodo (YYYY-MM)" value={form.period} onChange={(e) => setForm((p) => ({ ...p, period: e.target.value }))} />
               <ITInput name="amount" label="Monto (MXN)" type="number" value={form.amount} onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))} />
-              <label className="flex flex-col gap-1 text-[12px] text-slate-600">
-                Vence
-                <input type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} className="rounded-md border border-slate-200 px-2 py-2 text-[13px]" />
-              </label>
+              <ITDatePicker
+                name="paymentDueDate"
+                label="Vence"
+                value={dateStrToLocal(form.dueDate)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value instanceof Date) setForm((prev) => ({ ...prev, dueDate: localToDateStr(value) }));
+                }}
+              />
               <ITButton variant="filled" color="primary" className="tm-save-button mt-1 w-full" disabled={busy === "create"} onClick={() => void create()}>
                 Registrar cargo
               </ITButton>

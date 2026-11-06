@@ -16,7 +16,6 @@ import { useTranslation } from "react-i18next";
 import { useEmployeeDetail } from "@features/hr/employee-detail";
 import { resolvePhotoUrl, type PersonalProfile, type PersonalProfileUpdateInput } from "@entities/hr";
 import { departmentsApi, type Department } from "@entities/department";
-import { DatePickerPortal } from "@shared/ui/date-picker-portal";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import {
   validateCurp,
@@ -331,12 +330,7 @@ export default function EmployeeProfileEditPage() {
               />
             </Cell>
             <Cell>
-              <DatePickerPortal
-                name="birthDate"
-                label={tt("detail.fields.birthDate")}
-                value={dateStrToLocal(form.birthDate)}
-                onChange={dateField("birthDate")}
-              />
+              <ITDatePicker name="birthDate" label={tt("detail.fields.birthDate")} value={dateStrToLocal(form.birthDate)} onChange={dateField("birthDate")} />
             </Cell>
             <Cell>
               <ITSearchSelect

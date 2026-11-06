@@ -6,8 +6,7 @@ import {
   ITCard,
   ITFlex,
   ITText,
-  ITToast,
-} from "@axzydev/axzy_ui_system";
+  ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import { LuCalendarCheck, LuCheck, LuRefreshCw } from "react-icons/lu";
 import { scheduleApi, type WeeklyOvertimeRow } from "@entities/schedule";
@@ -32,6 +31,19 @@ const STATUS_COLOR: Record<WeeklyOvertimeRow["status"], "gray" | "success" | "in
  * Aprobación semanal de horas extra (F1): muestra el snapshot legal por
  * persona y semana y permite congelarlo. La alerta semanal usa el umbral real.
  */
+const dateStrToLocal = (value: string): Date | undefined => {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+};
+const localToDateStr = (value: Date): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function WeeklyOvertimePanel({ canApprove }: { canApprove: boolean }) {
   const { t } = useTranslation("overtime");
   const tr = t as unknown as (key: string) => string;
@@ -85,16 +97,17 @@ export default function WeeklyOvertimePanel({ canApprove }: { canApprove: boolea
             <ITText className="font-bold">{t("weekly.title")}</ITText>
           </ITFlex>
           <ITFlex align="end" gap={2} wrap="wrap">
-            <label className="flex flex-col gap-1 text-[12px] text-slate-600">
-              {t("weekly.date")}
-              <input
-                type="date"
+            <div className="w-[190px]">
+              <ITDatePicker
                 name="weeklyDate"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                className="rounded-md border border-slate-200 px-2 py-2 text-[13px]"
+                label={t("weekly.date")}
+                value={dateStrToLocal(date)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value instanceof Date) setDate(localToDateStr(value));
+                }}
               />
-            </label>
+            </div>
             <ITButton variant="outlined" color="secondary" onClick={() => void load(date)}>
               <LuRefreshCw size={14} className="mr-1" />
               {t("weekly.refresh")}

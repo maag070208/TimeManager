@@ -8,8 +8,7 @@ import {
   ITInput,
   ITPage,
   ITText,
-  ITTextarea,
-} from "@axzydev/axzy_ui_system";
+  ITTextarea, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import {
   LuCalendarCheck,
@@ -61,6 +60,19 @@ const CardHeader = ({ icon, title, help }: { icon: ReactNode; title: string; hel
  * consulta de sus marcajes, reporte de discrepancia y estado de teletrabajo
  * (política, consentimiento y checklist del lugar de trabajo).
  */
+const dateStrToLocal = (value: string): Date | undefined => {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+};
+const localToDateStr = (value: Date): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function MyWorkdayPage() {
   const { t } = useTranslation("nom");
   const tr = t as unknown as (key: string, vars?: Record<string, unknown>) => string;
@@ -322,25 +334,18 @@ export default function MyWorkdayPage() {
             <ITCard className="lg:col-span-5" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuCalendarCheck size={16} />} title={t("punches.title")} />
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="flex min-w-0 flex-col gap-1 text-[12px] text-slate-600">
-                    {t("punches.from")}
-                    <input
-                      type="date"
-                      value={fx.from}
-                      onChange={(event) => fx.setFrom(event.target.value)}
-                      className="w-full min-w-0 rounded-md border border-slate-200 px-2 py-2 text-[13px]"
-                    />
-                  </label>
-                  <label className="flex min-w-0 flex-col gap-1 text-[12px] text-slate-600">
-                    {t("punches.to")}
-                    <input
-                      type="date"
-                      value={fx.to}
-                      onChange={(event) => fx.setTo(event.target.value)}
-                      className="w-full min-w-0 rounded-md border border-slate-200 px-2 py-2 text-[13px]"
-                    />
-                  </label>
+                <div className="min-w-0">
+                  <ITDatePicker
+                    name="punchesRange"
+                    label={`${t("punches.from")} – ${t("punches.to")}`}
+                    range
+                    value={[dateStrToLocal(fx.from) ?? null, dateStrToLocal(fx.to) ?? null]}
+                    onChange={(event) => {
+                      const [start, end] = event.target.value as [Date | null, Date | null];
+                      if (start) fx.setFrom(localToDateStr(start));
+                      if (end) fx.setTo(localToDateStr(end));
+                    }}
+                  />
                 </div>
 
                 {fx.punches.length === 0 ? (
@@ -710,16 +715,17 @@ export default function MyWorkdayPage() {
                       ))}
                     </select>
                   </label>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <label className="flex flex-col gap-1 text-[12px] text-slate-600">
-                      {tr("leave.from")}
-                      <input type="date" value={leaveFrom} onChange={(e) => setLeaveFrom(e.target.value)} className="rounded-md border border-slate-200 px-2 py-2 text-[13px]" />
-                    </label>
-                    <label className="flex flex-col gap-1 text-[12px] text-slate-600">
-                      {tr("leave.to")}
-                      <input type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} className="rounded-md border border-slate-200 px-2 py-2 text-[13px]" />
-                    </label>
-                  </div>
+                  <ITDatePicker
+                    name="leaveRange"
+                    label={`${tr("leave.from")} – ${tr("leave.to")}`}
+                    range
+                    value={[dateStrToLocal(leaveFrom) ?? null, dateStrToLocal(leaveTo) ?? null]}
+                    onChange={(event) => {
+                      const [start, end] = event.target.value as [Date | null, Date | null];
+                      if (start) setLeaveFrom(localToDateStr(start));
+                      if (end) setLeaveTo(localToDateStr(end));
+                    }}
+                  />
                   <ITInput name="leaveReason" label={tr("leave.reason")} value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} />
                   <ITButton
                     variant="filled"

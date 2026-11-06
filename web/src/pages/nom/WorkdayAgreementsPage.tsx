@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITPage, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITPage, ITText, ITTextarea, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { HelpTip } from "@shared/ui/help-tip";
 import { LuSignature } from "react-icons/lu";
@@ -11,6 +11,19 @@ const todayKey = () => new Date().toISOString().slice(0, 10);
 const dateOf = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—");
 
 /** RH: convenios de distribución (art. 58) y acuerdos de método de registro. */
+const dateStrToLocal = (value: string): Date | undefined => {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+};
+const localToDateStr = (value: Date): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function WorkdayAgreementsPage() {
   const [agreements, setAgreements] = useState<DistributionAgreement[]>([]);
   const [recordAgreements, setRecordAgreements] = useState<RecordAgreementAdmin[]>([]);
@@ -148,26 +161,24 @@ export default function WorkdayAgreementsPage() {
               ]}
               disabled={form.kind === "COLECTIVO"}
             />
-            <label className="flex flex-col gap-1 text-[12px] text-slate-600">
-              Vigente desde
-              <input
-                type="date"
-                name="agreementFrom"
-                value={form.effectiveFrom}
-                onChange={(event) => setForm((prev) => ({ ...prev, effectiveFrom: event.target.value }))}
-                className="rounded-md border border-slate-200 px-2 py-2 text-[13px]"
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-[12px] text-slate-600">
-              Vigente hasta (opcional)
-              <input
-                type="date"
-                name="agreementTo"
-                value={form.effectiveTo}
-                onChange={(event) => setForm((prev) => ({ ...prev, effectiveTo: event.target.value }))}
-                className="rounded-md border border-slate-200 px-2 py-2 text-[13px]"
-              />
-            </label>
+            <ITDatePicker
+              name="agreementFrom"
+              label="Vigente desde"
+              value={dateStrToLocal(form.effectiveFrom)}
+              onChange={(event) => {
+                const value = event.target.value;
+                setForm((prev) => ({ ...prev, effectiveFrom: value instanceof Date ? localToDateStr(value) : "" }));
+              }}
+            />
+            <ITDatePicker
+              name="agreementTo"
+              label="Vigente hasta (opcional)"
+              value={dateStrToLocal(form.effectiveTo)}
+              onChange={(event) => {
+                const value = event.target.value;
+                setForm((prev) => ({ ...prev, effectiveTo: value instanceof Date ? localToDateStr(value) : "" }));
+              }}
+            />
           </div>
           <div className="mt-3">
             <ITTextarea

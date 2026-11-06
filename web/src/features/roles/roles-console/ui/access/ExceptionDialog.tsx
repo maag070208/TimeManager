@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITButton, ITDialog, ITInput, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITButton, ITDialog, ITInput, ITText, ITStack, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import type { PermissionCatalog } from "@entities/permission";
 import { usersApi, type PermissionScope } from "@entities/user";
@@ -36,6 +36,19 @@ const endOfDayIso = (date: string): string => {
  * o un caso temporal ("dale aprobar horas extra mientras el jefe está de
  * vacaciones"). Pregunta qué alcance, por qué y hasta cuándo.
  */
+const dateStrToLocal = (value: string): Date | undefined => {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+};
+const localToDateStr = (value: Date): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function ExceptionDialog({ isOpen, userId, personName, permission, mode, onClose, onSaved }: Props) {
   const { t } = useTranslation("roles");
   const [scope, setScope] = useState<PermissionScope>("ALL");
@@ -150,13 +163,18 @@ export default function ExceptionDialog({ isOpen, userId, personName, permission
             />
           </div>
           {expiry === "date" && (
-            <input
-              type="date"
-              value={date}
-              min={new Date().toISOString().slice(0, 10)}
-              onChange={(event) => setDate(event.target.value)}
-              className="mt-2 rounded-lg border border-slate-300 bg-[var(--it-card-bg)] px-3 py-1.5 text-[12px] text-slate-700 focus:border-primary-500 focus:outline-none"
-            />
+            <div className="mt-2">
+              <ITDatePicker
+                name="exceptionExpiry"
+                label={t("exception.expiry.date")}
+                value={dateStrToLocal(date)}
+                minDate={new Date()}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value instanceof Date) setDate(localToDateStr(value));
+                }}
+              />
+            </div>
           )}
         </DialogSection>
 
