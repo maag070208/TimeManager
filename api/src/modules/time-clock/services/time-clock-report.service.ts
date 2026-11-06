@@ -55,12 +55,14 @@ const universeSelect = {
   employeeNumber: true,
   jobTitle: true,
   active: true,
+  checkinMode: true,
   department: { select: { id: true, name: true } },
 } as const;
 
 /** Persona del reporte: un usuario vinculado o un empleado del reloj sin vincular. */
 interface Person extends AccessReportPerson {
   linked: boolean;
+  checkinMode?: "WEB" | "CLOCK" | "HYBRID" | null;
   /** Números del reloj de la persona (un usuario puede tener más de uno). */
   clockNumbers: string[];
 }
@@ -130,13 +132,15 @@ export class TimeClockReportService {
     const people = this.filter(await this.universe(range, includeInactive, fromAttendance), filters);
 
     const numbers = people.flatMap((p) => p.clockNumbers);
+    const webOnlyNumbers = new Set(people.filter((p) => p.checkinMode === "WEB").flatMap((p) => p.clockNumbers));
+    const clockNumbers = numbers.filter((number) => !webOnlyNumbers.has(number));
     const punches =
-      numbers.length === 0
+      clockNumbers.length === 0
         ? []
         : await this.db.timeClockPunch.findMany({
             where: {
               ...fromAttendance,
-              employeeNumber: { in: numbers },
+              employeeNumber: { in: clockNumbers },
               // `OTRO` no es una checada válida (p. ej. minor 104, intento fallido).
               method: { not: "OTHER" },
               occurredAt: {
@@ -166,7 +170,7 @@ export class TimeClockReportService {
     // RJ-02: checadas web/app por persona (solo cuentan si ese día no hay reloj).
     const remotePunches = await this.db.remotePunch.findMany({
       where: {
-        userId: { in: people.map((person) => person.id).filter((id) => !id.startsWith("reloj:")) },
+        userId: { in: people.filter((person) => person.checkinMode !== "CLOCK").map((person) => person.id).filter((id) => !id.startsWith("reloj:")) },
         occurredAt: { gte: range.start, lt: range.end },
       },
       orderBy: { occurredAt: "asc" },
@@ -324,6 +328,7 @@ export class TimeClockReportService {
         jobTitle: user.jobTitle,
         department: user.department,
         active: user.active,
+        checkinMode: user.checkinMode,
         linked: true,
         clockNumbers: [],
       };
@@ -339,6 +344,7 @@ export class TimeClockReportService {
         jobTitle: user.jobTitle,
         department: user.department,
         active: user.active,
+        checkinMode: user.checkinMode,
         linked: true,
         clockNumbers: [],
       });
@@ -357,6 +363,7 @@ export class TimeClockReportService {
       jobTitle: null,
       department: null,
       active: true,
+      checkinMode: null,
       linked: false,
       clockNumbers: [n],
     }));
