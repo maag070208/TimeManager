@@ -106,7 +106,7 @@ export default function UserHistoryPage() {
     >
       <div className="flex flex-col gap-4">
         <ITCard contentClassName="!p-0">
-          <div className="rounded-2xl bg-[#eaf6ef] p-5">
+          <div className="tm-hero-card rounded-2xl p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <ITText className="!text-[10.5px] font-semibold uppercase tracking-[0.10em] text-slate-500">Historial de la cuenta</ITText>

@@ -151,7 +151,7 @@ export default function PayrollSettingsPage() {
         {/* Columna principal */}
         <div className="flex flex-col gap-4 lg:col-span-8">
           <ITCard className="lg:col-span-8" contentClassName="!p-0">
-            <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
+            <div className="tm-hero-card rounded-2xl px-5 py-4 text-slate-900">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">

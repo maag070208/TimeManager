@@ -35,7 +35,7 @@ export default function PayrollHistoryPage() {
       backAction={() => goBack("/schedules/payroll")}
     >
       <div className="flex flex-col gap-4">
-        <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
+        <div className="tm-hero-card rounded-2xl px-5 py-4 text-slate-900">
           <span className="flex items-center gap-1.5">
             <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
               Cierre de pre-nómina

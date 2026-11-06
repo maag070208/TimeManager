@@ -19,8 +19,8 @@ function Block<T>({ value, children }: { value: T | null | undefined; children: 
   return <>{children(value)}</>;
 }
 
-const Waves = ({ color = "rgba(255,255,255,0.14)" }: { color?: string }) => (
-  <svg aria-hidden viewBox="0 0 600 70" preserveAspectRatio="none" className="dash-waves pointer-events-none absolute inset-x-0 bottom-0 h-[58px] w-[200%]">
+const Waves = ({ color = "rgba(255,255,255,0.14)", alt = false }: { color?: string; alt?: boolean }) => (
+  <svg aria-hidden viewBox="0 0 600 70" preserveAspectRatio="none" className={`${alt ? "dash-waves-alt" : "dash-waves"} pointer-events-none absolute inset-x-0 bottom-0 h-[58px] w-[200%]`}>
     <path d="M0,42 C90,14 150,62 240,40 C330,18 390,60 480,36 C540,24 570,30 600,42 L600,70 L0,70 Z" fill={color} />
     <path d="M0,52 C100,30 160,66 260,48 C360,28 420,62 520,44 C560,38 580,42 600,52 L600,70 L0,70 Z" fill={color} opacity="0.5" />
   </svg>
@@ -80,7 +80,7 @@ export default function ClientOverview() {
     const withoutSchedule = fx.setup?.personalWithoutSchedule ?? 0;
     return (
       <ITCard contentClassName="!p-0">
-        <div className="relative overflow-hidden rounded-2xl bg-[#eaf6ef] p-5 text-slate-900">
+        <div className="tm-hero-card dash-card rounded-2xl p-5 text-slate-900" style={{ borderColor: "#eef1f5" }}>
           <div className="relative flex flex-wrap items-start justify-between gap-2">
             <div>
               <ITText className="!text-[10.5px] font-semibold uppercase tracking-[0.12em] !text-slate-500">Hoy</ITText>
@@ -93,7 +93,7 @@ export default function ClientOverview() {
           </div>
 
           {scheduled === 0 && withoutSchedule > 0 ? (
-            <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/60 px-4 py-3">
+            <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50/80 px-4 py-3">
               <div>
                 <ITText className="!text-[24px] font-black !text-slate-900">{withoutSchedule} sin horario</ITText>
                 <ITText className="!text-[12px] !text-slate-600">Nadie tiene horario asignado hoy; así no podemos calcular asistencia.</ITText>
@@ -117,7 +117,7 @@ export default function ClientOverview() {
                   { label: t("client.attendance.late"), value: a.counts.LATE, color: "text-amber-600" },
                   { label: t("client.attendance.notArrived"), value: a.counts.NOT_ARRIVED, color: "text-rose-500" },
                 ].map((stat) => (
-                  <div key={stat.label} className="rounded-lg bg-white/60 px-2.5 py-2">
+                  <div key={stat.label} className="rounded-lg bg-slate-50/80 px-2.5 py-2">
                     <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-slate-500">{stat.label}</span>
                     <span className={`block text-[20px] font-black tabular-nums ${stat.color}`}>{stat.value}</span>
                   </div>
@@ -129,7 +129,7 @@ export default function ClientOverview() {
           {quickActions.length > 0 && (
             <div className="relative mt-4 flex flex-wrap gap-1.5 border-t border-slate-200/50 pt-3">
               {quickActions.map((action) => (
-                <button key={action.label} type="button" onClick={() => navigate(action.to)} className="inline-flex items-center gap-1.5 rounded-lg bg-white/70 px-2.5 py-1.5 text-[11.5px] font-semibold text-slate-700 transition hover:bg-white">
+                <button key={action.label} type="button" onClick={() => navigate(action.to)} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100/80 px-2.5 py-1.5 text-[11.5px] font-semibold text-slate-700 transition hover:bg-slate-100">
                   {action.icon} {action.label}
                 </button>
               ))}

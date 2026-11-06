@@ -518,3 +518,44 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
   white-space: nowrap !important;
 }
 .tm-icon-button { width: 30px !important; padding: 0 !important; }
+
+
+/* Misma ola en sentido inverso para héroes grandes. */
+@keyframes dash-wave-reverse {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.dash-waves-alt { animation: dash-wave-reverse 18s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .dash-waves-alt { animation: none !important; }
+}
+
+
+/* Card de contexto grande: misma familia que las KPI, con ola inversa. */
+.tm-hero-card {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #eef1f5;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.tm-hero-card > * { position: relative; z-index: 1; }
+.tm-hero-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: -100%;
+  bottom: 0;
+  height: 58px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 70' preserveAspectRatio='none'%3E%3Cpath d='M0,42 C90,14 150,62 240,40 C330,18 390,60 480,36 C540,24 570,30 600,42 L600,70 L0,70 Z' fill='%2310b981' fill-opacity='0.14'/%3E%3Cpath d='M0,52 C100,30 160,66 260,48 C360,28 420,62 520,44 C560,38 580,42 600,52 L600,70 L0,70 Z' fill='%2310b981' fill-opacity='0.10'/%3E%3C/svg%3E");
+  background-size: 600px 58px;
+  animation: tm-hero-wave 18s linear infinite reverse;
+  pointer-events: none;
+}
+@keyframes tm-hero-wave {
+  from { background-position-x: 0; }
+  to { background-position-x: -600px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tm-hero-card::after { animation: none !important; }
+}

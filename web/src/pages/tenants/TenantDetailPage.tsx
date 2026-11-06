@@ -134,7 +134,7 @@ export default function TenantDetailPage() {
         {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
 
         <ITCard contentClassName="!p-0">
-          <div className="relative overflow-hidden rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
+          <div className="relative overflow-hidden tm-hero-card rounded-2xl px-5 py-4 text-slate-900">
             {wave("rgba(255,255,255,0.10)")}
             <div className="relative flex flex-wrap items-center justify-between gap-3">
               <div>

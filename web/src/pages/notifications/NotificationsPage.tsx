@@ -96,7 +96,7 @@ export default function NotificationsPage() {
 
         <aside className="flex flex-col gap-4 lg:col-span-4 lg:sticky lg:top-4">
           <ITCard contentClassName="!p-0">
-            <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
+            <div className="tm-hero-card rounded-2xl px-5 py-4 text-slate-900">
               <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">Resumen</ITText>
               <ITText className="!text-2xl font-extrabold !text-slate-900">{fx.counts.unread} sin leer</ITText>
               <ITText className="!text-[12px] !text-slate-600">de {fx.counts.all} notificaciones</ITText>
