@@ -103,6 +103,108 @@ export class TenantService {
     }, true);
   }
 
+  async listPayments(tenantId: string) {
+    const tenant = await this.db.tenant.findUnique({ where: { id: tenantId }, select: { id: true } });
+    if (!tenant) throw new HttpError(404, "TENANT_NOT_FOUND");
+    const rows = await this.db.tenantPayment.findMany({
+      where: { tenantId },
+      orderBy: [{ dueDate: "desc" }, { createdAt: "desc" }],
+      take: 500,
+    });
+    const paid = rows.filter((row) => row.status === "PAID").reduce((sum, row) => sum + Number(row.amount), 0);
+    const pending = rows
+      .filter((row) => row.status === "PENDING" || row.status === "OVERDUE")
+      .reduce((sum, row) => sum + Number(row.amount), 0);
+    return { rows: rows.map((row) => ({ ...row, amount: Number(row.amount) })), summary: { paid, pending } };
+  }
+
+  async createPayment(
+    tenantId: string,
+    input: {
+      concept: string;
+      period: string;
+      amount: number;
+      dueDate: string;
+      status?: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
+      paidAt?: string;
+      method?: string;
+      reference?: string;
+      notes?: string;
+    },
+    actor: Actor
+  ) {
+    const tenant = await this.db.tenant.findUnique({ where: { id: tenantId }, select: { id: true } });
+    if (!tenant) throw new HttpError(404, "TENANT_NOT_FOUND");
+    const payment = await this.db.tenantPayment.create({
+      data: {
+        tenantId,
+        concept: input.concept.trim(),
+        period: input.period,
+        amount: input.amount,
+        dueDate: new Date(`${input.dueDate}T00:00:00.000Z`),
+        status: input.status ?? "PENDING",
+        paidAt: input.paidAt ? new Date(input.paidAt) : input.status === "PAID" ? new Date() : null,
+        method: input.method ?? null,
+        reference: input.reference ?? null,
+        notes: input.notes ?? null,
+      },
+    });
+    await this.audit?.({
+      action: "TENANT_PAYMENT_CREATED",
+      entityType: "TenantPayment",
+      entityId: payment.id,
+      userId: actor.id,
+      userName: actor.username,
+      newState: { tenantId, concept: payment.concept, period: payment.period, amount: Number(payment.amount) },
+    });
+    return { ...payment, amount: Number(payment.amount) };
+  }
+
+  async updatePayment(
+    tenantId: string,
+    paymentId: string,
+    input: {
+      status?: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
+      paidAt?: string | null;
+      method?: string | null;
+      reference?: string | null;
+      notes?: string | null;
+      amount?: number;
+      dueDate?: string;
+    },
+    actor: Actor
+  ) {
+    const existing = await this.db.tenantPayment.findFirst({ where: { id: paymentId, tenantId } });
+    if (!existing) throw new HttpError(404, "PAYMENT_NOT_FOUND");
+    const status = input.status ?? existing.status;
+    const payment = await this.db.tenantPayment.update({
+      where: { id: paymentId },
+      data: {
+        ...(input.amount !== undefined && { amount: input.amount }),
+        ...(input.dueDate !== undefined && { dueDate: new Date(`${input.dueDate}T00:00:00.000Z`) }),
+        ...(input.status !== undefined && { status }),
+        ...(input.paidAt !== undefined
+          ? { paidAt: input.paidAt ? new Date(input.paidAt) : null }
+          : status === "PAID" && !existing.paidAt
+            ? { paidAt: new Date() }
+            : {}),
+        ...(input.method !== undefined && { method: input.method }),
+        ...(input.reference !== undefined && { reference: input.reference }),
+        ...(input.notes !== undefined && { notes: input.notes }),
+      },
+    });
+    await this.audit?.({
+      action: "TENANT_PAYMENT_UPDATED",
+      entityType: "TenantPayment",
+      entityId: payment.id,
+      userId: actor.id,
+      userName: actor.username,
+      previousState: { status: existing.status, amount: Number(existing.amount) },
+      newState: { status: payment.status, amount: Number(payment.amount), paidAt: payment.paidAt },
+    });
+    return { ...payment, amount: Number(payment.amount) };
+  }
+
   /** Resuelve el plan a contratar; un plan dado de baja no se asigna. */
   private async planOf(planId: string | null | undefined): Promise<Plan | null> {
     if (!planId) return null;

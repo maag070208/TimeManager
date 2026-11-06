@@ -85,6 +85,7 @@ model Tenant {
   // Configuración NOM por cliente (límites de jornada y retención).
   nomSettings NomSettings?
   payrollSettings PayrollSettings?
+  payments TenantPayment[]
 
   @@index([planId])
   @@map("tenants")
@@ -93,6 +94,37 @@ model Tenant {
 /// Catálogo de planes del SaaS (F3-09): qué incluye cada uno (personal y
 /// relojes) y su precio de lista mensual. El cobro es manual/pospuesto: aquí
 /// solo viven los datos que la consola de plataforma administra.
+enum TenantPaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+/// Kardex de cobros del cliente (plataforma). No es facturación fiscal: registra
+/// los cargos estimados/manuales y su pago para dar seguimiento.
+model TenantPayment {
+  id        String @id @default(uuid())
+  tenantId  String
+  tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  concept   String
+  /// Periodo cobrado `YYYY-MM`.
+  period    String
+  amount    Decimal @db.Decimal(12, 2)
+  dueDate   DateTime @db.Date
+  status    TenantPaymentStatus @default(PENDING)
+  paidAt    DateTime?
+  method    String?
+  reference String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, period, concept])
+  @@index([tenantId, dueDate])
+  @@map("tenant_payments")
+}
+
 model Plan {
   id            String   @id @default(uuid())
   /// Clave estable para el código y el backfill del `plan` viejo (p. ej. `PLAN_500`).

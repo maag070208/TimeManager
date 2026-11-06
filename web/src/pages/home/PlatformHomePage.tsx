@@ -1,7 +1,8 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ITAlert, ITButton, ITInput, ITPage } from "@axzydev/axzy_ui_system";
 import { LuArrowUpRight, LuBadgeDollarSign, LuBuilding2, LuCalendarClock, LuChartColumn, LuLayoutDashboard, LuPlus, LuUsersRound, LuWallet } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { AgentTokenDialog, CreateTenantDialog, PlanAssignDialog, TenantsTable, useTenantsConsole } from "@features/tenant/tenants-console";
 import { tenantHost } from "@shared/api/tenant";
 import type { Tenant } from "@entities/tenant";
@@ -149,12 +150,24 @@ const nextChargeDate = (createdAt: string): Date => {
 /** Inicio del equipo TimeManager: clientes, estado y uso. */
 export default function PlatformHomePage() {
   const { t } = useTranslation("home");
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
   const fx = useTenantsConsole();
   const [creating, setCreating] = useState(false);
   const [planTarget, setPlanTarget] = useState<Tenant | null>(null);
   const [agentTarget, setAgentTarget] = useState<Tenant | null>(null);
   const target = fx.statusTarget;
   const suspending = target?.status === "ACTIVE";
+
+  useEffect(() => {
+    setPage(1);
+  }, [fx.search, fx.filter]);
+
+  useEffect(() => {
+    const count = Math.max(1, Math.ceil(fx.visible.length / pageSize));
+    if (page > count) setPage(count);
+  }, [fx.visible.length, page]);
 
   const newClient = fx.canManage ? (
     <ITButton variant="filled" color="primary" className="tm-save-button" onClick={() => setCreating(true)}>
@@ -321,18 +334,21 @@ export default function PlatformHomePage() {
                       </div>
                     )}
                     {summary.upcoming.map((row) => (
-                      <div key={row.tenant.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2.5">
+                      <button
+                        key={row.tenant.id}
+                        type="button"
+                        onClick={() => navigate(`/tenants/${row.tenant.id}`)}
+                        className="group flex w-full items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-left transition hover:border-slate-300 hover:bg-slate-50"
+                      >
                         <div className="min-w-0">
                           <span className="block truncate text-[13px] font-semibold text-slate-800">{row.tenant.name}</span>
                           <span className="block text-[11px] text-slate-500">{row.tenant.plan?.name ?? "Sin plan"} · {row.date.toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[13px] font-bold tabular-nums">{money(row.amount)}</span>
-                          <ITButton variant="outlined" color="secondary" size="sm" className="tm-save-button" onClick={() => fx.enter(row.tenant)}>
-                            Entrar
-                          </ITButton>
+                          <span className="text-[11px] font-semibold text-slate-400 transition group-hover:text-slate-700">Ver kardex →</span>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </PanelCard>
@@ -378,7 +394,7 @@ export default function PlatformHomePage() {
                     <TicState kind="noResults" size="sm" title={t("platform.noResults.title")} description={t("platform.noResults.description")} />
                   ) : (
                     <TenantsTable
-                      rows={fx.visible}
+                      rows={fx.visible.slice((page - 1) * pageSize, page * pageSize)}
                       canManage={fx.canManage}
                       onEnter={fx.enter}
                       onToggleStatus={fx.setStatusTarget}
@@ -386,6 +402,21 @@ export default function PlatformHomePage() {
                       onManageAgent={setAgentTarget}
                       onManageClocks={fx.manageClocks}
                     />
+                  )}
+                  {fx.visible.length > pageSize && (
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <span className="text-[11.5px] text-slate-500">
+                        {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, fx.visible.length)} de {fx.visible.length}
+                      </span>
+                      <div className="flex gap-1">
+                        <ITButton variant="outlined" color="secondary" size="sm" className="tm-save-button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>
+                          Anterior
+                        </ITButton>
+                        <ITButton variant="outlined" color="secondary" size="sm" className="tm-save-button" disabled={page >= Math.ceil(fx.visible.length / pageSize)} onClick={() => setPage((value) => value + 1)}>
+                          Siguiente
+                        </ITButton>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}

@@ -91,6 +91,14 @@ export const createTenantRouter = (controller: TenantController): Router => {
   router.get("/:id", requiresPermission("tenants.view"), asyncHandler(controller.getOne));
   router.post("/", requiresPermission("tenants.manage"), asyncHandler(controller.create));
   router.patch("/:id", requiresPermission("tenants.manage"), asyncHandler(controller.update));
+  router.get("/:id/payments", requiresPermission("tenants.view"), asyncHandler(controller.listPayments));
+  router.post("/:id/payments", requiresPermission("tenants.manage"), asyncHandler(controller.createPayment));
+  router.patch(
+    "/:id/payments/:paymentId",
+    requiresPermission("tenants.manage"),
+    asyncHandler(controller.updatePayment)
+  );
+
   router.post(
     "/:id/impersonate",
     requiresPermission("tenants.view"),

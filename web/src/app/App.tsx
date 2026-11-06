@@ -43,6 +43,7 @@ import GeneralSettingsPage from "@pages/settings/GeneralSettingsPage";
 import LeaveAdminPage from "@pages/leave/LeaveAdminPage";
 import WorkdayAgreementsPage from "@pages/nom/WorkdayAgreementsPage";
 import PayrollSettingsPage from "@pages/payroll/PayrollSettingsPage";
+import TenantDetailPage from "@pages/tenants/TenantDetailPage";
 import PayrollHistoryPage from "@pages/schedules/PayrollHistoryPage";
 
 /** Personal se abre con expediente (`hr.records`) o con cuentas (`users.view`). */
@@ -259,6 +260,15 @@ export default function App() {
           element={
             <RequiresPermission permission="time_clocks.manage">
               <TimeClocksPage />
+            </RequiresPermission>
+          }
+        />
+
+        <Route
+          path="/tenants/:id"
+          element={
+            <RequiresPermission permission="tenants.view">
+              <TenantDetailPage />
             </RequiresPermission>
           }
         />

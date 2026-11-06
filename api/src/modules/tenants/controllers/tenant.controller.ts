@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
 import { HttpError } from "@core/middlewares/error.middleware";
-import { TenantCreateDto, TenantUpdateDto } from "../models/dto/tenant.dto";
+import {
+  TenantCreateDto,
+  TenantPaymentCreateDto,
+  TenantPaymentUpdateDto,
+  TenantUpdateDto,
+} from "../models/dto/tenant.dto";
 import type { TenantService } from "../services/tenant.service";
 
 const actorOf = (req: Request) => {
@@ -27,6 +32,27 @@ export class TenantController {
   update = async (req: Request, res: Response) => {
     const input = TenantUpdateDto.parse(req.body);
     res.json(await this.tenants.update(req.params.id, input, actorOf(req)));
+  };
+
+  listPayments = async (req: Request, res: Response) => {
+    res.json(await this.tenants.listPayments(req.params.id));
+  };
+
+  createPayment = async (req: Request, res: Response) => {
+    res.status(201).json(
+      await this.tenants.createPayment(req.params.id, TenantPaymentCreateDto.parse(req.body), actorOf(req))
+    );
+  };
+
+  updatePayment = async (req: Request, res: Response) => {
+    res.json(
+      await this.tenants.updatePayment(
+        req.params.id,
+        req.params.paymentId,
+        TenantPaymentUpdateDto.parse(req.body),
+        actorOf(req)
+      )
+    );
   };
 
   impersonate = async (req: Request, res: Response) => {

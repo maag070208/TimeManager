@@ -122,3 +122,27 @@ export const TenantCreatedSchema = z
   .openapi("TenantCreated");
 
 export type TenantCreated = z.infer<typeof TenantCreatedSchema>;
+
+export const TenantPaymentCreateDto = z.object({
+    concept: z.string().trim().min(3).max(120),
+    period: z.string().regex(/^\d{4}-\d{2}$/),
+    amount: z.number().positive(),
+    dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]).optional(),
+    paidAt: z.string().datetime().optional(),
+    method: z.string().trim().max(80).optional(),
+    reference: z.string().trim().max(120).optional(),
+    notes: z.string().trim().max(500).optional(),
+  }).strict();
+
+export const TenantPaymentUpdateDto = z
+  .object({
+    status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]).optional(),
+    paidAt: z.string().datetime().nullable().optional(),
+    method: z.string().trim().max(80).nullable().optional(),
+    reference: z.string().trim().max(120).nullable().optional(),
+    notes: z.string().trim().max(500).nullable().optional(),
+    amount: z.number().positive().optional(),
+    dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  })
+  .strict();

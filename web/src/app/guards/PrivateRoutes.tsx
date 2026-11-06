@@ -143,11 +143,10 @@ export default function PrivateRoutes() {
   // reload, el usuario del login aún no trae `tenant`/permisos hasta que
   // responde `/auth/me`. No redirigir en ese estado o un cliente acabaría
   // expulsado a la consola de plataforma.
-  if (
-    user?.permissions !== undefined &&
-    platformWithoutClient &&
-    !(PLATFORM_PATHS as readonly string[]).includes(location.pathname)
-  ) {
+  const isPlatformPath = PLATFORM_PATHS.some((path) =>
+    path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(`${path}/`)
+  );
+  if (user?.permissions !== undefined && platformWithoutClient && !isPlatformPath) {
     return <Navigate to="/" replace />;
   }
 
@@ -180,7 +179,7 @@ export default function PrivateRoutes() {
     isScreenVisible(permissions, screen, user?.role) &&
     // Mi jornada es personal: el personal de plataforma no tiene expediente.
     !(screen.id === "myWorkday" && !user?.tenant) &&
-    (!platformWithoutClient || !screen.path || (PLATFORM_PATHS as readonly string[]).includes(screen.path));
+    (!platformWithoutClient || !screen.path || (PLATFORM_PATHS as readonly string[]).some((path) => screen.path === path || screen.path?.startsWith(`${path}/`)));
 
   const toSubItem = (screen: AppScreen) => ({
     id: screen.id,

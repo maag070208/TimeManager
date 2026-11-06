@@ -57,3 +57,25 @@ export interface TenantCreated {
 export type TenantUpdateInput = Partial<
   Pick<Tenant, "name" | "status" | "timezone" | "planId" | "employeeLimit">
 >;
+
+export type TenantPaymentStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
+
+export interface TenantPayment {
+  id: string;
+  tenantId: string;
+  concept: string;
+  period: string;
+  amount: number;
+  dueDate: string;
+  status: TenantPaymentStatus;
+  paidAt: string | null;
+  method: string | null;
+  reference: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface TenantPayments {
+  rows: TenantPayment[];
+  summary: { paid: number; pending: number };
+}

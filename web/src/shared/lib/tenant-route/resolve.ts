@@ -30,6 +30,7 @@ export const APP_ROOT_PATHS: ReadonlySet<string> = new Set([
   "schedules",
   "settings",
   "payroll",
+  "tenants",
 ]);
 
 /** Mismas reglas que el API para el slug de un cliente. */

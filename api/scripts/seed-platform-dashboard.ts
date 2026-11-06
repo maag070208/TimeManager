@@ -11,6 +11,7 @@ import { runWithTenant } from "@core/tenancy";
 import { hashPassword } from "@core/utils/security";
 
 const DEMO_PASSWORD = "DemoPrueba123!";
+const moneyLabel = (value: number) => `$${value.toFixed(2)}`;
 
 const SAMPLES = [
   { slug: "demo-norte", name: "Grupo Norte", planKey: "PLAN_500", createdAt: "2026-02-12T10:00:00Z", status: "ACTIVE" },
@@ -29,8 +30,9 @@ const main = async () => {
   if (!process.env.DATABASE_URL?.includes("tm_e2e")) {
     throw new Error("Este seed solo corre contra la BD local tm_e2e (demo).");
   }
-  const plans = await prismaClient.plan.findMany({ select: { id: true, key: true } });
+  const plans = await prismaClient.plan.findMany({ select: { id: true, key: true, monthlyPrice: true } });
   const planByKey = new Map(plans.map((plan) => [plan.key, plan.id]));
+  const priceByKey = new Map(plans.map((plan) => [plan.key, Number(plan.monthlyPrice ?? 0)]));
   if (planByKey.size === 0) throw new Error("No hay planes; corre el seed base primero.");
   const password = await hashPassword(DEMO_PASSWORD);
 
@@ -72,9 +74,66 @@ const main = async () => {
         });
       }
     });
-    console.log(`[demo] ${sample.name} (${sample.slug}) · ${sample.status} · ${sample.planKey}`);
+    const price = priceByKey.get(sample.planKey) ?? 0;
+    for (let offset = 2; offset >= 0; offset -= 1) {
+      const date = new Date();
+      date.setUTCDate(1);
+      date.setUTCMonth(date.getUTCMonth() - offset);
+      const period = date.toISOString().slice(0, 7);
+      const dueDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 5));
+      const paid = offset > 0;
+      await prismaClient.tenantPayment.upsert({
+        where: { tenantId_period_concept: { tenantId: tenant.id, period, concept: "Suscripción mensual" } },
+        create: {
+          tenantId: tenant.id,
+          concept: "Suscripción mensual",
+          period,
+          amount: price,
+          dueDate,
+          status: paid ? "PAID" : "PENDING",
+          paidAt: paid ? dueDate : null,
+          method: paid ? "Transferencia" : null,
+        },
+        update: {
+          amount: price,
+          status: paid ? "PAID" : "PENDING",
+          paidAt: paid ? dueDate : null,
+        },
+      });
+    }
+    console.log(`[demo] ${sample.name} (${sample.slug}) · ${sample.status} · ${sample.planKey} · ${moneyLabel(price)}`);
   }
-  console.log(`[demo] ${SAMPLES.length} clientes listos · contraseña ${DEMO_PASSWORD}`);
+  // Clientes base del E2E (Acme/Beta): también con kardex para el demo.
+  const baseTenants = await prismaClient.tenant.findMany({
+    where: { slug: { in: ["acme", "beta"] } },
+    include: { plan: true },
+  });
+  for (const tenant of baseTenants) {
+    const price = Number(tenant.plan?.monthlyPrice ?? 0);
+    for (let offset = 2; offset >= 0; offset -= 1) {
+      const date = new Date();
+      date.setUTCDate(1);
+      date.setUTCMonth(date.getUTCMonth() - offset);
+      const period = date.toISOString().slice(0, 7);
+      const dueDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 5));
+      const paid = offset > 0;
+      await prismaClient.tenantPayment.upsert({
+        where: { tenantId_period_concept: { tenantId: tenant.id, period, concept: "Suscripción mensual" } },
+        create: {
+          tenantId: tenant.id,
+          concept: "Suscripción mensual",
+          period,
+          amount: price,
+          dueDate,
+          status: paid ? "PAID" : "PENDING",
+          paidAt: paid ? dueDate : null,
+          method: paid ? "Transferencia" : null,
+        },
+        update: { amount: price, status: paid ? "PAID" : "PENDING", paidAt: paid ? dueDate : null },
+      });
+    }
+  }
+  console.log(`[demo] ${SAMPLES.length} clientes demo + ${baseTenants.length} base · contraseña ${DEMO_PASSWORD}`);
 };
 
 main()

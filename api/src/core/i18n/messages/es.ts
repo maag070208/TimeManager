@@ -461,6 +461,7 @@ export const es = {
     PAYROLL_SALARY_REQUIRED: "Configura el salario diario antes de calcular la nómina",
     PAYROLL_ISR_TABLE_REQUIRED: "El ISR está activo pero no hay tarifa configurada",
     PAYROLL_IMSS_TABLE_REQUIRED: "El IMSS está activo pero no hay cuotas configuradas",
+    PAYMENT_NOT_FOUND: "Pago del cliente no encontrado",
     INVALID_WEEKLY_LIMIT: "El límite semanal debe estar entre {{min}} y {{max}} minutos",
     WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",
     INVALID_RETENTION_MONTHS: "La retención debe estar entre {{min}} y {{max}} meses (vacío desactiva el archivado)",
