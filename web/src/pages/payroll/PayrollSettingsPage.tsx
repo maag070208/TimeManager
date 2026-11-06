@@ -119,8 +119,8 @@ export default function PayrollSettingsPage() {
       description="Salario, horas extra, prestaciones, ISR e IMSS por cliente. Cálculo y evidencia dentro de la plataforma; sin CFDI ni presentación externa."
       icon={<LuWallet size={20} />}
       actions={
-        <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving}>
-          <LuSave size={15} className="mr-1" />
+        <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving} className="tm-save-button text-[12.5px] font-semibold shadow-none">
+          <LuSave size={14} className="mr-1.5" />
           {saving ? "Guardando…" : "Guardar configuración"}
         </ITButton>
       }
@@ -351,8 +351,8 @@ export default function PayrollSettingsPage() {
             )}
           </ITCard>
 
-          <ITButton variant="filled" color="primary" className="w-full" onClick={() => void save()} disabled={saving}>
-            <LuSave size={15} className="mr-1" />
+          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving} className="tm-save-button w-full">
+            <LuSave size={14} className="mr-1.5" />
             {saving ? "Guardando…" : "Guardar configuración"}
           </ITButton>
         </aside>

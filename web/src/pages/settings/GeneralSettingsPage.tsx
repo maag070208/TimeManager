@@ -122,8 +122,8 @@ export default function GeneralSettingsPage() {
       description="Semana, asistencia, límites legales, checada web y convenios. Todo por cliente."
       icon={<LuBuilding2 size={20} />}
       actions={
-        <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading}>
-          <LuSave size={15} className="mr-1" />
+        <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button text-[12.5px] font-semibold shadow-none">
+          <LuSave size={14} className="mr-1.5" />
           {saving ? "Guardando…" : "Guardar configuración"}
         </ITButton>
       }
@@ -274,8 +274,8 @@ export default function GeneralSettingsPage() {
             </div>
           </ITCard>
 
-          <ITButton variant="filled" color="primary" className="w-full" onClick={() => void save()} disabled={saving || loading}>
-            <LuSave size={15} className="mr-1" />
+          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button w-full">
+            <LuSave size={14} className="mr-1.5" />
             {saving ? "Guardando…" : "Guardar configuración"}
           </ITButton>
         </aside>

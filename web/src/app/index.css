@@ -449,3 +449,19 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] nav {
 aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
   justify-content: center;
 }
+
+/* Botón de guardar: rectangular suave en lugar de píldora. */
+.tm-save-button {
+  border-radius: 10px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.tm-save-button svg { margin-right: 0 !important; }

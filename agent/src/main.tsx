@@ -34,7 +34,7 @@ const theme: ITThemePalette = {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ITThemeProvider theme={theme} showFab={false} density={0.9} appearance="bento">
+    <ITThemeProvider theme={theme} showFab={false} density={1} appearance="bento">
       <App />
     </ITThemeProvider>
   </React.StrictMode>
