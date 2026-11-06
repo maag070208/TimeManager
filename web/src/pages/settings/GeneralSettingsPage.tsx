@@ -321,7 +321,7 @@ export default function GeneralSettingsPage() {
         </aside>
       </div>
 
-      <SettingsHelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
+      <SettingsHelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} tab={tab} />
 
       <ITConfirmDialog
         isOpen={confirmArchive}
