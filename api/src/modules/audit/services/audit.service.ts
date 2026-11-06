@@ -45,7 +45,10 @@ export class AuditService {
   async list(params: ListAuditLogsParams): Promise<AuditLogListResult> {
     const where: any = {};
 
-    if (params.tenantId) where.tenantId = params.tenantId;
+    // Un usuario de cliente solo puede ver los logs de su propio cliente.
+    const scopedTenant = currentTenantId();
+    if (scopedTenant) where.tenantId = scopedTenant;
+    else if (params.tenantId) where.tenantId = params.tenantId;
     if (params.module) where.module = params.module;
     if (params.action) where.action = params.action;
     if (params.entityType) where.entityType = params.entityType;
@@ -104,7 +107,8 @@ export class AuditService {
 
   async getById(id: string) {
     const log = await this.db.auditLog.findUnique({ where: { id } });
-    if (!log) throw new HttpError(404, "AUDIT_LOG_NOT_FOUND");
+    const scopedTenant = currentTenantId();
+    if (!log || (scopedTenant && log.tenantId !== scopedTenant)) throw new HttpError(404, "AUDIT_LOG_NOT_FOUND");
     return log;
   }
 }

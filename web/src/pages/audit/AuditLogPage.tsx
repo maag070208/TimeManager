@@ -23,12 +23,14 @@ import { usersApi, type User } from "@entities/user";
 import { formatDateTime } from "@shared/utils/dates";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { HelpTip } from "@shared/ui/help-tip";
+import { useClientContext } from "@features/tenant/tenant-switcher";
 
 const MODULES = ["Auth", "User", "Tenant", "Plan", "Payroll", "Schedule", "LeaveType", "DocumentType", "Department", "Permission", "Role", "TimeClock", "Access", "Nom", "Hr", "Config"];
 const COMMON_ACTIONS = ["LOGIN", "ACCESS_DENIED", "LEAVE_TYPE_CREATED", "LEAVE_TYPE_UPDATED", "LEAVE_TYPE_DEACTIVATED", "USER_CREATED", "USER_UPDATED", "USER_DEACTIVATED", "TENANT_UPDATED", "PLAN_UPDATED"];
 
 /** Consola de auditoría de plataforma: logs inmutables con filtros y detalle. */
 export default function AuditLogPage() {
+  const { isPlatform } = useClientContext();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [people, setPeople] = useState<User[]>([]);
   const [selected, setSelected] = useState<AuditLog | null>(null);
@@ -36,15 +38,15 @@ export default function AuditLogPage() {
   const [filters, setFilters] = useState({ tenantId: "", userId: "", module: "", action: "", q: "" });
 
   useEffect(() => {
-    tenantApi.list().then(setTenants).catch(() => setTenants([]));
+    if (isPlatform) tenantApi.list().then(setTenants).catch(() => setTenants([]));
     usersApi.people().then(setPeople).catch(() => setPeople([]));
-  }, []);
+  }, [isPlatform]);
 
   const tenantName = useMemo(() => new Map(tenants.map((tenant) => [tenant.id, tenant.name])), [tenants]);
 
   const columns: Column<AuditLog>[] = [
     { key: "createdAt", label: "Fecha y hora", type: "string", width: 180, render: (row) => <span className="text-[12px] tabular-nums">{formatDateTime(row.createdAt)}</span> },
-    { key: "tenant", label: "Cliente", type: "string", width: 170, render: (row) => <span className="text-[12px] text-slate-600">{row.tenantId ? tenantName.get(row.tenantId) ?? row.tenantId : "Plataforma"}</span> },
+    ...(isPlatform ? [{ key: "tenant", label: "Cliente", type: "string" as const, width: 170, render: (row: AuditLog) => <span className="text-[12px] text-slate-600">{row.tenantId ? tenantName.get(row.tenantId) ?? row.tenantId : "Plataforma"}</span> }] : []),
     { key: "user", label: "Usuario", type: "string", width: 170, render: (row) => <span className="text-[12px] font-semibold text-slate-700">{row.userName ?? row.userId ?? "—"}</span> },
     { key: "module", label: "Módulo", type: "string", width: 140, render: (row) => <ITBadget color="info" size="sm">{row.module ?? row.entityType}</ITBadget> },
     { key: "action", label: "Acción", type: "string", render: (row) => <span className="font-mono text-[11px] text-slate-700">{row.action}</span> },
@@ -62,12 +64,16 @@ export default function AuditLogPage() {
     <ITPage title="Auditoría" description="Registro inmutable de acciones: quién, qué módulo, qué acción, cuándo y con qué accesos." icon={<LuShieldCheck size={20} />}>
       <div className="flex flex-col gap-4 pb-12">
         <ITAlert variant="warning" dismissible={false}>
-          Los logs de auditoría no se editan ni se borran. Se conservan como evidencia de operación para todos los clientes.
+          {isPlatform
+            ? "Los logs de auditoría no se editan ni se borran. Se conservan como evidencia de operación para todos los clientes."
+            : "Los logs de auditoría de tu empresa no se editan ni se borran. Solo puedes ver la actividad de tu propio cliente."}
         </ITAlert>
 
         <ITCard contentClassName="!p-4">
           <ITFlex align="end" wrap="wrap" gap={2}>
-            <div className="min-w-[190px] flex-1"><ITSearchSelect name="auditTenant" label="Cliente" value={filters.tenantId} onChange={(value) => setFilters((f) => ({ ...f, tenantId: String(value) }))} options={[{ value: "", label: "Todos los clientes" }, ...tenants.map((tenant) => ({ value: tenant.id, label: tenant.name }))]} /></div>
+            {isPlatform && (
+              <div className="min-w-[190px] flex-1"><ITSearchSelect name="auditTenant" label="Cliente" value={filters.tenantId} onChange={(value) => setFilters((f) => ({ ...f, tenantId: String(value) }))} options={[{ value: "", label: "Todos los clientes" }, ...tenants.map((tenant) => ({ value: tenant.id, label: tenant.name }))]} /></div>
+            )}
             <div className="min-w-[190px] flex-1"><ITSearchSelect name="auditUser" label="Persona" value={filters.userId} onChange={(value) => setFilters((f) => ({ ...f, userId: String(value) }))} options={[{ value: "", label: "Todas las personas" }, ...people.map((person) => ({ value: person.id, label: person.name }))]} /></div>
             <div className="min-w-[170px] flex-1"><ITSearchSelect name="auditModule" label="Módulo" value={filters.module} onChange={(value) => setFilters((f) => ({ ...f, module: String(value) }))} options={[{ value: "", label: "Todos los módulos" }, ...MODULES.map((module) => ({ value: module, label: module }))]} /></div>
             <div className="min-w-[200px] flex-1"><ITSearchSelect name="auditAction" label="Acción" value={filters.action} onChange={(value) => setFilters((f) => ({ ...f, action: String(value) }))} options={[{ value: "", label: "Todas las acciones" }, ...COMMON_ACTIONS.map((action) => ({ value: action, label: action }))]} /></div>

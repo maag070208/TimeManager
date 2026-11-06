@@ -14,7 +14,7 @@ Cada registro guarda: cliente, módulo, acción, entidad, usuario, fecha/hora, r
 
 ## Permisos
 
-`audit.view`.
+`audit.view` para ADMIN/SUPPORT y CLIENT_ADMIN. El servicio fuerza el `tenantId` del contexto: un usuario de cliente **solo ve los logs de su empresa**; un operador de plataforma ve todos y puede filtrar por cliente. El detalle por id también valida el tenant.
 
 ## Dependencias
 
