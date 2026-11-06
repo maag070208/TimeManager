@@ -24,6 +24,7 @@ import { usersApi, type User } from "@entities/user";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { HelpTip } from "@shared/ui/help-tip";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { TabBar } from "@shared/ui/tab-bar";
 import { TicState } from "@shared/ui/tic";
 
 const messageOf = (error: unknown): string =>
@@ -45,6 +46,7 @@ export default function TeleworkAdminPage() {
   const [policyOpen, setPolicyOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [tab, setTab] = useState<"policy" | "people" | "checklists" | "contacts">("policy");
   const [error, setError] = useState<string | null>(null);
 
   const [policy, setPolicy] = useState<TeleworkPolicyTexts | null>(null);
@@ -129,13 +131,13 @@ export default function TeleworkAdminPage() {
       icon={<LuBriefcaseBusiness size={20} />}
       className="min-w-full! max-w-none!"
       actions={
-        <ITButton variant="outlined" color="secondary" size="lg" onClick={() => void load()}>
+        <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => void load()}>
           <LuRefreshCw size={14} className="mr-1" />
           {t("refresh")}
         </ITButton>
       }
     >
-      <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
+      <div className="flex flex-col gap-4 pb-12">
         {error && (
           <ITText className="rounded-md border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700">
             {error}
@@ -157,113 +159,132 @@ export default function TeleworkAdminPage() {
               />
             </div>
 
-            <ITCard className="lg:col-span-8" contentClassName="!p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <ITText className="font-bold">{t("admin.policyTitle")}</ITText>
-                  <HelpTip text="Textos que el trabajador acepta con versión. Al guardar sube la versión y debe aceptarlos de nuevo." />
-                </div>
-                <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setPolicyOpen(true)}>
-                  <LuPencil size={13} className="mr-1" /> Editar política
-                </ITButton>
-              </div>
-              <ITText muted className="mt-1 block !text-[11.5px]">
-                {t("admin.policyHint", { policy: policy?.policyVersion ?? 1, privacy: policy?.privacyNoticeVersion ?? 1 })}
-              </ITText>
-              <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-                {[
-                  { label: t("telework.policyTitle"), text: policyForm.teleworkPolicy },
-                  { label: t("telework.disconnectTitle"), text: policyForm.disconnectPolicy },
-                  { label: t("telework.privacyTitle"), text: policyForm.privacyNotice },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
-                    <ITText className="block !text-[11px] font-semibold uppercase tracking-wide text-slate-500">{item.label}</ITText>
-                    <ITText className="mt-1 line-clamp-5 block !text-[12.5px] text-slate-700">{item.text || "Sin definir. Usa Editar política para capturarlo."}</ITText>
+            <TabBar
+              items={[
+                { id: "policy", label: "Política y avisos", icon: <LuBriefcaseBusiness size={12} /> },
+                { id: "people", label: `Teletrabajadores (${registrations.filter((row) => row.status === "ACTIVE").length})`, icon: <LuUsersRound size={12} /> },
+                { id: "checklists", label: `Checklists (${checklists.length})`, icon: <LuClipboardCheck size={12} /> },
+                { id: "contacts", label: `Comunicaciones (${contacts.length})`, icon: <LuMessageSquare size={12} /> },
+              ]}
+              value={tab}
+              onChange={(value) => setTab(value as typeof tab)}
+            />
+
+            {tab === "policy" && (
+              <ITCard className="tm-hero-card tm-hero-card--mint" contentClassName="!p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ITText className="font-bold">{t("admin.policyTitle")}</ITText>
+                    <HelpTip text="Textos que el trabajador acepta con versión. Al guardar sube la versión y debe aceptarlos de nuevo." />
                   </div>
-                ))}
-              </div>
-            </ITCard>
+                  <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setPolicyOpen(true)}>
+                    <LuPencil size={13} className="mr-1" /> Editar política
+                  </ITButton>
+                </div>
+                <ITText muted className="mt-1 block !text-[11.5px]">
+                  {t("admin.policyHint", { policy: policy?.policyVersion ?? 1, privacy: policy?.privacyNoticeVersion ?? 1 })}
+                </ITText>
+                <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+                  {[
+                    { label: t("telework.policyTitle"), text: policyForm.teleworkPolicy },
+                    { label: t("telework.disconnectTitle"), text: policyForm.disconnectPolicy },
+                    { label: t("telework.privacyTitle"), text: policyForm.privacyNotice },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                      <ITText className="block !text-[11px] font-semibold uppercase tracking-wide text-slate-500">{item.label}</ITText>
+                      <ITText className="mt-1 line-clamp-5 block !text-[12.5px] text-slate-700">{item.text || "Sin definir. Usa Editar política para capturarlo."}</ITText>
+                    </div>
+                  ))}
+                </div>
+              </ITCard>
+            )}
 
-            <ITCard className="lg:col-span-4" contentClassName="!p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
-                  <HelpTip text="Alta del teletrabajador con modo y domicilio. La baja conserva historial." />
+            {tab === "people" && (
+              <ITCard className="tm-hero-card tm-hero-card--sky" contentClassName="!p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
+                    <HelpTip text="Alta del teletrabajador con modo y domicilio. La baja conserva historial." />
+                  </div>
+                  <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={() => setRegisterOpen(true)}>
+                    <LuPlus size={13} className="mr-1" /> Nuevo
+                  </ITButton>
                 </div>
-                <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={() => setRegisterOpen(true)}>
-                  <LuPlus size={13} className="mr-1" /> Nuevo
-                </ITButton>
-              </div>
-              {registrations.length === 0 ? (
-                <div className="mt-3">
-                  <TicState kind="empty" size="sm" title="Sin teletrabajadores" description="Registra al primero con su modalidad y domicilio." />
-                </div>
-              ) : (
-                <div className="mt-3 flex flex-col gap-2">
-                  {registrations.map((registration) => (
-                    <div key={registration.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2">
-                      <div className="min-w-0">
-                        <ITText className="block truncate font-semibold !text-[13px]">{registration.userName ?? registration.userId}</ITText>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          <ITBadget color={registration.status === "ACTIVE" ? "success" : "gray"} size="sm">{tr(`admin.status.${registration.status}`)}</ITBadget>
-                          <ITBadget color="info" size="sm">{tr(`telework.mode.${registration.mode}`)}</ITBadget>
-                          <ITBadget color={registration.consentAcceptedAt ? "success" : "warning"} size="sm">{registration.consentAcceptedAt ? t("admin.consentOk") : t("admin.consentPending")}</ITBadget>
+                {registrations.length === 0 ? (
+                  <div className="mt-3">
+                    <TicState kind="empty" size="sm" title="Sin teletrabajadores" description="Registra al primero con su modalidad y domicilio." />
+                  </div>
+                ) : (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {registrations.map((registration) => (
+                      <div key={registration.id} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50/70 px-3 py-2">
+                        <div className="min-w-0">
+                          <ITText className="block truncate font-semibold !text-[13px]">{registration.userName ?? registration.userId}</ITText>
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            <ITBadget color={registration.status === "ACTIVE" ? "success" : "gray"} size="sm">{tr(`admin.status.${registration.status}`)}</ITBadget>
+                            <ITBadget color="info" size="sm">{tr(`telework.mode.${registration.mode}`)}</ITBadget>
+                            <ITBadget color={registration.consentAcceptedAt ? "success" : "warning"} size="sm">{registration.consentAcceptedAt ? t("admin.consentOk") : t("admin.consentPending")}</ITBadget>
+                          </div>
                         </div>
+                        {registration.status === "ACTIVE" && (
+                          <ITButton variant="text" color="secondary" className="tm-row-button" onClick={() => void run(() => nomApi.updateTeleworkRegistration(registration.id, { status: "ENDED" }))}>{t("admin.end")}</ITButton>
+                        )}
                       </div>
-                      {registration.status === "ACTIVE" && (
-                        <ITButton variant="text" color="secondary" className="tm-row-button" onClick={() => void run(() => nomApi.updateTeleworkRegistration(registration.id, { status: "ENDED" }))}>{t("admin.end")}</ITButton>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ITCard>
+                    ))}
+                  </div>
+                )}
+              </ITCard>
+            )}
 
-            <ITCard className="lg:col-span-7" contentClassName="!p-5">
-              <div className="flex items-center gap-2">
-                <ITText className="font-bold">{t("admin.checklistsTitle")}</ITText>
-                <HelpTip text="Checklist del lugar de trabajo; el inicial se levanta al registrar y el periódico se repite." />
-              </div>
-              {checklists.length === 0 ? (
-                <div className="mt-2"><TicState kind="empty" size="sm" title="Sin checklists" description="Se reciben cuando el trabajador contesta el checklist inicial o periódico." /></div>
-              ) : (
-                <div className="mt-3 flex flex-col gap-2">
-                  {checklists.slice(0, 10).map((checklist) => (
-                    <div key={checklist.id} className="flex items-center gap-2 rounded-xl border border-slate-100 px-3 py-2 text-[12.5px]">
-                      <ITBadget color="info" size="sm">{tr(`checklist.kind.${checklist.kind}`)}</ITBadget>
-                      <ITText className="!text-[12.5px]">{checklist.userName ?? checklist.userId}</ITText>
-                      <ITText muted className="ml-auto !text-[11.5px]">{dateOf(checklist.completedAt)}</ITText>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ITCard>
-
-            <ITCard className="lg:col-span-5" contentClassName="!p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            {tab === "checklists" && (
+              <ITCard className="tm-hero-card tm-hero-card--amber" contentClassName="!p-5">
                 <div className="flex items-center gap-2">
-                  <ITText className="font-bold">{t("admin.contactsTitle")}</ITText>
-                  <HelpTip text="Derecho a la desconexión: registra cada contacto con motivo y canal; queda auditado." />
+                  <ITText className="font-bold">{t("admin.checklistsTitle")}</ITText>
+                  <HelpTip text="Checklist del lugar de trabajo; el inicial se levanta al registrar y el periódico se repite." />
                 </div>
-                <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setContactOpen(true)}>
-                  <LuPlus size={13} className="mr-1" /> Registrar
-                </ITButton>
-              </div>
-              <ITText muted className="mt-1 block !text-[11.5px]">{t("admin.contactsHint")}</ITText>
-              {contacts.length === 0 ? (
-                <div className="mt-2"><TicState kind="empty" size="sm" title="Sin comunicaciones" description="No hay contactos fuera de jornada registrados." /></div>
-              ) : (
-                <div className="mt-3 flex flex-col gap-2">
-                  {contacts.slice(0, 10).map((contact) => (
-                    <div key={contact.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 px-3 py-2">
-                      <ITText className="!text-[12.5px] font-semibold">{contact.userName ?? contact.userId}</ITText>
-                      <ITBadget color="warning" size="sm">{tr(`admin.channels.${contact.channel}`)}</ITBadget>
-                      <ITText muted className="w-full !text-[11.5px]">{dateOf(contact.contactedAt)} · {contact.reason}</ITText>
-                    </div>
-                  ))}
+                {checklists.length === 0 ? (
+                  <div className="mt-2"><TicState kind="empty" size="sm" title="Sin checklists" description="Se reciben cuando el trabajador contesta el checklist inicial o periódico." /></div>
+                ) : (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {checklists.slice(0, 10).map((checklist) => (
+                      <div key={checklist.id} className="flex items-center gap-2 rounded-xl bg-slate-50/70 px-3 py-2 text-[12.5px]">
+                        <ITBadget color="info" size="sm">{tr(`checklist.kind.${checklist.kind}`)}</ITBadget>
+                        <ITText className="!text-[12.5px]">{checklist.userName ?? checklist.userId}</ITText>
+                        <ITText muted className="ml-auto !text-[11.5px]">{dateOf(checklist.completedAt)}</ITText>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ITCard>
+            )}
+
+            {tab === "contacts" && (
+              <ITCard className="tm-hero-card tm-hero-card--lavender" contentClassName="!p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ITText className="font-bold">{t("admin.contactsTitle")}</ITText>
+                    <HelpTip text="Derecho a la desconexión: registra cada contacto con motivo y canal; queda auditado." />
+                  </div>
+                  <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setContactOpen(true)}>
+                    <LuPlus size={13} className="mr-1" /> Registrar
+                  </ITButton>
                 </div>
-              )}
-            </ITCard>
+                <ITText muted className="mt-1 block !text-[11.5px]">{t("admin.contactsHint")}</ITText>
+                {contacts.length === 0 ? (
+                  <div className="mt-2"><TicState kind="empty" size="sm" title="Sin comunicaciones" description="No hay contactos fuera de jornada registrados." /></div>
+                ) : (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {contacts.slice(0, 10).map((contact) => (
+                      <div key={contact.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50/70 px-3 py-2">
+                        <ITText className="!text-[12.5px] font-semibold">{contact.userName ?? contact.userId}</ITText>
+                        <ITBadget color="warning" size="sm">{tr(`admin.channels.${contact.channel}`)}</ITBadget>
+                        <ITText muted className="w-full !text-[11.5px]">{dateOf(contact.contactedAt)} · {contact.reason}</ITText>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ITCard>
+            )}
 
             <ITDialog isOpen={policyOpen} onClose={() => setPolicyOpen(false)} title={t("admin.policyTitle")} className="max-w-4xl">
               <div className="flex flex-col gap-3">
