@@ -4,7 +4,7 @@ import { LuLayoutDashboard } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { ITBreadcrumbItem } from "@axzydev/axzy_ui_system";
 
-const PAGE_CLASS = "m-0! mx-auto! max-w-[1600px]! px-6! bg-slate-50 mb-8";
+const PAGE_CLASS = "m-0! mx-auto! max-w-[1600px]! px-6! bg-slate-50 mb-8 min-h-[calc(100dvh-64px)]";
 
 type BaseProps = ComponentProps<typeof BaseITPage>;
 
