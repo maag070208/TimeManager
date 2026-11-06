@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITDataTable, ITDialog, ITInput, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
-import { LuPencil, LuPlus, LuUserCheck } from "react-icons/lu";
+import { LuPencil, LuPlus, LuPower, LuPowerOff, LuUserCheck } from "react-icons/lu";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
 import { usersApi, type User } from "@entities/user";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { HelpTip } from "@shared/ui/help-tip";
+import { RowAction } from "@shared/ui/row-action";
 
 type Filter = "all" | "active" | "inactive";
 const money = (value: number) => value.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
@@ -88,9 +89,9 @@ export default function PayrollPositionsPanel() {
     { key: "active", label: "Estado", type: "string", render: (row) => <ITBadget color={row.active ? "success" : "warning"} size="sm">{row.active ? "Activo" : "Inactivo"}</ITBadget> },
     { key: "actions", label: "", type: "actions", actions: (row) => (
       <div className="flex justify-end gap-1.5">
-        <ITButton variant="outlined" color="primary" className="tm-icon-button" title="Editar perfil" aria-label="Editar perfil" onClick={() => openEdit(row)}><LuPencil size={14} /></ITButton>
-        <ITButton variant="outlined" color="success" className="tm-icon-button" title="Asignar personal" aria-label="Asignar personal" onClick={() => void openAssign(row)}><LuUserCheck size={14} /></ITButton>
-        <ITButton variant="text" color="secondary" className="tm-row-button" onClick={() => void toggleActive(row)}>{row.active ? "Desactivar" : "Activar"}</ITButton>
+        <RowAction icon={<LuPencil size={14} />} label="Editar perfil" onClick={() => openEdit(row)} />
+        <RowAction icon={<LuUserCheck size={14} />} label="Asignar personal" tone="success" onClick={() => void openAssign(row)} />
+        <RowAction icon={row.active ? <LuPowerOff size={14} /> : <LuPower size={14} />} label={row.active ? "Desactivar perfil" : "Activar perfil"} tone={row.active ? "warning" : "success"} onClick={() => void toggleActive(row)} />
       </div>
     ) },
   ];

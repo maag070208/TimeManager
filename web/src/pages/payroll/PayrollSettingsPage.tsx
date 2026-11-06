@@ -7,6 +7,7 @@ import { payrollApi } from "@entities/payroll";
 import { HelpTip } from "@shared/ui/help-tip";
 import type { PayrollIsrBracket, PayrollImssRate, PayrollSettings } from "@entities/payroll";
 import PayrollPositionsPanel from "@features/payroll/payroll-positions/ui/PayrollPositionsPanel";
+import { TabBar } from "@shared/ui/tab-bar";
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -132,12 +133,15 @@ export default function PayrollSettingsPage() {
         </div>
       }
     >
-      <div className="mb-4 inline-flex gap-2 rounded-2xl bg-white p-1.5 shadow-sm">
-        {([{ id: "positions", label: "Perfiles por cargo" }, { id: "settings", label: "Configuración general" }] as const).map((item) => (
-          <button key={item.id} type="button" onClick={() => setTab(item.id)} className={`rounded-xl px-3.5 py-1.5 text-[12.5px] font-semibold transition ${tab === item.id ? "bg-[#eaf6ef] text-emerald-900" : "text-slate-500 hover:bg-slate-50"}`}>
-            {item.label}
-          </button>
-        ))}
+      <div className="mb-4">
+        <TabBar
+          items={[
+            { id: "positions", label: "Perfiles por cargo" },
+            { id: "settings", label: "Configuración general" },
+          ]}
+          value={tab}
+          onChange={(value) => setTab(value as typeof tab)}
+        />
       </div>
       {tab === "positions" ? <PayrollPositionsPanel /> : (
       <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
