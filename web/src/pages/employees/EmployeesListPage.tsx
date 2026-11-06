@@ -136,7 +136,11 @@ export default function EmployeesListPage() {
         )}
       </ITStack>
 
-      <UserEditDialog userId={accountId ?? null} onClose={() => goBack("/employees")} onSaved={list.reload} />
+      <UserEditDialog
+        userId={accountId ?? null}
+        onClose={() => (accountId ? navigate(`/employees/${accountId}`, { replace: true }) : goBack("/employees"))}
+        onSaved={list.reload}
+      />
       <AccountActionDialogs fx={account} />
     </ITPage>
   );

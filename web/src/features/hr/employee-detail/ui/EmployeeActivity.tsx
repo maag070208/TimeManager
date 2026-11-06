@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LuCalendarClock, LuClipboardList, LuFileText, LuFingerprint, LuUserRound } from "react-icons/lu";
 import { personalApi, type EmployeeOverview } from "@entities/hr";
-import { ITBentoGrid, ITBentoTile, ITEmptyState, ITFlex, ITStack, ITText } from "@axzydev/axzy_ui_system";
+import { ITEmptyState, ITFlex, ITStack, ITText } from "@axzydev/axzy_ui_system";
 import { TicState } from "@shared/ui/tic";
 import { PanelCard } from "@shared/ui/panel-card";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { formatDateTime } from "@shared/utils/dates";
 
 /** Tarjeta de una sección de actividad: `PanelCard` con ícono y conteo; cuerpo con altura máxima. */
@@ -52,54 +53,16 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
 
   return (
     <ITStack spacing={5}>
-      <ITBentoGrid>
-        <ITBentoTile
-          cols={3}
-          rows={1}
-          tone="sea"
-          icon={<LuFileText size={14} />}
-          label={t("detail.activity.kpi.documents")}
-          value={summary.documents}
-          caption={t("detail.activity.kpi.documentsHint")}
-        />
-        <ITBentoTile
-          cols={3}
-          rows={1}
-          tone={summary.missingRequiredDocuments > 0 ? "sun" : "mint"}
-          icon={<LuClipboardList size={14} />}
-          label={t("detail.activity.kpi.missing")}
-          value={summary.missingRequiredDocuments}
-          caption={
-            summary.missingRequiredDocuments > 0
-              ? t("detail.activity.kpi.missingHint")
-              : t("detail.activity.kpi.none")
-          }
-        />
-        <ITBentoTile
-          cols={3}
-          rows={1}
-          tone="lavender"
-          icon={<LuFingerprint size={14} />}
-          label={t("detail.activity.kpi.punches")}
-          value={summary.punchesLast30Days}
-          caption={t("detail.activity.kpi.punchesHint")}
-        />
-        <ITBentoTile
-          cols={3}
-          rows={1}
-          tone={summary.disciplinaryReportsLastYear > 0 ? "sun" : "mint"}
-          icon={<LuUserRound size={14} />}
-          label={t("detail.activity.kpi.disciplines")}
-          value={summary.disciplinaryReportsLastYear}
-          caption={
-            summary.disciplinaryReportsLastYear > 0
-              ? t("detail.activity.kpi.disciplinesHint")
-              : t("detail.activity.kpi.none")
-          }
-        />
-      </ITBentoGrid>
+      <BentoKpiGrid
+        items={[
+          { id: "documents", label: t("detail.activity.kpi.documents"), value: summary.documents, caption: t("detail.activity.kpi.documentsHint"), icon: <LuFileText size={14} />, tone: "success" },
+          { id: "missing", label: t("detail.activity.kpi.missing"), value: summary.missingRequiredDocuments, caption: summary.missingRequiredDocuments > 0 ? t("detail.activity.kpi.missingHint") : t("detail.activity.kpi.none"), icon: <LuClipboardList size={14} />, tone: summary.missingRequiredDocuments > 0 ? "warning" : "success" },
+          { id: "punches", label: t("detail.activity.kpi.punches"), value: summary.punchesLast30Days, caption: t("detail.activity.kpi.punchesHint"), icon: <LuFingerprint size={14} />, tone: "info" },
+          { id: "disciplines", label: t("detail.activity.kpi.disciplines"), value: summary.disciplinaryReportsLastYear, caption: summary.disciplinaryReportsLastYear > 0 ? t("detail.activity.kpi.disciplinesHint") : t("detail.activity.kpi.none"), icon: <LuUserRound size={14} />, tone: summary.disciplinaryReportsLastYear > 0 ? "warning" : "success" },
+        ]}
+      />
 
-      <ITFlex align="center" gap={2} className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
+      <ITFlex align="center" gap={2} className="rounded-xl border border-slate-100 bg-white px-3 py-2">
         <LuCalendarClock size={14} className="shrink-0 text-slate-500" />
         <ITText className="text-sm text-slate-700 dark:text-slate-200">
           {t("detail.activity.schedule")}:{" "}

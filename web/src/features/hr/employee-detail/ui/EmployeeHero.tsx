@@ -3,16 +3,14 @@ import { useTranslation } from "react-i18next";
 import { LuBuilding2, LuBriefcase, LuCamera, LuCalendarClock, LuFolderCheck } from "react-icons/lu";
 import {
   ITBadget,
-  ITBentoGrid,
-  ITBentoTile,
   ITCard,
   ITFlex,
   ITText,
-  useITBentoCountUp,
 } from "@axzydev/axzy_ui_system";
 import { resolvePhotoUrl, type PersonalProfile } from "@entities/hr";
 import { roleLabel } from "@entities/user";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 
 const ROLE_COLOR: Record<string, string> = { CLIENT_ADMIN: "purple", HUMAN_RESOURCES: "info", CLIENT_STAFF: "gray" };
 
@@ -54,8 +52,6 @@ export default function EmployeeHero({ profile, onPhotoUpload, documents }: Prop
   const months = monthsSince(profile.hireDate);
   const years = months === null ? 0 : Math.floor(months / 12);
   const restMonths = months === null ? 0 : months % 12;
-  const tenureShown = useITBentoCountUp(years);
-  const docsShown = useITBentoCountUp(documents.done);
   const docsLeft = Math.max(0, documents.total - documents.done);
 
   // Solo se muestran los datos que existen: una fila de guiones no aporta nada.
@@ -142,46 +138,26 @@ export default function EmployeeHero({ profile, onPhotoUpload, documents }: Prop
         </ITFlex>
       </ITCard>
 
-      {/* Tira del mosaico: antigüedad y expediente, misma altura que los KPIs */}
-      <ITBentoGrid>
-        <ITBentoTile
-          cols={6}
-          rows={1}
-          wide
-          tone="mint"
-          icon={<LuCalendarClock size={14} />}
-          label={tt("detail.tenure.label")}
-          value={months === null ? "—" : tenureShown}
-          caption={
-            months === null
-              ? tt("detail.tenure.none")
-              : years === 0
-                ? tt("detail.tenure.months", { count: restMonths })
-                : tt("detail.tenure.years", { count: years })
-          }
-          aside={
-            months !== null && years > 0 && restMonths > 0
-              ? tt("detail.tenure.plusMonths", { count: restMonths })
-              : undefined
-          }
-        />
-        <ITBentoTile
-          cols={6}
-          rows={1}
-          wide
-          tone={documents.total > 0 && documents.done === documents.total ? "mint" : "sun"}
-          icon={<LuFolderCheck size={14} />}
-          label={tt("detail.documentsTile.label")}
-          value={`${docsShown}/${documents.total}`}
-          caption={
-            documents.total === 0
-              ? tt("detail.noDocumentTypes")
-              : docsLeft === 0
-                ? tt("detail.documentsTile.complete")
-                : tt("detail.documentsTile.missing", { count: docsLeft })
-          }
-        />
-      </ITBentoGrid>
+      <BentoKpiGrid
+        items={[
+          {
+            id: "tenure",
+            label: tt("detail.tenure.label"),
+            value: months === null ? "—" : years,
+            caption: months === null ? tt("detail.tenure.none") : years === 0 ? tt("detail.tenure.months", { count: restMonths }) : tt("detail.tenure.years", { count: years }),
+            icon: <LuCalendarClock size={14} />,
+            tone: "success",
+          },
+          {
+            id: "documents",
+            label: tt("detail.documentsTile.label"),
+            value: `${documents.done}/${documents.total}`,
+            caption: documents.total === 0 ? tt("detail.noDocumentTypes") : docsLeft === 0 ? tt("detail.documentsTile.complete") : tt("detail.documentsTile.missing", { count: docsLeft }),
+            icon: <LuFolderCheck size={14} />,
+            tone: documents.total > 0 && docsLeft === 0 ? "success" : "warning",
+          },
+        ]}
+      />
     </ITFlex>
   );
 }
