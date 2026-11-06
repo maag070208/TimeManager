@@ -500,3 +500,21 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
   .dash-waves, .dash-value { animation: none !important; }
   .dash-kpi:hover { transform: none; }
 }
+
+
+/* Botones compactos de filas/tablas: texto pequeño o solo icono. */
+.tm-row-button,
+.tm-icon-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  border-radius: 8px !important;
+  padding: 0 10px !important;
+  font-size: 11.5px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.tm-icon-button { width: 30px !important; padding: 0 !important; }

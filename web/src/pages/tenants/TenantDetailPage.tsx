@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITToast } from "@axzydev/axzy_ui_system";
-import { LuArrowLeft, LuBuilding2, LuCheck, LuWallet } from "react-icons/lu";
+import { LuArrowLeft, LuBuilding2, LuCalendarClock, LuCheck, LuChevronLeft, LuChevronRight, LuClock, LuWallet } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { tenantApi } from "@entities/tenant";
 import type { Tenant, TenantPayment, TenantPaymentStatus, TenantPayments } from "@entities/tenant";
@@ -98,17 +98,17 @@ export default function TenantDetailPage() {
   }
 
   const planPrice = Number(tenant.plan?.monthlyPrice ?? 0);
-  const kpis = [
-    { label: "Plan", value: tenant.plan?.name ?? "Sin plan", caption: planPrice ? `${money(planPrice)} / mes` : "Sin precio" },
-    { label: "Personas", value: `${tenant.usage.activeUsers} / ${tenant.limits.people ?? "—"}`, caption: "activas / límite" },
-    { label: "Pagado", value: money(payments.summary.paid), caption: "histórico" },
-    { label: "Por cobrar", value: money(payments.summary.pending), caption: "pendiente / vencido" },
-  ];
+  const wave = (color: string) => (
+    <svg aria-hidden viewBox="0 0 600 70" preserveAspectRatio="none" className="dash-waves pointer-events-none absolute inset-x-0 bottom-0 h-[54px] w-[200%]">
+      <path d="M0,42 C90,14 150,62 240,40 C330,18 390,60 480,36 C540,24 570,30 600,42 L600,70 L0,70 Z" fill={color} />
+      <path d="M0,52 C100,30 160,66 260,48 C360,28 420,62 520,44 C560,38 580,42 600,52 L600,70 L0,70 Z" fill={color} opacity="0.5" />
+    </svg>
+  );
 
   return (
     <ITPage
       className="min-w-full! max-w-none!"
-      title={tenant.name}
+      title="Detalle del cliente"
       description={`${tenant.slug} · ${tenant.status === "ACTIVE" ? "Cliente activo" : "Cliente suspendido"}`}
       icon={<LuBuilding2 size={20} />}
       actions={
@@ -120,19 +120,43 @@ export default function TenantDetailPage() {
       <div className="flex flex-col gap-4 pb-12">
         {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
 
+        <ITCard contentClassName="!p-0">
+          <div className="relative overflow-hidden rounded-2xl bg-[#0f2e3d] px-5 py-4 text-white">
+            {wave("rgba(255,255,255,0.10)")}
+            <div className="relative flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-white/60">Cliente</ITText>
+                <ITText className="!text-2xl font-extrabold !text-white">{tenant.name}</ITText>
+                <ITText className="!text-[12px] !text-white/70">{tenant.slug} · {tenant.status === "ACTIVE" ? "Activo" : "Suspendido"} · alta {dateLabel(tenant.createdAt)}</ITText>
+              </div>
+              <div className="flex flex-wrap gap-2 text-[11.5px]">
+                <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-white/85">{tenant.plan?.name ?? "Sin plan"}</span>
+                <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-white/85">{tenant.usage.activeUsers} / {tenant.limits.people ?? "—"} personas</span>
+                <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-white/85">{tenant.usage.clocks} / {tenant.limits.clocks ?? "—"} relojes</span>
+              </div>
+            </div>
+          </div>
+        </ITCard>
+
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-          {kpis.map((kpi) => (
-            <div key={kpi.label} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-              <ITText muted className="!text-[10.5px] font-semibold uppercase tracking-[0.08em]">{kpi.label}</ITText>
-              <ITText className="mt-1 block !text-[24px] font-black tabular-nums">{kpi.value}</ITText>
-              <ITText muted className="!text-[11.5px]">{kpi.caption}</ITText>
+          {[
+            { label: "Plan", value: tenant.plan?.name ?? "Sin plan", caption: planPrice ? `${money(planPrice)} / mes` : "Sin precio", color: "rgba(15,46,61,0.10)", icon: <LuWallet size={13} /> },
+            { label: "Personas", value: `${tenant.usage.activeUsers} / ${tenant.limits.people ?? "—"}`, caption: "activas / límite", color: "rgba(16,185,129,0.14)", icon: <LuBuilding2 size={13} /> },
+            { label: "Pagado", value: money(payments.summary.paid), caption: "histórico", color: "rgba(14,165,233,0.12)", icon: <LuCheck size={13} /> },
+            { label: "Por cobrar", value: money(payments.summary.pending), caption: "pendiente / vencido", color: "rgba(245,158,11,0.16)", icon: <LuCalendarClock size={13} /> },
+          ].map((kpi) => (
+            <div key={kpi.label} className="dash-kpi dash-card relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm" style={{ borderColor: "#eef1f5" }}>
+              {wave(kpi.color)}
+              <span className="relative flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-500">{kpi.icon} {kpi.label}</span>
+              <span className="relative mt-1 block !text-[24px] font-black tabular-nums text-slate-900">{kpi.value}</span>
+              <span className="relative text-[11.5px] text-slate-500">{kpi.caption}</span>
             </div>
           ))}
         </div>
 
         <div className="grid items-start gap-4 lg:grid-cols-12">
           <ITCard className="lg:col-span-8" contentClassName="!p-5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <LuWallet size={16} className="text-slate-500" />
                 <ITText className="font-bold">Kardex de pagos</ITText>
@@ -141,21 +165,30 @@ export default function TenantDetailPage() {
             </div>
 
             <div className="mt-3 overflow-x-auto">
-              <div className="min-w-[620px]">
-                <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.9fr_0.9fr_auto] gap-2 border-b border-slate-100 pb-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">
+              <div className="min-w-[560px]">
+                <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.9fr_0.8fr_auto] gap-2 border-b border-slate-100 pb-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">
                   <span>Concepto</span><span>Periodo</span><span>Monto</span><span>Vence</span><span>Estado</span><span />
                 </div>
                 {visible.map((payment) => (
-                  <div key={payment.id} className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.9fr_0.9fr_auto] items-center gap-2 border-b border-slate-50 py-2.5 text-[12.5px] last:border-0">
+                  <div key={payment.id} className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.9fr_0.8fr_auto] items-center gap-2 border-b border-slate-50 py-2.5 text-[12.5px] transition hover:bg-slate-50/70 last:border-0">
                     <span className="font-semibold text-slate-800">{payment.concept}</span>
                     <span className="text-slate-500">{payment.period}</span>
                     <span className="font-semibold tabular-nums">{money(payment.amount)}</span>
                     <span className="text-slate-500">{dateLabel(payment.dueDate)}</span>
                     <span><ITBadget color={STATUS[payment.status].color} size="sm">{STATUS[payment.status].label}</ITBadget></span>
-                    <span>
+                    <span className="flex justify-end">
                       {payment.status !== "PAID" && payment.status !== "CANCELLED" && (
-                        <ITButton variant="outlined" color="primary" size="sm" className="tm-save-button" disabled={busy === payment.id} onClick={() => void markPaid(payment)}>
-                          <LuCheck size={12} className="mr-1" /> Pagar
+                        <ITButton
+                          variant="outlined"
+                          color="success"
+                          size="sm"
+                          className="tm-icon-button"
+                          aria-label="Registrar pago"
+                          title="Registrar pago"
+                          disabled={busy === payment.id}
+                          onClick={() => void markPaid(payment)}
+                        >
+                          <LuCheck size={14} />
                         </ITButton>
                       )}
                     </span>
@@ -170,14 +203,21 @@ export default function TenantDetailPage() {
                 {payments.rows.length === 0 ? "0" : `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, payments.rows.length)}`} de {payments.rows.length}
               </ITText>
               <div className="flex gap-1">
-                <ITButton variant="outlined" color="secondary" size="sm" className="tm-save-button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Anterior</ITButton>
-                <ITButton variant="outlined" color="secondary" size="sm" className="tm-save-button" disabled={page >= pageCount} onClick={() => setPage((p) => p + 1)}>Siguiente</ITButton>
+                <ITButton variant="outlined" color="secondary" className="tm-icon-button" aria-label="Anterior" title="Anterior" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                  <LuChevronLeft size={15} />
+                </ITButton>
+                <ITButton variant="outlined" color="secondary" className="tm-icon-button" aria-label="Siguiente" title="Siguiente" disabled={page >= pageCount} onClick={() => setPage((p) => p + 1)}>
+                  <LuChevronRight size={15} />
+                </ITButton>
               </div>
             </div>
           </ITCard>
 
           <ITCard className="lg:col-span-4" contentClassName="!p-5">
-            <ITText className="font-bold">Registrar cargo</ITText>
+            <div className="flex items-center gap-2">
+              <LuClock size={16} className="text-slate-500" />
+              <ITText className="font-bold">Registrar cargo</ITText>
+            </div>
             <ITText muted className="mt-1 block !text-[11.5px]">Cargo manual o estimado para el kardex; no genera CFDI.</ITText>
             <div className="mt-3 flex flex-col gap-2">
               <ITInput name="concept" label="Concepto" value={form.concept} onChange={(e) => setForm((p) => ({ ...p, concept: e.target.value }))} />
@@ -187,7 +227,7 @@ export default function TenantDetailPage() {
                 Vence
                 <input type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} className="rounded-md border border-slate-200 px-2 py-2 text-[13px]" />
               </label>
-              <ITButton variant="filled" color="primary" className="tm-save-button mt-1" disabled={busy === "create"} onClick={() => void create()}>
+              <ITButton variant="filled" color="primary" className="tm-save-button mt-1 w-full" disabled={busy === "create"} onClick={() => void create()}>
                 Registrar cargo
               </ITButton>
             </div>
