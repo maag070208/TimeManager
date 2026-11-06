@@ -54,13 +54,13 @@ function ActionBar({
 }) {
   return (
     <ITFlex justify="end" gap={2}>
-      <ITButton variant="outlined" color="secondary" onClick={onCancel}>
+      <ITButton variant="outlined" color="secondary" className="tm-save-button" onClick={onCancel}>
         {cancelLabel}
       </ITButton>
       <ITButton variant="filled" color="primary" className="tm-save-button" onClick={onSave} disabled={saving}>
         <ITFlex align="center" gap={1}>
           <FaSave size={12} />
-          <ITText className="font-bold text-[11px]">{saveLabel}</ITText>
+          <ITText className="font-semibold text-[12px]">{saveLabel}</ITText>
         </ITFlex>
       </ITButton>
     </ITFlex>

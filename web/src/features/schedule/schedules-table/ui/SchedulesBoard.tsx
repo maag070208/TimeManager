@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ITBentoPill,
-  ITButton,
   ITConfirmDialog,
   ITDataTable,
   ITFlex,
@@ -21,6 +20,7 @@ import { makeClientTableFetch } from "@shared/api/clientTable";
 import { emitAppEvent, onAppEvent } from "@shared/lib/appEvents";
 import { dateLocale } from "@shared/i18n";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { RowAction } from "@shared/ui/row-action";
 
 type Filter = "all" | "active" | "inactive";
 
@@ -253,23 +253,16 @@ export default function SchedulesBoard() {
       type: "actions",
       width: 110,
       render: (h) => (
-        <ITFlex align="center" gap={1}>
-          <ITButton
-            variant="outlined" className="tm-icon-button"
-            color="secondary"
-            size="sm"
-            icon={<LuPencil size={12} />}
-            ariaLabel={t("edit")}
-            title={t("edit")}
+        <ITFlex align="center" gap={1.5}>
+          <RowAction
+            icon={<LuPencil size={14} />}
+            label={t("edit")}
             onClick={() => emitAppEvent("schedule:edit", { id: h.id })}
           />
-          <ITButton
-            variant="text"
-            color={h.active ? "error" : "success"}
-            size="sm"
-            icon={h.active ? <LuTrash2 size={13} /> : <LuCalendarCheck size={13} />}
-            ariaLabel={h.active ? t("delete") : t("reactivate")}
-            title={h.active ? t("delete") : t("reactivate")}
+          <RowAction
+            icon={h.active ? <LuTrash2 size={14} /> : <LuCalendarCheck size={14} />}
+            label={h.active ? t("delete") : t("reactivate")}
+            tone={h.active ? "danger" : "success"}
             onClick={() => setToDeactivate(h)}
           />
         </ITFlex>
