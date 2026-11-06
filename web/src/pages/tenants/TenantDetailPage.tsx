@@ -10,6 +10,8 @@ import {
   ITSlideToggle,
   ITText,
   ITToast,
+  ITTable,
+  type Column,
 } from "@axzydev/axzy_ui_system";
 import { LuBuilding2, LuCheck, LuChevronRight, LuClock, LuCreditCard, LuExternalLink, LuPlus, LuSearch, LuWallet } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
@@ -49,6 +51,14 @@ const TONE: Record<TenantModuleDefinition["tone"], string> = {
   slate: "bg-slate-100 text-slate-600",
 };
 type Tab = "summary" | "modules" | "billing" | "activity";
+interface ActivityLog { id: string; date: string; event: string; detail: string; user: string; }
+
+const logColumns: Column<ActivityLog>[] = [
+  { key: "date", label: "Fecha", type: "string", width: 130, render: (row) => <span className="text-[12px] text-slate-500">{dateLabel(row.date)}</span> },
+  { key: "event", label: "Evento", type: "string", width: 190, render: (row) => <span className="text-[12px] font-semibold text-slate-800">{row.event}</span> },
+  { key: "detail", label: "Detalle", type: "string", render: (row) => <span className="text-[12px] text-slate-600">{row.detail}</span> },
+  { key: "user", label: "Usuario", type: "string", width: 150, render: (row) => <span className="text-[12px] text-slate-500">{row.user}</span> },
+];
 
 /** Detalle del cliente: configuración, módulos, cobros y actividad. */
 export default function TenantDetailPage() {
@@ -63,7 +73,7 @@ export default function TenantDetailPage() {
   const [search, setSearch] = useState("");
   const [planOpen, setPlanOpen] = useState(false);
   const [chargeOpen, setChargeOpen] = useState(false);
-  const [extraLogs, setExtraLogs] = useState<Array<{ id: string; date: string; event: string; detail: string; user: string }>>([]);
+  const [extraLogs, setExtraLogs] = useState<ActivityLog[]>([]);
   const [form, setForm] = useState({ concept: "Suscripción mensual", period: new Date().toISOString().slice(0, 7), amount: "", dueDate: new Date().toISOString().slice(0, 10) });
 
   const load = useCallback(async () => {
@@ -329,22 +339,20 @@ export default function TenantDetailPage() {
                 </Padre>
                 <div className="mt-4">
                   <Padre title="Actividad reciente" icon={<LuClock size={16} />} action={<ITButton variant="text" color="primary" size="sm" onClick={() => setTab("activity")}>Ver todo</ITButton>}>
-                    <div className="overflow-x-auto">
-                      <div className="min-w-[560px]">
-                        <div className="grid grid-cols-[0.9fr_1fr_1.6fr_0.8fr] gap-2 border-b border-slate-100 pb-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">
-                          <span>Fecha</span><span>Evento</span><span>Detalle</span><span>Usuario</span>
-                        </div>
-                        {logs.slice(0, 6).map((log) => (
-                          <div key={log.id} className="grid grid-cols-[0.9fr_1fr_1.6fr_0.8fr] items-center gap-2 border-b border-slate-50 py-2.5 text-[12px] last:border-0">
-                            <span className="text-slate-500">{dateLabel(log.date)}</span>
-                            <span className="font-semibold text-slate-800">{log.event}</span>
-                            <span className="truncate text-slate-600">{log.detail}</span>
-                            <span className="text-slate-500">{log.user}</span>
-                          </div>
-                        ))}
-                        {logs.length === 0 && <ITText muted className="block py-5 text-center !text-[12px]">Sin actividad registrada.</ITText>}
-                      </div>
-                    </div>
+                    <ITTable
+                      columns={logColumns as unknown as Column<Record<string, unknown>>[]}
+                      data={logs.slice(0, 6) as unknown as Record<string, unknown>[]}
+                      size="sm"
+                      density="compact"
+                      layout="fixed"
+                      showVerticalBorder={false}
+                      showViewToggle={false}
+                      defaultItemsPerPage={5}
+                      itemsPerPageOptions={[5, 10, 25]}
+                      virtualized
+                      virtualizedMaxHeight={240}
+                      rowHeight={44}
+                    />
                   </Padre>
                 </div>
               </div>
