@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LuCalendarClock, LuClipboardList, LuFileText, LuFingerprint, LuUserRound } from "react-icons/lu";
 import { personalApi, type EmployeeOverview } from "@entities/hr";
-import { ITEmptyState, ITFlex, ITStack, ITText } from "@axzydev/axzy_ui_system";
+import { ITBadget, ITEmptyState, ITFlex, ITStack, ITText } from "@axzydev/axzy_ui_system";
 import { TicState } from "@shared/ui/tic";
 import { PanelCard } from "@shared/ui/panel-card";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
@@ -80,13 +80,11 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
 
       <div className="grid grid-cols-1 items-start gap-4 lg:!grid-cols-2">
         <Card icon={<LuFileText size={15} />} title={t("detail.activity.tabs.documents")} count={documents.length} tone="sky">
-          <ul className="divide-y divide-slate-100">
+          <ul className="flex flex-col gap-1.5">
             {documents.map((document) => (
-              <li key={document.id} className="px-2 py-3">
-                <ITText className="truncate font-semibold text-slate-900 dark:text-slate-100">{document.name}</ITText>
-                <ITText className="text-xs text-slate-500">
-                  {document.type} · {formatDateTime(document.uploadedAt)}
-                </ITText>
+              <li key={document.id} className="rounded-xl bg-slate-50/70 px-3 py-2">
+                <ITText className="block truncate font-semibold text-slate-900">{document.name}</ITText>
+                <ITText className="text-[11.5px] text-slate-500">{document.type} · {formatDateTime(document.uploadedAt)}</ITText>
               </li>
             ))}
           </ul>
@@ -96,16 +94,14 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
         </Card>
 
         <Card icon={<LuFingerprint size={15} />} title={t("detail.activity.tabs.punches")} count={punches.length} tone="lavender">
-          <ul className="divide-y divide-slate-100">
+          <ul className="flex flex-col gap-1.5">
             {punches.map((punch) => (
-              <li key={punch.id} className="flex items-center justify-between gap-3 px-2 py-3">
-                <ITFlex className="min-w-0">
-                  <ITText className="font-semibold text-slate-900 dark:text-slate-100">{method(punch.method)}</ITText>
-                  <ITText className="text-xs text-slate-500">
-                    {punch.clock ? `${punch.clock} · ` : ""}
-                    {formatDateTime(punch.occurredAt)}
-                  </ITText>
+              <li key={punch.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50/70 px-3 py-2">
+                <ITFlex align="center" gap={2} className="min-w-0">
+                  <ITBadget color="info" size="sm">{method(punch.method)}</ITBadget>
+                  <ITText className="truncate !text-[11.5px] text-slate-500">{punch.clock ?? "Reloj"}</ITText>
                 </ITFlex>
+                <ITText className="shrink-0 !text-[11.5px] tabular-nums text-slate-500">{formatDateTime(punch.occurredAt)}</ITText>
               </li>
             ))}
           </ul>
