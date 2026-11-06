@@ -99,42 +99,38 @@ export default function PlatformHomePage() {
       value: tenants.length,
       caption: `${summary.active.length} activos · ${summary.suspended.length} suspendidos`,
       icon: <LuBuilding2 size={15} />,
-      className: "border-transparent bg-[linear-gradient(135deg,#0f2e3d_0%,#173f53_55%,#0f2e3d_100%)] text-white",
-      muted: "text-white/60",
-      wave: "rgba(255,255,255,0.18)",
-      dot: "bg-emerald-300",
+      wave: "rgba(15,46,61,0.10)",
+      dot: "bg-slate-800",
+      chip: "bg-slate-100 text-slate-700",
     },
     {
       label: "Personas activas",
       value: summary.people,
       caption: "en clientes activos",
       icon: <LuUsersRound size={15} />,
-      className: "border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0fdf8_100%)]",
-      muted: "text-slate-400",
-      wave: "rgba(16,185,129,0.10)",
-      dot: "bg-emerald-400",
+      wave: "rgba(16,185,129,0.14)",
+      dot: "bg-emerald-500",
+      chip: "bg-emerald-50 text-emerald-700",
     },
     {
       label: "Ingreso mensual",
       value: money(summary.mrr),
       caption: "estimado por plan",
       icon: <LuBadgeDollarSign size={15} />,
-      className: "border-amber-100 bg-[linear-gradient(135deg,#ffffff_0%,#fffbeb_100%)]",
-      muted: "text-slate-400",
-      wave: "rgba(245,158,11,0.10)",
-      dot: "bg-amber-400",
+      wave: "rgba(245,158,11,0.16)",
+      dot: "bg-amber-500",
+      chip: "bg-amber-50 text-amber-700",
     },
     {
       label: "Por cobrar",
       value: money(summary.upcoming.reduce((sum, row) => sum + row.amount, 0)),
       caption: "próximos cobros del mes",
       icon: <LuArrowUpRight size={15} />,
-      className: "border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0f9ff_100%)]",
-      muted: "text-slate-400",
-      wave: "rgba(14,165,233,0.10)",
-      dot: "bg-sky-400",
+      wave: "rgba(14,165,233,0.14)",
+      dot: "bg-sky-500",
+      chip: "bg-sky-50 text-sky-700",
     },
-  ] as Array<{ label: string; value: string | number; caption: string; icon: ReactNode; className: string; muted: string; wave: string; dot: string }>;
+  ] as Array<{ label: string; value: string | number; caption: string; icon: ReactNode; wave: string; dot: string; chip: string }>;
 
   return (
     <ITPage
@@ -161,16 +157,16 @@ export default function PlatformHomePage() {
               {kpis.map((kpi, index) => (
                 <div
                   key={kpi.label}
-                  className={`dash-kpi dash-card relative flex flex-col gap-1 overflow-hidden rounded-2xl border p-4 shadow-sm ${kpi.className}`}
-                  style={{ animationDelay: `${index * 60}ms` }}
+                  className="dash-kpi dash-card relative flex flex-col gap-1 overflow-hidden rounded-2xl border bg-white p-4 shadow-sm"
+                  style={{ animationDelay: `${index * 60}ms`, borderColor: "#eef1f5" }}
                 >
                   <CardWaves color={kpi.wave} />
-                  <span className={`relative flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] ${kpi.muted}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${kpi.dot}`} />
-                    {kpi.icon} {kpi.label}
+                  <span className="relative flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                    <span className={`flex h-6 w-6 items-center justify-center rounded-lg ${kpi.chip}`}>{kpi.icon}</span>
+                    {kpi.label}
                   </span>
-                  <span className="dash-value relative text-[30px] font-black leading-tight tabular-nums">{kpi.value}</span>
-                  <span className={`relative text-[11.5px] ${kpi.muted}`}>{kpi.caption}</span>
+                  <span className="dash-value relative mt-1 text-[30px] font-black leading-tight tabular-nums text-slate-900">{kpi.value}</span>
+                  <span className="relative text-[11.5px] text-slate-500">{kpi.caption}</span>
                 </div>
               ))}
             </div>
