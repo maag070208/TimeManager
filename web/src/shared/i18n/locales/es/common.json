@@ -53,7 +53,8 @@
     "generalSettings": "Configuración",
     "leave": "Vacaciones",
     "workdayAgreements": "Convenios y acuerdos",
-    "payrollSettings": "Nómina"
+    "payrollSettings": "Nómina",
+    "clients": "Clientes"
   },
   "files": {
     "access": "accesos",

@@ -93,35 +93,26 @@ export default function TenantsTable({ rows, canManage, onEnter, onToggleStatus,
       key: "actions",
       label: "",
       type: "actions",
-      cellClassName: "min-w-[500px] whitespace-nowrap",
+      cellClassName: "min-w-[300px] whitespace-nowrap",
       actions: (row) => {
         const active = row.status === "ACTIVE";
         return (
           <div className="flex flex-nowrap justify-end gap-1.5">
             {canManage && (
               <>
-                <ITButton variant="outlined" color="primary" size="sm" className="shrink-0 whitespace-nowrap" onClick={() => onEditPlan(row)}>
-                  <span className="inline-flex items-center gap-1"><LuBadgeDollarSign size={13} /> Plan</span>
+                <ITButton variant="outlined" color="primary" className="tm-icon-button shrink-0" aria-label="Asignar plan" title="Asignar plan" onClick={() => onEditPlan(row)}>
+                  <LuBadgeDollarSign size={14} />
                 </ITButton>
-                <ITButton
-                  variant="outlined"
-                  color={active ? "warning" : "success"}
-                  size="sm"
-                  className="shrink-0 whitespace-nowrap"
-                  onClick={() => onToggleStatus(row)}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {active ? <LuPause size={13} /> : <LuPlay size={13} />}
-                    {t(active ? "platform.actions.suspend" : "platform.actions.reactivate")}
-                  </span>
+                <ITButton variant="outlined" color={active ? "warning" : "success"} className="tm-icon-button shrink-0" aria-label={t(active ? "platform.actions.suspend" : "platform.actions.reactivate")} title={t(active ? "platform.actions.suspend" : "platform.actions.reactivate")} onClick={() => onToggleStatus(row)}>
+                  {active ? <LuPause size={14} /> : <LuPlay size={14} />}
                 </ITButton>
               </>
             )}
-            <ITButton variant="outlined" color="secondary" size="sm" className="shrink-0 whitespace-nowrap" onClick={() => onManageClocks(row)}>
-              <span className="inline-flex items-center gap-1"><LuClock3 size={13} /> {t("platform.actions.clocks")}</span>
+            <ITButton variant="outlined" color="secondary" className="tm-icon-button shrink-0" aria-label={t("platform.actions.clocks")} title={t("platform.actions.clocks")} onClick={() => onManageClocks(row)}>
+              <LuClock3 size={14} />
             </ITButton>
-            <ITButton variant="outlined" color="secondary" size="sm" className="shrink-0 whitespace-nowrap" onClick={() => onManageAgent(row)}>
-              <span className="inline-flex items-center gap-1"><LuKeyRound size={13} /> {t("platform.actions.agent")}</span>
+            <ITButton variant="outlined" color="secondary" className="tm-icon-button shrink-0" aria-label={t("platform.actions.agent")} title={t("platform.actions.agent")} onClick={() => onManageAgent(row)}>
+              <LuKeyRound size={14} />
             </ITButton>
             <ITButton variant="filled" color="primary" size="sm" className="shrink-0 whitespace-nowrap" disabled={!active} onClick={() => onEnter(row)}>
               <span className="inline-flex items-center gap-1">{t("platform.actions.enter")} <LuArrowRight size={13} /></span>

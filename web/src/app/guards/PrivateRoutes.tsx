@@ -1,6 +1,6 @@
 import { ITLayout, ITSidebarProps, ITToast, type ITNavigationItem } from "@axzydev/axzy_ui_system";
 import { useEffect, useState, useCallback, type ReactNode } from "react";
-import { LuHouse, LuUsers, LuSettings, LuCalendarCheck } from "react-icons/lu";
+import { LuHouse, LuUsers, LuSettings, LuCalendarCheck, LuBuilding2 } from "react-icons/lu";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -235,9 +235,20 @@ export default function PrivateRoutes() {
         return children ? { ...screen, children } : screen;
       })
       .filter((screen): screen is AppScreen => screen !== null);
-  const navigationItems = pruneDisabledModules(APP_SCREENS).map(toNavigationItem).filter(
-    (item): item is ITNavigationItem => item !== null
-  );
+  const isPlatformStaff = user?.role === "ADMIN" || user?.role === "SUPPORT";
+  const clientsItem: ITNavigationItem = {
+    id: "tenants",
+    label: tt("nav.clients"),
+    icon: <LuBuilding2 size={14} />,
+    action: () => navigate("/tenants"),
+    isActive: location.pathname === "/tenants" || location.pathname.startsWith("/tenants/"),
+  };
+  const navigationItems = [
+    ...(isPlatformStaff ? [clientsItem] : []),
+    ...pruneDisabledModules(APP_SCREENS).map(toNavigationItem).filter(
+      (item): item is ITNavigationItem => item !== null
+    ),
+  ];
 
   const handleLogout = () => {
     dispatch(logout());
