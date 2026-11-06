@@ -20,8 +20,8 @@ type MonthPoint = { label: string; newClients: number; total: number };
 function ClientsChart({ months }: { months: MonthPoint[] }) {
   const [hover, setHover] = useState<number | null>(null);
   const width = 620;
-  const height = 230;
-  const pad = { left: 30, right: 16, top: 16, bottom: 30 };
+  const height = 170;
+  const pad = { left: 28, right: 14, top: 12, bottom: 24 };
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
   const max = Math.max(2, ...months.map((month) => Math.max(month.total, month.newClients)));
