@@ -15,6 +15,18 @@ const money = (value: number) =>
 
 const monthLabel = (date: Date) => date.toLocaleDateString("es-MX", { month: "short" }).replace(/\./g, "");
 
+const CardWaves = ({ color = "rgba(255,255,255,0.16)", className = "" }: { color?: string; className?: string }) => (
+  <svg
+    aria-hidden
+    viewBox="0 0 600 70"
+    preserveAspectRatio="none"
+    className={`dash-waves pointer-events-none absolute inset-x-0 bottom-0 h-[62px] w-[200%] ${className}`}
+  >
+    <path d="M0,40 C90,10 150,65 240,40 C330,15 390,62 480,38 C540,24 570,30 600,40 L600,70 L0,70 Z" fill={color} />
+    <path d="M0,50 C100,28 160,70 260,48 C360,26 420,66 520,46 C560,38 580,42 600,50 L600,70 L0,70 Z" fill={color} opacity="0.55" />
+  </svg>
+);
+
 const nextChargeDate = (createdAt: string): Date => {
   const created = new Date(createdAt);
   const now = new Date();
@@ -82,11 +94,47 @@ export default function PlatformHomePage() {
   }, [tenants]);
 
   const kpis = [
-    { label: "Clientes", value: tenants.length, caption: `${summary.active.length} activos`, icon: <LuBuilding2 size={15} />, className: "bg-[#0f2e3d] text-white", muted: "text-white/60" },
-    { label: "Personas activas", value: summary.people, caption: "en clientes activos", icon: <LuUsersRound size={15} />, className: "bg-white", muted: "text-slate-400" },
-    { label: "Ingreso mensual", value: money(summary.mrr), caption: "estimado por plan", icon: <LuBadgeDollarSign size={15} />, className: "bg-white", muted: "text-slate-400" },
-    { label: "Por cobrar", value: money(summary.upcoming.reduce((sum, row) => sum + row.amount, 0)), caption: "próximos cobros", icon: <LuArrowUpRight size={15} />, className: "bg-white", muted: "text-slate-400" },
-  ] as Array<{ label: string; value: string | number; caption: string; icon: ReactNode; className: string; muted: string }>;
+    {
+      label: "Clientes",
+      value: tenants.length,
+      caption: `${summary.active.length} activos · ${summary.suspended.length} suspendidos`,
+      icon: <LuBuilding2 size={15} />,
+      className: "border-transparent bg-[linear-gradient(135deg,#0f2e3d_0%,#173f53_55%,#0f2e3d_100%)] text-white",
+      muted: "text-white/60",
+      wave: "rgba(255,255,255,0.18)",
+      dot: "bg-emerald-300",
+    },
+    {
+      label: "Personas activas",
+      value: summary.people,
+      caption: "en clientes activos",
+      icon: <LuUsersRound size={15} />,
+      className: "border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0fdf8_100%)]",
+      muted: "text-slate-400",
+      wave: "rgba(16,185,129,0.10)",
+      dot: "bg-emerald-400",
+    },
+    {
+      label: "Ingreso mensual",
+      value: money(summary.mrr),
+      caption: "estimado por plan",
+      icon: <LuBadgeDollarSign size={15} />,
+      className: "border-amber-100 bg-[linear-gradient(135deg,#ffffff_0%,#fffbeb_100%)]",
+      muted: "text-slate-400",
+      wave: "rgba(245,158,11,0.10)",
+      dot: "bg-amber-400",
+    },
+    {
+      label: "Por cobrar",
+      value: money(summary.upcoming.reduce((sum, row) => sum + row.amount, 0)),
+      caption: "próximos cobros del mes",
+      icon: <LuArrowUpRight size={15} />,
+      className: "border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0f9ff_100%)]",
+      muted: "text-slate-400",
+      wave: "rgba(14,165,233,0.10)",
+      dot: "bg-sky-400",
+    },
+  ] as Array<{ label: string; value: string | number; caption: string; icon: ReactNode; className: string; muted: string; wave: string; dot: string }>;
 
   return (
     <ITPage
@@ -113,14 +161,16 @@ export default function PlatformHomePage() {
               {kpis.map((kpi, index) => (
                 <div
                   key={kpi.label}
-                  className={`dash-card flex flex-col gap-1 rounded-2xl border border-slate-100 p-4 shadow-sm ${kpi.className}`}
+                  className={`dash-kpi dash-card relative flex flex-col gap-1 overflow-hidden rounded-2xl border p-4 shadow-sm ${kpi.className}`}
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
-                  <span className={`flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] ${kpi.muted}`}>
+                  <CardWaves color={kpi.wave} />
+                  <span className={`relative flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] ${kpi.muted}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${kpi.dot}`} />
                     {kpi.icon} {kpi.label}
                   </span>
-                  <span className="text-[28px] font-black leading-tight tabular-nums">{kpi.value}</span>
-                  <span className={`text-[11.5px] ${kpi.muted}`}>{kpi.caption}</span>
+                  <span className="dash-value relative text-[30px] font-black leading-tight tabular-nums">{kpi.value}</span>
+                  <span className={`relative text-[11.5px] ${kpi.muted}`}>{kpi.caption}</span>
                 </div>
               ))}
             </div>
