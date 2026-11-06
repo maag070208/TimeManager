@@ -33,8 +33,8 @@ export default function OvertimeApprovalPage() {
       backAction={() => goBack("/schedules")}
       actions={<OvertimeExportActions fx={fx} />}
     >
-      <OvertimeApprovalTable fx={fx} />
       <WeeklyOvertimePanel canApprove={canApprove} />
+      <OvertimeApprovalTable fx={fx} />
     </ITPage>
   );
 }
