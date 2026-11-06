@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITDatePicker, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBuilding2, LuCalendarDays, LuCircleHelp, LuSignature, LuSave, LuShieldCheck, LuWallet, LuClock } from "react-icons/lu";
@@ -26,7 +26,6 @@ export default function GeneralSettingsPage() {
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [tab, setTab] = useState<"operation" | "attendance" | "limits" | "checks">("operation");
   const [helpOpen, setHelpOpen] = useState(false);
-  const [weekRef, setWeekRef] = useState(() => new Date());
   const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState({
     weekStartDay: 3,
@@ -123,23 +122,6 @@ export default function GeneralSettingsPage() {
     { label: "Tope diario", value: `${Math.round(form.workdayLimitMinutes / 60)} h`, icon: <LuShieldCheck size={13} /> },
   ];
 
-  const weekStart = (() => {
-    const date = new Date(weekRef);
-    const diff = (date.getDay() - form.weekStartDay + 7) % 7;
-    date.setDate(date.getDate() - diff);
-    return date;
-  })();
-  const weekEnd = (() => {
-    const date = new Date(weekStart);
-    date.setDate(date.getDate() + 6);
-    return date;
-  })();
-  const weekLabel = (date: Date) => {
-    const text = date.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
-    return text.charAt(0).toUpperCase() + text.slice(1);
-  };
-  const weekRange = `${weekLabel(weekStart)} al ${weekLabel(weekEnd)}`;
-
   return (
     <ITPage
       className="min-w-full! max-w-none!"
@@ -203,24 +185,6 @@ export default function GeneralSettingsPage() {
                   options={DAYS.map((day, index) => ({ value: String(index), label: day }))}
                 />
                 <ITInput name="timezone" label="Zona horaria" value={tenant?.timezone ?? "—"} disabled onChange={() => undefined} />
-              </div>
-              <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3">
-                <ITFlex align="end" gap={3} wrap="wrap">
-                  <div className="min-w-[220px] flex-1">
-                    <ITDatePicker
-                      name="weekReference"
-                      label="Consulta una semana"
-                      value={weekRef}
-                      onChange={(event) => {
-                        const next = event.target.value;
-                        if (next instanceof Date) setWeekRef(next);
-                      }}
-                    />
-                  </div>
-                  <ITText className="min-w-[240px] flex-1 !text-[12.5px] text-slate-700">
-                    Semana del <b>{weekRange}</b>. Así se agrupa el cálculo semanal del cliente en asistencia, tiempo extra y pre-nómina.
-                  </ITText>
-                </ITFlex>
               </div>
               <ITText muted className="mt-3 block !text-[12px]">
                 La zona horaria la define el cliente. Cambiar el primer día no mueve registros ya guardados.
