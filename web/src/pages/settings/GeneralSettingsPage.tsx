@@ -279,6 +279,9 @@ export default function GeneralSettingsPage() {
               <Link to="/payroll/settings" className="flex items-center gap-2 hover:underline">
                 <LuWallet size={14} /> Nómina y prestaciones
               </Link>
+              <Link to="/settings/catalogs" className="flex items-center gap-2 hover:underline">
+                <LuCalendarDays size={14} /> Catálogos (tipos de permiso)
+              </Link>
               <Link to="/hr/leave" className="flex items-center gap-2 hover:underline">
                 <LuCalendarDays size={14} /> Vacaciones y permisos
               </Link>

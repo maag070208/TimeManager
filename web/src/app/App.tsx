@@ -40,6 +40,7 @@ import TeleworkAdminPage from "@pages/nom/TeleworkAdminPage";
 import RolesPage from "@pages/roles/RolesPage";
 import PlansPage from "@pages/plans/PlansPage";
 import GeneralSettingsPage from "@pages/settings/GeneralSettingsPage";
+import CatalogsPage from "@pages/settings/CatalogsPage";
 import LeaveAdminPage from "@pages/leave/LeaveAdminPage";
 import WorkdayAgreementsPage from "@pages/nom/WorkdayAgreementsPage";
 import PayrollSettingsPage from "@pages/payroll/PayrollSettingsPage";
@@ -178,6 +179,14 @@ export default function App() {
           }
         />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route
+          path="/settings/catalogs"
+          element={
+            <RequiresPermission permission={["time_clock.write", "hr.records"]}>
+              <CatalogsPage />
+            </RequiresPermission>
+          }
+        />
         <Route
           path="/settings/general"
           element={

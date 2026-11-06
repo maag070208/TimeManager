@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITDataTable, ITInput, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITDataTable, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
-import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuCalendarCheck, LuCheck, LuX } from "react-icons/lu";
+import { Link } from "react-router-dom";
 import { nomApi } from "@entities/nom";
-import type { LeaveRequestRow, LeaveType } from "@entities/nom";
+import type { LeaveRequestRow } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { TicState } from "@shared/ui/tic";
@@ -26,20 +26,14 @@ const STATUS: Record<LeaveRequestRow["status"], { label: string; color: "success
 /** RH: solicitudes de vacaciones/permisos y tipos configurables. */
 export default function LeaveAdminPage() {
   const [requests, setRequests] = useState<LeaveRequestRow[]>([]);
-  const [types, setTypes] = useState<LeaveType[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [typeKey, setTypeKey] = useState("");
-  const [typeName, setTypeName] = useState("");
-  const [typePaid, setTypePaid] = useState("false");
   const [statusFilter, setStatusFilter] = useState<"ALL" | LeaveRequestRow["status"]>("ALL");
 
   const load = useCallback(async () => {
     try {
-      const [nextRequests, nextTypes] = await Promise.all([nomApi.leaveRequests(), nomApi.leaveTypes()]);
-      setRequests(nextRequests);
-      setTypes(nextTypes);
+      setRequests(await nomApi.leaveRequests());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudieron cargar las solicitudes.");
     }
@@ -57,22 +51,6 @@ export default function LeaveAdminPage() {
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo decidir.");
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const createType = async () => {
-    if (typeKey.trim().length < 3 || typeName.trim().length < 3) return;
-    setBusy("type");
-    try {
-      await nomApi.createType({ key: typeKey, name: typeName, paid: typePaid === "true" });
-      setToast("Tipo de permiso creado.");
-      setTypeKey("");
-      setTypeName("");
-      await load();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo crear el tipo.");
     } finally {
       setBusy(null);
     }
@@ -219,31 +197,14 @@ export default function LeaveAdminPage() {
           <ITCard contentClassName="!p-5">
             <div className="flex items-center gap-2">
               <ITText className="font-bold">Tipos de permiso</ITText>
-              <HelpTip text="Define los tipos que puede solicitar el personal. 'Con goce' paga el día; 'sin goce' no. La clave es un identificador interno (mayúsculas y guiones bajos)." />
+              <HelpTip text="El catálogo de tipos de permiso se administra en Configuración para mantener todos los catálogos del cliente en un solo lugar." />
             </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {types.map((type) => (
-                <ITBadget key={type.id} color={type.paid ? "success" : "gray"} size="sm">
-                  {type.name} · {type.paid ? "con goce" : "sin goce"}
-                </ITBadget>
-              ))}
-            </div>
-            <div className="mt-4 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
-              <ITInput name="typeKey" label="Clave" value={typeKey} onChange={(e) => setTypeKey(e.target.value)} />
-              <ITInput name="typeName" label="Nombre" value={typeName} onChange={(e) => setTypeName(e.target.value)} />
-              <ITSearchSelect
-                name="typePaid"
-                label="Goce de sueldo"
-                value={typePaid}
-                onChange={(e) => setTypePaid(e.target.value)}
-                options={[{ value: "false", label: "Sin goce" }, { value: "true", label: "Con goce" }]}
-              />
-            </div>
-            <div className="mt-3">
-              <ITButton variant="outlined" color="secondary" className="tm-save-button w-full" onClick={() => void createType()} disabled={busy === "type"}>
-                Agregar tipo
-              </ITButton>
-            </div>
+            <ITText muted className="mt-2 block !text-[12.5px]">
+              Agrega, revisa y edita los tipos de permiso desde Configuración → Catálogos.
+            </ITText>
+            <Link to="/settings/catalogs" className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-3 py-2 text-[12px] font-bold text-slate-700 transition hover:bg-slate-50">
+              Administrar catálogos →
+            </Link>
           </ITCard>
         </aside>
       </div>

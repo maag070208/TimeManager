@@ -133,6 +133,7 @@ const ALL_SCREENS: readonly AppScreen[] = [
         ],
       },
       { id: "generalSettings", labelKey: "nav.generalSettings", path: "/settings/general", requirement: { anyOf: ["time_clock.write"] } },
+      { id: "catalogs", labelKey: "nav.catalogs", path: "/settings/catalogs", requirement: { anyOf: ["time_clock.write", "hr.records"] } },
       { id: "roles", labelKey: "nav.roles", path: "/roles", requirement: { anyOf: ["roles.manage"] } },
       { id: "plans", labelKey: "nav.plans", path: "/plans", requirement: { anyOf: ["plans.view"] }, actions: ["plans.manage"] },
     ],
