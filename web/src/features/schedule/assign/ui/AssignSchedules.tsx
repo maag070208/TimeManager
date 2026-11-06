@@ -253,7 +253,7 @@ export default function AssignSchedules() {
           <ITFlex className="min-w-[180px] flex-1">
             <ITInput name="searchPerson" label={t("assign.searchLabel")} placeholder={t("assign.search")} value={q} onChange={(e) => setQ(e.target.value)} className="w-full min-w-0" />
           </ITFlex>
-          <HelpTip text="Marca personas en cualquier columna y usa las flechas del centro para moverlas. También puedes usar el + o − de cada fila. Se aplica al instante." />
+          <HelpTip text="Marca personas en cualquier columna y usa las flechas del centro para moverlas. Una persona solo puede tener un horario vigente: al asignar otro, se reemplaza el anterior. Se aplica al instante." />
         </ITFlex>
       </ITCard>
 
@@ -288,7 +288,7 @@ export default function AssignSchedules() {
         {pane("Sin este horario", availableRows.length, availableRows, toAssign, setToAssign, "right")}
       </div>
 
-      <ITText muted className="!text-[11px]">{t("assign.immediate")} · {t("assign.removeHint")}</ITText>
+      <ITText muted className="!text-[11px]">{t("assign.immediate")} · Una persona solo puede tener un horario vigente; al asignar otro se reemplaza el anterior.</ITText>
 
       {toast && <ITToast message={toast} type="success" position="top-right" duration={3000} onClose={() => setToast(null)} />}
     </ITFlex>

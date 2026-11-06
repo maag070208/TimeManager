@@ -5,7 +5,7 @@ El motor de cálculo del sistema: define horarios, los asigna a empleados y conv
 ## Qué hace
 
 - **Horarios**: CRUD de `Schedule` con días (`ScheduleDay`).
-- **Asignaciones**: `ScheduleAssignment` por empleado con vigencia (`validFrom`); consulta y baja. Si un día tiene varias asignaciones vigentes encimadas (una corrección/reasignación hacia atrás que no cerró a la anterior), el horario del día se resuelve con la que **entró en vigor al final** (empate: la capturada después y el id), nunca con la más antigua.
+- **Asignaciones**: `ScheduleAssignment` por empleado con vigencia (`validFrom`); consulta y baja. Una persona solo puede tener **una asignación abierta** (`validTo = null`) a la vez: un índice único parcial lo garantiza y al asignar un horario se cierra/elimina la asignación abierta anterior. Si un día tiene varias asignaciones vigentes encimadas (una corrección/reasignación hacia atrás que no cerró a la anterior), el horario del día se resuelve con la que **entró en vigor al final** (empate: la capturada después y el id), nunca con la más antigua.
 - **Asistencia calculada**: `computeWorkday` deriva retardo, horas extra y faltas cruzando el horario asignado con checadas (`POST /attendance/time-clock`) o eventos de acceso (`POST /attendance/access`). `POST /weekly-attendance` para la vista semanal.
 - **Tiempo extra calculado**: `POST /overtime/query` y `POST /overtime/export` (lo que alimenta la aprobación en `overtime`).
 - **Cierre de nómina**: revisión por departamento (`PayrollDepartmentReview`), cierre y reapertura de semana (`PayrollWeekClosure`).

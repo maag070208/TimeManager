@@ -226,12 +226,21 @@ export class ScheduleService {
     const dayBefore = new Date(from.getTime() - 24 * 60 * MS_PER_MINUTE);
 
     const assigned = await tenantTransaction(this.db, async (tx) => {
-      // Cierra las asignaciones que cubren la fecha `desde`.
+      // Una persona solo puede tener un horario vigente. Se eliminan las
+      // asignaciones abiertas que aún no entraban en vigor y se cierra la que
+      // cubre la fecha de inicio.
+      await tx.scheduleAssignment.deleteMany({
+        where: { userId: { in: valid }, validTo: null, validFrom: { gt: from } },
+      });
+      await tx.scheduleAssignment.updateMany({
+        where: { userId: { in: valid }, validTo: null },
+        data: { validTo: dayBefore },
+      });
       await tx.scheduleAssignment.updateMany({
         where: {
           userId: { in: valid },
           validFrom: { lte: from },
-          OR: [{ validTo: null }, { validTo: { gte: from } }],
+          validTo: { gte: from },
         },
         data: { validTo: dayBefore },
       });
