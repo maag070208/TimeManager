@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITText, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
-import { LuArrowLeft, LuBuilding2, LuCalendarClock, LuCheck, LuChevronLeft, LuChevronRight, LuClock, LuLock, LuLockOpen, LuWallet } from "react-icons/lu";
+import { LuBuilding2, LuCalendarClock, LuCheck, LuChevronLeft, LuChevronRight, LuClock, LuLock, LuLockOpen, LuWallet } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { tenantApi } from "@entities/tenant";
 import { TENANT_MODULES } from "@shared/lib/tenant-modules";
@@ -142,11 +142,7 @@ export default function TenantDetailPage() {
       title="Detalle del cliente"
       description={`${tenant.slug} · ${tenant.status === "ACTIVE" ? "Cliente activo" : "Cliente suspendido"}`}
       icon={<LuBuilding2 size={20} />}
-      actions={
-        <ITButton variant="outlined" color="secondary" className="tm-save-button" onClick={() => navigate("/")}>
-          <LuArrowLeft size={14} className="mr-1" /> Volver
-        </ITButton>
-      }
+      backAction={() => navigate("/tenants")}
     >
       <div className="flex flex-col gap-4 pb-12">
         {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
