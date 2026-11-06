@@ -63,6 +63,7 @@ export default function TenantDetailPage() {
   const [search, setSearch] = useState("");
   const [planOpen, setPlanOpen] = useState(false);
   const [chargeOpen, setChargeOpen] = useState(false);
+  const [extraLogs, setExtraLogs] = useState<Array<{ id: string; date: string; event: string; detail: string; user: string }>>([]);
   const [form, setForm] = useState({ concept: "Suscripción mensual", period: new Date().toISOString().slice(0, 7), amount: "", dueDate: new Date().toISOString().slice(0, 10) });
 
   const load = useCallback(async () => {
@@ -86,6 +87,22 @@ export default function TenantDetailPage() {
     { id: "modules", label: "Módulos activados", done: activeModules.length > 0, caption: `${activeModules.length} de ${TENANT_MODULES.length} activos`, action: () => setTab("modules") },
   ];
   const setupDone = setup.filter((step) => step.done).length;
+  const logs = useMemo(() => {
+    const paymentLogs = (payments?.rows ?? []).map((payment) => ({
+      id: `payment-${payment.id}`,
+      date: payment.paidAt ?? payment.createdAt,
+      event: payment.status === "PAID" ? "Pago registrado" : "Cargo registrado",
+      detail: `${payment.concept} · ${payment.period} · ${money(payment.amount)}`,
+      user: "Plataforma",
+    }));
+    const baseline = tenant ? [
+      { id: "tenant-created", date: tenant.createdAt, event: "Alta de cliente", detail: `${tenant.name} (${tenant.slug})`, user: "Plataforma" },
+      { id: "tenant-modules", date: tenant.updatedAt, event: "Módulos actualizados", detail: `${TENANT_MODULES.filter((module) => !(tenant.disabledModules ?? []).includes(module.id)).length} de ${TENANT_MODULES.length} activos`, user: "Plataforma" },
+      ...(tenant.plan ? [{ id: "tenant-plan", date: tenant.updatedAt, event: "Plan asignado", detail: `${tenant.plan.name} · ${money(Number(tenant.plan.monthlyPrice ?? 0))}/mes`, user: "Plataforma" }] : []),
+    ] : [];
+    return [...extraLogs, ...paymentLogs, ...baseline].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [payments, tenant, extraLogs]);
+  const addLog = (event: string, detail: string) => setExtraLogs((prev) => [{ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, date: new Date().toISOString(), event, detail, user: "Admin Plataforma" }, ...prev]);
 
   const toggleModule = async (moduleId: string) => {
     if (!tenant) return;
@@ -95,6 +112,8 @@ export default function TenantDetailPage() {
     try {
       const updated = await tenantApi.update(id, { disabledModules: next });
       setTenant(updated);
+      const label = TENANT_MODULES.find((module) => module.id === moduleId)?.label ?? moduleId;
+      addLog(next.includes(moduleId) ? "Módulo apagado" : "Módulo activado", label);
       setToast(next.includes(moduleId) ? "Módulo apagado para el cliente." : "Módulo activado.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo cambiar el módulo.");
@@ -108,6 +127,7 @@ export default function TenantDetailPage() {
     setBusy("charge");
     try {
       await tenantApi.createPayment(id, { concept: form.concept, period: form.period, amount: Number(form.amount), dueDate: form.dueDate });
+      addLog("Cargo registrado", `${form.concept} · ${form.period} · ${money(Number(form.amount))}`);
       setToast("Cargo registrado.");
       setChargeOpen(false);
       setForm((prev) => ({ ...prev, amount: "" }));
@@ -123,6 +143,7 @@ export default function TenantDetailPage() {
     setBusy(payment.id);
     try {
       await tenantApi.updatePayment(id, payment.id, { status: "PAID", paidAt: new Date().toISOString() });
+      addLog("Pago registrado", `${payment.concept} · ${payment.period} · ${money(payment.amount)}`);
       setToast("Pago registrado.");
       await load();
     } catch (cause) {
@@ -217,13 +238,6 @@ export default function TenantDetailPage() {
         )}
       </Padre>
 
-      <Padre title="Actividad reciente" icon={<LuClock size={16} />}>
-        <div className="flex flex-col gap-2 text-[12px] text-slate-600">
-          <div className="flex gap-2"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" /> {activeModules.length} módulos activos</div>
-          <div className="flex gap-2"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" /> Alta del cliente {dateLabel(tenant.createdAt)}</div>
-          {payments?.rows[0] && <div className="flex gap-2"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" /> Último movimiento {dateLabel(payments.rows[0].createdAt)}</div>}
-        </div>
-      </Padre>
     </div>
   );
 
@@ -314,18 +328,22 @@ export default function TenantDetailPage() {
                   </div>
                 </Padre>
                 <div className="mt-4">
-                  <Padre title="Accesos rápidos" icon={<LuChevronRight size={16} />}>
-                    <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
-                      {[
-                        { label: "Gestionar módulos", action: () => setTab("modules") },
-                        { label: "Ver facturación", action: () => setTab("billing") },
-                        { label: "Registrar cargo", action: () => setChargeOpen(true) },
-                        { label: "Entrar como cliente", action: () => window.open(tenantUrl(tenant.slug), "_blank", "noopener") },
-                      ].map((item) => (
-                        <button key={item.label} type="button" onClick={item.action} className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-left text-[12.5px] font-semibold text-slate-700 transition hover:bg-slate-50">
-                          {item.label} <LuChevronRight size={14} className="text-slate-400" />
-                        </button>
-                      ))}
+                  <Padre title="Actividad reciente" icon={<LuClock size={16} />} action={<ITButton variant="text" color="primary" size="sm" onClick={() => setTab("activity")}>Ver todo</ITButton>}>
+                    <div className="overflow-x-auto">
+                      <div className="min-w-[560px]">
+                        <div className="grid grid-cols-[0.9fr_1fr_1.6fr_0.8fr] gap-2 border-b border-slate-100 pb-2 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">
+                          <span>Fecha</span><span>Evento</span><span>Detalle</span><span>Usuario</span>
+                        </div>
+                        {logs.slice(0, 6).map((log) => (
+                          <div key={log.id} className="grid grid-cols-[0.9fr_1fr_1.6fr_0.8fr] items-center gap-2 border-b border-slate-50 py-2.5 text-[12px] last:border-0">
+                            <span className="text-slate-500">{dateLabel(log.date)}</span>
+                            <span className="font-semibold text-slate-800">{log.event}</span>
+                            <span className="truncate text-slate-600">{log.detail}</span>
+                            <span className="text-slate-500">{log.user}</span>
+                          </div>
+                        ))}
+                        {logs.length === 0 && <ITText muted className="block py-5 text-center !text-[12px]">Sin actividad registrada.</ITText>}
+                      </div>
                     </div>
                   </Padre>
                 </div>
