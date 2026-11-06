@@ -7,6 +7,7 @@ import { dateLocale } from "@shared/i18n/format";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { PanelCard } from "@shared/ui/panel-card";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 import type { ClockAlert, SummaryClock, TimeClockSummary } from "@entities/time-clock";
 import { timeClockApi, type TimeClockPerson } from "@entities/time-clock";
 import FingerprintReaderPanel from "./FingerprintReaderPanel";
@@ -339,7 +340,11 @@ function PeoplePreview({ serial, onSeeAll, onOpenPerson }: { serial: string; onS
       }
     >
       {loading && <ITText className="text-xs text-slate-400">{t("dashboard.personnel.loading")}</ITText>}
-      {error && <ITText role="alert" className="text-xs text-red-600">{error}</ITText>}
+      {error && (
+        <div className="rounded-xl bg-amber-50 px-3 py-2 text-[11.5px] leading-snug text-amber-800">
+          {t("dashboard.personnel.unavailable")}
+        </div>
+      )}
       {people && people.length === 0 && <ITText className="text-xs text-slate-400">{t("dashboard.personnel.empty")}</ITText>}
       {people && people.length > 0 && (
         <ul className="flex flex-col divide-y divide-slate-100">
@@ -434,23 +439,15 @@ export default function TimeClockDashboardView() {
   return (
     <ITFlex direction="column" gap={5}>
       <ITFlex align="center" justify="between" gap={3} wrap="wrap">
-        <nav role="tablist" className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-          {SECTIONS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              role="tab"
-              aria-selected={section === s}
-              onClick={() => setSection(s)}
-              className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                section === s ? "bg-[#eaf6ef] text-emerald-900 shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-              }`}
-            >
-              {SECTION_ICON[s]}
-              {t(`dashboard.sections.${s}`)}
-            </button>
-          ))}
-        </nav>
+        <TabBar
+          items={SECTIONS.map((s) => ({
+            id: s,
+            label: t(`dashboard.sections.${s}`),
+            icon: SECTION_ICON[s],
+          })) as TabBarItem<Section>[]}
+          value={section}
+          onChange={setSection}
+        />
         <ITFlex align="center" gap={3} wrap="wrap">
           {showClockPicker && (
             <ITSearchSelect

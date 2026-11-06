@@ -750,7 +750,8 @@
       "empty": "El reloj no tiene personas dadas de alta.",
       "more": "y {{count}} más",
       "count": "{{count}} persona(s) en el reloj",
-      "hint": "Lectura bajo demanda del equipo"
+      "hint": "Lectura bajo demanda del equipo",
+      "unavailable": "No se pudo leer el personal. Verifica que el reloj esté en línea e intenta de nuevo."
     },
     "device": {
       "name": "Nombre",

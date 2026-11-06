@@ -750,7 +750,8 @@
       "empty": "The clock has no people enrolled.",
       "more": "and {{count}} more",
       "count": "{{count}} person(s) on the clock",
-      "hint": "On-demand read from the device"
+      "hint": "On-demand read from the device",
+      "unavailable": "Could not read the clock personnel. Check that the clock is online and try again."
     },
     "device": {
       "name": "Name",
