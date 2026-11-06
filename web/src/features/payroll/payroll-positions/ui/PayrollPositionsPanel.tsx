@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITDataTable, ITDialog, ITInput, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
-import { LuPencil, LuPlus, LuPower, LuPowerOff, LuUserCheck } from "react-icons/lu";
+import { LuPencil, LuPlus, LuPower, LuPowerOff, LuUserCheck, LuWallet } from "react-icons/lu";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
 import { usersApi, type User } from "@entities/user";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { HelpTip } from "@shared/ui/help-tip";
+import { DialogHeader } from "@shared/ui/dialog-header";
+import { useNavigate } from "react-router-dom";
 import { RowAction } from "@shared/ui/row-action";
 
 type Filter = "all" | "active" | "inactive";
 const money = (value: number) => value.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
 
 export default function PayrollPositionsPanel() {
+  const navigate = useNavigate();
   const [positions, setPositions] = useState<PayrollPosition[]>([]);
   const [employees, setEmployees] = useState<User[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
@@ -92,7 +95,7 @@ export default function PayrollPositionsPanel() {
   const visible = positions.filter((position) => filter === "all" || (filter === "active" ? position.active : !position.active));
   const assigned = positions.reduce((sum, position) => sum + position.employees.length, 0);
   const columns: Column<PayrollPosition>[] = [
-    { key: "name", label: "Perfil", type: "string", sortable: true, render: (row) => <div><ITText className="block font-semibold">{row.name}</ITText><ITText muted className="!text-[11.5px]">{row.jobTitle ?? "Sin cargo"}</ITText></div> },
+    { key: "name", label: "Puesto", type: "string", sortable: true, render: (row) => <div><ITText className="block font-semibold">{row.name}</ITText><ITText muted className="!text-[11.5px]">{row.jobTitle ?? "Sin cargo"}</ITText></div> },
     { key: "dailySalary", label: "Salario diario", type: "number", render: (row) => <span className="tabular-nums">{money(row.dailySalary)}</span> },
     { key: "sbcDaily", label: "SBC diario", type: "number", render: (row) => <span className="tabular-nums">{row.sbcDaily != null ? money(row.sbcDaily) : "—"}</span> },
     { key: "employees", label: "Personal", type: "number", render: (row) => <ITBadget color={row.employees.length ? "success" : "gray"} size="sm">{row.employees.length} asignados</ITBadget> },
@@ -113,13 +116,19 @@ export default function PayrollPositionsPanel() {
   return (
     <div className="flex flex-col gap-4">
       {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
-      <div className="flex items-center justify-end gap-2">
-        <HelpTip text="Cada perfil define salario diario y SBC por cargo. Asigna personas para que su pre-nómina use esos valores." />
-        <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={openNew}><LuPlus size={14} className="mr-1" /> Nuevo perfil</ITButton>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <HelpTip text="Cada puesto define salario diario y SBC. Asigna personas para que su pre-nómina use esos valores. Los mismos puestos se administran en Configuración → Catálogos." />
+        <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => navigate("/settings/catalogs?tab=positions")}>Catálogo de puestos</ITButton>
+        <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={openNew}><LuPlus size={14} className="mr-1" /> Nuevo puesto</ITButton>
       </div>
-      <BentoFilterCards items={[{ id: "all", label: "Perfiles", value: positions.length, caption: `${assigned} personas asignadas` }, { id: "active", label: "Activos", value: positions.filter((position) => position.active).length, caption: "disponibles" }, { id: "inactive", label: "Inactivos", value: positions.filter((position) => !position.active).length, caption: "fuera de uso" }]} activeId={filter} onSelect={(id) => setFilter(id as Filter)} />
+      <BentoFilterCards items={[{ id: "all", label: "Puestos", value: positions.length, caption: `${assigned} personas asignadas` }, { id: "active", label: "Activos", value: positions.filter((position) => position.active).length, caption: "disponibles" }, { id: "inactive", label: "Inactivos", value: positions.filter((position) => !position.active).length, caption: "fuera de uso" }]} activeId={filter} onSelect={(id) => setFilter(id as Filter)} />
       <ITDataTable key={`${filter}-${reloadToken}`} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50} columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} variant="minimal" onRowClick={(row) => openEdit(row as unknown as PayrollPosition)} />
-      <ITDialog isOpen={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? "Nuevo perfil de nómina" : "Editar perfil de nómina"}>
+      <ITDialog isOpen={editing !== null} onClose={() => setEditing(null)} className="max-w-xl">
+        <DialogHeader
+          icon={<LuWallet size={20} />}
+          title={editing === "new" ? "Nuevo puesto de nómina" : "Editar puesto de nómina"}
+          subtitle="Los cambios se reflejan en Catálogos y en la pre-nómina."
+        />
         <div className="flex flex-col gap-3">
           <ITInput name="payrollProfileName" label="Nombre del perfil" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} placeholder="Operativo, Administrativo…" />
           <ITInput name="payrollProfileJob" label="Cargo" value={form.jobTitle} onChange={(event) => setForm((prev) => ({ ...prev, jobTitle: event.target.value }))} placeholder="Analista, Gerente…" />

@@ -136,7 +136,7 @@ export default function PayrollSettingsPage() {
       <div className="mb-4">
         <TabBar
           items={[
-            { id: "positions", label: "Perfiles por cargo" },
+            { id: "positions", label: "Puestos de nómina" },
             { id: "settings", label: "Configuración general" },
           ]}
           value={tab}

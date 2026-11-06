@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ITAlert,
   ITBadget,
@@ -48,7 +49,15 @@ type CatalogRow = LeaveType & DocumentType & Department & PayrollPosition;
 
 /** Catálogos maestros del cliente, con alta, edición y baja lógica. */
 export default function CatalogsPage() {
-  const [tab, setTab] = useState<CatalogKey>("leave");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab");
+  const [tab, setTabState] = useState<CatalogKey>(
+    initialTab === "documents" || initialTab === "departments" || initialTab === "positions" ? initialTab : "leave"
+  );
+  const setTab = (value: CatalogKey) => {
+    setTabState(value);
+    setSearchParams({ tab: value }, { replace: true });
+  };
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
