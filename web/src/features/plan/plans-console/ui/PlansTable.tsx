@@ -1,8 +1,7 @@
-import { ITButton, ITText } from "@axzydev/axzy_ui_system";
+import { ITBadget, ITButton, ITDataTable, ITText, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuPencil, LuPower, LuPowerOff } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { Plan } from "@entities/plan";
-import { ToneChip } from "@shared/ui/tone-chip";
 
 interface Props {
   rows: Plan[];
@@ -23,63 +22,59 @@ export default function PlansTable({ rows, canManage, onEdit, onToggleStatus }: 
           maximumFractionDigits: 0,
         }).format(Number(price));
 
+  const columns: Column<Plan>[] = [
+    {
+      key: "name",
+      label: t("table.plan"),
+      type: "string",
+      sortable: true,
+      render: (row) => (
+        <div className="min-w-0">
+          <ITText className="block truncate font-semibold text-slate-800">{row.name}</ITText>
+          <ITText as="span" className="block font-mono text-[11px] text-slate-500">{row.key}</ITText>
+        </div>
+      ),
+    },
+    { key: "employeeLimit", label: t("table.people"), type: "number", className: "text-right", render: (row) => <span className="tabular-nums">{row.employeeLimit.toLocaleString(i18n.language)}</span> },
+    { key: "clockLimit", label: t("table.clocks"), type: "number", className: "text-right", render: (row) => <span className="tabular-nums">{row.clockLimit}</span> },
+    { key: "monthlyPrice", label: t("table.price"), type: "number", className: "text-right", render: (row) => <span className="tabular-nums">{money(row.monthlyPrice)}</span> },
+    { key: "active", label: t("table.status"), type: "string", render: (row) => <ITBadget color={row.active ? "success" : "warning"} size="sm">{t(row.active ? "status.active" : "status.inactive")}</ITBadget> },
+    {
+      key: "actions",
+      label: "",
+      type: "actions",
+      cellClassName: "min-w-[110px] whitespace-nowrap",
+      actions: (row) => (
+        <div className="flex justify-end gap-1.5">
+          {canManage && (
+            <>
+              <ITButton variant="outlined" color="primary" className="tm-icon-button" aria-label={t("actions.edit")} title={t("actions.edit")} onClick={() => onEdit(row)}><LuPencil size={14} /></ITButton>
+              <ITButton variant="outlined" color={row.active ? "warning" : "success"} className="tm-icon-button" aria-label={t(row.active ? "actions.deactivate" : "actions.activate")} title={t(row.active ? "actions.deactivate" : "actions.activate")} onClick={() => onToggleStatus(row)}>{row.active ? <LuPowerOff size={14} /> : <LuPower size={14} />}</ITButton>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const fetchData = async (params: ITDataTableFetchParams): Promise<ITDataTableResponse<Plan>> => {
+    const start = (params.page - 1) * params.limit;
+    return { data: rows.slice(start, start + params.limit), total: rows.length };
+  };
+
   return (
-    <div className="-mx-1 overflow-x-auto">
-      <table className="w-full min-w-[760px] border-separate border-spacing-y-1 text-left text-sm">
-        <thead>
-          <tr className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            <th className="px-3 py-2">{t("table.plan")}</th>
-            <th className="px-3 py-2 text-right">{t("table.people")}</th>
-            <th className="px-3 py-2 text-right">{t("table.clocks")}</th>
-            <th className="px-3 py-2 text-right">{t("table.price")}</th>
-            <th className="px-3 py-2">{t("table.status")}</th>
-            <th className="px-3 py-2" aria-label={t("table.actions")} />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id} className="rounded-xl bg-slate-50 dark:bg-slate-800/60">
-              <td className="rounded-l-xl px-3 py-3">
-                <ITText className="block font-semibold text-slate-800 dark:text-slate-100">{row.name}</ITText>
-                <ITText as="span" className="block font-mono text-[11px] text-slate-500">
-                  {row.key}
-                </ITText>
-              </td>
-              <td className="px-3 py-3 text-right tabular-nums">{row.employeeLimit.toLocaleString(i18n.language)}</td>
-              <td className="px-3 py-3 text-right tabular-nums">{row.clockLimit}</td>
-              <td className="px-3 py-3 text-right tabular-nums">{money(row.monthlyPrice)}</td>
-              <td className="px-3 py-3">
-                <ToneChip
-                  size="sm"
-                  dot
-                  tone={row.active ? "success" : "warning"}
-                  label={t(row.active ? "status.active" : "status.inactive")}
-                />
-              </td>
-              <td className="rounded-r-xl px-3 py-3">
-                <div className="flex justify-end gap-2">
-                  {canManage && (
-                    <>
-                      <ITButton variant="outlined" color="secondary" size="sm" onClick={() => onEdit(row)}>
-                        <span className="flex items-center gap-1.5">
-                          <LuPencil aria-hidden size={13} />
-                          {t("actions.edit")}
-                        </span>
-                      </ITButton>
-                      <ITButton variant="outlined" color="secondary" size="sm" onClick={() => onToggleStatus(row)}>
-                        <span className="flex items-center gap-1.5">
-                          {row.active ? <LuPowerOff aria-hidden size={13} /> : <LuPower aria-hidden size={13} />}
-                          {t(row.active ? "actions.deactivate" : "actions.activate")}
-                        </span>
-                      </ITButton>
-                    </>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <ITDataTable
+      showViewToggle={false}
+      defaultItemsPerPage={50}
+      itemsPerPageOptions={[25, 50, 100]}
+      layout="fixed"
+      density="compact"
+      virtualized
+      virtualizedMaxHeight={400}
+      rowHeight={50}
+      columns={columns as unknown as Column<Record<string, unknown>>[]}
+      fetchData={fetchData as never}
+      onRowClick={(row) => onEdit(row as unknown as Plan)}
+    />
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ITAlert, ITButton, ITStack, ITText } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { LuBadgeDollarSign, LuCircleCheck, LuCirclePause, LuLayers, LuPlus } from "react-icons/lu";
@@ -10,7 +11,7 @@ import {
 } from "@features/plan/plans-console";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { PanelCard } from "@shared/ui/panel-card";
-import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { HelpTip } from "@shared/ui/help-tip";
 import { TicState } from "@shared/ui/tic";
 import { TicConfirm } from "@shared/ui/tic-confirm";
@@ -22,6 +23,8 @@ export default function PlansPage() {
   const navigate = useNavigate();
   const goBack = useGoBack();
   const fx = usePlansConsole();
+  const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
+  const rows = (fx.plans ?? []).filter((plan) => filter === "all" || (filter === "active" ? plan.active : !plan.active));
 
   const newPlan = fx.canManage ? (
     <ITButton variant="filled" color="primary" onClick={fx.openCreate}>
@@ -52,11 +55,13 @@ export default function PlansPage() {
         )}
 
         {fx.plans && fx.plans.length > 0 && (
-          <BentoKpiGrid
+          <BentoFilterCards
+            activeId={filter}
+            onSelect={(id) => setFilter(id as "all" | "active" | "inactive")}
             items={[
-              { id: "all", label: t("kpis.all"), value: fx.counts.all, icon: <LuLayers size={14} /> },
-              { id: "active", label: t("kpis.active"), value: fx.counts.active, tone: "success", icon: <LuCircleCheck size={14} /> },
-              { id: "inactive", label: t("kpis.inactive"), value: fx.counts.inactive, tone: "warning", icon: <LuCirclePause size={14} /> },
+              { id: "all", label: t("kpis.all"), value: fx.counts.all, caption: "en el catálogo", icon: <LuLayers size={14} /> },
+              { id: "active", label: t("kpis.active"), value: fx.counts.active, caption: "disponibles", icon: <LuCircleCheck size={14} /> },
+              { id: "inactive", label: t("kpis.inactive"), value: fx.counts.inactive, caption: "dados de baja", icon: <LuCirclePause size={14} /> },
             ]}
           />
         )}
@@ -88,7 +93,7 @@ export default function PlansPage() {
             />
           ) : (
             <PlansTable
-              rows={fx.plans}
+              rows={rows}
               canManage={fx.canManage}
               onEdit={fx.openEdit}
               onToggleStatus={fx.setStatusTarget}
