@@ -141,16 +141,16 @@ export default function PayrollSettingsPage() {
         {/* Columna principal */}
         <div className="flex flex-col gap-4 lg:col-span-8">
           <ITCard className="lg:col-span-8" contentClassName="!p-0">
-            <div className="rounded-2xl bg-[#0f2e3d] px-5 py-4 text-white">
+            <div className="rounded-2xl bg-[linear-gradient(135deg,#edf8f2_0%,#e9f3fa_55%,#fdf6ea_100%)] px-5 py-4 text-slate-900">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-white/60">
+                  <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
                     Salario y jornada
                   </ITText>
-                  <ITText className="!text-2xl font-extrabold !text-white">
+                  <ITText className="!text-2xl font-extrabold !text-slate-900">
                     {configured ? money(form.defaultDailySalary ?? 0) : "Configura el salario diario"}
                   </ITText>
-                  <ITText className="!text-[12px] !text-white/70">
+                  <ITText className="!text-[12px] !text-slate-600">
                     {configured
                       ? `${money(hour)}/hora · ${money(weekly)} por semana de 6 días`
                       : "Sin salario no se puede calcular nómina"}
@@ -167,11 +167,11 @@ export default function PayrollSettingsPage() {
                   { label: "Aguinaldo", value: `${form.aguinaldoDays} días`, icon: <LuReceipt size={13} /> },
                   { label: "PTU", value: `${form.ptuRatePct}%`, icon: <LuPercent size={13} /> },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-xl bg-white/10 px-3 py-2">
+                  <div key={item.label} className="rounded-xl bg-white/60 px-3 py-2">
                     <span className="flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide text-white/60">
                       {item.icon} {item.label}
                     </span>
-                    <span className="block text-[14px] font-bold tabular-nums text-white">{item.value}</span>
+                    <span className="block text-[14px] font-bold tabular-nums text-slate-900">{item.value}</span>
                   </div>
                 ))}
               </div>

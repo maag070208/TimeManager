@@ -121,13 +121,13 @@ export default function TenantDetailPage() {
         {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
 
         <ITCard contentClassName="!p-0">
-          <div className="relative overflow-hidden rounded-2xl bg-[#0f2e3d] px-5 py-4 text-white">
+          <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#edf8f2_0%,#e9f3fa_55%,#fdf6ea_100%)] px-5 py-4 text-slate-900">
             {wave("rgba(255,255,255,0.10)")}
             <div className="relative flex flex-wrap items-center justify-between gap-3">
               <div>
-                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-white/60">Cliente</ITText>
-                <ITText className="!text-2xl font-extrabold !text-white">{tenant.name}</ITText>
-                <ITText className="!text-[12px] !text-white/70">{tenant.slug} · {tenant.status === "ACTIVE" ? "Activo" : "Suspendido"} · alta {dateLabel(tenant.createdAt)}</ITText>
+                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">Cliente</ITText>
+                <ITText className="!text-2xl font-extrabold !text-slate-900">{tenant.name}</ITText>
+                <ITText className="!text-[12px] !text-slate-600">{tenant.slug} · {tenant.status === "ACTIVE" ? "Activo" : "Suspendido"} · alta {dateLabel(tenant.createdAt)}</ITText>
               </div>
               <div className="flex flex-wrap gap-2 text-[11.5px]">
                 <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-white/85">{tenant.plan?.name ?? "Sin plan"}</span>

@@ -61,7 +61,7 @@ export default function ClientOverview() {
   const doneSteps = onboardingSteps?.filter((step) => step.done).length ?? 0;
   const pendingSteps = (onboardingSteps?.length ?? 0) - doneSteps;
   const seeAll = (to: string) => (
-    <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => navigate(to)}>
+    <ITButton variant="text" color="primary" size="sm" onClick={() => navigate(to)}>
       {t("client.seeAll")} <LuArrowRight size={12} />
     </ITButton>
   );
@@ -80,12 +80,12 @@ export default function ClientOverview() {
     const withoutSchedule = fx.setup?.personalWithoutSchedule ?? 0;
     return (
       <ITCard contentClassName="!p-0">
-        <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#0b1220_0%,#111b2e_55%,#0b1220_100%)] p-5 text-white">
+        <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#edf8f2_0%,#e9f3fa_55%,#fdf6ea_100%)] p-5 text-slate-900">
           <Waves />
           <div className="relative flex flex-wrap items-start justify-between gap-2">
             <div>
-              <ITText className="!text-[10.5px] font-semibold uppercase tracking-[0.12em] !text-white/60">Hoy</ITText>
-              <ITText className="!text-[20px] font-extrabold !text-white">{today}</ITText>
+              <ITText className="!text-[10.5px] font-semibold uppercase tracking-[0.12em] !text-slate-500">Hoy</ITText>
+              <ITText className="!text-[20px] font-extrabold !text-slate-900">{today}</ITText>
             </div>
             <div className="flex items-center gap-2">
               <ITBadget color="success" size="sm">{a.counts.onSite} en sitio</ITBadget>
@@ -94,32 +94,32 @@ export default function ClientOverview() {
           </div>
 
           {scheduled === 0 && withoutSchedule > 0 ? (
-            <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/10 px-4 py-3">
+            <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/60 px-4 py-3">
               <div>
-                <ITText className="!text-[24px] font-black !text-white">{withoutSchedule} sin horario</ITText>
-                <ITText className="!text-[12px] !text-white/70">Nadie tiene horario asignado hoy; así no podemos calcular asistencia.</ITText>
+                <ITText className="!text-[24px] font-black !text-slate-900">{withoutSchedule} sin horario</ITText>
+                <ITText className="!text-[12px] !text-slate-600">Nadie tiene horario asignado hoy; así no podemos calcular asistencia.</ITText>
               </div>
-              <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={() => navigate("/schedules")}>
+              <ITButton variant="filled" color="success" size="sm" className="tm-row-button" onClick={() => navigate("/schedules")}>
                 Asignar horarios <LuArrowRight size={12} />
               </ITButton>
             </div>
           ) : (
             <div className="relative mt-4">
               <div className="flex items-end justify-between gap-2">
-                <span className="text-[34px] font-black leading-none">{a.counts.onSite}<span className="text-[18px] font-bold text-white/60"> / {scheduled} en sitio</span></span>
-                <span className="text-[11.5px] text-white/60">{scheduled === 0 ? "Sin checadas hoy" : "Jornada en curso"}</span>
+                <span className="text-[34px] font-black leading-none">{a.counts.onSite}<span className="text-[18px] font-bold text-slate-500"> / {scheduled} en sitio</span></span>
+                <span className="text-[11.5px] text-slate-500">{scheduled === 0 ? "Sin checadas hoy" : "Jornada en curso"}</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200/70">
                 <div className="dash-bar h-full rounded-full bg-emerald-400" style={{ width: `${scheduled ? Math.round((a.counts.onSite / scheduled) * 100) : 0}%` }} />
               </div>
               <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
                 {[
-                  { label: t("client.attendance.present"), value: a.counts.PRESENT, color: "text-emerald-300" },
-                  { label: t("client.attendance.late"), value: a.counts.LATE, color: "text-amber-300" },
-                  { label: t("client.attendance.notArrived"), value: a.counts.NOT_ARRIVED, color: "text-rose-300" },
+                  { label: t("client.attendance.present"), value: a.counts.PRESENT, color: "text-emerald-600" },
+                  { label: t("client.attendance.late"), value: a.counts.LATE, color: "text-amber-600" },
+                  { label: t("client.attendance.notArrived"), value: a.counts.NOT_ARRIVED, color: "text-rose-500" },
                 ].map((stat) => (
-                  <div key={stat.label} className="rounded-lg bg-white/10 px-2.5 py-2">
-                    <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-white/60">{stat.label}</span>
+                  <div key={stat.label} className="rounded-lg bg-white/60 px-2.5 py-2">
+                    <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-slate-500">{stat.label}</span>
                     <span className={`block text-[20px] font-black tabular-nums ${stat.color}`}>{stat.value}</span>
                   </div>
                 ))}
@@ -128,9 +128,9 @@ export default function ClientOverview() {
           )}
 
           {quickActions.length > 0 && (
-            <div className="relative mt-4 flex flex-wrap gap-1.5 border-t border-white/10 pt-3">
+            <div className="relative mt-4 flex flex-wrap gap-1.5 border-t border-slate-200/50 pt-3">
               {quickActions.map((action) => (
-                <button key={action.label} type="button" onClick={() => navigate(action.to)} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11.5px] font-semibold text-white/90 transition hover:bg-white/20">
+                <button key={action.label} type="button" onClick={() => navigate(action.to)} className="inline-flex items-center gap-1.5 rounded-lg bg-white/70 px-2.5 py-1.5 text-[11.5px] font-semibold text-slate-700 transition hover:bg-white">
                   {action.icon} {action.label}
                 </button>
               ))}

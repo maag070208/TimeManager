@@ -143,26 +143,26 @@ export default function GeneralSettingsPage() {
 
         <div className="flex flex-col gap-4 lg:col-span-8">
           <ITCard contentClassName="!p-0">
-            <div className="rounded-2xl bg-[#0f2e3d] px-5 py-4 text-white">
+            <div className="rounded-2xl bg-[linear-gradient(135deg,#edf8f2_0%,#e9f3fa_55%,#fdf6ea_100%)] px-5 py-4 text-slate-900">
               <span className="flex items-center gap-1.5">
-                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-white/60">
+                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
                   Operación del cliente
                 </ITText>
                 <HelpTip text="El primer día define cómo se agrupan los días en horarios, pre-nómina, tiempo extra y reportes. La zona horaria la define el cliente." />
               </span>
-              <ITText className="!text-2xl font-extrabold !text-white">
+              <ITText className="!text-2xl font-extrabold !text-slate-900">
                 Semana {weekDay.toLowerCase()} → {DAYS[(form.weekStartDay + 6) % 7].toLowerCase()}
               </ITText>
-              <ITText className="!text-[12px] !text-white/70">
+              <ITText className="!text-[12px] !text-slate-600">
                 Aplica a horarios, pre-nómina, tiempo extra, asistencia y bitácoras.
               </ITText>
               <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
                 {summaryTiles.map((tile) => (
-                  <div key={tile.label} className="rounded-xl bg-white/10 px-3 py-2">
+                  <div key={tile.label} className="rounded-xl bg-white/60 px-3 py-2">
                     <span className="flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide text-white/60">
                       {tile.icon} {tile.label}
                     </span>
-                    <span className="block text-[14px] font-bold capitalize text-white">{tile.value}</span>
+                    <span className="block text-[14px] font-bold capitalize text-slate-900">{tile.value}</span>
                   </div>
                 ))}
               </div>

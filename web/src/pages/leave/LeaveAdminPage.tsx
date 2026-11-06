@@ -161,10 +161,10 @@ export default function LeaveAdminPage() {
 
         <aside className="flex flex-col gap-4 lg:col-span-4 lg:sticky lg:top-4">
           <ITCard contentClassName="!p-0">
-            <div className="rounded-2xl bg-[#0f2e3d] px-5 py-4 text-white">
-              <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-white/60">Resumen</ITText>
-              <ITText className="!text-2xl font-extrabold !text-white">{pending.length} pendientes</ITText>
-              <ITText className="!text-[12px] !text-white/70">{approved} aprobadas · {rejected} rechazadas</ITText>
+            <div className="rounded-2xl bg-[linear-gradient(135deg,#edf8f2_0%,#e9f3fa_55%,#fdf6ea_100%)] px-5 py-4 text-slate-900">
+              <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">Resumen</ITText>
+              <ITText className="!text-2xl font-extrabold !text-slate-900">{pending.length} pendientes</ITText>
+              <ITText className="!text-[12px] !text-slate-600">{approved} aprobadas · {rejected} rechazadas</ITText>
             </div>
             <div className="grid grid-cols-2 gap-2 p-3">
               <div className="rounded-xl bg-slate-50 p-3">
