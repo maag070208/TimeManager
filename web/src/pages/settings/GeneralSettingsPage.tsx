@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITDatePicker, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuBuilding2, LuCalendarDays, LuCircleHelp, LuSignature, LuSave, LuShieldCheck, LuWallet, LuClock } from "react-icons/lu";
@@ -26,7 +26,6 @@ export default function GeneralSettingsPage() {
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [tab, setTab] = useState<"operation" | "attendance" | "limits" | "checks">("operation");
   const [helpOpen, setHelpOpen] = useState(false);
-  const [retentionRef, setRetentionRef] = useState(() => new Date());
   const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState({
     weekStartDay: 3,
@@ -122,14 +121,6 @@ export default function GeneralSettingsPage() {
     { label: "Comida", value: `${form.mealBreakMin} min`, icon: <LuClock size={13} /> },
     { label: "Tope diario", value: `${Math.round(form.workdayLimitMinutes / 60)} h`, icon: <LuShieldCheck size={13} /> },
   ];
-
-  const retentionCutoff = (() => {
-    const months = Number(form.retentionMonths);
-    if (!form.retentionMonths || !Number.isFinite(months) || months <= 0) return null;
-    const date = new Date(retentionRef);
-    date.setMonth(date.getMonth() - months);
-    return date.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
-  })();
 
   return (
     <ITPage
@@ -232,43 +223,24 @@ export default function GeneralSettingsPage() {
                 <HelpTip text="Topes de jornada (solo puedes ser más estricto que la ley) y meses que se conservan los registros antes de moverlos al archivo legal." />
               </div>
               <div className="mt-4 grid gap-3" style={fieldSet}>
-                <ITInput name="workdayLimitMinutes" label="Máximo diario (min)" type="number" value={String(form.workdayLimitMinutes)} onChange={(e) => set("workdayLimitMinutes", Number(e.target.value))} />
-                <ITInput name="weeklyLimitMinutes" label="Máximo semanal (min)" type="number" value={String(form.weeklyLimitMinutes)} onChange={(e) => set("weeklyLimitMinutes", Number(e.target.value))} />
-                <ITInput name="retentionMonths" label="Retención (meses, vacío = sin archivar)" type="number" value={form.retentionMonths} onChange={(e) => set("retentionMonths", e.target.value)} />
+                <ITInput name="workdayLimitMinutes" label="Jornada máxima diaria (horas)" type="number" value={String(form.workdayLimitMinutes / 60)} onChange={(e) => set("workdayLimitMinutes", Math.round(Number(e.target.value) * 60))} />
+                <ITInput name="weeklyLimitMinutes" label="Jornada máxima semanal (horas)" type="number" value={String(form.weeklyLimitMinutes / 60)} onChange={(e) => set("weeklyLimitMinutes", Math.round(Number(e.target.value) * 60))} />
+                <ITInput name="retentionMonths" label="Retención de registros (meses)" placeholder="Ej. 24" type="number" value={form.retentionMonths} onChange={(e) => set("retentionMonths", e.target.value)} />
               </div>
               <ITText muted className="mt-2 block !text-[12px]">
-                Los topes solo pueden ser más estrictos que la ley. La retención indica cuándo se mueven los registros al archivo legal, sin borrarlos.
+                Solo puedes fijar topes iguales o más estrictos que la ley. Los registros más viejos que la retención se archivan; no se borran.
               </ITText>
               {config?.legal && (
                 <ITText muted className="mt-1 block !text-[11.5px]">
-                  Ley {config.legal.year}: {Math.round(config.legal.workdayLimitMinutes / 60)} h/día y {Math.round(config.legal.weeklyLimitMinutes / 60)} h/semana. Solo topes más estrictos.
+                  Ley {config.legal.year}: {Math.round(config.legal.workdayLimitMinutes / 60)} h/día y {Math.round(config.legal.weeklyLimitMinutes / 60)} h/semana.
                 </ITText>
               )}
-              <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50/40 p-3">
-                <ITFlex align="end" gap={3} wrap="wrap">
-                  <div className="min-w-[220px] flex-1">
-                    <ITDatePicker
-                      name="retentionReference"
-                      label="Fecha de corte"
-                      value={retentionRef}
-                      onChange={(event) => {
-                        const next = event.target.value;
-                        if (next instanceof Date) setRetentionRef(next);
-                      }}
-                    />
-                  </div>
-                  <ITText className="min-w-[260px] flex-1 !text-[12.5px] text-slate-700">
-                    {retentionCutoff
-                      ? <>Con una retención de <b>{form.retentionMonths} meses</b>, al corte elegido se archivan los registros anteriores al <b>{retentionCutoff}</b>.</>
-                      : "Indica los meses de retención para calcular la fecha de archivo."}
-                  </ITText>
-                </ITFlex>
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <ITButton variant="outlined" color="secondary" size="sm" disabled={archiving} onClick={() => setConfirmArchive(true)}>
+              <div className="mt-4 border-t border-slate-100 pt-3">
+                <ITText className="block !text-[12px] font-semibold !text-slate-700">Archivo legal</ITText>
+                <ITText muted className="mt-0.5 block !text-[11.5px]">Mueve los registros vencidos a archivo sin borrarlos; la acción queda auditada.</ITText>
+                <ITButton variant="outlined" color="gray" size="sm" className="mt-2" disabled={archiving} onClick={() => setConfirmArchive(true)}>
                   {archiving ? "Archivando…" : "Archivar registros vencidos"}
                 </ITButton>
-                <ITText muted className="!text-[11px]">Mueve a archivo respetando el piso legal; queda auditado.</ITText>
               </div>
             </ITCard>
           )}
