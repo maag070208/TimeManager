@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaChartArea, FaChartBar, FaClock, FaFingerprint, FaServer, FaSyncAlt, FaUsers, FaVideo, FaChartLine } from "react-icons/fa";
+import { FaChartArea, FaChartBar, FaClock, FaFingerprint, FaServer, FaSyncAlt, FaUsers, FaVideo, FaChartLine, FaIdCard, FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
 import { ITButton, ITDataTable, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { dateLocale } from "@shared/i18n/format";
@@ -39,18 +39,6 @@ const CONNECTION_TONE: Record<SummaryClock["connection"], string> = {
   NO_RESPONSE: "bg-red-50 text-red-700 border-red-200",
   PAUSED_CREDENTIALS: "bg-red-50 text-red-700 border-red-200",
   NOT_READ: "bg-slate-100 text-slate-600 border-slate-200",
-};
-
-const SEVERITY_TONE: Record<ClockAlert["severity"], string> = {
-  critical: "border-red-200 text-red-800",
-  warning: "border-amber-200 text-amber-800",
-  info: "border-slate-200 text-slate-700",
-};
-
-const SEVERITY_DOT: Record<ClockAlert["severity"], string> = {
-  critical: "bg-red-500",
-  warning: "bg-amber-500",
-  info: "bg-slate-400",
 };
 
 const MAX_NAMES_IN_TOOLTIP = 6;
@@ -147,19 +135,27 @@ function HourlyChart({ hourly, variant, label }: { hourly: HourBucket[]; variant
 function AlertLine({ alert }: { alert: ClockAlert }) {
   const { t } = useTranslation("time-clock");
   const navigate = useNavigate();
+  const tone =
+    alert.severity === "critical"
+      ? { wrap: "bg-rose-50/80 text-rose-900", chip: "bg-rose-100 text-rose-700", icon: <FaExclamationTriangle size={13} /> }
+      : alert.severity === "warning"
+        ? { wrap: "bg-amber-50/80 text-amber-900", chip: "bg-amber-100 text-amber-700", icon: <FaExclamationTriangle size={13} /> }
+        : { wrap: "bg-slate-50 text-slate-700", chip: "bg-slate-200 text-slate-600", icon: <FaCheckCircle size={13} /> };
   return (
-    <li className={`flex items-center justify-between gap-3 rounded-xl border bg-white px-4 py-2.5 text-sm ${SEVERITY_TONE[alert.severity]}`}>
-      <span className="flex items-center gap-2.5">
-        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${SEVERITY_DOT[alert.severity]}`} />
-        {t(`dashboard.alerts.${alert.code}`)}
+    <li className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3 ${tone.wrap}`}>
+      <span className="flex min-w-0 items-center gap-3">
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${tone.chip}`}>{tone.icon}</span>
+        <span className="min-w-0 text-[12.5px] font-semibold leading-snug">{t(`dashboard.alerts.${alert.code}`)}</span>
       </span>
-      <span className="flex items-center gap-3">
+      <span className="flex shrink-0 items-center gap-2">
         {alert.code === "UNLINKED" && (
-          <ITButton variant="outlined" color="secondary" size="sm" onClick={() => navigate("/hr/time-clock/employees")}>
+          <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => navigate("/hr/time-clock/employees")}>
             {t("dashboard.alerts.linkNow")}
           </ITButton>
         )}
-        {alert.count !== undefined && <span className="font-bold tabular-nums">{alert.count}</span>}
+        {alert.count !== undefined && (
+          <span className={`rounded-full px-2.5 py-1 text-[11px] font-black tabular-nums ${tone.chip}`}>{alert.count}</span>
+        )}
       </span>
     </li>
   );
@@ -221,26 +217,38 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
       title={clock.name ?? clock.serial}
       description={`${clock.device?.model ?? "—"} · ${clock.countsAttendance ? t("dashboard.counts") : t("dashboard.noCounts")}`}
       actions={
-        <span className={`rounded-full border px-3 py-1 text-xs font-medium ${CONNECTION_TONE[clock.connection]}`}>
+        <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${CONNECTION_TONE[clock.connection]}`}>
           {t(`dashboard.connection.${clock.connection}`)}
         </span>
       }
     >
-      <div className="grid grid-cols-2 gap-4 border-b border-slate-100 pb-4 md:!grid-cols-4">
-        <Metric label={t("dashboard.people")} value={clock.counts?.people ?? "—"} />
-        <Metric label={t("dashboard.cards")} value={clock.counts?.cards ?? "—"} />
-        <Metric label={t("dashboard.punchesToday")} value={clock.punchesToday} accent />
-        <Metric label={t("dashboard.lastSync")} value={fmt(clock.lastSyncAt)} small />
+      <div className="grid grid-cols-2 gap-2.5 md:!grid-cols-4">
+        {[
+          { label: t("dashboard.people"), value: clock.counts?.people ?? "—", icon: <FaUsers size={13} />, tone: "bg-sky-50 text-sky-700" },
+          { label: t("dashboard.cards"), value: clock.counts?.cards ?? "—", icon: <FaIdCard size={13} />, tone: "bg-violet-50 text-violet-700" },
+          { label: t("dashboard.punchesToday"), value: clock.punchesToday, icon: <FaClock size={13} />, tone: "bg-emerald-50 text-emerald-700" },
+        ].map((metric) => (
+          <div key={metric.label} className="rounded-2xl bg-slate-50/80 p-3">
+            <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${metric.tone}`}>{metric.icon}</span>
+            <span className="mt-2 block text-[10px] font-bold uppercase tracking-wide text-slate-500">{metric.label}</span>
+            <span className="block text-[22px] font-black leading-tight tabular-nums text-slate-900">{metric.value}</span>
+          </div>
+        ))}
+        <div className="rounded-2xl bg-slate-50/80 p-3">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-700"><FaSyncAlt size={13} /></span>
+          <span className="mt-2 block text-[10px] font-bold uppercase tracking-wide text-slate-500">{t("dashboard.lastSync")}</span>
+          <span className="mt-0.5 block text-[11.5px] font-semibold leading-tight text-slate-800">{fmt(clock.lastSyncAt)}</span>
+        </div>
       </div>
 
       {clock.countsAttendance && (
-        <div className="flex flex-col gap-3 py-4">
-          <ITFlex align="center" justify="between" wrap="wrap" gap={2}>
-            <span className="text-xs font-semibold text-slate-500">{t("dashboard.todayByHour")}</span>
-            <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+        <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-4">
+          <ITFlex align="center" justify="between" wrap="wrap" gap={2} className="mb-2">
+            <ITText className="!text-[12px] font-bold !text-slate-700">{t("dashboard.todayByHour")}</ITText>
+            <div className="flex rounded-xl bg-slate-100 p-0.5">
               {(["area", "bar"] as ChartVariant[]).map((v) => (
                 <button key={v} type="button" onClick={() => setVariant(v)}
-                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition ${
                     variant === v ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"
                   }`}>
                   {v === "area" ? <FaChartArea size={11} /> : <FaChartBar size={11} />}
@@ -254,32 +262,29 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
       )}
 
       {clock.device && (
-        <p className="border-t border-dashed border-slate-200 py-3 text-xs text-slate-500">
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-slate-50/70 px-3 py-2 text-[11px] text-slate-500">
           <span className="font-mono text-slate-700">{clock.serial}</span>
-          {" · "}
-          {t("dashboard.device.firmware")} {clock.device.firmwareVersion ?? "—"}
-          {" · "}
-          {t("dashboard.device.lastRead")} {fmt(clock.lastReadAt)}
-        </p>
+          <span>{t("dashboard.device.firmware")} {clock.device.firmwareVersion ?? "—"}</span>
+          <span>{t("dashboard.device.lastRead")} {fmt(clock.lastReadAt)}</span>
+        </div>
       )}
 
       {clock.alerts.length > 0 && (
-        <ul className="mb-4 flex flex-col gap-2">
+        <ul className="mt-3 flex flex-col gap-2">
           {clock.alerts.map((a) => (
             <AlertLine key={a.code} alert={a} />
           ))}
         </ul>
       )}
 
-      <div className="flex flex-col gap-2 border-t border-dashed border-slate-200 pt-4">
-        <span className="text-xs font-semibold text-slate-500">{t("dashboard.recentPunches")}</span>
+      <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-3">
+        <ITText className="mb-2 block !text-[12px] font-bold !text-slate-700">{t("dashboard.recentPunches")}</ITText>
         <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={
             fetchPunches as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>
           }
           debounceMs={350}
-          variant="bordered"
           onRowClick={(row) => {
             const punch = row as unknown as Punch;
             if (punch.employeeNumber) onOpenPerson({ serial: clock.serial, employeeNumber: punch.employeeNumber });
@@ -290,16 +295,7 @@ function DevicePanel({ clock, onOpenPerson }: { clock: SummaryClock; onOpenPerso
   );
 }
 
-function Metric({ label, value, accent = false, small = false }: { label: string; value: string | number; accent?: boolean; small?: boolean }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</span>
-      <span className={`${small ? "text-sm font-semibold" : "text-xl font-black tabular-nums"} ${accent ? "text-slate-900" : "text-slate-800"}`}>
-        {value}
-      </span>
-    </div>
-  );
-}
+
 
 /** Vista previa del personal: se pide al reloj solo cuando el usuario lo pide. */
 function PeoplePreview({ serial, onSeeAll, onOpenPerson }: { serial: string; onSeeAll: () => void; onOpenPerson: (p: OpenPerson) => void }) {
