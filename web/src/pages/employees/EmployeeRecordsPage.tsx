@@ -1,4 +1,5 @@
-import { ITButton, ITFlex, ITPage, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaBell, FaIdCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";

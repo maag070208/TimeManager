@@ -1,4 +1,5 @@
-import { ITFlex, ITPage } from "@axzydev/axzy_ui_system";
+import { ITFlex } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaUserClock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";

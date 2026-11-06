@@ -1,4 +1,5 @@
-import { ITAlert, ITPage, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITText } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaUserShield } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";

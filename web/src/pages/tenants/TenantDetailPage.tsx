@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITText, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuArrowLeft, LuBuilding2, LuCalendarClock, LuCheck, LuChevronLeft, LuChevronRight, LuClock, LuLock, LuLockOpen, LuWallet } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { tenantApi } from "@entities/tenant";

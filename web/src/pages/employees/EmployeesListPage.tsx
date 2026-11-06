@@ -2,9 +2,9 @@ import {
   ITAlert,
   ITButton,
   ITFlex,
-  ITPage,
   ITText,
   ITStack } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuFileSpreadsheet, LuPlus, LuUserCheck, LuUserMinus, LuUsersRound } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";

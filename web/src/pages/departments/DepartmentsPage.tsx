@@ -5,9 +5,9 @@ import {
   ITDialog,
   ITFlex,
   ITInput,
-  ITPage,
   ITText,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaBuilding, FaPlus } from "react-icons/fa";
 import { LuBuilding2, LuPencil } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuCalendarCheck, LuCheck, LuX } from "react-icons/lu";
 import { nomApi } from "@entities/nom";

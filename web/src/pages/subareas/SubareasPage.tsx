@@ -6,9 +6,9 @@ import {
   ITDialog,
   ITFlex,
   ITInput,
-  ITPage,
   ITText,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaMapMarkerAlt, FaPlus } from "react-icons/fa";
 import { LuBuilding2, LuCirclePause, LuLayers } from "react-icons/lu";
 import { useEffect, useState } from "react";

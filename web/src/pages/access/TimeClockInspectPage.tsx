@@ -1,4 +1,4 @@
-import { ITPage } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaSearch } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { TimeClockInspectView } from "@features/access/time-clock-inspect";

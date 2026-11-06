@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { ITAlert, ITButton, ITInput, ITPage } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITInput } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuArrowUpRight, LuBadgeDollarSign, LuBuilding2, LuCalendarClock, LuChartColumn, LuLayoutDashboard, LuPlus, LuUsersRound, LuWallet } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";

@@ -1,4 +1,4 @@
-import { ITPage } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaHouseUser } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { TimeClockDashboardView } from "@widgets/time-clock-dashboard";

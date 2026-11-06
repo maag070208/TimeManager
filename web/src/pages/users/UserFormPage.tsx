@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from "react";
-import { ITAlert, ITButton, ITPage, ITStack } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITStack } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuBuilding2, LuFileUp, LuIdCard, LuShieldCheck, LuUserPlus } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";

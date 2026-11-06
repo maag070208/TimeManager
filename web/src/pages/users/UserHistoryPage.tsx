@@ -1,5 +1,6 @@
 import { useMemo, type CSSProperties } from "react";
-import { ITBentoDonut, ITCard, ITPage, ITText } from "@axzydev/axzy_ui_system";
+import { ITBentoDonut, ITCard, ITText } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuCalendarDays, LuChartPie, LuHistory, LuShieldCheck, LuUserCog } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";

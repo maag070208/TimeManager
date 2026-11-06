@@ -1,4 +1,5 @@
-import { ITAlert, ITButton, ITPage, ITStack, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITStack, ITText } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuBadgeDollarSign, LuCircleCheck, LuCirclePause, LuLayers, LuPlus } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";

@@ -7,9 +7,9 @@ import {
   ITChip,
   ITFlex,
   ITGrid,
-  ITPage,
   ITText,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { FaFilePdf, FaScroll } from "react-icons/fa6";
 import { LuCalendarDays, LuFileText, LuScrollText } from "react-icons/lu";

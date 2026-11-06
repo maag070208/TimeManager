@@ -1,4 +1,5 @@
-import { ITButton, ITCard, ITPage, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITButton, ITCard, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuBell, LuCheckCheck, LuCircleAlert, LuMail, LuUsers } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { NotificationItem, useNotificationsList, type NotificationFilter } from "@features/notification/list";

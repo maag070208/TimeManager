@@ -143,5 +143,8 @@
     "switchHint": "Client you are operating on",
     "current": "Company"
   },
-  "loading": "Loading…"
+  "loading": "Loading…",
+  "page": {
+    "description": "View and manage the information for {{title}}."
+  }
 }

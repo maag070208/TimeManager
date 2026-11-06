@@ -1,4 +1,5 @@
-import { ITPage, ITText } from "@axzydev/axzy_ui_system";
+import { ITText } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuHistory } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";

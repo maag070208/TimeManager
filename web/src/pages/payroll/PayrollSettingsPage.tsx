@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITPage, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LuCalculator, LuClock, LuPercent, LuReceipt, LuSave, LuShieldCheck, LuWallet } from "react-icons/lu";
 import { payrollApi } from "@entities/payroll";

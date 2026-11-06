@@ -1,4 +1,4 @@
-import { ITPage } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaUsersCog } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { TimeClockPeopleView } from "@features/access/time-clock-people";

@@ -5,11 +5,11 @@ import {
   ITButton,
   ITCard,
   ITInput,
-  ITPage,
   ITText,
   ITTextarea,
   ITDialog,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { useTranslation } from "react-i18next";
 import { LuBriefcaseBusiness, LuClipboardCheck, LuMessageSquare, LuPencil, LuPlus, LuRefreshCw, LuUsersRound } from "react-icons/lu";
 import {

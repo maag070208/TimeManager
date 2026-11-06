@@ -7,9 +7,9 @@ import {
   ITDatePicker,
   ITFlex,
   ITInput,
-  ITPage,
   ITText,
   ITTextarea, ITStack } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuCamera, LuIdCard, LuMapPin, LuPhone, LuUserRound } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";

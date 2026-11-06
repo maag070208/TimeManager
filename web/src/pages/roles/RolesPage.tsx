@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { ITButton, ITPage, ITText, ITFlex } from "@axzydev/axzy_ui_system";
+import { ITButton, ITText, ITFlex } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaPlus, FaQuestionCircle, FaUserShield } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";

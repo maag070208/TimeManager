@@ -3,9 +3,9 @@ import {
   ITAlert,
   ITButton,
   ITFlex,
-  ITPage,
   ITText,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuActivity, LuClock, LuFileText, LuIdCard, LuPencil, LuUserCog, LuUserRound, LuUserX } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";

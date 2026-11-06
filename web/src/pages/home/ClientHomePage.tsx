@@ -1,4 +1,4 @@
-import { ITPage } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuHouse } from "react-icons/lu";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";

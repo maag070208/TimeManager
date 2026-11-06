@@ -3,10 +3,10 @@ import {
   ITButton,
   ITFlex,
   ITInput,
-  ITPage,
   ITSelect,
   ITText,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LuCalendarDays,

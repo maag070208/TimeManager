@@ -6,9 +6,9 @@ import {
   ITFlex,
   ITGrid,
   ITInput,
-  ITPage,
   ITText,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaBuilding, FaTrash, FaTrashRestore } from "react-icons/fa";
 import { LuLayers, LuShieldCheck, LuUsers } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";

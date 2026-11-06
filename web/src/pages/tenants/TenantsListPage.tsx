@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ITButton, ITInput, ITPage, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITInput, ITText } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { LuBuilding2, LuPlus, LuUserCheck, LuUsersRound } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { AgentTokenDialog, CreateTenantDialog, PlanAssignDialog, TenantsTable, useTenantsConsole } from "@features/tenant/tenants-console";

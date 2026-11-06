@@ -6,9 +6,9 @@ import {
   ITCard,
   ITFlex,
   ITInput,
-  ITPage,
   ITText,
   ITTextarea, ITDatePicker } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { useTranslation } from "react-i18next";
 import {
   LuCalendarCheck,

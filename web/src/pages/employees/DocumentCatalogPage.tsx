@@ -9,9 +9,9 @@ import {
   ITFlex,
   ITGrid,
   ITInput,
-  ITPage,
   ITText,
 } from "@axzydev/axzy_ui_system";
+import { ITPage } from "@shared/ui/page";
 import { FaFileAlt, FaPlus } from "react-icons/fa";
 import { LuCircleAlert, LuCircleCheck, LuCirclePause, LuFileText, LuPencil, LuPower, LuTrash2 } from "react-icons/lu";
 import { useTranslation } from "react-i18next";

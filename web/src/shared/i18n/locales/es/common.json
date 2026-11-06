@@ -143,5 +143,8 @@
     "switchHint": "Cliente sobre el que operas",
     "current": "Empresa"
   },
-  "loading": "Cargando…"
+  "loading": "Cargando…",
+  "page": {
+    "description": "Consulta y administra la información de {{title}}."
+  }
 }
