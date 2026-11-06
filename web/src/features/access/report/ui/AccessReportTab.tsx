@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import {
   ITAlert,
   ITBadget,
-  ITBentoStatStrip,
   ITCheckbox,
   ITDataTable,
   ITFlex,
@@ -15,11 +14,10 @@ import {
   type AttendanceDayStatus,
   type PeopleAttendanceDay,
   type PeopleAttendanceRow,
-  type PeopleAttendanceView,
 } from "@entities/access";
 import { punchTime, workedTime } from "@entities/schedule";
-import { Num } from "@shared/ui/bento-bits";
-import { FilterPills } from "@shared/ui/filter-pills";
+import { LuClock, LuFileCheck, LuFileX, LuMapPin, LuTriangleAlert } from "react-icons/lu";
+import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { PeriodPicker } from "@shared/ui/period-picker";
 import { PanelCard } from "@shared/ui/panel-card";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
@@ -28,8 +26,6 @@ import { dateLocale } from "@shared/i18n";
 import type { UseAccessReport } from "../model/useAccessReport";
 
 type BadgeColor = "success" | "warning" | "danger" | "gray" | "info";
-
-const VIEWS: PeopleAttendanceView[] = ["ALL", "INCIDENTS", "ON_SITE", "WITHOUT_RECORDS"];
 
 /** Zona del navegador mientras llega la del servidor en `summary.range`. */
 const BROWSER_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -292,43 +288,43 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
         </ITAlert>
       )}
 
-      {/* Cifras del periodo en la tira del mosaico: cada una aplica su vista. */}
-      <ITBentoStatStrip
+      {/* Cifras del periodo como filtros bento: cada tarjeta aplica su vista. */}
+      <BentoFilterCards
         items={[
           {
             id: "onSite",
             label: t("tiles.onSite"),
-            value: <Num value={summary?.onSite ?? 0} />,
+            value: summary?.onSite ?? 0,
             caption: t("tiles.onSiteHint"),
-            tone: "sea",
+            icon: <LuMapPin size={14} />,
           },
           {
             id: "withRecords",
             label: t("tiles.withRecords"),
-            value: <Num value={withRecords} />,
+            value: withRecords,
             caption: t("tiles.ofTotal", { total: people }),
-            tone: "lavender",
+            icon: <LuFileCheck size={14} />,
           },
           {
             id: "withoutRecords",
             label: t("tiles.withoutRecords"),
-            value: <Num value={withoutRecords} />,
+            value: withoutRecords,
             caption: withoutRecords > 0 ? t("tiles.viewWho") : t("tiles.allRecorded"),
-            tone: "plain",
+            icon: <LuFileX size={14} />,
           },
           {
             id: "hours",
             label: t("tiles.hours"),
             value: hoursValue,
             caption: t("tiles.hoursHint"),
-            tone: "mint",
+            icon: <LuClock size={14} />,
           },
           {
             id: "incidents",
             label: t("tiles.incidents"),
-            value: <Num value={incidentsTotal} />,
+            value: incidentsTotal,
             caption: incidentsTotal > 0 ? incidentParts.join(" · ") : t("tiles.allClear"),
-            tone: incidentsTotal > 0 ? "sun" : "plain",
+            icon: <LuTriangleAlert size={14} />,
           },
         ]}
         activeId={view === "ON_SITE" ? "onSite" : view === "WITHOUT_RECORDS" ? "withoutRecords" : view === "INCIDENTS" ? "incidents" : "withRecords"}
@@ -340,16 +336,7 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
       />
 
       {/* Una sola tarjeta: filtros del periodo arriba y la tabla debajo. */}
-      <PanelCard
-        title={t("table.title", { count: fx.total })}
-        actions={
-          <FilterPills
-            items={VIEWS.map((value) => ({ id: value, label: tt(`views.${value}`) }))}
-            value={view}
-            onChange={setView}
-          />
-        }
-      >
+      <PanelCard title={t("table.title", { count: fx.total })}>
         <ITFlex direction="column" gap={4} className="pb-4">
           <ITFlex align="end" wrap="wrap" gap={3}>
             <PeriodPicker

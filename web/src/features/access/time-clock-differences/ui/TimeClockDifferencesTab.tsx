@@ -14,6 +14,7 @@ import type { User } from "@entities/user";
 import { PanelCard } from "@shared/ui/panel-card";
 import type { UseTimeClockDifferences } from "../model/useTimeClockDifferences";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { HelpTip } from "@shared/ui/help-tip";
 
 interface FilaProps {
   seleccionada: boolean;
@@ -93,9 +94,12 @@ export default function TimeClockDifferencesTab({ fx }: { fx: UseTimeClockDiffer
       )}
       {!canLink && <ITAlert variant="info">{t("differences.readOnly")}</ITAlert>}
 
-      <ITText className="text-[12px] text-slate-500">
-        {t("differences.summary", { missing, free })}
-      </ITText>
+      <ITFlex align="center" gap={1.5}>
+        <ITText className="text-[12px] text-slate-500">
+          {t("differences.summary", { missing, free })}
+        </ITText>
+        <HelpTip text={t("differences.description")} label={t("differences.title")} />
+      </ITFlex>
 
       <div className="!grid gap-4 lg:!grid-cols-2">
         {/* Lo que vio el reloj */}
@@ -262,6 +266,7 @@ export default function TimeClockDifferencesTab({ fx }: { fx: UseTimeClockDiffer
               <ITButton
                 variant="filled"
                 color="primary"
+                className="tm-row-button"
                 disabled={!clockSel || !personSel || saving}
                 onClick={() => void asignar()}
               >
@@ -288,7 +293,7 @@ export default function TimeClockDifferencesTab({ fx }: { fx: UseTimeClockDiffer
                 </ITButton>
               )}
               {(clockSel || personSel) && (
-                <ITButton variant="text" color="gray" onClick={cancelar}>
+                <ITButton variant="text" color="gray" className="tm-row-button" onClick={cancelar}>
                   <ITText className="font-bold text-[11px]">
                     {t("differences.action.cancel")}
                   </ITText>

@@ -1,6 +1,7 @@
 import { ITButton, ITFlex, ITText, ITTextarea } from "@axzydev/axzy_ui_system";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
+import { HelpTip } from "@shared/ui/help-tip";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -34,7 +35,10 @@ export default function TimeClockRosterView() {
     <ITFlex direction="column" gap={4} className="p-6">
       <ITFlex align="center" justify="between" gap={3} wrap="wrap">
         <ITFlex direction="column" gap={1}>
-          <ITText className="text-sm text-slate-500">{t("roster.description")}</ITText>
+          <ITFlex align="center" gap={1.5}>
+            <ITText className="text-sm text-slate-500">{t("roster.description")}</ITText>
+            <HelpTip text={t("roster.description")} label={t("roster.title")} />
+          </ITFlex>
           <ITText className="text-xs text-slate-400">
             {last
               ? t("roster.lastRun", {
@@ -49,7 +53,7 @@ export default function TimeClockRosterView() {
           </ITText>
         </ITFlex>
         {fx.canRun && (
-          <ITButton variant="filled" color="primary" size="sm" disabled={fx.running} onClick={() => void fx.runReview()}>
+          <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" disabled={fx.running} onClick={() => void fx.runReview()}>
             {fx.running ? t("roster.running") : t("roster.run")}
           </ITButton>
         )}
@@ -76,7 +80,13 @@ export default function TimeClockRosterView() {
                   </ITText>
                 </ITFlex>
                 {fx.canLink && (
-                  <ITButton variant="outlined" color="secondary" size="sm" onClick={() => navigate("/hr/time-clock/employees")}>
+                  <ITButton
+                    variant="outlined"
+                    color="primary"
+                    size="sm"
+                    className="tm-row-button"
+                    onClick={() => navigate("/hr/time-clock/employees")}
+                  >
                     {t("roster.row.link")}
                   </ITButton>
                 )}
@@ -125,6 +135,7 @@ export default function TimeClockRosterView() {
                         variant="outlined"
                         color="secondary"
                         size="sm"
+                        className="tm-row-button"
                         disabled={busy}
                         onClick={() => void fx.dismissRemoval(r.employeeNumber)}
                       >
@@ -136,6 +147,7 @@ export default function TimeClockRosterView() {
                         variant="filled"
                         color="danger"
                         size="sm"
+                        className="tm-row-button"
                         disabled={busy || !valid}
                         onClick={async () => {
                           const ok = await fx.applyRemoval(r.employeeNumber, {
@@ -167,7 +179,13 @@ export default function TimeClockRosterView() {
                     })}
                   </ITText>
                 </ITFlex>
-                <ITButton variant="outlined" color="secondary" size="sm" onClick={() => navigate(`/employees/${r.userId}/history`)}>
+                <ITButton
+                  variant="outlined"
+                  color="secondary"
+                  size="sm"
+                  className="tm-row-button"
+                  onClick={() => navigate(`/employees/${r.userId}/history`)}
+                >
                   {t("roster.row.viewUser")}
                 </ITButton>
               </Row>

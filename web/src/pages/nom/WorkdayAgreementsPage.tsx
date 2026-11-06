@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITPage, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
+import { HelpTip } from "@shared/ui/help-tip";
 import { LuSignature } from "react-icons/lu";
 import { nomApi } from "@entities/nom";
 import type { DistributionAgreement, RecordAgreementAdmin } from "@entities/nom";
@@ -91,8 +92,27 @@ export default function WorkdayAgreementsPage() {
       <div className="flex flex-col gap-4 pb-12">
         {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
 
+        <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
+          <span className="flex items-center gap-1.5">
+            <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
+              Cumplimiento de jornada
+            </ITText>
+            <HelpTip text="Convenio de distribución (art. 58 LFT): reparte las horas de la semana sin aumentar la jornada. Acuerdo de método de registro: el trabajador acepta cómo checa y RH firma el cierre de la prueba." />
+          </span>
+          <ITText className="!text-2xl font-extrabold !text-slate-900">
+            {agreements.length} convenio(s) · {recordAgreements.length} acuerdo(s) de registro
+          </ITText>
+          <ITText className="!text-[12px] !text-slate-600">
+            {agreements.filter((row) => !row.acceptedAt).length} convenio(s) pendiente(s) de aceptación ·{" "}
+            {recordAgreements.filter((row) => !row.employerAcceptedAt).length} acuerdo(s) con firma patronal pendiente.
+          </ITText>
+        </div>
+
         <ITCard contentClassName="!p-5">
-          <ITText className="font-bold">Nuevo convenio de distribución (art. 58)</ITText>
+          <div className="flex items-center gap-2">
+            <ITText className="font-bold">Nuevo convenio de distribución (art. 58)</ITText>
+            <HelpTip text="Solo redistribuye horas dentro de la semana: no puede exceder los topes legales ni reducir el descanso. Colectivo = con sindicato; individual = acuerdo con la persona." />
+          </div>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <ITSearchSelect
               name="agreementUser"
@@ -170,7 +190,10 @@ export default function WorkdayAgreementsPage() {
         </ITCard>
 
         <ITCard contentClassName="!p-5">
-          <ITText className="font-bold">Convenios registrados</ITText>
+          <div className="flex items-center gap-2">
+            <ITText className="font-bold">Convenios registrados</ITText>
+            <HelpTip text="El convenio queda vigente desde la fecha indicada, pero no se considera aceptado hasta que el trabajador o el sindicato lo aceptan por el portal; luego RH lo firma." />
+          </div>
           <div className="mt-2 flex flex-col gap-2">
             {agreements.length === 0 && <ITText muted className="!text-[12px]">Sin convenios registrados.</ITText>}
             {agreements.map((agreement) => (
@@ -193,7 +216,10 @@ export default function WorkdayAgreementsPage() {
         </ITCard>
 
         <ITCard contentClassName="!p-5">
-          <ITText className="font-bold">Acuerdos de método de registro</ITText>
+          <div className="flex items-center gap-2">
+            <ITText className="font-bold">Acuerdos de método de registro</ITText>
+            <HelpTip text="Prueba plena del registro: el trabajador acepta el texto y los métodos (reloj, web, app o mixto). RH cierra la prueba con la firma patronal; queda versión y fecha para auditoría." />
+          </div>
           <ITText muted className="mt-1 block !text-[11.5px]">
             El trabajador acepta el texto y métodos; RH cierra la prueba con la firma patronal.
           </ITText>

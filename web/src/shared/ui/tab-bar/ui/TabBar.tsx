@@ -41,12 +41,12 @@ export default function TabBar<T extends string>({ items, value, onChange, size 
               onClick={() => onChange(item.id)}
               aria-pressed={active}
               style={{
-                backgroundColor: active ? "var(--it-bento-ink-bg, #0f172a)" : "var(--it-bento-control-bg, #f1f5f9)",
-                color: active ? "var(--it-bento-ink-text, #ffffff)" : "var(--it-bento-control-text, #475569)",
+                backgroundColor: active ? "#eaf6ef" : "var(--it-bento-control-bg, #f1f5f9)",
+                color: active ? "#065f46" : "var(--it-bento-control-text, #475569)",
               }}
               className={`flex shrink-0 cursor-pointer items-center rounded-full !border-0 font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] ${
                 sm ? "gap-1.5 px-3 py-1.5 text-[11px]" : "gap-2 px-4 py-2 text-[13px]"
-              } ${active ? "shadow-[0_4px_12px_-4px_rgba(15,23,42,.35)]" : "hover:brightness-95"}`}
+              } ${active ? "shadow-sm" : "hover:brightness-95"}`}
             >
               {item.icon}
               {item.label}
@@ -55,7 +55,7 @@ export default function TabBar<T extends string>({ items, value, onChange, size 
                   className="rounded-full px-1.5 text-[10px] tabular-nums"
                   style={{
                     backgroundColor: active
-                      ? "color-mix(in srgb, var(--it-bento-ink-text, #ffffff) 20%, transparent)"
+                      ? "#d1fae5"
                       : "color-mix(in srgb, var(--it-bento-control-text, #475569) 15%, transparent)",
                   }}
                 >

@@ -15,7 +15,7 @@ export interface PayrollStep {
 /**
  * Los pasos del cierre de pre-nómina (Asistencia → Tiempo extra → Revisar
  * departamentos → Cerrar y exportar), como tarjetas con su estado: paloma
- * verde el atendido, número en tinta el activo y número gris el pendiente.
+ * verde el atendido, número en pastel verde el activo y número gris el pendiente.
  */
 export default function PayrollSteps({ steps }: { steps: PayrollStep[] }) {
   return (
@@ -39,8 +39,8 @@ function StepCard({ n, title, caption, state, onClick }: PayrollStep & { n: numb
     ),
     active: (
       <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-black text-white"
-        style={{ background: "var(--color-primary-900)" }}
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-black text-slate-900"
+        style={{ background: "#eaf6ef" }}
       >
         {n}
       </span>
@@ -77,7 +77,7 @@ function StepCard({ n, title, caption, state, onClick }: PayrollStep & { n: numb
         background: "var(--it-card-bg, #ffffff)",
         boxShadow:
           state === "active"
-            ? "inset 0 0 0 1.5px var(--color-primary-900)"
+            ? "inset 0 0 0 1.5px #a7d8bf"
             : "0 1px 2px rgb(15 23 42 / 0.06)",
       }}
     >

@@ -28,6 +28,7 @@ export default function WeeklyAttendanceFilters({ fx }: { fx: UseWeeklyAttendanc
           variant="outlined"
           color="secondary"
           size="sm"
+          className="tm-icon-button"
           onClick={fx.previousWeek}
           title={t("filters.previousWeek")}
           aria-label={t("filters.previousWeek")}
@@ -48,6 +49,7 @@ export default function WeeklyAttendanceFilters({ fx }: { fx: UseWeeklyAttendanc
           variant="outlined"
           color="secondary"
           size="sm"
+          className="tm-icon-button"
           onClick={fx.nextWeek}
           title={t("filters.nextWeek")}
           aria-label={t("filters.nextWeek")}
@@ -86,6 +88,7 @@ export default function WeeklyAttendanceFilters({ fx }: { fx: UseWeeklyAttendanc
           variant="filled"
           color="primary"
           size="sm"
+          className="tm-row-button"
           onClick={fx.exportPdf}
           disabled={fx.exporting || !fx.report || fx.report.rows.length === 0}
         >
@@ -100,6 +103,7 @@ export default function WeeklyAttendanceFilters({ fx }: { fx: UseWeeklyAttendanc
           variant="filled"
           color="success"
           size="sm"
+          className="tm-row-button"
           onClick={fx.exportExcel}
           disabled={!fx.report || fx.report.rows.length === 0}
         >

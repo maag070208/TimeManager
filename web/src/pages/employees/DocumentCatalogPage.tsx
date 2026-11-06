@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ITAlert,
@@ -12,13 +12,19 @@ import {
   ITPage,
   ITText,
 } from "@axzydev/axzy_ui_system";
-import { FaEdit, FaFileAlt, FaPlus, FaTrash, FaTrashRestore } from "react-icons/fa";
+import { FaFileAlt, FaPlus } from "react-icons/fa";
+import { LuCircleAlert, LuCircleCheck, LuCirclePause, LuFileText, LuPencil, LuPower, LuTrash2 } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { TicConfirm } from "@shared/ui/tic-confirm";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { personalApi, type DocumentType } from "@entities/hr";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { useCan } from "@entities/user";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { HelpTip } from "@shared/ui/help-tip";
+import { PanelCard } from "@shared/ui/panel-card";
+import { RowAction } from "@shared/ui/row-action";
+import { TicState } from "@shared/ui/tic";
 
 export default function DocumentCatalogPage() {
   const { t: tt } = useTranslation(["employees", "common"]);
@@ -32,12 +38,26 @@ export default function DocumentCatalogPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<DocumentType | null>(null);
+  const [types, setTypes] = useState<DocumentType[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    personalApi
+      .documentTypes(true)
+      .then((rows) => alive && setTypes(rows))
+      .catch(() => alive && setTypes([]));
+    return () => {
+      alive = false;
+    };
+  }, [reloadKey]);
 
   const fetchData = useMemo(
     () => makeClientTableFetch<DocumentType>(() => personalApi.documentTypes(true), {
         active: { match: "equals" },
         required: { match: "equals" },
       }),
+    // El cambio de `reloadKey` es la señal para volver a pedir el catálogo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [reloadKey]
   );
 
@@ -176,29 +196,16 @@ export default function DocumentCatalogPage() {
       width: 140,
       render: (type: DocumentType) =>
         canManage ? (
-        <ITFlex align="center" gap={2}>
-          <ITButton variant="outlined" color="primary" size="lg" onClick={() => openEdit(type)}>
-            <FaEdit size={12} />
-          </ITButton>
-          <ITButton
-            variant="outlined"
-            color={type.active ? "secondary" : "success"}
-            size="lg"
+        <ITFlex align="center" gap={1}>
+          <RowAction icon={<LuPencil size={12} />} label={tt("catalog.edit")} tone="primary" onClick={() => openEdit(type)} />
+          <RowAction
+            icon={<LuPower size={12} />}
+            label={type.active ? tt("catalog.deactivate") : tt("catalog.activate")}
+            tone={type.active ? "secondary" : "success"}
             onClick={() => toggleActive(type)}
-            title={type.active ? tt("catalog.deactivate") : tt("catalog.activate")}
-          >
-            {type.active ? <FaTrash size={12} /> : <FaTrashRestore size={12} />}
-          </ITButton>
+          />
           {!type.active && (
-            <ITButton
-              variant="outlined"
-              color="error"
-              size="lg"
-              onClick={() => setToDelete(type)}
-              title={tt("catalog.deleteForever")}
-            >
-              <FaTrash size={12} />
-            </ITButton>
+            <RowAction icon={<LuTrash2 size={12} />} label={tt("catalog.deleteForever")} tone="error" onClick={() => setToDelete(type)} />
           )}
         </ITFlex>
         ) : null,
@@ -234,6 +241,35 @@ export default function DocumentCatalogPage() {
         </ITAlert>
       )}
 
+      {types && types.length > 0 && (
+        <BentoKpiGrid
+          items={[
+            { id: "all", label: tt("catalog.title"), value: types.length, icon: <LuFileText size={14} /> },
+            {
+              id: "active",
+              label: tt("catalog.active"),
+              value: types.filter((type) => type.active).length,
+              tone: "success",
+              icon: <LuCircleCheck size={14} />,
+            },
+            {
+              id: "inactive",
+              label: tt("catalog.inactive"),
+              value: types.filter((type) => !type.active).length,
+              tone: "warning",
+              icon: <LuCirclePause size={14} />,
+            },
+            {
+              id: "required",
+              label: tt("catalog.required"),
+              value: types.filter((type) => type.required).length,
+              tone: "info",
+              icon: <LuCircleAlert size={14} />,
+            },
+          ]}
+        />
+      )}
+
       {canManage && showForm && (
         <ITCard contentClassName="flex flex-col gap-3 mb-4">
           <ITText className="text-sm font-bold text-slate-800">
@@ -264,19 +300,41 @@ export default function DocumentCatalogPage() {
         </ITCard>
       )}
 
-      <ITDataTable showViewToggle={false}
-        columns={columns as any}
-        fetchData={fetchData as any}
-        reloadTrigger={reloadKey}
-        size="lg"
-        defaultItemsPerPage={25}
-        itemsPerPageOptions={[25, 50, 100]}
-        layout="fixed"
-        density="compact"
-        rowHeight={50}
-        virtualized
-        virtualizedMaxHeight={460}
-      />
+      {types !== null && types.length === 0 ? (
+        <PanelCard title={tt("catalog.title")} icon={<LuFileText size={15} />} actions={<HelpTip text="Los tipos de documento definen qué se le pide al personal (INE, contrato, comprobante). Marca como obligatorios los indispensables: el tablero de Expedientes avisa a quien no los tenga." />}>
+          <TicState
+            kind="empty"
+            title={tt("catalog.title")}
+            description={tt("catalog.description")}
+            action={
+              canManage ? (
+                <ITButton variant="filled" color="primary" onClick={openNew}>
+                  <ITFlex align="center" gap={1}>
+                    <FaPlus size={12} />
+                    <ITText className="font-bold text-[11px]">{tt("catalog.new")}</ITText>
+                  </ITFlex>
+                </ITButton>
+              ) : undefined
+            }
+          />
+        </PanelCard>
+      ) : (
+        <PanelCard title={tt("catalog.title")} icon={<LuFileText size={15} />} actions={<HelpTip text="Los tipos de documento definen qué se le pide al personal (INE, contrato, comprobante). Marca como obligatorios los indispensables: el tablero de Expedientes avisa a quien no los tenga." />}>
+          <ITDataTable showViewToggle={false}
+            columns={columns as any}
+            fetchData={fetchData as any}
+            reloadTrigger={reloadKey}
+            size="lg"
+            defaultItemsPerPage={25}
+            itemsPerPageOptions={[25, 50, 100]}
+            layout="fixed"
+            density="compact"
+            rowHeight={50}
+            virtualized
+            virtualizedMaxHeight={460}
+          />
+        </PanelCard>
+      )}
 
       <TicConfirm
         isOpen={!!toDelete}

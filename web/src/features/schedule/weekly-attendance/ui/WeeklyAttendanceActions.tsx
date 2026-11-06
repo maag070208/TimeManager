@@ -58,10 +58,10 @@ export default function WeeklyAttendanceActions({
             as="span"
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
             style={{
-              color: closed ? "var(--color-success)" : "var(--color-primary-900)",
+              color: closed ? "var(--color-success)" : "#0f766e",
               backgroundColor: closed
                 ? "color-mix(in srgb, var(--color-success) 14%, transparent)"
-                : "color-mix(in srgb, var(--color-primary-900) 10%, transparent)",
+                : "#eaf6ef",
             }}
           >
             <LuShieldCheck size={15} />
@@ -76,6 +76,7 @@ export default function WeeklyAttendanceActions({
             variant="outlined"
             color="gray"
             size="sm"
+            className="tm-row-button"
             onClick={() => navigate("/schedules/payroll/history")}
           >
             <ITFlex align="center" gap={1}>
@@ -86,7 +87,7 @@ export default function WeeklyAttendanceActions({
 
           {closed ? (
             canClose && (
-              <ITButton variant="outlined" color="primary" size="sm" onClick={reviews.reopen} disabled={reviews.busy}>
+              <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={reviews.reopen} disabled={reviews.busy}>
                 <ITFlex align="center" gap={1}>
                   <LuShieldCheck size={13} />
                   <ITText as="span" className="text-[11px] font-bold">{t("actionsBar.reopen")}</ITText>
@@ -98,15 +99,16 @@ export default function WeeklyAttendanceActions({
               {canReview && !allReviewed && (
                 <>
                   <ITButton
-                    variant="filled"
-                    color="secondary"
+                    variant="outlined"
+                    color="primary"
                     size="sm"
+                    className="tm-row-button"
                     onClick={onVerifyAll}
                     disabled={reviews.busy || !hasWeekData}
                   >
                     <ITFlex align="center" gap={1}>
-                      <LuCheckCheck size={13} className="text-white" />
-                      <ITText as="span" className="text-[11px] font-bold !text-white">
+                      <LuCheckCheck size={13} />
+                      <ITText as="span" className="text-[11px] font-bold">
                         {t("actionsBar.verifyAll")}
                       </ITText>
                     </ITFlex>
@@ -115,6 +117,7 @@ export default function WeeklyAttendanceActions({
                     variant="outlined"
                     color="primary"
                     size="sm"
+                    className="tm-row-button"
                     onClick={onVerify}
                     disabled={reviews.busy || !hasWeekData}
                   >
@@ -131,6 +134,7 @@ export default function WeeklyAttendanceActions({
                 variant="filled"
                 color="warning"
                 size="sm"
+                className="tm-row-button"
                 onClick={onCloseWeek}
                 disabled={!allReviewed || !canClose || reviews.busy || !hasWeekData}
                 title={allReviewed ? undefined : t("actionsBar.notePending")}

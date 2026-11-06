@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import {
   ITAlert,
   ITBadget,
-  ITBentoStatStrip,
   ITButton,
   ITCard,
   ITCheckbox,
@@ -19,10 +18,10 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import type { OvertimeDayRow } from "@entities/overtime";
 import { punchTime, workedTime } from "@entities/schedule";
 import { dateLocale } from "@shared/i18n";
-import { dyn } from "@shared/i18n/dyn";
 import { PeriodPicker } from "@shared/ui/period-picker";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
-import { TabBar } from "@shared/ui/tab-bar";
+import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
+import { HelpTip } from "@shared/ui/help-tip";
 import { dayKeyOf, type StatusTab, type UseOvertimeApproval } from "../model/useOvertimeApproval";
 
 const TABS: StatusTab[] = ["PENDING", "APPROVED", "REJECTED", "ALL"];
@@ -43,7 +42,6 @@ const cityOf = (timezone: string): string => (timezone.split("/").pop() ?? timez
 
 export default function OvertimeApprovalTable({ fx }: { fx: UseOvertimeApproval }) {
   const { t, canApprove, summary, tab, setTab } = fx;
-  const tt = dyn(t);
 
   const tz = summary?.range.timezone || BROWSER_TIMEZONE;
 
@@ -80,8 +78,10 @@ export default function OvertimeApprovalTable({ fx }: { fx: UseOvertimeApproval 
     REJECTED: rejectedDays,
     ALL: summary?.totalDays ?? 0,
   };
-  // RH solo ve lo aprobado: una sola pestaña.
-  const visibleTabs = canApprove ? TABS : (["APPROVED"] as StatusTab[]);
+  const totalMinutes =
+    (summary?.pendingMinutes ?? 0) + (summary?.approvedMinutes ?? 0) + (summary?.rejectedMinutes ?? 0);
+  // RH solo ve lo aprobado: una sola tarjeta de filtro.
+  const visibleTabs: StatusTab[] = canApprove ? TABS : ["APPROVED"];
 
   // ── Tabla ──────────────────────────────────────────────────────────────
   const renderShift = (r: OvertimeDayRow) => {
@@ -271,49 +271,30 @@ export default function OvertimeApprovalTable({ fx }: { fx: UseOvertimeApproval 
         </ITAlert>
       )}
 
-      {/* Cifras del periodo: el total a aprobar, lo aprobado y lo rechazado.
-          Tocarlas filtra la tabla por ese estatus. */}
-      <ITBentoStatStrip
-        stack
-        items={[
-          {
-            id: "PENDING",
-            label: t("tiles.pending"),
-            value: workedTime(summary?.pendingMinutes ?? 0),
-            caption: `${t("tiles.requests", { count: pendingDays })} · ${t("tiles.people", { count: summary?.peopleWithPending ?? 0 })}`,
-            tone: "sun",
-            color: "var(--color-warning)",
-          },
-          {
-            id: "APPROVED",
-            label: t("tiles.approved"),
-            value: workedTime(summary?.approvedMinutes ?? 0),
-            caption: t("tiles.requests", { count: approvedDays }),
-            tone: "mint",
-            color: "var(--color-success)",
-          },
-          ...(canApprove
-            ? [
-                {
-                  id: "REJECTED",
-                  label: t("tiles.rejected"),
-                  value: workedTime(summary?.rejectedMinutes ?? 0),
-                  caption: t("tiles.requests", { count: rejectedDays }),
-                  tone: "rose" as const,
-                  color: "var(--color-danger)",
-                },
-              ]
-            : []),
-        ]}
-        stackItems={[
-          { id: "PENDING", label: t("tiles.pending"), value: pendingDays, color: "var(--color-warning)" },
-          { id: "APPROVED", label: t("tiles.approved"), value: approvedDays, color: "var(--color-success)" },
-          ...(canApprove
-            ? [{ id: "REJECTED", label: t("tiles.rejected"), value: rejectedDays, color: "var(--color-danger)" }]
-            : []),
-        ]}
-        activeId={tab === "ALL" ? undefined : tab}
+      {/* Filtros por estatus: horas del periodo y cuántos días hay en cada uno. */}
+      <BentoFilterCards
+        activeId={tab}
         onSelect={(id: string) => setTab(id as StatusTab)}
+        items={visibleTabs.map((value) => {
+          const hours =
+            value === "PENDING"
+              ? workedTime(summary?.pendingMinutes ?? 0)
+              : value === "APPROVED"
+                ? workedTime(summary?.approvedMinutes ?? 0)
+                : value === "REJECTED"
+                  ? workedTime(summary?.rejectedMinutes ?? 0)
+                  : workedTime(totalMinutes);
+          const caption = t("tiles.requests", { count: counts[value] });
+          return {
+            id: value,
+            label: value === "ALL" ? t("tabs.ALL") : value === "PENDING" ? t("tiles.pending") : value === "APPROVED" ? t("tiles.approved") : t("tiles.rejected"),
+            value: hours,
+            caption:
+              value === "PENDING"
+                ? `${caption} · ${t("tiles.people", { count: summary?.peopleWithPending ?? 0 })}`
+                : caption,
+          };
+        })}
       />
 
       {/* Una sola tarjeta: filtros, estatus, acciones en lote y la tabla */}
@@ -350,23 +331,16 @@ export default function OvertimeApprovalTable({ fx }: { fx: UseOvertimeApproval 
               className="w-full min-w-0"
             />
           </ITFlex>
-          <ITText muted className="w-full !text-[11px]">
-            {t("timezone", { city: cityOf(tz) })} · {t("howTo")}
-          </ITText>
+          <ITFlex align="center" gap={1} className="w-full">
+            <ITText muted className="!text-[11px]">
+              {t("timezone", { city: cityOf(tz) })} · {t("howTo")}
+            </ITText>
+            <HelpTip text="Tiempo extra = lo trabajado después de la salida programada del turno, menos la tolerancia de salida y solo si alcanza el mínimo del horario. Entrar antes de la hora no genera extra; en día de descanso cuenta todo lo trabajado." />
+          </ITFlex>
         </ITFlex>
 
-        <ITFlex align="center" wrap="wrap" gap={3} className="px-5 pb-2 pt-3">
-          <TabBar
-            items={visibleTabs.map((value) => ({
-              id: value,
-              label: tt(`tabs.${value}`),
-              count: counts[value],
-            }))}
-            value={tab}
-            onChange={setTab}
-            size="sm"
-          />
-          {canApprove && fx.selectedCount > 0 && (
+        {canApprove && fx.selectedCount > 0 && (
+          <ITFlex align="center" wrap="wrap" gap={3} className="px-5 pb-2 pt-3">
             <ITFlex align="center" wrap="wrap" gap={2} className="ml-auto rounded-full bg-[color-mix(in_srgb,var(--color-primary)_7%,transparent)] px-3 py-1.5">
               <ITText className="!text-[12px] font-bold">
                 {t("bulk.selected", { count: fx.selectedCount })}
@@ -387,8 +361,8 @@ export default function OvertimeApprovalTable({ fx }: { fx: UseOvertimeApproval 
                 </ITFlex>
               </ITButton>
             </ITFlex>
-          )}
-        </ITFlex>
+          </ITFlex>
+        )}
 
         <ITDataTable showViewToggle={false}
           key={fx.tableKey}

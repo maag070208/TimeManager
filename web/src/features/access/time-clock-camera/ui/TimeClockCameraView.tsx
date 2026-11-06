@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { timeClockApi, type TimeClockCamera } from "@entities/time-clock";
-import { ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITDataTable, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import type { Column } from "@axzydev/axzy_ui_system";
+import { makeClientTableFetch } from "@shared/api/clientTable";
 
 /** Cámara de la terminal: reproduce el video si el navegador puede; si es RTSP, informa la ruta sin credenciales. */
 export default function TimeClockCameraView({ clockSerial }: { clockSerial: string }) {
@@ -17,6 +19,57 @@ export default function TimeClockCameraView({ clockSerial }: { clockSerial: stri
       .then(setCamera)
       .catch((e: unknown) => setError(e instanceof Error ? e.message : t("camera.errors.read")));
   }, [clockSerial, t]);
+
+  const fetchData = useMemo(
+    () => makeClientTableFetch(() => Promise.resolve(camera?.streams ?? [])),
+    [camera]
+  );
+
+  const columns: Column<TimeClockCamera["streams"][number]>[] = [
+    {
+      key: "id",
+      label: t("camera.table.stream"),
+      type: "string",
+      width: 110,
+      render: (stream) => <ITText className="font-mono text-[12px] text-slate-700">{stream.id}</ITText>,
+    },
+    {
+      key: "name",
+      label: t("camera.table.name"),
+      type: "string",
+      filter: true,
+      render: (stream) => <ITText className="text-[12px] text-slate-700">{stream.name ?? "—"}</ITText>,
+    },
+    {
+      key: "transport",
+      label: t("camera.table.transport"),
+      type: "string",
+      width: 130,
+      render: (stream) => <ITText className="text-[12px] text-slate-700">{stream.transport ?? "—"}</ITText>,
+    },
+    {
+      key: "resolution",
+      label: t("camera.table.resolution"),
+      type: "string",
+      width: 150,
+      render: (stream) => (
+        <ITText className="text-[12px] tabular-nums text-slate-700">
+          {stream.width && stream.height ? `${stream.width}×${stream.height}` : "—"}
+        </ITText>
+      ),
+    },
+    {
+      key: "enabled",
+      label: t("camera.table.enabled"),
+      type: "string",
+      width: 120,
+      render: (stream) => (
+        <ITText className="text-[12px] font-semibold text-slate-700">
+          {stream.enabled ? t("camera.yes") : t("camera.no")}
+        </ITText>
+      ),
+    },
+  ];
 
   if (error) return <ITText role="alert" className="text-sm text-red-600">{error}</ITText>;
   if (!camera) return <ITText className="text-sm text-slate-400">{t("camera.loading")}</ITText>;
@@ -43,33 +96,19 @@ export default function TimeClockCameraView({ clockSerial }: { clockSerial: stri
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-[var(--it-card-bg)]">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-            <tr>
-              <th className="px-4 py-2">{t("camera.table.stream")}</th>
-              <th className="px-4 py-2">{t("camera.table.name")}</th>
-              <th className="px-4 py-2">{t("camera.table.transport")}</th>
-              <th className="px-4 py-2">{t("camera.table.resolution")}</th>
-              <th className="px-4 py-2">{t("camera.table.enabled")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {camera.streams.map((s) => (
-              <tr key={s.id} className="border-t border-slate-100">
-                <td className="px-4 py-2 font-mono">{s.id}</td>
-                <td className="px-4 py-2">{s.name ?? "—"}</td>
-                <td className="px-4 py-2">{s.transport ?? "—"}</td>
-                <td className="px-4 py-2">{s.width && s.height ? `${s.width}×${s.height}` : "—"}</td>
-                <td className="px-4 py-2">{s.enabled ? t("camera.yes") : t("camera.no")}</td>
-              </tr>
-            ))}
-            {camera.streams.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-4 text-center text-slate-400">{t("camera.noStreams")}</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ITDataTable
+        showViewToggle={false}
+        columns={columns as unknown as Column<Record<string, unknown>>[]}
+        fetchData={fetchData as never}
+        defaultItemsPerPage={25}
+        itemsPerPageOptions={[25, 50, 100]}
+        layout="fixed"
+        density="compact"
+        rowHeight={44}
+      />
+      {camera.streams.length === 0 && (
+        <ITText className="text-center text-sm text-slate-400">{t("camera.noStreams")}</ITText>
+      )}
     </ITStack>
   );
 }

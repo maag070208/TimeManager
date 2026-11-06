@@ -280,7 +280,12 @@
     "resultTitle": "Import result",
     "skippedCount": "{{count}} skipped",
     "skippedRows": "Skipped rows",
-    "skippedRow": "Row {{row}} ({{username}}): {{reason}}"
+    "skippedRow": "Row {{row}} ({{username}}): {{reason}}",
+    "stepsTitle": "How to import",
+    "stepDownload": "Download the template and check the columns.",
+    "stepFill": "Fill one row per person; do not change the headers.",
+    "stepUpload": "Upload the file and review skipped rows.",
+    "help": "The template includes required columns. If a value is missing, the row is skipped and the reason is shown."
   },
   "table": {
     "username": "Username",

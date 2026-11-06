@@ -1,5 +1,8 @@
-import { ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { useMemo } from "react";
+import { ITButton, ITDataTable, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import type { Column } from "@axzydev/axzy_ui_system";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
+import { makeClientTableFetch } from "@shared/api/clientTable";
 import { useTranslation } from "react-i18next";
 import { dateLocale } from "@shared/i18n/format";
 import { useTimeClockInspect, type InspectTab } from "../model/useTimeClockInspect";
@@ -58,7 +61,7 @@ export default function TimeClockInspectView({ clockSerial, tabs = ALL_TABS }: P
               onChange={(e) => fx.setDays(Number(e.target.value))}
             />
           )}
-          <ITButton variant="outlined" color="secondary" size="sm" disabled={fx.loading} onClick={fx.reload}>
+          <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" disabled={fx.loading} onClick={fx.reload}>
             {t("inspect.refresh")}
           </ITButton>
         </ITFlex>
@@ -73,9 +76,9 @@ export default function TimeClockInspectView({ clockSerial, tabs = ALL_TABS }: P
               role="tab"
               aria-selected={fx.tab === tab}
               onClick={() => fx.setTab(tab)}
-              className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${
+              className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
                 fx.tab === tab
-                  ? "border-slate-900 bg-slate-900 text-white"
+                  ? "border-emerald-200 bg-[#eaf6ef] text-slate-900 shadow-sm"
                   : "border-slate-200 bg-[var(--it-card-bg)] text-slate-600 hover:border-slate-400"
               }`}
             >
@@ -171,32 +174,34 @@ function Table({
   rows: string[][];
   empty: string;
 }) {
+  const data = useMemo(() => rows.map((cells, index) => ({ id: index, cells })), [rows]);
+  const fetchData = useMemo(
+    () => makeClientTableFetch<{ id: number; cells: string[] }>(() => Promise.resolve(data)),
+    [data]
+  );
+  const columns: Column<{ id: number; cells: string[] }>[] = headers.map((header, index) => ({
+    key: `cell-${index}`,
+    label: header,
+    type: "string",
+    render: (row) => <ITText className="text-[12px] text-slate-700">{row.cells[index]}</ITText>,
+  }));
+
   return (
     <section className="flex flex-col gap-2">
       <ITText className="text-xs text-slate-500">{caption}</ITText>
       {rows.length === 0 ? (
         <ITText className="text-sm text-slate-400">{empty}</ITText>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-[var(--it-card-bg)]">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-              <tr>
-                {headers.map((h) => (
-                  <th key={h} className="px-4 py-2 font-semibold">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr key={i} className="border-t border-slate-100">
-                  {row.map((cell, j) => (
-                    <td key={j} className="px-4 py-2 text-slate-800">{cell}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ITDataTable
+          showViewToggle={false}
+          columns={columns as unknown as Column<Record<string, unknown>>[]}
+          fetchData={fetchData as never}
+          defaultItemsPerPage={25}
+          itemsPerPageOptions={[25, 50, 100]}
+          layout="fixed"
+          density="compact"
+          rowHeight={44}
+        />
       )}
     </section>
   );

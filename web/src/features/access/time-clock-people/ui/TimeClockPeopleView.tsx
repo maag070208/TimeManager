@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { FaFingerprint, FaIdCard, FaSyncAlt, FaUserCheck, FaUserSlash } from "react-icons/fa";
+import { LuEye, LuUserX } from "react-icons/lu";
 import { ITButton, ITDataTable, ITDialog, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
@@ -10,6 +11,7 @@ import { useTimeClockPeople } from "../model/useTimeClockPeople";
 import PersonDetailDialog from "./PersonDetailDialog";
 import { timeClockApi, type TimeClockPerson } from "@entities/time-clock";
 import { useCan } from "@entities/user";
+import { HelpTip } from "@shared/ui/help-tip";
 
 /** Persona con su presencia de rostro y huellas (null mientras se leen los conteos). */
 type Row = TimeClockPerson & { faces: number | null; fingerprints: number | null };
@@ -167,16 +169,31 @@ export default function TimeClockPeopleView({ clockSerial }: Props) {
       key: "actions",
       type: "actions",
       label: "",
-      width: 190,
+      width: 100,
       pinned: "right",
       actions: (row) => (
         <ITFlex align="center" justify="end" gap={2}>
-          <ITButton variant="raised-text" color="primary" size="sm" onClick={() => openFicha(row)}>
-            {t("people.actions.view")}
+          <ITButton
+            variant="outlined"
+            color="primary"
+            className="tm-icon-button"
+            aria-label={t("people.actions.view")}
+            title={t("people.actions.view")}
+            onClick={() => openFicha(row)}
+          >
+            <LuEye size={14} />
           </ITButton>
           {canWrite && (
-            <ITButton variant="outlined" color="danger" size="sm" disabled={fx.busy} onClick={() => setRemoving(row)}>
-              {t("people.actions.remove")}
+            <ITButton
+              variant="outlined"
+              color="danger"
+              className="tm-icon-button"
+              aria-label={t("people.actions.remove")}
+              title={t("people.actions.remove")}
+              disabled={fx.busy}
+              onClick={() => setRemoving(row)}
+            >
+              <LuUserX size={14} />
             </ITButton>
           )}
         </ITFlex>
@@ -192,7 +209,10 @@ export default function TimeClockPeopleView({ clockSerial }: Props) {
   return (
     <div className={`flex flex-col gap-4 ${controlled ? "" : "p-6"}`}>
       <ITFlex align="end" justify="between" gap={3} wrap="wrap">
-        <ITText className="text-sm text-slate-500">{t("people.view.count", { count: rows.length })}</ITText>
+        <ITFlex align="center" gap={1.5}>
+          <ITText className="text-sm text-slate-500">{t("people.view.count", { count: rows.length })}</ITText>
+          <HelpTip text={t("people.description")} label={t("people.title")} />
+        </ITFlex>
         <ITFlex align="end" gap={3} wrap="wrap">
           {!controlled && (
             <ITSearchSelect
@@ -208,6 +228,7 @@ export default function TimeClockPeopleView({ clockSerial }: Props) {
             variant="outlined"
             color="secondary"
             size="sm"
+            className="tm-row-button"
             disabled={fx.loading || fx.busy || fx.biometricsLoading}
             onClick={() => {
               fx.reload();
@@ -265,10 +286,10 @@ export default function TimeClockPeopleView({ clockSerial }: Props) {
             {t("people.confirm.body", { name: removing?.name ?? "", number: removing?.employeeNumber ?? "" })}
           </ITText>
           <ITFlex justify="end" gap={2}>
-            <ITButton variant="outlined" color="secondary" onClick={() => setRemoving(null)}>
+            <ITButton variant="outlined" color="secondary" className="tm-row-button" onClick={() => setRemoving(null)}>
               {t("people.actions.no")}
             </ITButton>
-            <ITButton variant="filled" color="danger" disabled={fx.busy} onClick={() => void confirmRemove()}>
+            <ITButton variant="filled" color="danger" className="tm-row-button" disabled={fx.busy} onClick={() => void confirmRemove()}>
               <ITFlex align="center" gap={2}>
                 <FaUserSlash size={12} />
                 {t("people.confirm.action")}

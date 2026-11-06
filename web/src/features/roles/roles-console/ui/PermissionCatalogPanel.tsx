@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { PermissionCatalog } from "@entities/permission";
 import type { PermissionScope } from "@entities/user";
 import { makeClientTableFetch } from "@shared/api/clientTable";
+import { HelpTip } from "@shared/ui/help-tip";
 import { usePermissionCatalog } from "../model/useRolesAdmin";
 import PermissionFormDialog, { type PermissionSubmit } from "./PermissionFormDialog";
 
@@ -225,7 +226,10 @@ export default function PermissionCatalogPanel({ modules, onChanged }: Props) {
   return (
     <ITFlex direction="column" gap={3}>
       <ITFlex align="center" justify="between" wrap="wrap" gap={3}>
-        <ITText className="text-[11px] text-slate-500">{t("catalog.subtitle")}</ITText>
+        <ITFlex align="center" gap={1.5}>
+          <ITText className="text-[11px] text-slate-500">{t("catalog.subtitle")}</ITText>
+          <HelpTip text="El catálogo define qué claves existen. Puedes dar de alta una clave nueva, cambiar su nombre/descripción o desactivarla; desactivarla la cierra en todas las rutas sin borrar la matriz." />
+        </ITFlex>
         <ITButton variant="filled" color="primary" size="sm" onClick={openCreate}>
           <ITText as="span" className="flex items-center gap-1.5 text-[11px] font-bold">
             <FaPlus size={10} /> {t("catalog.new")}

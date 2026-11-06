@@ -10,6 +10,10 @@ import {
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { FaMapMarkerAlt, FaPlus } from "react-icons/fa";
+import { LuBuilding2, LuCirclePause, LuLayers } from "react-icons/lu";
+import { useEffect, useState } from "react";
+import { subareaApi, type Subarea } from "@entities/subarea";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,6 +28,18 @@ export default function SubareasPage() {
   const { t: tt } = useTranslation(["subareas", "common"]);
 
   const crud = useSubareasCrud();
+  const [subareas, setSubareas] = useState<Subarea[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    subareaApi
+      .list({ includeInactive: true })
+      .then((rows) => alive && setSubareas(rows))
+      .catch(() => alive && setSubareas([]));
+    return () => {
+      alive = false;
+    };
+  }, [crud.reloadKey]);
 
   const departmentOptions = crud.departments.map((d) => ({
     value: d.id,
@@ -58,6 +74,27 @@ export default function SubareasPage() {
         <ITAlert variant="error" dismissible onDismiss={() => crud.setError(null)}>
           {crud.error}
         </ITAlert>
+      )}
+
+      {subareas && (
+        <BentoKpiGrid
+          items={[
+            { id: "all", label: tt("list.title"), value: subareas.length, icon: <LuLayers size={14} /> },
+            {
+              id: "inactive",
+              label: tt("list.inactive"),
+              value: subareas.filter((s) => !s.active).length,
+              tone: "warning",
+              icon: <LuCirclePause size={14} />,
+            },
+            {
+              id: "departments",
+              label: tt("list.colDepartment"),
+              value: crud.allDepartments.length,
+              icon: <LuBuilding2 size={14} />,
+            },
+          ]}
+        />
       )}
 
       <SubareasTable

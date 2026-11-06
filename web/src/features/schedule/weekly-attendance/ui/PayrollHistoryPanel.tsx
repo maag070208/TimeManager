@@ -102,7 +102,7 @@ function WeekCard({ row, fx }: { row: PayrollClosureRow; fx: UsePayrollHistory }
           <ITText className="!text-[11.5px] font-medium text-slate-500">{stats}</ITText>
         </ITFlex>
         <ITFlex align="center" gap={2} className="shrink-0">
-          <ITButton variant="text" color="primary" size="sm" onClick={() => setOpen((value) => !value)}>
+          <ITButton variant="text" color="primary" size="sm" className="tm-row-button" onClick={() => setOpen((value) => !value)}>
             <ITFlex align="center" gap={1}>
               {open ? <LuChevronUp size={12} /> : <LuChevronDown size={12} />}
               <ITText as="span" className="!text-[11px] font-semibold">
@@ -115,6 +115,7 @@ function WeekCard({ row, fx }: { row: PayrollClosureRow; fx: UsePayrollHistory }
               variant="outlined"
               color="warning"
               size="sm"
+              className="tm-row-button"
               disabled={fx.busyWeek === row.weekStart}
               onClick={() => void fx.reopen(row.weekStart)}
             >

@@ -13,6 +13,7 @@ import { formatDateTime } from "@shared/utils/dates";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { TicState } from "@shared/ui/tic";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 
 /**
  * Timeline de sincronización de un reloj: cada intento con su hora, si conectó,
@@ -74,7 +75,7 @@ export default function ClockHistoryDialog({
       />
       <ITFlex direction="column" gap={3}>
         <ITFlex align="center" wrap="wrap" gap={2}>
-          <ITButton variant="text" size="sm" className="ml-auto" disabled={cargando} onClick={() => void cargar()}>
+          <ITButton variant="text" size="sm" className="tm-row-button ml-auto" disabled={cargando} onClick={() => void cargar()}>
             <ITFlex align="center" gap={1}>
               <LuRefreshCw size={12} className={cargando ? "animate-spin" : undefined} />
               <ITText className="text-[11px] font-bold">{t("history.refresh")}</ITText>
@@ -83,24 +84,31 @@ export default function ClockHistoryDialog({
         </ITFlex>
 
         {resumen && (
-          <div className="grid grid-cols-1 gap-2 sm:!grid-cols-3">
-            <Indicador
-              titulo={t("history.attempts")}
-              valor={`${resumen.okCount} / ${resumen.attempts}`}
-              detalle={t("history.failedCount", { count: resumen.failCount })}
-            />
-            <Indicador
-              titulo={t("history.failuresInARow")}
-              valor={String(resumen.failuresInARow)}
-              detalle={resumen.failuresInARow === 0 ? t("history.healthy") : t("history.checking")}
-              alerta={resumen.failuresInARow > 0}
-            />
-            <Indicador
-              titulo={t("history.lastOk")}
-              valor={resumen.lastOkAt ? formatDateTime(resumen.lastOkAt) : t("history.never")}
-              detalle={resumen.lastFailAt ? t("history.lastFail", { at: formatDateTime(resumen.lastFailAt) }) : ""}
-            />
-          </div>
+          <BentoKpiGrid
+            items={[
+              {
+                id: "attempts",
+                label: t("history.attempts"),
+                value: `${resumen.okCount} / ${resumen.attempts}`,
+                caption: t("history.failedCount", { count: resumen.failCount }),
+                tone: resumen.failCount > 0 ? "warning" : "success",
+              },
+              {
+                id: "failures",
+                label: t("history.failuresInARow"),
+                value: resumen.failuresInARow,
+                caption: resumen.failuresInARow === 0 ? t("history.healthy") : t("history.checking"),
+                tone: resumen.failuresInARow > 0 ? "danger" : "success",
+              },
+              {
+                id: "lastOk",
+                label: t("history.lastOk"),
+                value: resumen.lastOkAt ? formatDateTime(resumen.lastOkAt) : t("history.never"),
+                caption: resumen.lastFailAt ? t("history.lastFail", { at: formatDateTime(resumen.lastFailAt) }) : "",
+                tone: resumen.lastFailAt ? "warning" : "neutral",
+              },
+            ]}
+          />
         )}
 
         {resumen?.lastError && (
@@ -161,29 +169,5 @@ export default function ClockHistoryDialog({
         <ITText className="text-[10px] text-slate-400">{t("history.hint")}</ITText>
       </ITFlex>
     </ITDialog>
-  );
-}
-
-/** Un dato del resumen; en rojo cuando pide atención. */
-function Indicador({
-  titulo,
-  valor,
-  detalle,
-  alerta,
-}: {
-  titulo: string;
-  valor: string;
-  detalle: string;
-  alerta?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl px-3.5 py-2.5 ${alerta ? "" : "bg-[color-mix(in_srgb,currentColor_5%,transparent)]"}`}
-      style={alerta ? { background: "var(--color-danger-soft)" } : undefined}
-    >
-      <ITText className="text-[12px] font-semibold text-slate-400">{titulo}</ITText>
-      <ITText className={`text-[13px] font-black ${alerta ? "text-[color:var(--color-danger)]" : "text-slate-800"}`}>{valor}</ITText>
-      {detalle && <ITText className="text-[10px] text-slate-500">{detalle}</ITText>}
-    </div>
   );
 }

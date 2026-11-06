@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ITBentoPill,
+  ITButton,
   ITConfirmDialog,
   ITDataTable,
   ITFlex,
@@ -10,13 +11,12 @@ import {
   ITText,
 } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
-import { LuCalendarCheck, LuCalendarDays, LuPencil, LuSearch, LuTrash2, LuUserCheck } from "react-icons/lu";
+import { LuCalendarCheck, LuCalendarDays, LuPencil, LuSearch, LuTrash2, LuUserMinus } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { scheduleApi, type Schedule, type ScheduleDay } from "@entities/schedule";
 import { TicState } from "@shared/ui/tic";
-import { FilterPills } from "@shared/ui/filter-pills";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
-import { RowAction } from "@shared/ui/row-action";
+import { HelpTip } from "@shared/ui/help-tip";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { emitAppEvent, onAppEvent } from "@shared/lib/appEvents";
 import { dateLocale } from "@shared/i18n";
@@ -109,6 +109,7 @@ export default function SchedulesBoard() {
     return {
       total: list.length,
       active: list.filter((h) => h.active).length,
+      inactive: list.filter((h) => !h.active).length,
       assigned: list.reduce((acc, h) => acc + (h.assigned ?? 0), 0),
     };
   }, [rows]);
@@ -257,17 +258,23 @@ export default function SchedulesBoard() {
       type: "actions",
       width: 110,
       render: (h) => (
-        <ITFlex align="center" gap={1.5}>
-          <RowAction
+        <ITFlex align="center" gap={1}>
+          <ITButton
+            variant="icon-only"
+            color="secondary"
+            size="sm"
             icon={<LuPencil size={12} />}
-            label={t("edit")}
-            tone="primary"
+            ariaLabel={t("edit")}
+            title={t("edit")}
             onClick={() => emitAppEvent("schedule:edit", { id: h.id })}
           />
-          <RowAction
-            icon={<LuTrash2 size={12} />}
-            label={h.active ? t("delete") : t("reactivate")}
-            tone={h.active ? "error" : "success"}
+          <ITButton
+            variant="text"
+            color={h.active ? "error" : "success"}
+            size="sm"
+            icon={h.active ? <LuTrash2 size={13} /> : <LuCalendarCheck size={13} />}
+            ariaLabel={h.active ? t("delete") : t("reactivate")}
+            title={h.active ? t("delete") : t("reactivate")}
             onClick={() => (h.active ? setToDeactivate(h) : void toggleActive(h))}
           />
         </ITFlex>
@@ -282,18 +289,18 @@ export default function SchedulesBoard() {
     <ITStack spacing={4}>
       <BentoFilterCards
         items={[
-          { id: "total", label: t("summary.total"), value: totals.total, caption: t("summary.totalCaption"), icon: <LuCalendarDays size={14} /> },
+          {
+            id: "all",
+            label: t("summary.total"),
+            value: totals.total,
+            caption: `${t("summary.totalCaption")} · ${t("assigned", { count: totals.assigned })}`,
+            icon: <LuCalendarDays size={14} />,
+          },
           { id: "active", label: t("summary.active"), value: totals.active, caption: t("summary.activeCaption"), icon: <LuCalendarCheck size={14} /> },
-          { id: "assigned", label: t("summary.assigned"), value: totals.assigned, caption: t("summary.assignedCaption"), icon: <LuUserCheck size={14} /> },
+          { id: "inactive", label: t("inactive"), value: totals.inactive, icon: <LuUserMinus size={14} /> },
         ]}
-        activeId={filter === "all" ? "total" : filter === "active" ? "active" : undefined}
-        onSelect={(id: string) => {
-          if (id === "assigned") {
-            navigate("/schedules/assign");
-            return;
-          }
-          setFilter(id === "active" ? "active" : "all");
-        }}
+        activeId={filter}
+        onSelect={(id: string) => setFilter(id as Filter)}
       />
 
       {/* Búsqueda y estado */}
@@ -311,15 +318,12 @@ export default function SchedulesBoard() {
         <ITText muted className="!text-[12px] font-semibold tabular-nums">
           {t("count", { count: visible.length })}
         </ITText>
-        <FilterPills
-          items={[
-            { id: "all" as const, label: t("filter.all") },
-            { id: "active" as const, label: t("active") },
-            { id: "inactive" as const, label: t("inactive") },
-          ]}
-          value={filter}
-          onChange={setFilter}
-        />
+        <ITFlex align="center" gap={1}>
+          <ITText muted className="!text-[11.5px] font-semibold">
+            {t("sections.rules")}
+          </ITText>
+          <HelpTip text="Tolerancias y reglas: la entrada/salida tiene minutos de gracia antes de contar como retardo o salida anticipada; la comida se descuenta de la jornada y el mínimo de tiempo extra es lo que debe superarse para que cuente." />
+        </ITFlex>
       </ITFlex>
 
       <div className={flashNew ? "ticket-row-flash" : undefined}>

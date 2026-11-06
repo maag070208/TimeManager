@@ -105,7 +105,7 @@ export default function PayrollClosureDialog({ closure, weekLabel, t: translate,
           </div>
           {departments.length > 0 && (
             <div className="flex items-center justify-end gap-2 px-3 py-3" style={{ borderTop: hairline }}>
-              <ITButton variant="outlined" color="secondary" size="sm" onClick={exportPdf} disabled={exporting}>
+              <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={exportPdf} disabled={exporting}>
                 <span className="flex items-center gap-1.5 text-[11.5px] font-bold">
                   <LuFileText size={13} />
                   {exporting ? t("exporting") : t("exportPdfFull")}
@@ -115,6 +115,7 @@ export default function PayrollClosureDialog({ closure, weekLabel, t: translate,
                 variant="outlined"
                 color="secondary"
                 size="sm"
+                className="tm-row-button"
                 onClick={() => closure && downloadPayrollClosureCsv(closure)}
               >
                 <span className="flex items-center gap-1.5 text-[11.5px] font-bold">

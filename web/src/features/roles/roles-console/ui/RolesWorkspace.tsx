@@ -1,4 +1,4 @@
-import { ITAlert, ITDialog, ITToast, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITDialog, ITFlex, ITToast, ITStack } from "@axzydev/axzy_ui_system";
 import { FaGavel, FaHistory, FaListUl, FaTable, FaUserShield, FaUsersCog } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { RolesWorkspaceState, WorkspaceTab } from "../model/useRolesWorkspace";
@@ -16,6 +16,8 @@ import RolesHelpDialog from "./RolesHelpDialog";
 import { ChangesReviewDialog, PendingChangesBar } from "./shared/PendingChanges";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { TicState } from "@shared/ui/tic";
+import { HelpTip } from "@shared/ui/help-tip";
 
 interface Props {
   workspace: RolesWorkspaceState;
@@ -58,13 +60,31 @@ export default function RolesWorkspace({ workspace }: Props) {
 
   return (
     <ITStack spacing={3}>
-      {/* Resumen del control de acceso en una sola tarjeta */}
-      <RolesSummary
-        rolesMeta={rolesMeta}
-        catalogTotal={data.catalog.length}
-        people={members.members.length}
-        policiesCount={policies.data?.policies.length ?? 0}
-      />
+      {/* Resumen del control de acceso: KPIs blancos con waves */}
+      <ITFlex align="start" gap={2} wrap="wrap">
+        <div className="min-w-0 flex-1">
+          <RolesSummary
+            rolesMeta={rolesMeta}
+            catalogTotal={data.catalog.length}
+            people={members.members.length}
+            policiesCount={policies.data?.policies.length ?? 0}
+          />
+        </div>
+        <HelpTip text="Los permisos se agrupan por rol; el alcance (propio, área o todo) decide sobre qué registros aplica. Lo que no esté marcado queda cerrado: la API es fail-closed." />
+      </ITFlex>
+
+      {data.roles.length === 0 ? (
+        <TicState
+          kind="empty"
+          title={t("roleList.pick")}
+          description={t("description")}
+          action={
+            <ITButton variant="filled" color="primary" onClick={workspace.openCreateRole}>
+              {t("access.newRole")}
+            </ITButton>
+          }
+        />
+      ) : null}
 
       <TabBar items={tabs} value={tab} onChange={setTab} />
 
@@ -91,7 +111,16 @@ export default function RolesWorkspace({ workspace }: Props) {
               notify={workspace.notify}
             />
           ) : (
-            <ITText className="py-16 text-center text-[12px] italic text-slate-400">{t("roleList.pick")}</ITText>
+            <TicState
+              kind="empty"
+              title={t("roleList.pick")}
+              description={t("tabs.roles")}
+              action={
+                <ITButton variant="outlined" color="primary" onClick={workspace.openCreateRole}>
+                  {t("access.newRole")}
+                </ITButton>
+              }
+            />
           )}
         </div>
       )}

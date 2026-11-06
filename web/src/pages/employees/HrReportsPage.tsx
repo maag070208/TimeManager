@@ -1,12 +1,11 @@
 import {
   ITAlert,
-  ITBentoStatStrip,
   ITButton,
   ITFlex,
   ITInput,
   ITPage,
+  ITSelect,
   ITText,
-  useITBentoCountUp,
 } from "@axzydev/axzy_ui_system";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,7 +17,7 @@ import {
 } from "react-icons/lu";
 import { TicConfirm } from "@shared/ui/tic-confirm";
 import { TicState } from "@shared/ui/tic";
-import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
+import { BentoFilterCards, type BentoFilterItem } from "@shared/ui/bento-filter-cards";
 import { onAppEvent } from "@shared/lib/appEvents";
 import { PanelCard } from "@shared/ui/panel-card";
 import { useNavigate } from "react-router-dom";
@@ -33,12 +32,6 @@ import {
   type DisciplinaryReasonFilter,
 } from "@features/hr/disciplinary-reports";
 import { useGoBack } from "@shared/lib/useGoBack";
-
-/** Número grande de un mosaico: sube de 0 al valor al montar (como el Inicio). */
-function Big({ value }: { value: number }) {
-  const shown = useITBentoCountUp(value);
-  return <>{Math.round(shown).toLocaleString("es-MX")}</>;
-}
 
 export default function HrReportsPage() {
   const { t: tt, i18n } = useTranslation(["disciplinary-reports", "common"]);
@@ -81,52 +74,38 @@ export default function HrReportsPage() {
     return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date());
   }, [i18n.language]);
 
-  // Totales reales del endpoint de la lista; cada mosaico es un filtro rápido.
-  type StripTone = "sea" | "mint" | "sun" | "lavender";
-  const summaryItems: Array<{ id: string; label: string; value: React.ReactNode; tone: StripTone; icon: React.ReactNode; caption?: string }> = summary
+  // Totales reales del endpoint de la lista; cada tarjeta es un filtro rápido.
+  const summaryItems: BentoFilterItem[] = summary
     ? [
         {
           id: "all",
           label: tt("summary.total"),
-          value: <Big value={summary.total} />,
-          tone: "sea",
-          icon: <LuScrollText size={15} />,
+          value: summary.total,
+          icon: <LuScrollText size={14} />,
         },
         {
           id: "month",
           label: tt("summary.month"),
-          value: <Big value={summary.month} />,
-          tone: "mint",
-          icon: <LuCalendarDays size={15} />,
+          value: summary.month,
+          icon: <LuCalendarDays size={14} />,
           caption: monthName,
         },
         {
           id: "ABSENCE",
           label: tt("summary.absences"),
-          value: <Big value={summary.byReason.ABSENCE} />,
-          tone: "sun",
-          icon: <LuUserX size={15} />,
+          value: summary.byReason.ABSENCE,
+          icon: <LuUserX size={14} />,
           caption: tt("summary.share", { percent: percentOf(summary.byReason.ABSENCE) }),
         },
         {
           id: "TARDINESS",
           label: tt("summary.tardiness"),
-          value: <Big value={summary.byReason.TARDINESS} />,
-          tone: "lavender",
-          icon: <LuClockAlert size={15} />,
+          value: summary.byReason.TARDINESS,
+          icon: <LuClockAlert size={14} />,
           caption: tt("summary.share", { percent: percentOf(summary.byReason.TARDINESS) }),
         },
       ]
     : [];
-
-  const reasonPills: FilterPillItem<DisciplinaryReasonFilter>[] = [
-    { id: "all", label: tt("filters.all") },
-    ...DISCIPLINARY_REASONS.map((reason) => ({
-      id: reason,
-      label: tt(`reasons.${reason}`),
-      count: summary?.byReason[reason],
-    })),
-  ];
 
   return (
     <ITPage className="m-0! p-0! px-8! min-w-full! pb-12!"
@@ -161,15 +140,8 @@ export default function HrReportsPage() {
       ) : (
         <ITFlex direction="column" gap={4}>
           {summaryItems.length > 0 && (
-            <ITBentoStatStrip
-              stack
-              items={summaryItems.map((item) => ({
-                id: item.id,
-                label: item.label,
-                value: item.value,
-                caption: item.caption,
-                tone: item.tone,
-              }))}
+            <BentoFilterCards
+              items={summaryItems}
               activeId={fx.quick}
               onSelect={(id) => fx.setQuick(id as DisciplinaryQuickFilter)}
             />
@@ -193,12 +165,21 @@ export default function HrReportsPage() {
               }
             >
               <ITFlex align="center" wrap="wrap" gap={2}>
-                <FilterPills
-                  items={reasonPills}
-                  value={fx.reason}
-                  onChange={fx.setReasonFilter}
-                  className="min-w-0 flex-1"
-                />
+                <div className="w-full sm:w-60">
+                  <ITSelect
+                    name="actasMotivo"
+                    size="sm"
+                    value={fx.reason}
+                    onChange={(event) => fx.setReasonFilter(event.target.value as DisciplinaryReasonFilter)}
+                    options={[
+                      { value: "all", label: tt("filters.all") },
+                      ...DISCIPLINARY_REASONS.map((reason) => ({
+                        value: reason,
+                        label: tt(`reasons.${reason}`),
+                      })),
+                    ]}
+                  />
+                </div>
                 <div className="w-full sm:w-72">
                   <ITInput
                     name="actasBuscar"

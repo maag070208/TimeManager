@@ -1,8 +1,8 @@
 import { ITButton, ITCard, ITPage, ITText, ITStack } from "@axzydev/axzy_ui_system";
-import { LuBell, LuCheckCheck } from "react-icons/lu";
+import { LuBell, LuCheckCheck, LuCircleAlert, LuMail, LuUsers } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { NotificationItem, useNotificationsList, type NotificationFilter } from "@features/notification/list";
-import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
+import { BentoFilterCards, type BentoFilterItem } from "@shared/ui/bento-filter-cards";
 import { TicState } from "@shared/ui/tic";
 import { PanelCard } from "@shared/ui/panel-card";
 import { formatLongDate } from "@shared/utils/dates";
@@ -26,31 +26,15 @@ export default function NotificationsPage() {
   const fx = useNotificationsList();
   const dayLabel = useDayLabel();
 
-  const filters: FilterPillItem<NotificationFilter>[] = [
-    { id: "all", label: tt("filters.all"), count: fx.counts.all },
-    { id: "unread", label: tt("filters.unread"), count: fx.counts.unread },
-    { id: "people", label: tt("filters.people"), count: fx.counts.people },
-    { id: "alerts", label: tt("filters.alerts"), count: fx.counts.alerts },
+  const filters: BentoFilterItem[] = [
+    { id: "all", label: tt("filters.all"), value: fx.counts.all, icon: <LuBell size={14} /> },
+    { id: "unread", label: tt("filters.unread"), value: fx.counts.unread, icon: <LuMail size={14} /> },
+    { id: "people", label: tt("filters.people"), value: fx.counts.people, icon: <LuUsers size={14} /> },
+    { id: "alerts", label: tt("filters.alerts"), value: fx.counts.alerts, icon: <LuCircleAlert size={14} /> },
   ];
 
   const initialLoad = fx.loading && fx.items.length === 0;
   const empty = !initialLoad && fx.groups.length === 0;
-
-  const tile = (label: string, value: number, filter: NotificationFilter, active: boolean) => (
-    <button
-      key={label}
-      type="button"
-      onClick={() => fx.setFilter(filter)}
-      className={`flex flex-col gap-1 rounded-xl border px-3 py-3 text-left transition ${
-        active ? "border-[#0f2e3d] bg-[#0f2e3d] text-white" : "border-slate-100 bg-slate-50 text-slate-700 hover:border-slate-300"
-      }`}
-    >
-      <span className={`text-[10.5px] font-semibold uppercase tracking-wide ${active ? "text-white/60" : "text-slate-400"}`}>
-        {label}
-      </span>
-      <span className="text-[22px] font-black tabular-nums">{value}</span>
-    </button>
-  );
 
   return (
     <ITPage
@@ -69,7 +53,11 @@ export default function NotificationsPage() {
     >
       <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
         <div className="flex flex-col gap-4 lg:col-span-8">
-          <FilterPills items={filters} value={fx.filter} onChange={fx.setFilter} />
+          <BentoFilterCards
+            items={filters}
+            activeId={fx.filter}
+            onSelect={(id) => fx.setFilter(id as NotificationFilter)}
+          />
 
           <PanelCard>
             {initialLoad && <ContentSkeleton />}
@@ -112,12 +100,6 @@ export default function NotificationsPage() {
               <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">Resumen</ITText>
               <ITText className="!text-2xl font-extrabold !text-slate-900">{fx.counts.unread} sin leer</ITText>
               <ITText className="!text-[12px] !text-slate-600">de {fx.counts.all} notificaciones</ITText>
-            </div>
-            <div className="grid grid-cols-2 gap-2 p-3">
-              {tile(tt("filters.people"), fx.counts.people, "people", fx.filter === "people")}
-              {tile(tt("filters.alerts"), fx.counts.alerts, "alerts", fx.filter === "alerts")}
-              {tile(tt("filters.unread"), fx.counts.unread, "unread", fx.filter === "unread")}
-              {tile(tt("filters.all"), fx.counts.all, "all", fx.filter === "all")}
             </div>
           </ITCard>
 

@@ -31,7 +31,7 @@ export default function TimeClockActions({ fx, onManageClocks }: Props) {
   return (
     <ITFlex align="center" wrap="wrap" gap={2}>
       {onManageClocks && (
-        <ITButton variant="outlined" color="secondary" size="sm" onClick={onManageClocks}>
+        <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={onManageClocks}>
           <ITFlex align="center" gap={1}>
             <FaCog size={11} />
             <ITText className="font-bold text-[11px]">{t("status.manage")}</ITText>
@@ -43,6 +43,7 @@ export default function TimeClockActions({ fx, onManageClocks }: Props) {
           variant="outlined"
           color="primary"
           size="sm"
+          className="tm-row-button"
           onClick={handleImportRange}
           disabled={importing || starting || !dateRange[0] || !status?.configured}
         >
@@ -58,6 +59,7 @@ export default function TimeClockActions({ fx, onManageClocks }: Props) {
         variant="outlined"
         color="gray"
         size="sm"
+        className="tm-row-button"
         onClick={() => void handleExportCsv()}
         disabled={exporting}
       >
@@ -73,6 +75,7 @@ export default function TimeClockActions({ fx, onManageClocks }: Props) {
           variant="filled"
           color="primary"
           size="sm"
+          className="tm-row-button"
           disabled={inProgress || importing || starting || sinRelojes}
           onClick={() => void handleSyncAll()}
         >

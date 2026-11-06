@@ -45,7 +45,7 @@ export default function LinksSummary({ onGoToLink }: { onGoToLink: () => void })
           : t("report.unlinkedNotice", { count: pending, total: summary.total })}
       </InsightNote>
       {pending > 0 && (
-        <ITButton variant="outlined" color="primary" size="sm" onClick={onGoToLink}>
+        <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={onGoToLink}>
           <ITFlex align="center" gap={1}>
             <LuLink2 size={12} />
             <ITText className="font-bold text-[11px]">{t("report.link")}</ITText>

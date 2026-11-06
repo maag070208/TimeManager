@@ -86,25 +86,25 @@ export default function EmployeeDetailPage() {
       ]}
       actions={
         <ITFlex align="center" gap={2}>
-          <ITButton variant="outlined" color="primary" size="lg" onClick={() => setCredentialOpen(true)}>
+          <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setCredentialOpen(true)}>
             <ITFlex align="center" gap={1}>
               <LuIdCard size={13} />
               <ITText className="font-bold text-[12px]">{tt("detail.credential")}</ITText>
             </ITFlex>
           </ITButton>
           {profile.active ? (
-            <ITButton variant="outlined" color="error" size="lg" onClick={() => detail.setDeactivateOpen(true)}>
+            <ITButton variant="outlined" color="error" size="sm" className="tm-row-button" onClick={() => detail.setDeactivateOpen(true)}>
               <ITFlex align="center" gap={1}>
                 <LuUserX size={13} />
                 <ITText className="font-bold text-[12px]">{tt("detail.deactivate")}</ITText>
               </ITFlex>
             </ITButton>
           ) : (
-            <ITButton variant="outlined" color="success" size="lg" onClick={detail.reactivate}>
+            <ITButton variant="outlined" color="success" size="sm" className="tm-row-button" onClick={detail.reactivate}>
               <ITText className="font-bold text-[12px]">{tt("detail.reactivate")}</ITText>
             </ITButton>
           )}
-          <ITButton variant="filled" color="primary" size="lg" onClick={() => navigate(`/employees/${id}/edit`)}>
+          <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={() => navigate(`/employees/${id}/edit`)}>
             <ITFlex align="center" gap={1}>
               <LuPencil size={13} />
               <ITText className="font-bold text-[12px]">{tt("detail.editInfo")}</ITText>
@@ -113,7 +113,7 @@ export default function EmployeeDetailPage() {
           {/* El expediente edita a la persona; la cuenta (usuario, contraseña,
               roles) se edita en Usuarios. El enlace evita tener que buscarla. */}
           {canEditUser && (
-            <ITButton variant="outlined" color="secondary" size="lg" onClick={() => navigate(`/employees/${id}/account`)}>
+            <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => navigate(`/employees/${id}/account`)}>
               <ITFlex align="center" gap={1}>
                 <LuUserCog size={13} />
                 <ITText className="font-bold text-[12px]">{tt("detail.editAccount")}</ITText>

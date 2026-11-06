@@ -1,9 +1,10 @@
-import { ITPage } from "@axzydev/axzy_ui_system";
+import { ITPage, ITText } from "@axzydev/axzy_ui_system";
 import { LuHistory } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PayrollHistoryPanel, usePayrollHistory } from "@features/schedule";
 import { useGoBack } from "@shared/lib/useGoBack";
+import { HelpTip } from "@shared/ui/help-tip";
 
 /**
  * Historial de pre-nóminas cerradas: se llega desde la barra de acciones de
@@ -33,7 +34,26 @@ export default function PayrollHistoryPage() {
       ]}
       backAction={() => goBack("/schedules/payroll")}
     >
-      <PayrollHistoryPanel fx={fx} />
+      <div className="flex flex-col gap-4">
+        <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
+          <span className="flex items-center gap-1.5">
+            <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
+              Cierre de pre-nómina
+            </ITText>
+            <HelpTip text="Cada cierre guarda la fotografía de la semana (personas, horas, tiempo extra aprobado y faltas) y quién lo hizo. Reabrir no borra el cierre: vuelve a habilitar revisiones y deja rastro en auditoría." />
+          </span>
+          <ITText className="!text-2xl font-extrabold !text-slate-900">
+            {fx.rows?.length ?? 0} semana(s) en el historial
+          </ITText>
+          <ITText className="!text-[12px] !text-slate-600">
+            {fx.canClose
+              ? "Puedes reabrir una semana cerrada si hace falta corregir antes de exportar."
+              : "Solo lectura: necesitas el permiso de cierre de nómina para reabrir una semana."}
+          </ITText>
+        </div>
+
+        <PayrollHistoryPanel fx={fx} />
+      </div>
     </ITPage>
   );
 }

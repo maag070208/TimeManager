@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import {
   ITAlert,
   ITBadget,
-  ITBentoStatStrip,
   ITBentoWeekBars,
   ITButton,
   ITCard,
@@ -12,12 +11,12 @@ import {
   ITGrid,
   ITText,
 } from "@axzydev/axzy_ui_system";
-import { LuBell, LuChartColumn, LuInfo } from "react-icons/lu";
+import { LuBell, LuChartColumn, LuCheckCheck, LuClock, LuHourglass, LuInfo, LuTriangleAlert, LuUsers } from "react-icons/lu";
 import { dyn } from "@shared/i18n/dyn";
 import { dateLocale } from "@shared/i18n";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { FilterPills } from "@shared/ui/filter-pills";
-import { Num } from "@shared/ui/bento-bits";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { PanelCard } from "@shared/ui/panel-card";
 import { seriesColor } from "@shared/ui/charts";
 import { buildDepartmentRows, WEEKLY_LEGEND, WEEKLY_STATUS_BADGE, hoursDecimal, toDayKey } from "@entities/schedule";
@@ -131,65 +130,57 @@ export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance 
         onCloseWeek={() => setConfirmClose(true)}
       />
 
-      {/* Cifras de la semana: la tira del mosaico, como en Asistencias. Con un
-          departamento elegido, el API ya devuelve sus totales: la tira son las
-          cifras de ese departamento. */}
+      {/* Cifras de la semana en el mosaico bento. Con un departamento elegido,
+          el API ya devuelve sus totales: las tarjetas son las de ese departamento. */}
       {summary && (
         <ITFlex direction="column" gap={1.5}>
           <ITText muted className="!text-[11.5px] font-semibold">
             {scopeName ? t("kpis.scopeDepartment", { name: scopeName }) : t("kpis.scopeAll")}
           </ITText>
-          <ITBentoStatStrip
-          stack
-          items={[
-            {
-              id: "people",
-              label: t("kpis.people"),
-              value: <Num value={summary.people} />,
-              caption: t("short.linked", { linked: summary.people - summary.unlinked }),
-              tone: "sea",
-              color: "var(--color-primary-500)",
-            },
-            {
-              id: "worked",
-              label: t("kpis.worked"),
-              value: hoursDecimal(summary.workedMin),
-              caption: t("short.scheduled", { hours: hoursDecimal(summary.scheduledMin) }),
-              tone: "plain",
-              color: "var(--color-primary-500)",
-            },
-            {
-              id: "overtime",
-              label: t("kpis.overtime"),
-              value: hoursDecimal(summary.extraMin),
-              caption: t("short.worked", { hours: hoursDecimal(summary.workedMin) }),
-              tone: "sun",
-              color: "var(--color-warning)",
-            },
-            {
-              id: "approved",
-              label: t("kpis.approved"),
-              value: hoursDecimal(summary.approvedExtraMin),
-              caption: t("short.calculated", {
-                pct: summary.extraMin > 0 ? Math.round((summary.approvedExtraMin / summary.extraMin) * 100) : 0,
-              }),
-              tone: "mint",
-              color: "var(--color-success)",
-            },
-            {
-              id: "absences",
-              label: t("kpis.absences"),
-              value: <Num value={summary.absences} />,
-              caption: t("short.people", { total: summary.people }),
-              tone: summary.absences > 0 ? "lavender" : "plain",
-              color: summary.absences > 0 ? "var(--color-danger)" : "var(--color-text-muted)",
-            },
-          ]}
-          stackItems={[
-            { id: "worked", label: t("kpis.worked"), value: summary.workedMin, color: "var(--color-primary-500)" },
-            { id: "overtime", label: t("kpis.overtime"), value: summary.extraMin, color: "var(--color-warning)" },
-            { id: "absences", label: t("kpis.absences"), value: summary.absences, color: "var(--color-danger)" },
-          ]}
+          <BentoKpiGrid
+            items={[
+              {
+                id: "people",
+                label: t("kpis.people"),
+                value: summary.people,
+                caption: t("short.linked", { linked: summary.people - summary.unlinked }),
+                tone: "info",
+                icon: <LuUsers size={14} />,
+              },
+              {
+                id: "worked",
+                label: t("kpis.worked"),
+                value: hoursDecimal(summary.workedMin),
+                caption: t("short.scheduled", { hours: hoursDecimal(summary.scheduledMin) }),
+                icon: <LuClock size={14} />,
+              },
+              {
+                id: "overtime",
+                label: t("kpis.overtime"),
+                value: hoursDecimal(summary.extraMin),
+                caption: t("short.worked", { hours: hoursDecimal(summary.workedMin) }),
+                tone: "warning",
+                icon: <LuHourglass size={14} />,
+              },
+              {
+                id: "approved",
+                label: t("kpis.approved"),
+                value: hoursDecimal(summary.approvedExtraMin),
+                caption: t("short.calculated", {
+                  pct: summary.extraMin > 0 ? Math.round((summary.approvedExtraMin / summary.extraMin) * 100) : 0,
+                }),
+                tone: "success",
+                icon: <LuCheckCheck size={14} />,
+              },
+              {
+                id: "absences",
+                label: t("kpis.absences"),
+                value: summary.absences,
+                caption: t("short.people", { total: summary.people }),
+                tone: summary.absences > 0 ? "danger" : "neutral",
+                icon: <LuTriangleAlert size={14} />,
+              },
+            ]}
           />
         </ITFlex>
       )}

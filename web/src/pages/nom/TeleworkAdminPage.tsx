@@ -22,6 +22,7 @@ import {
 } from "@entities/nom";
 import { usersApi, type User } from "@entities/user";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { HelpTip } from "@shared/ui/help-tip";
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -140,9 +141,28 @@ export default function TeleworkAdminPage() {
           <ContentSkeleton />
         ) : (
           <>
+            <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900 lg:col-span-12">
+              <span className="flex items-center gap-1.5">
+                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
+                  NOM-037 · teletrabajo
+                </ITText>
+                <HelpTip text="Cada cliente define su política de teletrabajo, desconexión y aviso de privacidad con versión. El alta registra el lugar; el trabajador consiente la política y contesta el checklist inicial y los periódicos." />
+              </span>
+              <ITText className="!text-2xl font-extrabold !text-slate-900">
+                {registrations.filter((row) => row.status === "ACTIVE").length} persona(s) en teletrabajo
+              </ITText>
+              <ITText className="!text-[12px] !text-slate-600">
+                Política v{policy?.policyVersion ?? 1} · aviso v{policy?.privacyNoticeVersion ?? 1} ·{" "}
+                {checklists.length} checklist(s) recibido(s) · {contacts.length} comunicación(es) fuera de jornada.
+              </ITText>
+            </div>
+
             <ITCard className="lg:col-span-7" contentClassName="!p-5">
               <ITFlex direction="column" gap={3}>
-                <ITText className="font-bold">{t("admin.policyTitle")}</ITText>
+                <ITFlex align="center" gap={2}>
+                  <ITText className="font-bold">{t("admin.policyTitle")}</ITText>
+                  <HelpTip text="Textos que el trabajador acepta con versión: teletrabajo (lugar, equipo y horario), desconexión (no responder fuera de jornada) y aviso de privacidad (datos tratados). Al guardar sube la versión." />
+                </ITFlex>
                 <ITText muted className="!text-[11px]">
                   {t("admin.policyHint", {
                     policy: policy?.policyVersion ?? 1,
@@ -192,7 +212,10 @@ export default function TeleworkAdminPage() {
 
             <ITCard className="lg:col-span-5" contentClassName="!p-5">
               <ITFlex direction="column" gap={3}>
-                <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
+                <ITFlex align="center" gap={2}>
+                  <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
+                  <HelpTip text="Alta del teletrabajador con su modo (remoto, híbrido o campo) y domicilio. La baja conserva el historial; el consentimiento de la política es requisito para que pueda marcar desde casa." />
+                </ITFlex>
                 <ITFlex gap={2} wrap="wrap" align="end">
                   <ITSearchSelect
                     name="registrationUser"
@@ -294,7 +317,10 @@ export default function TeleworkAdminPage() {
 
             <ITCard className="lg:col-span-7" contentClassName="!p-5">
               <ITFlex direction="column" gap={2}>
-                <ITText className="font-bold">{t("admin.checklistsTitle")}</ITText>
+                <ITFlex align="center" gap={2}>
+                  <ITText className="font-bold">{t("admin.checklistsTitle")}</ITText>
+                  <HelpTip text="Checklist del lugar de trabajo (8 puntos de seguridad y ergonomía). El inicial se levanta al registrar el teletrabajo y el periódico se repite durante la relación laboral." />
+                </ITFlex>
                 {checklists.length === 0 ? (
                   <ITText muted>{t("admin.emptyChecklists")}</ITText>
                 ) : (
@@ -313,7 +339,10 @@ export default function TeleworkAdminPage() {
 
             <ITCard className="lg:col-span-5" contentClassName="!p-5">
               <ITFlex direction="column" gap={3}>
-                <ITText className="font-bold">{t("admin.contactsTitle")}</ITText>
+                <ITFlex align="center" gap={2}>
+                  <ITText className="font-bold">{t("admin.contactsTitle")}</ITText>
+                  <HelpTip text="Derecho a la desconexión: registra cada contacto fuera de jornada con su motivo y canal para justificarlo. Debe ser excepcional y queda auditado." />
+                </ITFlex>
                 <ITText muted className="!text-[11px]">
                   {t("admin.contactsHint")}
                 </ITText>

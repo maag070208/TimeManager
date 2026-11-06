@@ -20,7 +20,7 @@ export default function TimeClockEmployeesPage() {
       // Las acciones de la pantalla, en el encabezado (como en Checadas).
       actions={
         <ITFlex align="center" wrap="wrap" gap={2}>
-          <ITButton variant="outlined" color="secondary" size="sm" onClick={() => navigate("/hr/time-clock/roster")}>
+          <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => navigate("/hr/time-clock/roster")}>
             <ITFlex align="center" gap={1}>
               <FaUsersCog size={11} />
               <ITText className="font-bold text-[11px]">{t("roster.title")}</ITText>
@@ -30,6 +30,7 @@ export default function TimeClockEmployeesPage() {
             variant="outlined"
             color="secondary"
             size="sm"
+            className="tm-row-button"
             onClick={() => navigate("/hr/time-clock/employees/differences")}
           >
             <ITFlex align="center" gap={1}>
@@ -42,6 +43,7 @@ export default function TimeClockEmployeesPage() {
               variant="filled"
               color="primary"
               size="sm"
+              className="tm-row-button"
               disabled={fx.saving || !fx.summary?.registrationSuggestions}
               onClick={() => void fx.linkSuggested()}
             >

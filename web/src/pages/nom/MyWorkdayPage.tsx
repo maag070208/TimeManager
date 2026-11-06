@@ -28,6 +28,7 @@ import {
 import type { PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { dateLocale } from "@shared/i18n";
+import { HelpTip } from "@shared/ui/help-tip";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
 import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
 import { useMyLeave } from "@features/nom/worker-portal/model/useMyLeave";
@@ -47,10 +48,11 @@ const dateOf = (iso: string): string =>
 const sameDay = (iso: string): boolean =>
   new Date(iso).toDateString() === new Date().toDateString();
 
-const CardHeader = ({ icon, title }: { icon: ReactNode; title: string }) => (
+const CardHeader = ({ icon, title, help }: { icon: ReactNode; title: string; help?: string }) => (
   <ITFlex align="center" gap={2} className="min-w-0">
     <span className="text-slate-500">{icon}</span>
     <ITText className="truncate font-bold">{title}</ITText>
+    {help && <HelpTip text={help} />}
   </ITFlex>
 );
 
@@ -198,30 +200,32 @@ export default function MyWorkdayPage() {
                   type="button"
                   disabled={fx.busy}
                   onClick={() => void doPunch(primaryNext)}
-                  style={{ backgroundColor: "#0f2e3d" }}
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-4 text-left text-white transition hover:brightness-110 disabled:opacity-60"
+                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-[#eaf6ef] px-4 py-4 text-left text-slate-900 transition hover:border-emerald-200 hover:brightness-[0.99] disabled:opacity-60"
                 >
                   <span className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                       {PUNCH_ICON[primaryNext]}
                     </span>
                     <span className="flex flex-col">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                         {tr("punch.next")}
                       </span>
-                      <span className="text-[18px] font-extrabold leading-tight">
+                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">
                         {primaryLabel}
                       </span>
                     </span>
                   </span>
-                  <span className="text-[20px] font-black tabular-nums">
+                  <span className="text-[20px] font-black tabular-nums text-slate-900">
                     {fx.busy ? "…" : timeOf(new Date().toISOString())}
                   </span>
                 </button>
 
-                <ITText muted className="!text-[11.5px]">
-                  {tr("punch.channelHint")}
-                </ITText>
+                <ITFlex align="center" gap={1}>
+                  <ITText muted className="!text-[11.5px]">
+                    {tr("punch.channelHint")}
+                  </ITText>
+                  <HelpTip text="La checada web se marca con la hora del servidor y avanza entrada → comida → regreso → salida. La ubicación es opcional y solo se comparte si la activas." />
+                </ITFlex>
 
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {(["ENTRY", "LUNCH_START", "LUNCH_END", "EXIT"] as PunchType[]).map((type) => {
@@ -415,7 +419,7 @@ export default function MyWorkdayPage() {
             {/* Teletrabajo */}
             <ITCard className="lg:col-span-6" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
-                <CardHeader icon={<LuLaptop size={16} />} title={t("telework.title")} />
+                <CardHeader icon={<LuLaptop size={16} />} title={t("telework.title")} help="NOM-037: el teletrabajo requiere registro, política de desconexión, aviso de privacidad, consentimiento y checklist del lugar. Sin consentimiento no se habilita reportar desde casa." />
                 {!telework || !telework.registration ? (
                   <div className="flex flex-col items-start gap-3 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm">
@@ -524,7 +528,7 @@ export default function MyWorkdayPage() {
             {/* Consentimiento de horas extra (F3/1.5) */}
             <ITCard className="lg:col-span-6" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
-                <CardHeader icon={<LuClock size={16} />} title={tr("requests.title")} />
+                <CardHeader icon={<LuClock size={16} />} title={tr("requests.title")} help="El trabajo fuera de jornada requiere tu consentimiento: aquí ves y decides cada solicitud antes de programarla. La decisión queda auditada." />
                 <ITText muted className="!text-[12px]">{tr("requests.hint")}</ITText>
                 {wc.requests.length === 0 ? (
                   <ITText muted className="!text-[12px]">{tr("requests.empty")}</ITText>
@@ -583,7 +587,7 @@ export default function MyWorkdayPage() {
             {/* Prueba plena (R-01): método de registro y conformidad semanal */}
             <ITCard className="lg:col-span-7" contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
-                <CardHeader icon={<LuFileText size={16} />} title={tr("record.title")} />
+                <CardHeader icon={<LuFileText size={16} />} title={tr("record.title")} help="Prueba plena del registro electrónico: aceptas el método (reloj, web, app o mixto) y la conformidad semanal; si algo no coincide, reportas la discrepancia con nota." />
                 <ITText muted className="!text-[12px]">{tr("record.hint")}</ITText>
                 {wc.error && (
                   <ITText className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[12px] text-red-700">

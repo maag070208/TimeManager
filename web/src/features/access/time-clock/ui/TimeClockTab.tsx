@@ -21,7 +21,7 @@ import { formatAgo, formatDate } from "@shared/i18n";
 import { formatDateTime, formatTimeInTZ } from "@shared/utils/dates";
 import { PanelCard } from "@shared/ui/panel-card";
 import { FilterPills } from "@shared/ui/filter-pills";
-import { ListSummaryStrip, type ListSummaryItem } from "@shared/ui/list-summary-strip";
+import { BentoKpiGrid, type BentoKpiItem } from "@shared/ui/bento-filter-cards";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import type { TimeClockRangeMode, UseTimeClock } from "../model/useTimeClock";
 import TimeClockStatusCard from "./TimeClockStatusCard";
@@ -188,12 +188,12 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
   // Franja de resumen: totales que la pantalla ya tiene (checadas del rango y estado de los relojes).
   const devices = status?.devices ?? [];
   const failing = devices.filter((d) => ["error", "paused"].includes(clockStatus(d))).length;
-  const summaryItems: ListSummaryItem[] = [
+  const summaryItems: BentoKpiItem[] = [
     {
       id: "punches",
       label: t("summary.punches"),
       value: tableTotal ?? "—",
-      tone: "sea",
+      tone: "info",
       icon: <LuFingerprint size={15} />,
       caption: rangeLabel,
     },
@@ -208,7 +208,7 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
       id: "problems",
       label: t("summary.problems"),
       value: failing,
-      tone: failing > 0 ? "sun" : "mint",
+      tone: failing > 0 ? "warning" : "success",
       icon: <LuTriangleAlert size={15} />,
       caption: failing > 0 ? t("summary.problemsHint") : t("summary.allOk"),
     },
@@ -224,7 +224,7 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
         </ITAlert>
       )}
 
-      {status && devices.length > 0 && <ListSummaryStrip items={summaryItems} />}
+      {status && devices.length > 0 && <BentoKpiGrid items={summaryItems} />}
 
       <TimeClockStatusCard fx={fx} />
 
@@ -286,7 +286,7 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
               value={method as PunchMethod | ""}
               onChange={(id) => setMethod(id)}
             />
-            <ITButton variant="text" color="gray" size="sm" className="ml-auto" onClick={clearFilters}>
+            <ITButton variant="text" color="gray" size="sm" className="tm-row-button ml-auto" onClick={clearFilters}>
               <ITFlex align="center" gap={1}>
                 <LuRotateCcw size={12} />
                 <ITText className="font-bold text-[11px]">{t("filters.clear")}</ITText>

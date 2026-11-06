@@ -280,7 +280,12 @@
     "resultTitle": "Resultado de la carga",
     "skippedCount": "{{count}} omitido(s)",
     "skippedRows": "Filas omitidas",
-    "skippedRow": "Fila {{row}} ({{username}}): {{reason}}"
+    "skippedRow": "Fila {{row}} ({{username}}): {{reason}}",
+    "stepsTitle": "Cómo importar",
+    "stepDownload": "Descarga la plantilla y revisa las columnas.",
+    "stepFill": "Llena una fila por persona; no cambies los encabezados.",
+    "stepUpload": "Sube el archivo y revisa las filas omitidas.",
+    "help": "La plantilla incluye las columnas obligatorias. Si falta un dato, la fila se omite y se muestra el motivo."
   },
   "table": {
     "username": "Username",

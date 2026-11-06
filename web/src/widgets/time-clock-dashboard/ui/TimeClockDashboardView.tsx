@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaChartArea, FaChartBar, FaClock, FaFingerprint, FaServer, FaSyncAlt, FaUsers, FaVideo, FaChartLine } from "react-icons/fa";
-import { ITBentoStatStrip, ITButton, ITDataTable, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITDataTable, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { dateLocale } from "@shared/i18n/format";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { PanelCard } from "@shared/ui/panel-card";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import type { ClockAlert, SummaryClock, TimeClockSummary } from "@entities/time-clock";
 import { timeClockApi, type TimeClockPerson } from "@entities/time-clock";
 import FingerprintReaderPanel from "./FingerprintReaderPanel";
@@ -383,40 +384,12 @@ function Estado({ data, visibleClocks, serial, onSeeAll, onOpenPerson }: {
   return (
     <ITFlex direction="column" gap={6}>
       {/* Cifras del reloj en la tira del mosaico, como el resto del sistema */}
-      <ITBentoStatStrip
+      <BentoKpiGrid
         items={[
-          {
-            id: "online",
-            label: t("dashboard.kpi.online"),
-            value: `${online} / ${data.clocks.length}`,
-            caption: t("dashboard.kpi.onlineHint"),
-            tone: "mint",
-            color: "var(--color-success)",
-          },
-          {
-            id: "people",
-            label: t("dashboard.kpi.people"),
-            value: people,
-            caption: t("dashboard.kpi.peopleHint"),
-            tone: "sea",
-            color: "var(--color-primary-600)",
-          },
-          {
-            id: "punches",
-            label: t("dashboard.kpi.punches"),
-            value: punches,
-            caption: t("dashboard.kpi.punchesHint"),
-            tone: "sun",
-            color: "var(--color-warning)",
-          },
-          {
-            id: "alerts",
-            label: t("dashboard.kpi.alerts"),
-            value: alerts.length,
-            caption: alerts.length > 0 ? t("dashboard.kpi.alertsHint") : t("dashboard.kpi.allGood"),
-            tone: alerts.length > 0 ? "rose" : "plain",
-            color: alerts.length > 0 ? "var(--color-danger)" : "var(--color-text-muted)",
-          },
+          { id: "online", label: t("dashboard.kpi.online"), value: `${online} / ${data.clocks.length}`, caption: t("dashboard.kpi.onlineHint"), tone: "success", icon: <FaServer size={13} /> },
+          { id: "people", label: t("dashboard.kpi.people"), value: people, caption: t("dashboard.kpi.peopleHint"), tone: "info", icon: <FaUsers size={13} /> },
+          { id: "punches", label: t("dashboard.kpi.punches"), value: punches, caption: t("dashboard.kpi.punchesHint"), tone: "warning", icon: <FaClock size={13} /> },
+          { id: "alerts", label: t("dashboard.kpi.alerts"), value: alerts.length, caption: alerts.length > 0 ? t("dashboard.kpi.alertsHint") : t("dashboard.kpi.allGood"), tone: alerts.length > 0 ? "danger" : "neutral", icon: <FaSyncAlt size={13} /> },
         ]}
       />
 
@@ -477,7 +450,7 @@ export default function TimeClockDashboardView() {
               aria-selected={section === s}
               onClick={() => setSection(s)}
               className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                section === s ? "bg-slate-900 text-white shadow" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                section === s ? "bg-[#eaf6ef] text-emerald-900 shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
               {SECTION_ICON[s]}

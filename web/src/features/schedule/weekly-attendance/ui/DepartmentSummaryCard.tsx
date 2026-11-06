@@ -1,7 +1,10 @@
-import { ITBadget, ITButton, ITCard, ITText } from "@axzydev/axzy_ui_system";
+import { useMemo } from "react";
+import { ITBadget, ITButton, ITCard, ITDataTable, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import type { Column } from "@axzydev/axzy_ui_system";
 import type { TFunction } from "i18next";
-import { LuCheckCheck } from "react-icons/lu";
+import { LuCheckCheck, LuEye } from "react-icons/lu";
 import { workedTime, type PayrollReviewEntry, type WeeklyDepartmentRow } from "@entities/schedule";
+import { makeClientTableFetch } from "@shared/api/clientTable";
 import { dyn } from "@shared/i18n/dyn";
 import { dateLocale } from "@shared/i18n";
 
@@ -26,16 +29,6 @@ const fmtHours = (minutes: number): string =>
 const fmtWhen = (iso: string): string =>
   new Date(iso).toLocaleString(dateLocale(), { dateStyle: "medium", timeStyle: "short" });
 
-/* La retícula se hace con divs y roles ARIA (no <table>): el tema inyecta
-   reglas globales a thead/tbody (fondo y border-bottom negro con !important)
-   pensadas para ITDataTable, que ensucian cualquier tabla plana. Las orillas
-   van inline: las clases border-slate/border-[color:] no se generan en el CSS
-   de la app y la orilla caía al currentColor (gris oscuro). */
-const grid = "grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,0.9fr))_minmax(0,1fr)_auto] items-center";
-const th = "text-[10.5px] font-bold uppercase tracking-[0.05em] text-slate-400";
-const td = "text-[12.5px]";
-const hairline = "1px solid #edf1f5";
-
 /**
  * La tabla principal de la pre-nómina: un renglón por departamento con sus
  * personas, horas normales, horas extra, faltas y el estado de la revisión
@@ -45,81 +38,132 @@ export default function DepartmentSummaryCard({ rows, t: translate, isReviewed, 
   const t = dyn(translate);
   const pendingCount = rows.filter((row) => !isReviewed(row.departmentId)).length;
 
+  const fetchData = useMemo(
+    () => makeClientTableFetch<WeeklyDepartmentRow>(() => Promise.resolve(rows)),
+    [rows]
+  );
+
+  const columns: Column<WeeklyDepartmentRow>[] = [
+    {
+      key: "name",
+      label: t("deptTable.department"),
+      type: "string",
+      width: "30%",
+      filter: true,
+      sortable: true,
+      render: (row) => (
+        <ITText className="text-[12.5px] font-black text-slate-800">{row.name}</ITText>
+      ),
+    },
+    {
+      key: "people",
+      label: t("deptTable.people"),
+      type: "number",
+      width: 110,
+      sortable: true,
+      render: (row) => (
+        <ITText className="text-[12.5px] font-semibold tabular-nums text-slate-600">{row.people}</ITText>
+      ),
+    },
+    {
+      key: "normalMin",
+      label: t("deptTable.normalHours"),
+      type: "number",
+      width: 130,
+      sortable: true,
+      render: (row) => (
+        <ITText className="text-[12.5px] font-semibold tabular-nums text-slate-600">{fmtHours(row.normalMin)}</ITText>
+      ),
+    },
+    {
+      key: "extraMin",
+      label: t("deptTable.extraHours"),
+      type: "number",
+      width: 130,
+      sortable: true,
+      render: (row) => (
+        <ITText className="text-[12.5px] font-semibold tabular-nums text-slate-600">{workedTime(row.extraMin)}</ITText>
+      ),
+    },
+    {
+      key: "absences",
+      label: t("deptTable.absences"),
+      type: "number",
+      width: 110,
+      sortable: true,
+      render: (row) => (
+        <ITText className="text-[12.5px] font-semibold tabular-nums text-slate-600">{row.absences}</ITText>
+      ),
+    },
+    {
+      key: "review",
+      label: t("deptTable.review"),
+      type: "string",
+      width: 160,
+      sortable: false,
+      render: (row) => {
+        const review = reviewOf(row.departmentId);
+        const tooltip = review
+          ? t("deptTable.reviewedTooltip", {
+              name: review.reviewedBy?.name ?? "—",
+              date: fmtWhen(review.reviewedAt),
+              how: t(review.bulk ? "deptTable.reviewedBulk" : "deptTable.reviewedSingle"),
+            })
+          : undefined;
+        return (
+          <span title={tooltip}>
+            <ITBadget color={review ? "success" : "warning"} size="sm">
+              {t(review ? "deptTable.reviewed" : "deptTable.pending")}
+            </ITBadget>
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      label: "",
+      type: "actions",
+      width: 70,
+      actions: (row) => (
+        <ITButton
+          variant="outlined"
+          color="primary"
+          className="tm-icon-button"
+          aria-label={t("deptTable.detail")}
+          title={t("deptTable.detail")}
+          onClick={() => onOpenDepartment(row.departmentId)}
+        >
+          <LuEye size={14} />
+        </ITButton>
+      ),
+    },
+  ];
+
   return (
     <ITCard className="!border-0" contentClassName="!p-0">
-      <div className="overflow-x-auto">
-        <div role="table" aria-label={t("deptTable.department")} className="min-w-[720px]">
-          <div role="row" className={`${grid} px-4 py-2.5`} style={{ borderBottom: hairline }}>
-            <span role="columnheader" className={th}>{t("deptTable.department")}</span>
-            <span role="columnheader" className={`${th} text-center`}>{t("deptTable.people")}</span>
-            <span role="columnheader" className={`${th} text-center`}>{t("deptTable.normalHours")}</span>
-            <span role="columnheader" className={`${th} text-center`}>{t("deptTable.extraHours")}</span>
-            <span role="columnheader" className={`${th} text-center`}>{t("deptTable.absences")}</span>
-            <span role="columnheader" className={`${th} text-center`}>{t("deptTable.review")}</span>
-            <span role="columnheader" className={`${th} text-right`} />
-          </div>
-          {rows.map((row, i) => (
-            <div
-              role="row"
-              key={row.departmentId ?? "none"}
-              className={`${grid} px-4 py-3`}
-              style={i < rows.length - 1 ? { borderBottom: hairline } : undefined}
-            >
-              <span role="cell" className={`${td} font-black text-slate-800`}>{row.name}</span>
-              <span role="cell" className={`${td} text-center font-semibold tabular-nums text-slate-600`}>{row.people}</span>
-              <span role="cell" className={`${td} text-center font-semibold tabular-nums text-slate-600`}>
-                {fmtHours(row.normalMin)}
-              </span>
-              <span role="cell" className={`${td} text-center font-semibold tabular-nums text-slate-600`}>
-                {workedTime(row.extraMin)}
-              </span>
-              <span role="cell" className={`${td} text-center font-semibold tabular-nums text-slate-600`}>{row.absences}</span>
-              <span role="cell" className={`${td} flex justify-center`}>
-                {(() => {
-                  const review = reviewOf(row.departmentId);
-                  const tooltip = review
-                    ? t("deptTable.reviewedTooltip", {
-                        name: review.reviewedBy?.name ?? "—",
-                        date: fmtWhen(review.reviewedAt),
-                        how: t(review.bulk ? "deptTable.reviewedBulk" : "deptTable.reviewedSingle"),
-                      })
-                    : undefined;
-                  return (
-                    <span title={tooltip}>
-                      <ITBadget color={review ? "success" : "warning"} size="sm">
-                        {t(review ? "deptTable.reviewed" : "deptTable.pending")}
-                      </ITBadget>
-                    </span>
-                  );
-                })()}
-              </span>
-              <span role="cell" className={`${td} text-right`}>
-                <button
-                  type="button"
-                  onClick={() => onOpenDepartment(row.departmentId)}
-                  className="cursor-pointer rounded-full !bg-transparent px-3 py-1 !text-[11.5px] font-bold text-slate-600 transition hover:bg-slate-50"
-                  style={{ border: "1px solid #e2e8f0" }}
-                >
-                  {t("deptTable.detail")}
-                </button>
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+      <ITDataTable
+        showViewToggle={false}
+        columns={columns as unknown as Column<Record<string, unknown>>[]}
+        fetchData={fetchData as never}
+        defaultItemsPerPage={10}
+        itemsPerPageOptions={[10, 25, 50]}
+        layout="fixed"
+        density="compact"
+        rowHeight={46}
+      />
+      <ITFlex align="center" justify="between" gap={3} wrap="wrap" className="px-4 py-2.5">
         <ITText muted className="!text-[11px]">
           {t("deptTable.note")}
         </ITText>
         {pendingCount > 0 && onReviewAll && (
-          <ITButton variant="outlined" color="primary" size="sm" onClick={onReviewAll}>
+          <ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={onReviewAll}>
             <span className="flex items-center gap-1.5 text-[11.5px] font-bold">
               <LuCheckCheck size={13} />
               {t("deptTable.reviewAll")}
             </span>
           </ITButton>
         )}
-      </div>
+      </ITFlex>
     </ITCard>
   );
 }

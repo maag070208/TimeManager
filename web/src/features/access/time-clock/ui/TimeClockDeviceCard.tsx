@@ -142,14 +142,14 @@ export default function TimeClockDeviceCard({ device, onRetry, retrying }: Props
 
       <div className="mt-auto flex flex-wrap items-center gap-3 pt-4">
         {desconectado && (
-          <ITButton variant="outlined" color="secondary" size="sm" disabled={retrying} onClick={onRetry}>
+          <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" disabled={retrying} onClick={onRetry}>
             <ITFlex align="center" gap={1}>
               <LuRefreshCw size={12} className={retrying ? "animate-spin" : undefined} />
               <ITText className="font-bold text-[11px]">{t("status.retry")}</ITText>
             </ITFlex>
           </ITButton>
         )}
-        <ITButton variant="text" color="gray" size="sm" className="!px-0" onClick={() => setAbierto((o) => !o)}>
+        <ITButton variant="text" color="gray" size="sm" className="tm-row-button" onClick={() => setAbierto((o) => !o)}>
           <ITFlex align="center" gap={1}>
             <LuInfo size={12} />
             <ITText className="text-[10px] font-bold">{t("status.technical")}</ITText>
@@ -181,7 +181,7 @@ export default function TimeClockDeviceCard({ device, onRetry, retrying }: Props
           <ITButton
             variant="text"
             size="sm"
-            className="!px-0 mt-2"
+            className="tm-row-button mt-2"
             title={t("history.open")}
             onClick={() => setHistorial(true)}
           >

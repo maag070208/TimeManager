@@ -1,8 +1,10 @@
-import { ITBentoStatStrip, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { LuGavel, LuKeyRound, LuShieldCheck, LuUsersRound } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { RoleAdmin } from "@entities/permission";
 import { roleLabel } from "@entities/user";
-import { ROLE_TONES, ROLE_VARS, roleTone } from "../shared/tokens";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { ROLE_TONES, roleTone } from "../shared/tokens";
 
 interface Props {
   rolesMeta: RoleAdmin[];
@@ -15,9 +17,8 @@ interface Props {
 }
 
 /**
- * Resumen del control de acceso con la **misma tira del kit que Tickets**: las
- * cuatro cifras en mosaicos con tono, la barra apilada de personas por rol
- * debajo y la leyenda al pie. Nada de una tarjeta aparte.
+ * Resumen del control de acceso: cuatro KPIs blancos con waves y, debajo, la
+ * distribución de personas por rol. Las cifras son estáticas (no filtran).
  */
 export default function RolesSummary({ rolesMeta, catalogTotal, people, policiesCount }: Props) {
   const { t } = useTranslation("roles");
@@ -29,48 +30,39 @@ export default function RolesSummary({ rolesMeta, catalogTotal, people, policies
 
   return (
     <div className="flex flex-col gap-2">
-      <ITBentoStatStrip
-        stack
+      <BentoKpiGrid
         items={[
           {
             id: "roles",
             label: t("summary.roles"),
             value: rolesMeta.length,
             caption: t("summary.rolesHint"),
-            tone: "sea",
-            color: ROLE_VARS.slate,
+            icon: <LuShieldCheck size={14} />,
           },
           {
             id: "permissions",
             label: t("summary.permissions"),
             value: catalogTotal,
             caption: t("summary.permissionsHint"),
-            tone: "lavender",
-            color: ROLE_VARS.indigo,
+            icon: <LuKeyRound size={14} />,
           },
           {
             id: "people",
             label: t("summary.people"),
             value: people,
             caption: t("summary.peopleHint"),
-            tone: "mint",
-            color: ROLE_VARS.emerald,
+            tone: "success",
+            icon: <LuUsersRound size={14} />,
           },
           {
             id: "policies",
             label: t("summary.policies"),
             value: policiesCount,
             caption: t("summary.policiesHint"),
-            tone: "sun",
-            color: ROLE_VARS.amber,
+            tone: "warning",
+            icon: <LuGavel size={14} />,
           },
         ]}
-        stackItems={withPeople.map((role) => ({
-          id: role.key,
-          label: roleLabel(role.key),
-          value: role.userCount,
-          color: ROLE_VARS[roleTone(role.key)],
-        }))}
       />
 
       {/* Leyenda de la barra: quién ocupa cada color */}

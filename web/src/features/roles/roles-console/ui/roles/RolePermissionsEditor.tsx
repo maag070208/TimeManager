@@ -3,6 +3,7 @@ import { ITButton, ITCard, ITFlex, ITInput, ITSegmentedControl, ITSlideToggle, I
 import { FaChevronDown, FaChevronRight, FaLock, FaSearch } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { PermissionCatalog } from "@entities/permission";
+import { HelpTip } from "@shared/ui/help-tip";
 import {
   groupByModule,
   isScopedPermission,
@@ -75,6 +76,7 @@ export default function RolePermissionsEditor({ admin, role }: Props) {
   return (
     <ITStack spacing={2}>
       <ITFlex align="center" wrap="wrap" gap={2}>
+        <HelpTip text="Marca el alcance de cada permiso: propio (solo sus registros), área (su departamento) o todo (el cliente completo). El candado indica un permiso sensible que solo puede otorgar un administrador." />
         <div className="w-full max-w-[260px]">
           <ITInput
             name="role_permission_search"

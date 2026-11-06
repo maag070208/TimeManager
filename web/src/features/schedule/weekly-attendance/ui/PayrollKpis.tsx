@@ -1,7 +1,6 @@
-import type { ReactNode } from "react";
-import { ITText } from "@axzydev/axzy_ui_system";
-import { LuArrowRight } from "react-icons/lu";
-import { Num } from "@shared/ui/bento-bits";
+import { ITButton, ITText } from "@axzydev/axzy_ui_system";
+import { LuArrowRight, LuBadgeCheck, LuClock, LuTriangleAlert, LuUsers } from "react-icons/lu";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 
 interface Props {
   /** Personas vinculadas al reloj (las que pueden tener checadas). */
@@ -25,9 +24,9 @@ interface Props {
 }
 
 /**
- * Las cifras de la semana: personas con checadas (tarjeta en tinta), horas
- * trabajadas, horas extra aprobadas y faltas sin justificar (con salida a
- * Asistencia). Una fila de cuatro tarjetas, como el tablero del mockup.
+ * Las cifras de la semana en el mosaico bento (tarjetas blancas con olas):
+ * personas con checadas, horas trabajadas, horas extra aprobadas y faltas sin
+ * justificar. La salida a Asistencia queda como acción de texto debajo.
  */
 export default function PayrollKpis({
   linked,
@@ -38,57 +37,48 @@ export default function PayrollKpis({
   onGoToAttendance,
 }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <div className="rounded-[14px] px-4 py-3.5" style={{ background: "var(--color-primary-900)" }}>
-        <ITText className="block !text-[12px] font-semibold !text-white/75">{labels.people}</ITText>
-        <ITText className="mt-1 block !text-[26px] font-extrabold leading-none tabular-nums !text-white">
-          <Num value={linked} />
-        </ITText>
-        <ITText className="mt-1.5 block !text-[11.5px] !text-white/60">{labels.peopleCaption}</ITText>
-      </div>
-
-      <KpiCard label={labels.worked} value={workedHours} caption={labels.workedCaption} />
-      <KpiCard label={labels.approved} value={approvedHours} caption={labels.approvedCaption} />
-
-      <div
-        className="rounded-[14px] px-4 py-3.5"
-        style={{ background: "var(--it-card-bg, #ffffff)", boxShadow: "0 1px 2px rgb(15 23 42 / 0.06)" }}
-      >
-        <ITText muted className="block !text-[12px] font-semibold">
-          {labels.absences}
-        </ITText>
-        <ITText
-          className="mt-1 block !text-[26px] font-extrabold leading-none tabular-nums"
-          style={{ color: absences > 0 ? "var(--color-danger)" : "var(--color-text-muted)" }}
-        >
-          <Num value={absences} />
-        </ITText>
-        <button
-          type="button"
-          onClick={onGoToAttendance}
-          className="mt-1.5 flex cursor-pointer items-center gap-1 !border-0 !bg-transparent !p-0 !text-[11.5px] font-bold text-[color:var(--color-danger)] hover:underline"
-        >
+    <div className="flex flex-col gap-2">
+      <BentoKpiGrid
+        items={[
+          {
+            id: "people",
+            label: labels.people,
+            value: linked,
+            caption: labels.peopleCaption,
+            tone: "info",
+            icon: <LuUsers size={14} />,
+          },
+          {
+            id: "worked",
+            label: labels.worked,
+            value: workedHours,
+            caption: labels.workedCaption,
+            icon: <LuClock size={14} />,
+          },
+          {
+            id: "approved",
+            label: labels.approved,
+            value: approvedHours,
+            caption: labels.approvedCaption,
+            tone: "success",
+            icon: <LuBadgeCheck size={14} />,
+          },
+          {
+            id: "absences",
+            label: labels.absences,
+            value: absences,
+            caption: labels.goToAttendance,
+            tone: absences > 0 ? "danger" : "neutral",
+            icon: <LuTriangleAlert size={14} />,
+          },
+        ]}
+      />
+      <ITButton variant="text" color="danger" size="sm" className="tm-row-button self-start" onClick={onGoToAttendance}>
+        <ITText as="span" className="flex items-center gap-1 text-[11.5px] font-bold">
           {labels.goToAttendance}
           <LuArrowRight size={12} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function KpiCard({ label, value, caption }: { label: string; value: ReactNode; caption: string }) {
-  return (
-    <div
-      className="rounded-[14px] px-4 py-3.5"
-      style={{ background: "var(--it-card-bg, #ffffff)", boxShadow: "0 1px 2px rgb(15 23 42 / 0.06)" }}
-    >
-      <ITText muted className="block !text-[12px] font-semibold">
-        {label}
-      </ITText>
-      <ITText className="mt-1 block !text-[26px] font-extrabold leading-none tabular-nums text-slate-900">{value}</ITText>
-      <ITText muted className="mt-1.5 block !text-[11.5px]">
-        {caption}
-      </ITText>
+        </ITText>
+      </ITButton>
     </div>
   );
 }

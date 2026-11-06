@@ -48,7 +48,7 @@ export default function AgentJobsPanel({ clocks }: { clocks: TimeClockDevice[] }
           </ITFlex>
           <ITText className="mt-0.5 block text-[11px] text-slate-500">{fx.t("agentJobs.description")}</ITText>
         </div>
-        <ITButton variant="text" size="sm" onClick={() => void fx.reload()} disabled={fx.busy}>
+        <ITButton variant="text" size="sm" className="tm-row-button" onClick={() => void fx.reload()} disabled={fx.busy}>
           <span className="flex items-center gap-1.5">
             <LuRefreshCw size={11} />
             {fx.t("agentJobs.refresh")}
@@ -129,6 +129,7 @@ export default function AgentJobsPanel({ clocks }: { clocks: TimeClockDevice[] }
           variant="filled"
           color="primary"
           size="sm"
+          className="tm-row-button"
           disabled={!fx.canSubmit}
           onClick={() => void fx.submit()}
         >

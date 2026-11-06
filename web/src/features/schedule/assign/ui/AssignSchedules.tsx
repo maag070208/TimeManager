@@ -1,24 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ITAlert,
-  ITBentoStatStrip,
+  ITBadget,
   ITButton,
   ITCard,
   ITCheckbox,
+  ITDataTable,
   ITFlex,
-  ITGrid,
   ITInput,
   ITSearchSelect,
   ITText,
   ITToast,
 } from "@axzydev/axzy_ui_system";
-import { FaArrowLeft, FaArrowRight, FaMinus, FaPlus } from "react-icons/fa";
+import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { FaMinus, FaPlus } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { usersApi, type User } from "@entities/user";
 import { useDepartmentOptions } from "@entities/department";
 import { scheduleApi, type AssignedPerson, type Schedule } from "@entities/schedule";
+import { makeClientTableFetch } from "@shared/api/clientTable";
+import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
+import { HelpTip } from "@shared/ui/help-tip";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { TicState } from "@shared/ui/tic";
 
 const toDateInput = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -26,6 +31,20 @@ const toDateInput = (d: Date): string =>
 /** "#número · puesto · departamento": lo justo para reconocer a la persona. */
 function personMeta(employeeNumber?: string | null, jobTitle?: string, department?: string) {
   return [employeeNumber ? `#${employeeNumber}` : null, jobTitle, department].filter(Boolean).join(" · ");
+}
+
+/** Filtro de la tabla: todas, ya asignadas al horario o por asignar. */
+type AssignView = "all" | "assigned" | "pending";
+
+/** Renglón de la tabla: persona del catálogo + si ya tiene el horario elegido. */
+interface AssignRow {
+  id: string;
+  name: string;
+  employeeNumber: string | null;
+  jobTitle?: string;
+  department: string | null;
+  departmentId: string | null;
+  isAssigned: boolean;
 }
 
 /**
@@ -47,6 +66,7 @@ export default function AssignSchedules() {
   const [toAssign, setToAssign] = useState<Set<string>>(new Set());
   const [toRemove, setToRemove] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
+  const [view, setView] = useState<AssignView>("all");
   const [saving, setSaving] = useState(false);
 
   const departments = useDepartmentOptions();
@@ -122,10 +142,52 @@ export default function AssignSchedules() {
     [assigned, employeeById, departmentId, matches],
   );
 
-  const allPending = available.length > 0 && available.every((e) => toAssign.has(e.id));
-  const somePending = toAssign.size > 0 && !allPending;
-  const allAssigned = assignedRows.length > 0 && assignedRows.every((p) => toRemove.has(p.id));
-  const someAssigned = toRemove.size > 0 && !allAssigned;
+  const availableRows = useMemo<AssignRow[]>(
+    () =>
+      available.map((person) => ({
+        id: person.id,
+        name: person.name,
+        employeeNumber: person.employeeNumber ?? null,
+        jobTitle: person.jobTitle,
+        department: person.department?.name ?? null,
+        departmentId: person.departmentId ?? null,
+        isAssigned: false,
+      })),
+    [available],
+  );
+
+  const assignedTableRows = useMemo<AssignRow[]>(
+    () =>
+      assignedRows.map((person) => ({
+        ...person,
+        department: person.department ?? null,
+        isAssigned: true,
+      })),
+    [assignedRows],
+  );
+
+  const tableRows = useMemo<AssignRow[]>(
+    () =>
+      view === "assigned"
+        ? assignedTableRows
+        : view === "pending"
+          ? availableRows
+          : [...assignedTableRows, ...availableRows],
+    [view, assignedTableRows, availableRows],
+  );
+
+  const fetchData = useMemo(() => {
+    const fetch = makeClientTableFetch<AssignRow>(() => Promise.resolve(tableRows), {
+      name: { value: (row) => row.name, match: "text" },
+      employeeNumber: { value: (row) => row.employeeNumber ?? "", match: "text" },
+      department: { value: (row) => row.department ?? "", match: "text" },
+      status: {
+        value: (row) => (row.isAssigned ? t("assign.inSchedule") : t("assign.available")),
+        match: "text",
+      },
+    });
+    return (params: ITDataTableFetchParams) => fetch(params);
+  }, [tableRows, t]);
 
   const toggle = (set: Set<string>, setSet: (next: Set<string>) => void, id: string) => {
     const next = new Set(set);
@@ -167,9 +229,7 @@ export default function AssignSchedules() {
   };
 
   if (loading) {
-    return (
-      <ContentSkeleton />
-    );
+    return <ContentSkeleton />;
   }
 
   const scheduleOptions = schedules.map((h) => ({ value: h.id, label: h.name }));
@@ -182,6 +242,107 @@ export default function AssignSchedules() {
     ? departments.data.find((d) => d.id === departmentId)?.name ?? t("assign.allDepartments")
     : t("assign.allDepartments");
 
+  const isPicked = (row: AssignRow): boolean =>
+    row.isAssigned ? toRemove.has(row.id) : toAssign.has(row.id);
+
+  const togglePick = (row: AssignRow): void =>
+    row.isAssigned ? toggle(toRemove, setToRemove, row.id) : toggle(toAssign, setToAssign, row.id);
+
+  const visiblePendingIds = tableRows.filter((row) => !row.isAssigned).map((row) => row.id);
+  const visibleAssignedIds = tableRows.filter((row) => row.isAssigned).map((row) => row.id);
+  const allVisibleSelected = tableRows.length > 0 && tableRows.every(isPicked);
+  const someVisibleSelected = tableRows.some(isPicked);
+  const pickedCount = toAssign.size + toRemove.size;
+
+  const toggleVisible = (checked: boolean): void => {
+    setToAssign(checked ? new Set(visiblePendingIds) : new Set());
+    setToRemove(checked ? new Set(visibleAssignedIds) : new Set());
+  };
+
+  const clearPicks = (): void => {
+    setToAssign(new Set());
+    setToRemove(new Set());
+  };
+
+  const columns: Column<AssignRow>[] = [
+    {
+      key: "select",
+      // El kit pinta `label` tal cual: aquí va la casilla de "seleccionar visibles".
+      label: (
+        <ITCheckbox
+          name="assignVisibleAll"
+          checked={allVisibleSelected}
+          indeterminate={someVisibleSelected}
+          disabled={tableRows.length === 0}
+          onChange={toggleVisible}
+        />
+      ) as unknown as string,
+      type: "actions",
+      width: 48,
+      actions: (row) => (
+        <ITCheckbox name={`assign-row-${row.id}`} checked={isPicked(row)} onChange={() => togglePick(row)} />
+      ),
+    },
+    {
+      key: "name",
+      label: t("assign.people"),
+      type: "string",
+      width: 290,
+      render: (row) => (
+        <ITFlex
+          align="center"
+          gap={2}
+          className="min-w-0 cursor-pointer"
+          onClick={() => togglePick(row)}
+        >
+          <ProfileAvatar name={row.name} size="sm" />
+          <ITFlex direction="column" gap={0} className="min-w-0">
+            <ITText className="truncate !text-[12.5px] font-semibold">{row.name}</ITText>
+            <ITText muted className="truncate !text-[11px]">
+              {personMeta(row.employeeNumber, row.jobTitle, row.department ?? undefined)}
+            </ITText>
+          </ITFlex>
+        </ITFlex>
+      ),
+    },
+    {
+      key: "department",
+      label: t("assign.department"),
+      type: "string",
+      width: 170,
+      render: (row) => <ITText className="!text-[12px]">{row.department ?? "—"}</ITText>,
+    },
+    {
+      key: "status",
+      label: t("assign.schedule"),
+      type: "string",
+      width: 190,
+      sortable: false,
+      render: (row) => (
+        <ITBadget color={row.isAssigned ? "success" : "gray"} size="sm">
+          {row.isAssigned ? currentSchedule?.name ?? "—" : t("assign.available")}
+        </ITBadget>
+      ),
+    },
+    {
+      key: "rowAction",
+      label: "",
+      type: "actions",
+      width: 64,
+      render: (row) => (
+        <ITButton
+          variant="text"
+          color={row.isAssigned ? "error" : "success"}
+          size="sm"
+          icon={row.isAssigned ? <FaMinus size={12} /> : <FaPlus size={12} />}
+          ariaLabel={row.isAssigned ? t("assign.removeOne") : t("assign.assignOne")}
+          title={row.isAssigned ? t("assign.removeOne") : t("assign.assignOne")}
+          onClick={() => void (row.isAssigned ? remove([row.id]) : assign([row.id]))}
+        />
+      ),
+    },
+  ];
+
   return (
     <ITFlex direction="column" gap={4}>
       {error && (
@@ -190,34 +351,33 @@ export default function AssignSchedules() {
         </ITAlert>
       )}
 
-      {/* Cifras de la asignación: en el horario, por asignar y el filtro activo */}
-      <ITBentoStatStrip
+      {/* Contexto de la asignación: cuántas personas ya tienen el horario y cuántas faltan. */}
+      <BentoFilterCards
+        activeId={view}
+        onSelect={(id: string) => setView(id as AssignView)}
         items={[
           {
-            id: "inSchedule",
+            id: "assigned",
             label: t("assign.inSchedule"),
             value: assigned.length,
-            caption: currentSchedule?.name ?? "—",
-            tone: "mint",
+            caption: `${t("assign.assignedTo")} ${currentSchedule?.name ?? "—"}`,
           },
           {
             id: "pending",
             label: t("assign.pending"),
             value: available.length,
             caption: t("assign.pendingCaption"),
-            tone: "sun",
           },
           {
-            id: "people",
+            id: "all",
             label: t("assign.people"),
             value: employees.length,
-            caption: departmentId ? departmentName : t("assign.allDepartments"),
-            tone: "sea",
+            caption: departmentName,
           },
         ]}
       />
 
-      {/* Una tarjeta: filtros arriba y las dos listas debajo */}
+      {/* Una sola tarjeta: filtros, acciones masivas compactas y la tabla de personas. */}
       <ITCard contentClassName="!p-0">
         <ITFlex wrap="wrap" align="end" gap={3} className="border-b border-slate-200/70 px-5 py-4">
           <ITFlex className="min-w-[220px] flex-1">
@@ -236,8 +396,8 @@ export default function AssignSchedules() {
               label={t("assign.department")}
               options={departmentOptions}
               value={departmentId}
-              onChange={(v) => {
-                setDepartmentId(String(v));
+              onChange={(value) => {
+                setDepartmentId(String(value));
                 setToAssign(new Set());
                 setToRemove(new Set());
               }}
@@ -254,169 +414,74 @@ export default function AssignSchedules() {
               className="w-full min-w-0"
             />
           </ITFlex>
+          <ITFlex align="center" gap={1}>
+            <HelpTip text="La asignación se aplica desde hoy y cierra la vigencia anterior de esa persona. Márcala por casilla para asignar o quitar en lote; el cambio se guarda al instante." />
+          </ITFlex>
         </ITFlex>
 
-        <ITGrid container columns={12} spacing={0}>
-          {/* Por asignar */}
-          <ITGrid item xs={12} lg={6} className="min-w-0 lg:border-r lg:border-slate-200/70">
-            <ITFlex align="center" justify="between" gap={2} className="px-5 pb-2 pt-4">
-              <ITFlex align="center" gap={1.5}>
-                <ITCheckbox
-                  name="pending-all"
-                  checked={allPending}
-                  indeterminate={somePending}
-                  disabled={available.length === 0}
-                  onChange={(value) => setToAssign(value ? new Set(available.map((e) => e.id)) : new Set())}
-                />
-                <ITText className="!text-[12.5px] font-bold">{t("assign.available")}</ITText>
-                <ITText as="span" className="rounded-full bg-[color-mix(in_srgb,var(--color-warning)_16%,transparent)] px-2 py-0.5 !text-[11px] font-bold text-[color:var(--color-warning)]">
-                  {available.length}
-                </ITText>
+        <ITFlex align="center" wrap="wrap" gap={2} className="px-5 pt-3">
+          <ITText muted className="!text-[11.5px]">
+            {t("assign.picked", { count: pickedCount })}
+          </ITText>
+          <ITButton variant="text" color="gray" size="sm" disabled={pickedCount === 0} onClick={clearPicks}>
+            <ITText className="text-[11px] font-bold">{t("assign.clear")}</ITText>
+          </ITButton>
+          <ITFlex align="center" gap={2} className="ml-auto">
+            <ITButton
+              variant="outlined"
+              color="danger"
+              size="sm"
+              disabled={saving || toRemove.size === 0}
+              onClick={() => void remove([...toRemove])}
+            >
+              <ITFlex align="center" gap={1}>
+                <FaMinus size={10} />
+                <ITText className="font-bold text-[11px]">{t("assign.remove", { count: toRemove.size })}</ITText>
               </ITFlex>
-              <ITText muted className="!text-[11.5px]">
-                {t("assign.picked", { count: toAssign.size })}
-              </ITText>
-            </ITFlex>
-
-            <ITFlex direction="column" gap={0} className="max-h-[44vh] overflow-y-auto px-3 pb-3">
-              {available.length === 0 ? (
-                <ITText muted className="px-2 py-6 !text-[12px]">
-                  {departmentId ? t("assign.noPeopleFiltered") : t("assign.noPeople")}
-                </ITText>
-              ) : (
-                available.map((e) => {
-                  const picked = toAssign.has(e.id);
-                  return (
-                    <ITFlex
-                      key={e.id}
-                      align="center"
-                      gap={2}
-                      onClick={() => toggle(toAssign, setToAssign, e.id)}
-                      className={`cursor-pointer rounded-xl px-2 py-1.5 transition-colors ${
-                        picked
-                          ? "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]"
-                          : "hover:bg-[color-mix(in_srgb,currentColor_5%,transparent)]"
-                      }`}
-                    >
-                      <ITText as="span" onClick={(ev) => ev.stopPropagation()}>
-                        <ITCheckbox name={`assign-${e.id}`} checked={picked} onChange={() => toggle(toAssign, setToAssign, e.id)} />
-                      </ITText>
-                      <ProfileAvatar name={e.name} size="sm" />
-                      <ITFlex direction="column" gap={0} className="min-w-0 flex-1">
-                        <ITText className="truncate !text-[12.5px] font-semibold">{e.name}</ITText>
-                        <ITText muted className="truncate !text-[11px]">
-                          {personMeta(e.employeeNumber, e.jobTitle, e.department?.name)}
-                        </ITText>
-                      </ITFlex>
-                      <ITText as="span" aria-hidden className="shrink-0" style={{ color: "var(--color-success)" }}>
-                        <FaArrowRight size={12} />
-                      </ITText>
-                    </ITFlex>
-                  );
-                })
-              )}
-            </ITFlex>
-
-            <ITFlex align="center" justify="between" gap={2} className="  px-5 py-3">
-              <ITText muted className="!text-[11.5px]">
-                {t("assign.immediate")}
-              </ITText>
-              <ITButton
-                variant="filled"
-                color="success"
-                size="sm"
-                disabled={saving || toAssign.size === 0}
-                onClick={() => void assign([...toAssign])}
-              >
-                <ITFlex align="center" gap={1}>
-                  <FaPlus size={10} />
-                  <ITText className="font-bold text-[11px]">{t("assign.apply", { count: toAssign.size })}</ITText>
-                </ITFlex>
-              </ITButton>
-            </ITFlex>
-          </ITGrid>
-
-          {/* Ya lo tienen */}
-          <ITGrid item xs={12} lg={6} className="min-w-0">
-            <ITFlex align="center" justify="between" gap={2} className="px-5 pb-2 pt-4">
-              <ITFlex align="center" gap={1.5}>
-                <ITCheckbox
-                  name="assigned-all"
-                  checked={allAssigned}
-                  indeterminate={someAssigned}
-                  disabled={assignedRows.length === 0}
-                  onChange={(value) => setToRemove(value ? new Set(assignedRows.map((p) => p.id)) : new Set())}
-                />
-                <ITText className="!text-[12.5px] font-bold">
-                  {t("assign.assignedTo")} {currentSchedule?.name ?? "—"}
-                </ITText>
-                <ITText as="span" className="rounded-full bg-[color-mix(in_srgb,var(--color-success)_16%,transparent)] px-2 py-0.5 !text-[11px] font-bold text-[color:var(--color-success)]">
-                  {assignedRows.length}
-                </ITText>
+            </ITButton>
+            <ITButton
+              variant="filled"
+              color="success"
+              size="sm"
+              disabled={saving || toAssign.size === 0}
+              onClick={() => void assign([...toAssign])}
+            >
+              <ITFlex align="center" gap={1}>
+                <FaPlus size={10} />
+                <ITText className="font-bold text-[11px]">{t("assign.apply", { count: toAssign.size })}</ITText>
               </ITFlex>
-              <ITText muted className="!text-[11.5px]">
-                {t("assign.picked", { count: toRemove.size })}
-              </ITText>
-            </ITFlex>
+            </ITButton>
+          </ITFlex>
+        </ITFlex>
 
-            <ITFlex direction="column" gap={0} className="max-h-[44vh] overflow-y-auto px-3 pb-3">
-              {assignedRows.length === 0 ? (
-                <ITText muted className="px-2 py-6 !text-[12px]">
-                  {t("assign.noAssigned")}
-                </ITText>
-              ) : (
-                assignedRows.map((p) => {
-                  const picked = toRemove.has(p.id);
-                  return (
-                    <ITFlex
-                      key={p.id}
-                      align="center"
-                      gap={2}
-                      onClick={() => toggle(toRemove, setToRemove, p.id)}
-                      className={`cursor-pointer rounded-xl px-2 py-1.5 transition-colors ${
-                        picked
-                          ? "bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)]"
-                          : "hover:bg-[color-mix(in_srgb,currentColor_5%,transparent)]"
-                      }`}
-                    >
-                      <ITText as="span" onClick={(ev) => ev.stopPropagation()}>
-                        <ITCheckbox name={`remove-${p.id}`} checked={picked} onChange={() => toggle(toRemove, setToRemove, p.id)} />
-                      </ITText>
-                      <ProfileAvatar name={p.name} size="sm" />
-                      <ITFlex direction="column" gap={0} className="min-w-0 flex-1">
-                        <ITText className="truncate !text-[12.5px] font-semibold">{p.name}</ITText>
-                        <ITText muted className="truncate !text-[11px]">
-                          {personMeta(p.employeeNumber, p.jobTitle, p.department)}
-                        </ITText>
-                      </ITFlex>
-                      <ITText as="span" aria-hidden className="shrink-0" style={{ color: "var(--color-danger)" }}>
-                        <FaArrowLeft size={12} />
-                      </ITText>
-                    </ITFlex>
-                  );
-                })
-              )}
-            </ITFlex>
+        {tableRows.length === 0 ? (
+          <TicState
+            kind="empty"
+            title={t("assign.noPeople")}
+            description={departmentId || q.trim() ? t("assign.noPeopleFiltered") : t("assign.pendingCaption")}
+          />
+        ) : (
+          <ITDataTable
+            showViewToggle={false}
+            columns={columns as unknown as Column<Record<string, unknown>>[]}
+            fetchData={
+              fetchData as unknown as (
+                p: ITDataTableFetchParams
+              ) => Promise<ITDataTableResponse<Record<string, unknown>>>
+            }
+            defaultItemsPerPage={25}
+            itemsPerPageOptions={[25, 50, 100]}
+            layout="fixed"
+            density="compact"
+            rowHeight={52}
+            virtualized
+            virtualizedMaxHeight={520}
+          />
+        )}
 
-            <ITFlex align="center" justify="between" gap={2} className="  px-5 py-3">
-              <ITText muted className="!text-[11.5px]">
-                {t("assign.removeHint")}
-              </ITText>
-              <ITButton
-                variant="filled"
-                color="error"
-                size="sm"
-                disabled={saving || toRemove.size === 0}
-                onClick={() => void remove([...toRemove])}
-              >
-                <ITFlex align="center" gap={1}>
-                  <FaMinus size={10} />
-                  <ITText className="font-bold text-[11px]">{t("assign.remove", { count: toRemove.size })}</ITText>
-                </ITFlex>
-              </ITButton>
-            </ITFlex>
-          </ITGrid>
-        </ITGrid>
+        <ITText muted className="px-5 pb-4 pt-2 !text-[11px]">
+          {t("assign.immediate")} · {t("assign.removeHint")}
+        </ITText>
       </ITCard>
 
       {toast && (

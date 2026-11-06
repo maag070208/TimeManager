@@ -13,6 +13,7 @@ import {
 import { FaLock, FaPlus } from "react-icons/fa";
 import type { TimeClockDevice } from "@entities/time-clock";
 import type { UseTimeClocks } from "../model/useTimeClocks";
+import { HelpTip } from "@shared/ui/help-tip";
 import AgentJobsPanel from "./AgentJobsPanel";
 import ClockCard from "./ClockCard";
 import ClockDetail from "./ClockDetail";
@@ -134,7 +135,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
                 variant="filled"
                 color="primary"
                 size="sm"
-                className="ml-auto"
+                className="tm-row-button ml-auto"
                 disabled={!status?.configured}
                 onClick={openRegistration}
               >
@@ -189,7 +190,10 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
               onChange={(e) => setUrl(e.target.value)}
               className="w-full min-w-0"
             />
-            <ITText className="text-[11px] text-slate-500">{t("clocks.dialog.urlHint")}</ITText>
+            <ITFlex align="center" gap={1}>
+              <ITText className="text-[11px] text-slate-500">{t("clocks.dialog.urlHint")}</ITText>
+              <HelpTip text={t("clocks.dialog.urlHint")} label={t("clocks.dialog.url")} />
+            </ITFlex>
           </ITFlex>
           <ITFlex direction="column" gap={1}>
             <ITInput
@@ -217,6 +221,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
             <ITButton
               variant="outlined"
               color="secondary"
+              className="tm-row-button"
               disabled={connecting}
               onClick={() => setIsRegistrationOpen(false)}
             >
@@ -225,6 +230,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
             <ITButton
               variant="filled"
               color="primary"
+              className="tm-row-button"
               disabled={!url.trim() || connecting}
               onClick={() => void register()}
             >
@@ -256,12 +262,15 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
             name="checadorRelojEditarAsistencia"
           />
           <ITFlex direction="column" gap={1} className="rounded-xl border border-amber-200 bg-amber-50/40 p-3">
-            <ITCheckbox
-              name="checadorRelojEditarEscritura"
-              checked={editWrite}
-              onChange={setEditWrite}
-              label={t("clocks.write.label")}
-            />
+            <ITFlex align="center" gap={1}>
+              <ITCheckbox
+                name="checadorRelojEditarEscritura"
+                checked={editWrite}
+                onChange={setEditWrite}
+                label={t("clocks.write.label")}
+              />
+              <HelpTip text={t("clocks.write.hint")} label={t("clocks.write.label")} />
+            </ITFlex>
             <ITText className="text-[11px] text-slate-600">{t("clocks.write.hint")}</ITText>
           </ITFlex>
           <ITText className="text-[11px] text-slate-600">{t("clocks.dialog.editNote")}</ITText>
@@ -270,6 +279,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
             <ITButton
               variant="outlined"
               color="secondary"
+              className="tm-row-button"
               disabled={saving}
               onClick={() => setEditTarget(null)}
             >
@@ -278,6 +288,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
             <ITButton
               variant="filled"
               color="primary"
+              className="tm-row-button"
               disabled={!editName.trim() || saving}
               onClick={() => void saveEdit()}
             >
@@ -301,6 +312,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
             <ITButton
               variant="outlined"
               color="secondary"
+              className="tm-row-button"
               disabled={retiring}
               onClick={() => setRetirementTarget(null)}
             >
@@ -309,6 +321,7 @@ export default function TimeClocksTab({ fx }: { fx: UseTimeClocks }) {
             <ITButton
               variant="filled"
               color="danger"
+              className="tm-row-button"
               disabled={retiring}
               onClick={() => void confirmRetirement()}
             >

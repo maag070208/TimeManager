@@ -69,6 +69,7 @@ export default function PayrollReviewDialog({
           variant="outlined"
           color="gray"
           size="sm"
+          className="tm-row-button"
           disabled={!canReview || reviews.busy || reviews.closed || total === 0}
           onClick={() => reviews.reviewAll(departments.map((department) => department.id))}
         >
@@ -117,13 +118,14 @@ export default function PayrollReviewDialog({
       </div>
 
       <ITFlex align="center" justify="end" gap={2} className="mt-4">
-        <ITButton variant="text" color="gray" size="sm" onClick={onClose}>
+        <ITButton variant="text" color="gray" size="sm" className="tm-row-button" onClick={onClose}>
           <ITText className="!text-[11.5px] font-semibold">{t("reviewDialog.cancel")}</ITText>
         </ITButton>
         <ITButton
           variant="filled"
           color="warning"
           size="sm"
+          className="tm-row-button"
           disabled={!allReviewed || !canClose || reviews.busy || reviews.closed}
           onClick={onRequestClose}
         >

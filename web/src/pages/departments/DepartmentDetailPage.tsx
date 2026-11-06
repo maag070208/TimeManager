@@ -10,6 +10,7 @@ import {
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { FaBuilding, FaTrash, FaTrashRestore } from "react-icons/fa";
+import { LuLayers, LuShieldCheck, LuUsers } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCan } from "@entities/user";
@@ -18,6 +19,9 @@ import {
   useDepartmentDetail,
 } from "@features/department/department-detail";
 import { useGoBack } from "@shared/lib/useGoBack";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { PanelCard } from "@shared/ui/panel-card";
+import { HelpTip } from "@shared/ui/help-tip";
 
 export default function DepartmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -83,6 +87,32 @@ export default function DepartmentDetailPage() {
         </ITAlert>
       )}
 
+      <BentoKpiGrid
+        items={[
+          {
+            id: "people",
+            label: tt("detail.users"),
+            value: dept._count?.users ?? 0,
+            icon: <LuUsers size={14} />,
+            caption: tt("detail.userCount", { count: dept._count?.users ?? 0 }),
+          },
+          {
+            id: "areas",
+            label: tt("detail.areas"),
+            value: dept.subareas.length,
+            icon: <LuLayers size={14} />,
+            caption: tt("detail.userCount", { count: dept.subareas.length }),
+          },
+          {
+            id: "status",
+            label: tt("detail.status"),
+            value: dept.active ? tt("detail.active") : tt("detail.inactive"),
+            tone: dept.active ? "success" : "warning",
+            icon: <LuShieldCheck size={14} />,
+          },
+        ]}
+      />
+
       <ITGrid container columns={12} spacing={5} className="items-start">
         <ITGrid item xs={12} md={8} className="flex flex-col gap-5 min-w-0">
           <DepartmentInfoCard
@@ -98,6 +128,22 @@ export default function DepartmentDetailPage() {
         </ITGrid>
 
         <ITGrid item xs={12} md={4} className="w-full min-w-0">
+          <PanelCard
+            title={tt("detail.areas")}
+            icon={<LuLayers size={15} />}
+            actions={
+              <HelpTip text="Las subáreas viven dentro de un departamento y agrupan al personal para horarios, asistencia y pre nómina. Puedes agregarlas, renombrarlas o desactivarlas aquí." />
+            }
+          >
+            <ITFlex direction="column" gap={1}>
+              <ITText className="text-[12.5px] text-slate-600">
+                {tt("detail.userCount", { count: dept.subareas.length })}
+              </ITText>
+              <ITText className="text-[12px] text-slate-500">
+                {tt("detail.areas")} · {dept.active ? tt("detail.active") : tt("detail.inactive")}
+              </ITText>
+            </ITFlex>
+          </PanelCard>
         </ITGrid>
       </ITGrid>
 

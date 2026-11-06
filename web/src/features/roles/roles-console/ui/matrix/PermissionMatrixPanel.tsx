@@ -4,6 +4,7 @@ import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { FaChevronDown, FaChevronRight, FaLock, FaSearch } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { PermissionCatalog } from "@entities/permission";
+import { HelpTip } from "@shared/ui/help-tip";
 import { roleLabel, type PermissionScope } from "@entities/user";
 import {
   grantableScopes,
@@ -81,6 +82,7 @@ export default function PermissionMatrixPanel({ admin, onOpenRole }: Props) {
   return (
     <ITStack spacing={2}>
       <ITFlex align="center" wrap="wrap" gap={2}>
+        <HelpTip text="Compara el alcance de cada permiso entre roles. Verde = todo, azul = área, ámbar = propio y gris = sin acceso. Los cambios se guardan con la barra inferior." />
         <div className="w-full max-w-[240px]">
           <ITInput
             name="matrix_search"

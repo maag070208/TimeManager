@@ -29,69 +29,77 @@ Fecha de auditoría: **2026-11-06**. Alance: todas las rutas privadas y pública
 | # | Pantalla | Ruta | Acceso | Archivo | Estado | Hallazgo principal |
 |---|---|---|---|---|---|---|
 | 1 | Landing pública | `/landing` | Público | `pages/landing/LandingPage.tsx` | ➖ N/A | Marketing con marca propia; no aplica bento de app. |
-| 2 | Login | `/login` | Público | `pages/auth/LoginPage.tsx` | ✅ Cumple | Marca, validación de slug, formulario oculto si el cliente no existe y animación propia. |
-| 3 | Inicio del cliente | `/` | Sesión de cliente | `pages/home/ClientHomePage.tsx` | ✅ Cumple | Hero pastel plano, KPIs con waves, accesos rápidos y primeros pasos compactos. |
-| 4 | Inicio de plataforma | `/` sin cliente | ADMIN/SUPPORT | `pages/home/PlatformHomePage.tsx` | ✅ Cumple | KPIs, gráfica de altas, dona, cobros y `ITDataTable` de clientes. |
-| 5 | Mi jornada | `/mi-jornada` | Personal | `pages/nom/MyWorkdayPage.tsx` | 🟡 Parcial | Bento correcto, pero el CTA principal de checada sigue en navy oscuro; sin tooltips. |
-| 6 | Personal | `/employees` | `hr.records` | `pages/employees/EmployeesListPage.tsx` | ✅ Cumple | Filtros con `BentoFilterCards`, wave verde en activo y `ITDataTable`. |
-| 7 | Alta de empleado | `/employees/new` | `users.create` | `pages/users/UserFormPage.tsx` | 🟡 Parcial | Pasos + resumen + acciones sticky, pero sin hero/contexto bento, sin HelpTip y botones pill (`!rounded-full`). |
-| 8 | Importar personal | `/employees/import` | `users.create` | `pages/users/UserImportPage.tsx` | ❌ No cumple | Solo un `dropfile` en pantalla vacía: sin contexto, pasos, resumen ni ayuda. |
-| 9 | Editar empleado | `/employees/:id/edit` | `users.edit` | `pages/users/UserFormPage.tsx` | 🟡 Parcial | Mismo formulario que el alta; correcto en campos, incompleto en contexto y tooltips. |
-| 10 | Cuenta de acceso | `/employees/:id/account` | `users.edit` | `pages/users/UserAccountDialogPage` | 🟡 Parcial | Modal funcional con `ITSearchSelect`; sin lenguaje bento (es modal, no pantalla). |
-| 11 | Expediente del empleado | `/employees/:id` | `hr.records` | `pages/employees/EmployeeDetailPage.tsx` | 🟡 Parcial | Cabecera pastel, tabs y tarjetas; chips viejos, sin panel lateral de resumen ni HelpTip. |
-| 12 | Historial del empleado | `/employees/:id/history` | `hr.records` | `pages/users/UserHistoryPage.tsx` | 🟡 Parcial | Usa `ITBentoGrid/Donut` y una tarjeta oscura “Cuenta”; no sigue la regla pastel. |
-| 13 | Expedientes y documentos | `/employees/records` | `hr.records` | `pages/employees/EmployeeRecordsPage.tsx` | ❌ No cumple | Tarjeta KPI navy + filtros legacy; la composición no es la de las pantallas nuevas. |
-| 14 | Catálogo de documentos | `/employees/catalogs/documents` | `hr.records` | `pages/employees/DocumentCatalogPage.tsx` | 🟡 Parcial | Tabla funcional y ancha; falta contexto/KPIs y estados vacíos bento. |
-| 15 | Reportes de RH | `/employees/disciplinary-reports` | `hr.records` | `pages/employees/HrReportsPage.tsx` | ❌ No cumple | `ITBentoStatStrip` legacy y panel colapsable; se ve vacío y fuera del patrón. |
-| 16 | Detalle de reporte | `/employees/disciplinary-reports/:id` | `hr.records` | `pages/employees/DisciplinaryReportDetailPage.tsx` | 🟡 Parcial | Detalle simple sin hero, resumen lateral ni acciones bento. |
-| 17 | Departamentos | `/departments` | `departments.view` | `pages/departments/DepartmentsPage.tsx` | ❌ No cumple | KPI navy + `ITBentoStatStrip` legacy; filtros no usan `BentoFilterCards`. |
-| 18 | Detalle de departamento | `/departments/:id` | `departments.view` | `pages/departments/DepartmentDetailPage.tsx` | ❌ No cumple | Una tarjeta blanca pequeña en una pantalla casi vacía; sin contexto ni panel. |
-| 19 | Subáreas | `/subareas` | `subareas.view` | `pages/subareas/SubareasPage.tsx` | 🟡 Parcial | Tabla ancha sin hero/KPIs; no rompe, pero no se siente bento. |
-| 20 | Relojes (configuración) | `/time-clocks` | `time_clocks.manage` | `pages/access/TimeClocksPage.tsx` | 🟡 Parcial | Formularios y tablas funcionales; sin contexto/KPIs de flota. |
-| 21 | Dashboard del reloj | `/time-clocks/dashboard` | `time_clocks.manage` | `pages/access/TimeClockDashboardPage.tsx` | ❌ No cumple | KPIs navy y strip legacy; sin HelpTip. |
-| 22 | Personas del reloj | `/time-clocks/people` | `time_clocks.manage` | `pages/access/TimeClockPeoplePage.tsx` | 🟡 Parcial | Tabla dentro de tarjeta; sin contexto ni acciones compactas. |
-| 23 | Inspeccionar reloj | `/time-clocks/inspect` | `time_clocks.manage` | `pages/access/TimeClockInspectPage.tsx` | 🟡 Parcial | Paneles blancos simples; falta jerarquía bento y estados. |
-| 24 | Asistencia (reporte) | `/hr/time-clock` | `time_clock.view` | `pages/access/TimeClockPage.tsx` | ❌ No cumple | KPI navy + tabs y strip legacy; la pantalla más operativa queda fuera del bento actual. |
-| 25 | Entradas y salidas | `/hr/time-clock/entries-exits` | `time_clock.view` | `pages/access/TimeClockReportPage.tsx` | ❌ No cumple | Tarjetas KPI de colores con strip legacy; falta unificar filtros y acciones. |
-| 26 | Roster | `/hr/time-clock/roster` | `time_clock.view` | `pages/access/TimeClockRosterPage.tsx` | 🟡 Parcial | Tabla y reglas laterales; sin hero de contexto. |
-| 27 | Empleados del reloj | `/hr/time-clock/employees` | `time_clock.view` | `pages/access/TimeClockEmployeesPage.tsx` | ❌ No cumple | Mezcla tarjetas pastel, strip legacy y botones oscuros. |
-| 28 | Diferencias de reloj | `/hr/time-clock/employees/differences` | `time_clock.view` | `pages/access/TimeClockDifferencesPage.tsx` | 🟡 Parcial | Tarjetas y tabla; sin el patrón de filtros nuevo. |
-| 29 | Horarios | `/schedules` | `schedules.view` | `pages/schedules/SchedulesPage.tsx` | 🟡 Parcial | Ya usa `BentoFilterCards`, pero conserva `FilterPills` duplicados y acciones de fila oscuras. |
-| 30 | Formulario de horario | `/schedules/new`, `/schedules/:id/edit` | `schedules.edit` | `pages/schedules/ScheduleFormPage.tsx` | 🟡 Parcial | Formulario con resumen lateral; sin hero/HelpTip. |
-| 31 | Asignar horarios | `/schedules/assign` | `schedules.view` | `pages/schedules/AssignSchedulesPage.tsx` | ❌ No cumple | Bloque KPI navy + `ITBentoStatStrip` legacy y tablero de dos columnas antiguo. |
-| 32 | Tiempo extra | `/schedules/overtime/approval` | `overtime.view` | `pages/overtime/OvertimeApprovalPage.tsx` | ❌ No cumple | `ITBentoStatStrip` legacy y acciones oscuras; no sigue la regla de filtros. |
-| 33 | Pre-nómina | `/schedules/payroll` | `payroll.view` | `pages/schedules/PayrollPage.tsx` | ✅ Cumple | Pantalla de referencia: tablas, filtros y resumen de nómina. |
-| 34 | Historial de pre-nómina | `/schedules/payroll/history` | `payroll.view` | `pages/schedules/PayrollHistoryPage.tsx` | 🟡 Parcial | Historial vacío sin hero ni contexto; falta estado vacío bento. |
-| 35 | Nómina configurable | `/payroll/settings` | `payroll.close` | `pages/payroll/PayrollSettingsPage.tsx` | ✅ Cumple | Hero pastel, secciones, resumen lateral, HelpTip y un solo guardar. |
-| 36 | Convenios y acuerdos | `/hr/jornada-acuerdos` | `time_clock.write` | `pages/nom/WorkdayAgreementsPage.tsx` | 🟡 Parcial | Tarjetas y formulario correctos; sin hero ni tooltips. |
-| 37 | Vacaciones y permisos | `/hr/leave` | `time_clock.write` | `pages/leave/LeaveAdminPage.tsx` | 🟡 Parcial | Bento con panel lateral; sin filtros nuevos y sin hero plano. |
-| 38 | Teletrabajo | `/teletrabajo` | `time_clock.view` | `pages/nom/TeleworkAdminPage.tsx` | 🟡 Parcial | Grid de tarjetas, pero sin hero/contexto ni HelpTip. |
-| 39 | Configuración del cliente | `/settings/general` | `time_clock.write` | `pages/settings/GeneralSettingsPage.tsx` | ✅ Cumple | Hero pastel plano, tarjetas, resumen sticky, HelpTip y guardar único. |
-| 40 | Roles y permisos | `/roles` | `roles.manage` | `pages/roles/RolesPage.tsx` | ❌ No cumple | Hero navy, `RolesSummary` con strip legacy y matriz de permisos antigua. |
-| 41 | Planes | `/plans` | `plans.view` | `pages/plans/PlansPage.tsx` | ❌ No cumple | KPI strip legacy y catálogo vacío sin contexto; no hay bento. |
-| 42 | Notificaciones | `/notifications` | Sesión | `pages/notifications/NotificationsPage.tsx` | 🟡 Parcial | Hero pastel y lista/aside, pero el filtro activo usa bloque negro `#0f2e3d` (viola la regla). |
-| 43 | Detalle de cliente (kardex) | `/tenants/:id` | ADMIN/SUPPORT | `pages/tenants/TenantDetailPage.tsx` | ✅ Cumple | Hero pastel, KPIs con waves, kardex paginado y formulario lateral. |
+| 2 | Login | `/login` | Público | `pages/auth/LoginPage.tsx` | ✅ Cumple | Marca, validación de slug y formulario oculto si el cliente no existe. |
+| 3 | Inicio del cliente | `/` | Sesión de cliente | `pages/home/ClientHomePage.tsx` | ✅ Cumple | Hero pastel plano, KPIs con waves y accesos rápidos. |
+| 4 | Inicio de plataforma | `/` sin cliente | ADMIN/SUPPORT | `pages/home/PlatformHomePage.tsx` | ✅ Cumple | KPIs, gráfica, dona, cobros y `ITDataTable` de clientes. |
+| 5 | Mi jornada | `/mi-jornada` | Personal | `pages/nom/MyWorkdayPage.tsx` | ✅ Cumple | CTA pastel/verde y HelpTips en checada web y cumplimiento. |
+| 6 | Personal | `/employees` | `hr.records` | `pages/employees/EmployeesListPage.tsx` | ✅ Cumple | `BentoFilterCards` con wave verde y `ITDataTable`. |
+| 7 | Alta de empleado | `/employees/new` | `users.create` | `pages/users/UserFormPage.tsx` | ✅ Cumple | Pasos, resumen lateral, HelpTip y un solo guardar rectangular. |
+| 8 | Importar personal | `/employees/import` | `users.create` | `pages/users/UserImportPage.tsx` | ✅ Cumple | Tarjeta bento de carga, pasos y HelpTip de plantilla. |
+| 9 | Editar empleado | `/employees/:id/edit` | `users.edit` | `pages/users/UserFormPage.tsx` | ✅ Cumple | Mismo formulario P4 con acciones compactas. |
+| 10 | Cuenta de acceso | `/employees/:id/account` | `users.edit` | `pages/employees` (diálogo) | 🟡 Parcial | Modal funcional con `ITSearchSelect`; no es una pantalla bento. |
+| 11 | Expediente del empleado | `/employees/:id` | `hr.records` | `pages/employees/EmployeeDetailPage.tsx` | ✅ Cumple | Hero pastel, tabs, tarjetas y acciones compactas. |
+| 12 | Historial del empleado | `/employees/:id/history` | `hr.records` | `pages/users/UserHistoryPage.tsx` | ✅ Cumple | Hero pastel, `BentoKpiGrid`, paneles de actividad y distribución. |
+| 13 | Expedientes y documentos | `/employees/records` | `hr.records` | `pages/employees/EmployeeRecordsPage.tsx` | ✅ Cumple | `BentoKpiGrid`, `BentoFilterCards` y `ITDataTable` paginada. |
+| 14 | Catálogo de documentos | `/employees/catalogs/documents` | `hr.records` | `pages/employees/DocumentCatalogPage.tsx` | ✅ Cumple | KPIs, HelpTip, estado vacío con acción y acciones de fila compactas. |
+| 15 | Reportes de RH | `/employees/disciplinary-reports` | `hr.records` | `pages/employees/HrReportsPage.tsx` | 🟡 Parcial | Filtros nuevos; sin datos sembrados solo se ve el estado vacío. |
+| 16 | Detalle de reporte | `/employees/disciplinary-reports/:id` | `hr.records` | `pages/employees/DisciplinaryReportDetailPage.tsx` | ✅ Cumple | `BentoKpiGrid` de contexto y resumen lateral. |
+| 17 | Departamentos | `/departments` | `departments.view` | `pages/departments/DepartmentsPage.tsx` | ✅ Cumple | Filtros por estado/áreas, KPIs y mosaicos bento. |
+| 18 | Detalle de departamento | `/departments/:id` | `departments.view` | `pages/departments/DepartmentDetailPage.tsx` | ✅ Cumple | KPIs y panel lateral con HelpTip. |
+| 19 | Subáreas | `/subareas` | `subareas.view` | `pages/subareas/SubareasPage.tsx` | ✅ Cumple | Contexto con `BentoKpiGrid` y tabla paginada. |
+| 20 | Relojes (configuración) | `/time-clocks` | `time_clocks.manage` | `pages/access/TimeClocksPage.tsx` | ✅ Cumple | KPIs, HelpTip de configuración y acciones compactas. |
+| 21 | Dashboard del reloj | `/time-clocks/dashboard` | `time_clocks.manage` | `pages/access/TimeClockDashboardPage.tsx` | ✅ Cumple | `BentoKpiGrid`, tabs pastel y alertas accionables. |
+| 22 | Personas del reloj | `/time-clocks/people` | `time_clocks.manage` | `pages/access/TimeClockPeoplePage.tsx` | ✅ Cumple | KPIs, HelpTip de vinculación y acciones compactas. |
+| 23 | Inspeccionar reloj | `/time-clocks/inspect` | `time_clocks.manage` | `pages/access/TimeClockInspectPage.tsx` | ✅ Cumple | Tabla paginada, tabs pastel y HelpTip. |
+| 24 | Asistencia (reporte) | `/hr/time-clock` | `time_clock.view` | `pages/access/TimeClockPage.tsx` | ✅ Cumple | KPIs con waves, filtros de asistencia y tabla. |
+| 25 | Entradas y salidas | `/hr/time-clock/entries-exits` | `time_clock.view` | `pages/access/TimeClockReportPage.tsx` | ✅ Cumple | `BentoFilterCards` en lugar del strip y sin pills duplicados. |
+| 26 | Roster | `/hr/time-clock/roster` | `time_clock.view` | `pages/access/TimeClockRosterPage.tsx` | ✅ Cumple | Contexto de padrón, tabla y HelpTip. |
+| 27 | Empleados del reloj | `/hr/time-clock/employees` | `time_clock.view` | `pages/access/TimeClockEmployeesPage.tsx` | ✅ Cumple | `BentoFilterCards` de vínculos y acciones compactas. |
+| 28 | Diferencias de reloj | `/hr/time-clock/employees/differences` | `time_clock.view` | `pages/access/TimeClockDifferencesPage.tsx` | ✅ Cumple | KPIs, HelpTip y tabla de diferencias. |
+| 29 | Horarios | `/schedules` | `schedules.view` | `pages/schedules/SchedulesPage.tsx` | ✅ Cumple | `BentoFilterCards` único, HelpTip y acciones de fila compactas. |
+| 30 | Formulario de horario | `/schedules/new`, `/schedules/:id/edit` | `schedules.edit` | `pages/schedules/ScheduleFormPage.tsx` | ✅ Cumple | Hero pastel con HelpTip de tolerancias y mínimo de horas extra. |
+| 31 | Asignar horarios | `/schedules/assign` | `schedules.view` | `pages/schedules/AssignSchedulesPage.tsx` | ✅ Cumple | Filtros nuevos, `ITDataTable` con selección y acción compacta. |
+| 32 | Tiempo extra | `/schedules/overtime/approval` | `overtime.view` | `pages/overtime/OvertimeApprovalPage.tsx` | ✅ Cumple | `BentoFilterCards` por estatus, HelpTip y sin tabs duplicados. |
+| 33 | Pre-nómina | `/schedules/payroll` | `payroll.view` | `pages/schedules/PayrollPage.tsx` | ✅ Cumple | Pantalla de referencia; tablas, filtros y resumen. |
+| 34 | Historial de pre-nómina | `/schedules/payroll/history` | `payroll.view` | `pages/schedules/PayrollHistoryPage.tsx` | 🟡 Parcial | Hero de página listo; el panel de detalle conserva retícula propia. |
+| 35 | Nómina configurable | `/payroll/settings` | `payroll.close` | `pages/payroll/PayrollSettingsPage.tsx` | ✅ Cumple | Hero pastel, HelpTip y un solo guardar por viewport. |
+| 36 | Convenios y acuerdos | `/hr/jornada-acuerdos` | `time_clock.write` | `pages/nom/WorkdayAgreementsPage.tsx` | ✅ Cumple | Hero pastel con conteos y HelpTips de art. 58. |
+| 37 | Vacaciones y permisos | `/hr/leave` | `time_clock.write` | `pages/leave/LeaveAdminPage.tsx` | ✅ Cumple | Hero pastel, KPIs en el aside y filtros de estatus. |
+| 38 | Teletrabajo | `/teletrabajo` | `time_clock.view` | `pages/nom/TeleworkAdminPage.tsx` | ✅ Cumple | Hero pastel y HelpTips de política/desconexión. |
+| 39 | Configuración del cliente | `/settings/general` | `time_clock.write` | `pages/settings/GeneralSettingsPage.tsx` | ✅ Cumple | Hero pastel, tarjetas, resumen y HelpTip. |
+| 40 | Roles y permisos | `/roles` | `roles.manage` | `pages/roles/RolesPage.tsx` | ✅ Cumple | KPIs bento, tabs pastel, HelpTip y estados vacíos con acción. |
+| 41 | Planes | `/plans` | `plans.view` | `pages/plans/PlansPage.tsx` | 🟡 Parcial | KPIs, HelpTip y vacío con acción; falta paginar la tabla de planes. |
+| 42 | Notificaciones | `/notifications` | Sesión | `pages/notifications/NotificationsPage.tsx` | ✅ Cumple | Filtros `BentoFilterCards`, activo con wave verde y CTA compacta. |
+| 43 | Detalle de cliente (kardex) | `/tenants/:id` | ADMIN/SUPPORT | `pages/tenants/TenantDetailPage.tsx` | ✅ Cumple | Hero pastel, KPIs, kardex paginado y formulario lateral. |
 
 ## Resumen
 
 | Estado | Total |
 |---|---:|
-| ✅ Cumple | 8 |
-| 🟡 Parcial | 21 |
-| ❌ No cumple | 13 |
+| ✅ Cumple | 38 |
+| 🟡 Parcial | 4 |
+| ❌ No cumple | 0 |
 | ➖ No aplica | 1 |
 | **Total** | **43** |
 
-## Hallazgos transversales
+## Correcciones aplicadas (2026-11-06)
 
-1. **Filtros**: solo **Personal y Horarios** usan `BentoFilterCards`. Quedan **7 usos de `ITBentoStatStrip`** en Roles, Planes, Reportes RH, Asistencia, Entradas/Salidas, Empleados del reloj, Asignar horarios y Tiempo extra.
-2. **Fondos oscuros**: ya no hay heroes negros, pero quedan tarjetas/KPIs navy en relojes, departamentos, expedientes, asignación y un filtro activo negro en Notificaciones.
-3. **Tooltips**: `HelpTip` solo existe en **Configuración, Nómina configurable y Vacaciones**; 40 pantallas no explican campos complejos.
-4. **Formularios**: alta/edición de empleado tiene buena estructura (pasos, resumen, sticky), pero usa botones pill y no tiene hero ni HelpTip; importar personal es solo un `dropfile`.
-5. **Tablas**: las listas principales ya usan `ITDataTable` y **ninguna pantalla desborda horizontalmente**; quedan tablas custom en relojes/detalles.
-6. **Estados vacíos**: varias pantallas casi vacías (importar, historial de pre-nómina, planes, reportes, detalle de departamento) no tienen un estado vacío bento con acción.
-7. **Botones**: conviven CTA navy, botones pill y acciones de fila oscuras; falta la regla “icono para fila, texto pequeño para primaria”.
-8. **Regla de filtros**: la tarjeta activa debe ser **wave verde + sombra**, sin borde; hoy solo se cumple en Personal.
+- **Filtros**: `ITBentoStatStrip` eliminado de las pantallas; 13 usos de `BentoFilterCards`/`BentoKpiGrid`. La tarjeta activa usa **wave verde y sombra, sin borde**.
+- **Sin fondos oscuros**: heroes y KPIs navy/negros eliminados de inicio, configuración, nómina, relojes, roles, planes, departamentos, expedientes y horarios; tabs activas ahora en pastel `#eaf6ef`.
+- **Tablas**: expedientes, inspección/cámara, resumen de pre-nómina, checadas y asignación migradas a `ITDataTable` paginada. Sin scroll horizontal de página.
+- **Formularios**: alta/edición de empleado con pasos, resumen lateral, HelpTip y botones rectangulares; importación con tarjeta de carga, pasos y plantilla.
+- **Detalles**: historial de empleado, expediente, acta, convenios, teletrabajo y vacaciones con hero/KPIs/paneles bento.
+- **Tooltips**: `HelpTip` agregado en configuración de relojes, permisos, planes, documentos, tolerancias, horas extra, convenios, teletrabajo y checada web.
+- **Verificación**: `npx tsc -b` OK, `npx vite build` OK, `eslint` 0 errores (11 warnings preexistentes).
+
+## Pendientes reales
+
+1. **Cuenta de acceso**: sigue siendo un diálogo, no una pantalla bento; es un patrón modal aceptado.
+2. **Reportes RH**: con cero datos solo se ve el estado vacío; conviene sembrar un reporte demo para validar visualmente filtros y tabla.
+3. **Historial de pre-nómina**: el panel de detalle conserva retícula propia (no `ITDataTable`).
+4. **Planes**: la tabla de planes no tiene paginación (`ITDataTable`).
+5. **Tooltips**: los textos nuevos son literales en español; si se requiere i18n en inglés, faltan claves en shared.
+6. **E2E**: no se ejecutó la suite completa; los selectores de tiempo extra se actualizaron a las tarjetas nuevas.
 
 ## Prioridad sugerida
 

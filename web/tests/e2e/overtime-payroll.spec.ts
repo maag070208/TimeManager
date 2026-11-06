@@ -37,9 +37,9 @@ test.describe("tiempo extra (acme.admin)", () => {
     await expect(page.getByText("Por aprobar", { exact: true })).toBeVisible();
     await expect(page.getByText("Aprobado", { exact: true })).toBeVisible();
     await expect(page.getByText("Rechazado", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Pendientes/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Aprobadas/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Rechazadas/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Por aprobar/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Aprobado/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Rechazado/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /^Todas/ })).toBeVisible();
     // Sin datos sembrados de tiempo extra: estado vacío del reporte.
     await expect(page.getByText("No se encontraron resultados")).toBeVisible();
@@ -50,7 +50,7 @@ test.describe("tiempo extra (acme.admin)", () => {
     expect((await monthlyQuery).ok()).toBe(true);
 
     const approvedQuery = waitOvertimeQuery(page);
-    await page.getByRole("button", { name: /^Aprobadas/ }).click();
+    await page.getByRole("button", { name: /^Aprobado/ }).click();
     expect((await approvedQuery).ok()).toBe(true);
     await expect(page.getByText("No se encontraron resultados")).toBeVisible();
     await expect(page.getByText("No se pudo guardar la decisión")).toHaveCount(0);
@@ -65,9 +65,9 @@ test.describe("tiempo extra (acme.rh, solo lectura)", () => {
     expect((await initialQuery).ok()).toBe(true);
 
     // RH solo ve lo aprobado: una pestaña y sin botones de decisión.
-    await expect(page.getByRole("button", { name: /^Aprobadas/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Pendientes/ })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /^Rechazadas/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Aprobado/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Por aprobar/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Rechazado/ })).toHaveCount(0);
     await expect(page.getByText("Rechazado", { exact: true })).toHaveCount(0);
     await expect(page.getByText("No se encontraron resultados")).toBeVisible();
   });

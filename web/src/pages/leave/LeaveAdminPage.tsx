@@ -5,6 +5,7 @@ import { LuCalendarCheck, LuCheck, LuX } from "react-icons/lu";
 import { nomApi } from "@entities/nom";
 import type { LeaveRequestRow, LeaveType } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
+import { BentoFilterCards, BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 
 const dateLabel = (iso: string): string =>
   new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-MX", {
@@ -30,6 +31,7 @@ export default function LeaveAdminPage() {
   const [typeKey, setTypeKey] = useState("");
   const [typeName, setTypeName] = useState("");
   const [typePaid, setTypePaid] = useState("false");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | LeaveRequestRow["status"]>("ALL");
 
   const load = useCallback(async () => {
     try {
@@ -77,6 +79,8 @@ export default function LeaveAdminPage() {
   const pending = requests.filter((row) => row.status === "PENDING");
   const approved = requests.filter((row) => row.status === "APPROVED").length;
   const rejected = requests.filter((row) => row.status === "REJECTED").length;
+  const cancelled = requests.filter((row) => row.status === "CANCELLED").length;
+  const history = statusFilter === "ALL" ? requests : requests.filter((row) => row.status === statusFilter);
 
   return (
     <ITPage
@@ -91,6 +95,34 @@ export default function LeaveAdminPage() {
             <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>
           </div>
         )}
+
+        <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900 lg:col-span-12">
+          <span className="flex items-center gap-1.5">
+            <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
+              Vacaciones y permisos
+            </ITText>
+            <HelpTip text="Las vacaciones se descuentan del saldo; el permiso con goce paga el día y el sin goce no. La aprobación de RH queda en auditoría y viaja a la prenómina." />
+          </span>
+          <ITText className="!text-2xl font-extrabold !text-slate-900">
+            {pending.length} solicitud(es) por decidir
+          </ITText>
+          <ITText className="!text-[12px] !text-slate-600">
+            {approved} aprobadas · {rejected} rechazadas · {cancelled} canceladas · {types.length} tipos de permiso.
+          </ITText>
+        </div>
+
+        <div className="lg:col-span-12">
+          <BentoFilterCards
+            activeId={statusFilter}
+            onSelect={(id: string) => setStatusFilter(id as "ALL" | LeaveRequestRow["status"])}
+            items={[
+              { id: "ALL", label: "Todas", value: requests.length },
+              { id: "PENDING", label: "Pendientes", value: pending.length },
+              { id: "APPROVED", label: "Aprobadas", value: approved },
+              { id: "REJECTED", label: "Rechazadas", value: rejected },
+            ]}
+          />
+        </div>
 
         <div className="flex flex-col gap-4 lg:col-span-8">
           <ITCard contentClassName="!p-5">
@@ -142,7 +174,10 @@ export default function LeaveAdminPage() {
             </div>
             <div className="mt-3 flex flex-col divide-y divide-slate-100">
               {requests.length === 0 && <ITText muted className="!text-[12.5px]">Todavía no hay solicitudes.</ITText>}
-              {requests.map((row) => (
+              {requests.length > 0 && history.length === 0 && (
+                <ITText muted className="!text-[12.5px]">Sin solicitudes con ese estatus.</ITText>
+              )}
+              {history.map((row) => (
                 <div key={row.id} className="flex flex-col gap-1 py-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <ITText className="!text-[12.5px] font-semibold">
@@ -160,23 +195,14 @@ export default function LeaveAdminPage() {
         </div>
 
         <aside className="flex flex-col gap-4 lg:col-span-4 lg:sticky lg:top-4">
-          <ITCard contentClassName="!p-0">
-            <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
-              <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">Resumen</ITText>
-              <ITText className="!text-2xl font-extrabold !text-slate-900">{pending.length} pendientes</ITText>
-              <ITText className="!text-[12px] !text-slate-600">{approved} aprobadas · {rejected} rechazadas</ITText>
-            </div>
-            <div className="grid grid-cols-2 gap-2 p-3">
-              <div className="rounded-xl bg-slate-50 p-3">
-                <ITText muted className="!text-[10.5px] font-semibold uppercase">Tipos</ITText>
-                <ITText className="!text-lg font-extrabold">{types.length}</ITText>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-3">
-                <ITText muted className="!text-[10.5px] font-semibold uppercase">Aprobadas</ITText>
-                <ITText className="!text-lg font-extrabold">{approved}</ITText>
-              </div>
-            </div>
-          </ITCard>
+          <BentoKpiGrid
+            items={[
+              { id: "pending", label: "Pendientes", value: pending.length, caption: "por decidir", tone: "warning" },
+              { id: "approved", label: "Aprobadas", value: approved, caption: "con descuento al saldo", tone: "success" },
+              { id: "rejected", label: "Rechazadas", value: rejected, caption: "sin descuento", tone: "danger" },
+              { id: "types", label: "Tipos", value: types.length, caption: "configurados", tone: "info" },
+            ]}
+          />
 
           <ITCard contentClassName="!p-5">
             <div className="flex items-center gap-2">

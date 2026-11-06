@@ -183,6 +183,15 @@ export default function UserFormPage() {
               title={section.label}
               description={section.description}
               icon={section.icon}
+              help={
+                section.label === tt("form.sectionPersonal")
+                  ? "Estos datos alimentan el expediente, la credencial y los reportes de RH."
+                  : section.label === tt("form.sectionAccess")
+                    ? "El rol define a qué pantallas entra la persona; los permisos finos se ajustan en Roles."
+                    : section.label === tt("form.sectionOrganization")
+                      ? "Departamento y subárea se usan para filtros, reportes y aprobaciones."
+                      : "Los documentos obligatorios se configuran en Expedientes > Catálogo de documentos."
+              }
               complete={section.complete}
             >
               {section.content}
@@ -200,10 +209,10 @@ export default function UserFormPage() {
       </div>
 
       <StickyActions>
-        <ITButton variant="outlined" color="gray" className="!rounded-full" onClick={() => goBack("/employees")} disabled={userForm.saving}>
+        <ITButton variant="outlined" color="secondary" className="tm-save-button" onClick={() => goBack("/employees")} disabled={userForm.saving}>
           {tt("form.cancel")}
         </ITButton>
-        <ITButton variant="rounded" color="primary" onClick={handleFinish} disabled={userForm.saving}>
+        <ITButton variant="filled" color="primary" className="tm-save-button" onClick={handleFinish} disabled={userForm.saving}>
           {userForm.saving ? tt("form.saving") : isEdit ? tt("form.save") : tt("form.create")}
         </ITButton>
       </StickyActions>

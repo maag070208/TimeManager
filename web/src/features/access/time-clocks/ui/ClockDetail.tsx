@@ -17,6 +17,7 @@ import {
 import { formatDateTime } from "@shared/utils/dates";
 import { dateLocale } from "@shared/i18n";
 import type { ClockConfig, UseTimeClocks } from "../model/useTimeClocks";
+import { HelpTip } from "@shared/ui/help-tip";
 
 /** A partir de esta diferencia con el servidor se avisa que el reloj no está en hora. */
 const DRIFT_NOTICE_S = 60;
@@ -69,7 +70,8 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
     <ITFlex direction="column" gap={4}>
       <ITFlex align="center" justify="between" gap={3} wrap="wrap">
         <ITFlex align="center" gap={3} wrap="wrap">
-          <ITButton variant="outlined" color="secondary" size="sm" onClick={onBack}>
+          <ITButton variant="outlined" color="secondary" size="sm"
+            className="tm-row-button" onClick={onBack}>
             <ITFlex align="center" gap={1}>
               <FaArrowLeft size={11} />
               <ITText className="font-bold text-[11px]">{t("clocks.actions.back")}</ITText>
@@ -102,6 +104,7 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
             variant="outlined"
             color="secondary"
             size="sm"
+            className="tm-row-button"
             disabled={config?.loading}
             onClick={() => void loadConfig(clock.clockSerial)}
           >
@@ -116,6 +119,7 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
             variant="outlined"
             color="primary"
             size="sm"
+            className="tm-row-button"
             disabled={connection?.state === "testing"}
             onClick={() => void testConnection(clock.clockSerial)}
           >
@@ -132,6 +136,7 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
             variant="filled"
             color="primary"
             size="sm"
+            className="tm-row-button"
             disabled={syncingNow}
             onClick={() => void syncNow()}
           >
@@ -142,7 +147,8 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
               </ITText>
             </ITFlex>
           </ITButton>
-          <ITButton variant="outlined" color="secondary" size="sm" onClick={() => openEdit(clock)}>
+          <ITButton variant="outlined" color="secondary" size="sm"
+            className="tm-row-button" onClick={() => openEdit(clock)}>
             <ITFlex align="center" gap={1}>
               <FaPen size={10} />
               <ITText className="font-bold text-[11px]">{t("clocks.actions.edit")}</ITText>
@@ -152,6 +158,7 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
             variant="outlined"
             color="danger"
             size="sm"
+            className="tm-row-button"
             onClick={() => setRetirementTarget(clock)}
           >
             <ITFlex align="center" gap={1}>
@@ -192,6 +199,7 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
       <ITCard className="!p-5">
         <Section
           title={t("clocks.config.title")}
+          help={t("clocks.config.hint")}
           note={
             config?.data
               ? `${t("clocks.config.hint")} ${t("clocks.config.readAt", {
@@ -294,18 +302,21 @@ function Settings({
 function Section({
   title,
   note,
+  help,
   children,
 }: {
   title: string;
   note?: string;
+  help?: string;
   children: React.ReactNode;
 }) {
   return (
     <ITFlex direction="column" gap={2}>
-      <ITFlex align="baseline" wrap="wrap" gap={2}>
+      <ITFlex align="center" wrap="wrap" gap={2}>
         <ITText className="text-[12px] font-semibold text-slate-500">
           {title}
         </ITText>
+        {help && <HelpTip text={help} label={title} />}
         {note && <ITText className="text-[11px] text-slate-400">{note}</ITText>}
       </ITFlex>
       <ITGrid container columns={12} spacing={4}>

@@ -1,5 +1,5 @@
-import { ITAlert, ITBentoStatStrip, ITButton, ITPage, ITStack, ITText } from "@axzydev/axzy_ui_system";
-import { LuBadgeDollarSign, LuPlus } from "react-icons/lu";
+import { ITAlert, ITButton, ITPage, ITStack, ITText } from "@axzydev/axzy_ui_system";
+import { LuBadgeDollarSign, LuCircleCheck, LuCirclePause, LuLayers, LuPlus } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,6 +9,9 @@ import {
 } from "@features/plan/plans-console";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { PanelCard } from "@shared/ui/panel-card";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { HelpTip } from "@shared/ui/help-tip";
+import { TicState } from "@shared/ui/tic";
 import { TicConfirm } from "@shared/ui/tic-confirm";
 import { useGoBack } from "@shared/lib/useGoBack";
 
@@ -48,21 +51,40 @@ export default function PlansPage() {
         )}
 
         {fx.plans && fx.plans.length > 0 && (
-          <ITBentoStatStrip
+          <BentoKpiGrid
             items={[
-              { id: "all", label: t("kpis.all"), value: fx.counts.all, tone: "sea", color: "var(--color-primary-600)" },
-              { id: "active", label: t("kpis.active"), value: fx.counts.active, tone: "mint", color: "var(--color-success)" },
-              { id: "inactive", label: t("kpis.inactive"), value: fx.counts.inactive, tone: "sun", color: "var(--color-warning)" },
+              { id: "all", label: t("kpis.all"), value: fx.counts.all, icon: <LuLayers size={14} /> },
+              { id: "active", label: t("kpis.active"), value: fx.counts.active, tone: "success", icon: <LuCircleCheck size={14} /> },
+              { id: "inactive", label: t("kpis.inactive"), value: fx.counts.inactive, tone: "warning", icon: <LuCirclePause size={14} /> },
             ]}
-            activeId="all"
           />
         )}
 
-        <PanelCard title={t("listTitle")} description={t("listDescription")}>
+        <PanelCard
+          title={t("listTitle")}
+          description={t("listDescription")}
+          actions={
+            <HelpTip text="Cada plan define cuántas personas activas y relojes incluye el cliente, y su precio mensual de lista. Bajar de plan no borra nada: solo bloquea altas nuevas si el uso queda por encima del límite." />
+          }
+        >
           {fx.plans === null ? (
             <ContentSkeleton size="sm" />
           ) : fx.plans.length === 0 ? (
-            <ITText className="block py-6 text-center text-sm text-slate-500">{t("empty")}</ITText>
+            <TicState
+              kind="empty"
+              title={t("empty")}
+              description={t("listDescription")}
+              action={
+                fx.canManage ? (
+                  <ITButton variant="filled" color="primary" onClick={fx.openCreate}>
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold">
+                      <LuPlus aria-hidden size={13} />
+                      {t("new")}
+                    </span>
+                  </ITButton>
+                ) : undefined
+              }
+            />
           ) : (
             <PlansTable
               rows={fx.plans}

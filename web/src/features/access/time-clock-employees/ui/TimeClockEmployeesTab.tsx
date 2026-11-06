@@ -20,7 +20,8 @@ import type {
 import { LuCheck, LuLink, LuLink2Off, LuRotateCcw, LuUsers, LuWandSparkles } from "react-icons/lu";
 import type { TimeClockEmployee, TimeClockEmployeeStatus } from "@entities/time-clock";
 import { formatDateTime } from "@shared/utils/dates";
-import { ListSummaryStrip, type ListSummaryItem } from "@shared/ui/list-summary-strip";
+import { BentoFilterCards, type BentoFilterItem } from "@shared/ui/bento-filter-cards";
+import { HelpTip } from "@shared/ui/help-tip";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { PanelCard } from "@shared/ui/panel-card";
 import type { UseTimeClockEmployees } from "../model/useTimeClockEmployees";
@@ -81,8 +82,8 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
   const suggestions = summary?.registrationSuggestions ?? 0;
   const percent = total > 0 ? Math.round((linked / total) * 100) : 0;
 
-  // Franja de resumen: cada mosaico filtra la lista por su estado.
-  const summaryItems: ListSummaryItem[] = [
+  // Mosaico de filtros bento: cada tarjeta filtra la lista por su estado.
+  const summaryItems: BentoFilterItem[] = [
     {
       id: "",
       label: t("employees.kpis.total"),
@@ -94,7 +95,6 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
       id: "LINKED",
       label: t("employees.kpis.linkedCount"),
       value: linked,
-      tone: "mint",
       icon: <LuCheck size={15} />,
       caption: total > 0 ? t("employees.kpis.hintLinked", { percent }) : t("employees.kpis.allGood"),
     },
@@ -102,7 +102,6 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
       id: "UNLINKED",
       label: t("employees.kpis.withoutLink"),
       value: withoutLink,
-      tone: withoutLink > 0 ? "sun" : "plain",
       icon: <LuLink2Off size={15} />,
       caption: withoutLink > 0 ? t("employees.kpis.hintWithoutLink") : t("employees.kpis.allGood"),
     },
@@ -110,7 +109,6 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
       id: "SUGGESTED",
       label: t("employees.kpis.registrationSuggestions"),
       value: suggestions,
-      tone: suggestions > 0 ? "lavender" : "plain",
       icon: <LuWandSparkles size={15} />,
       caption: suggestions > 0 ? t("employees.kpis.hintSuggestions") : t("employees.kpis.allGood"),
     },
@@ -237,6 +235,7 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
                     variant="filled"
                     color="primary"
                     size="sm"
+                    className="tm-row-button"
                     disabled={ocupada}
                     onClick={() => acceptSuggestion(r)}
                   >
@@ -258,39 +257,35 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
             key: "actions",
             label: t("employees.columns.actions"),
             type: "actions" as const,
-            width: 220,
+            width: 120,
             actions: (r: TimeClockEmployee) => {
               const ocupada = savingNumber === r.employeeNumber;
               return (
                 <ITFlex align="center" gap={1}>
                   <ITButton
                     variant="outlined"
-                    color="secondary"
+                    color="primary"
                     size="sm"
+                    className="tm-icon-button"
+                    aria-label={r.link ? t("employees.actions.change") : t("employees.actions.linkEmployee")}
+                    title={r.link ? t("employees.actions.change") : t("employees.actions.linkEmployee")}
                     disabled={ocupada}
                     onClick={() => openLink(r)}
                   >
-                    <ITFlex align="center" gap={1}>
-                      <LuLink size={12} />
-                      <ITText className="font-bold text-[11px]">
-                        {r.link ? t("employees.actions.change") : t("employees.actions.linkEmployee")}
-                      </ITText>
-                    </ITFlex>
+                    <LuLink size={14} />
                   </ITButton>
                   {r.link && (
                     <ITButton
-                      variant="text"
+                      variant="outlined"
                       color="danger"
                       size="sm"
+                      className="tm-icon-button"
+                      aria-label={t("employees.actions.unlinkEmployee")}
+                      title={t("employees.actions.unlinkEmployee")}
                       disabled={ocupada}
                       onClick={() => void unlinkEmployee(r)}
                     >
-                      <ITFlex align="center" gap={1}>
-                        <LuLink2Off size={12} />
-                        <ITText className="font-bold text-[11px]">
-                          {t("employees.actions.unlinkEmployee")}
-                        </ITText>
-                      </ITFlex>
+                      <LuLink2Off size={14} />
                     </ITButton>
                   )}
                 </ITFlex>
@@ -321,8 +316,12 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
         </ITAlert>
       )}
 
-      {/* Resumen: cada mosaico filtra por su estado. */}
-      <ListSummaryStrip
+      {/* Vinculación de personas: mosaico de filtros bento + ayuda contextual. */}
+      <ITFlex align="center" gap={1.5}>
+        <ITText className="text-[12px] font-semibold text-slate-500">{t("employees.title")}</ITText>
+        <HelpTip text={t("employees.description")} label={t("employees.columns.status")} />
+      </ITFlex>
+      <BentoFilterCards
         items={summaryItems}
         activeId={status}
         onSelect={(id) => setStatus(id as TimeClockEmployeeStatus | "")}
@@ -335,6 +334,7 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
             variant="text"
             color="gray"
             size="sm"
+            className="tm-row-button"
             disabled={!hayFiltros}
             onClick={() => {
               setQ("");
@@ -378,7 +378,7 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
               <ITText className="text-[12px]">{t("employees.risk.text")}</ITText>
               {onSeeReport && (
                 <ITFlex>
-                  <ITButton variant="outlined" color="secondary" size="sm" onClick={onSeeReport}>
+                  <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={onSeeReport}>
                     <ITText className="font-bold text-[11px]">{t("employees.risk.action")}</ITText>
                   </ITButton>
                 </ITFlex>
@@ -428,10 +428,10 @@ export default function TimeClockEmployeesTab({ fx, onSeeReport }: Props) {
             className="w-full min-w-0"
           />
           <ITFlex justify="end" gap={2}>
-            <ITButton variant="outlined" color="secondary" onClick={() => setTarget(null)}>
+            <ITButton variant="outlined" color="secondary" className="tm-row-button" onClick={() => setTarget(null)}>
               {t("employees.actions.cancel")}
             </ITButton>
-            <ITButton variant="filled" color="primary" disabled={!userId || saving} onClick={confirm}>
+            <ITButton variant="filled" color="primary" className="tm-row-button" disabled={!userId || saving} onClick={confirm}>
               {t("employees.actions.save")}
             </ITButton>
           </ITFlex>

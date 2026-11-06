@@ -18,9 +18,8 @@ import {
 import { useTranslation } from "react-i18next";
 import type { Department } from "@entities/department";
 import { Num } from "@shared/ui/bento-bits";
-import { FilterPills, type FilterPillItem } from "@shared/ui/filter-pills";
 import { TicState } from "@shared/ui/tic";
-import { ListSummaryStrip, type ListSummaryItem } from "@shared/ui/list-summary-strip";
+import { BentoFilterCards, type BentoFilterItem } from "@shared/ui/bento-filter-cards";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 
 type StatusFilter = "all" | "active" | "inactive" | "staffed";
@@ -91,47 +90,44 @@ export default function DepartmentsCatalog({
     };
   }, [rows]);
 
-  const summary = useMemo<ListSummaryItem[]>(
+  const summary = useMemo<BentoFilterItem[]>(
     () => [
       {
         id: "all",
         label: t("list.summaryTotal"),
-        value: <Num value={totals.total} />,
-        tone: "sea",
-        icon: <LuBuilding2 size={15} />,
+        value: totals.total,
+        icon: <LuBuilding2 size={14} />,
         caption: t("list.summaryTotalCaption", { count: totals.people }),
       },
       {
         id: "active",
         label: t("list.summaryActive"),
-        value: <Num value={totals.active} />,
-        tone: "mint",
-        icon: <LuCircleCheck size={15} />,
+        value: totals.active,
+        icon: <LuCircleCheck size={14} />,
         caption: t("list.summaryActiveCaption"),
       },
       {
         id: "inactive",
         label: t("list.summaryInactive"),
-        value: <Num value={totals.inactive} />,
-        icon: <LuCirclePause size={15} />,
+        value: totals.inactive,
+        icon: <LuCirclePause size={14} />,
         caption: t("list.summaryInactiveCaption"),
       },
       {
         id: "staffed",
         label: t("list.summaryStaffed"),
-        value: <Num value={totals.staffed} />,
-        tone: "lavender",
-        icon: <LuUsers size={15} />,
+        value: totals.staffed,
+        icon: <LuUsers size={14} />,
         caption: t("list.summaryStaffedCaption"),
       },
     ],
     [t, totals]
   );
 
-  const areaFilters: FilterPillItem<AreasFilter>[] = [
-    { id: "any", label: t("list.areasFilterAny"), count: totals.total },
-    { id: "with", label: t("list.areasFilterWith"), count: totals.withAreas },
-    { id: "without", label: t("list.noAreas"), count: totals.total - totals.withAreas },
+  const areaFilters: BentoFilterItem[] = [
+    { id: "any", label: t("list.areasFilterAny"), value: totals.total, icon: <LuBuilding2 size={14} /> },
+    { id: "with", label: t("list.areasFilterWith"), value: totals.withAreas, icon: <LuUsers size={14} /> },
+    { id: "without", label: t("list.noAreas"), value: totals.total - totals.withAreas, icon: <LuCirclePause size={14} /> },
   ];
 
   const visible = useMemo(() => {
@@ -194,16 +190,16 @@ export default function DepartmentsCatalog({
 
   return (
     <ITStack spacing={4}>
-      {/* Totales reales del catálogo; el mosaico elegido filtra la rejilla. */}
-      <ListSummaryStrip
+      {/* Totales reales del catálogo; la tarjeta elegida filtra la rejilla. */}
+      <BentoFilterCards
         items={summary}
         activeId={status}
         onSelect={(id) => setStatus(id as StatusFilter)}
       />
 
       {/* Búsqueda por nombre o área + filtro por áreas */}
-      <ITFlex align="center" wrap="wrap" gap={2}>
-        <div className="min-w-[220px] flex-1">
+      <ITFlex direction="column" gap={2}>
+        <div className="max-w-sm">
           <ITInput
             name="departments_search"
             size="sm"
@@ -213,11 +209,10 @@ export default function DepartmentsCatalog({
             iconLeft={<LuSearch size={12} />}
           />
         </div>
-        <FilterPills
+        <BentoFilterCards
           items={areaFilters}
-          value={areas}
-          onChange={setAreas}
-          className="max-w-full overflow-x-auto"
+          activeId={areas}
+          onSelect={(id) => setAreas(id as AreasFilter)}
         />
       </ITFlex>
 

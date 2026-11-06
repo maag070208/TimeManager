@@ -12,13 +12,14 @@ import {
 } from "@axzydev/axzy_ui_system";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { FaFilePdf, FaScroll } from "react-icons/fa6";
-import { LuCalendarDays } from "react-icons/lu";
+import { LuCalendarDays, LuFileText, LuScrollText } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "@shared/utils/dates";
 import { personalApi, type DisciplinaryReport } from "@entities/hr";
 import { DisciplinaryReportPreview, downloadDisciplinaryReportPdf } from "@widgets/disciplinary-report";
 import { i18n } from "@shared/i18n";
 import { useGoBack } from "@shared/lib/useGoBack";
+import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 
 export default function DisciplinaryReportDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -98,6 +99,31 @@ export default function DisciplinaryReportDetailPage() {
       }
     >
       <ITFlex direction="column" gap={4}>
+        {/* Contexto del acta en KPIs bento */}
+        <BentoKpiGrid
+          items={[
+            {
+              id: "reason",
+              label: tt("doc.reason"),
+              value: tt(`reasons.${disciplinaryReport.reason}`),
+              tone: "warning",
+              icon: <LuScrollText size={14} />,
+            },
+            {
+              id: "incident",
+              label: tt("doc.incidentDate"),
+              value: formatDate(disciplinaryReport.incidentDate),
+              icon: <LuCalendarDays size={14} />,
+            },
+            {
+              id: "created",
+              label: tt("doc.createdBy"),
+              value: disciplinaryReport.createdBy?.name ?? "—",
+              icon: <LuFileText size={14} />,
+            },
+          ]}
+        />
+
         {/* Persona y datos del acta */}
         <ITCard contentClassName="!p-0">
           <ITFlex align="center" gap={3} wrap="wrap" className="px-5 py-4">

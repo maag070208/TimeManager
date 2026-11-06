@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ITCard, ITText, ITFlex } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import { LuCheck } from "react-icons/lu";
+import { HelpTip } from "@shared/ui/help-tip";
 
 interface Props {
   /** Número de la sección (1, 2, 3…). */
@@ -12,6 +13,8 @@ interface Props {
   icon?: ReactNode;
   /** Sección completa: la insignia muestra una palomita en vez del número. */
   complete?: boolean;
+  /** Ayuda contextual junto al título. */
+  help?: string;
   className?: string;
   children?: ReactNode;
 }
@@ -21,7 +24,7 @@ interface Props {
  * sin estilos forzados, así que fondo, borde y radio los decide la apariencia
  * del proveedor. La insignia es un chip pastel que pasa a verde al completarse.
  */
-export default function FormSection({ number, title, description, icon, complete = false, className = "", children }: Props) {
+export default function FormSection({ number, title, description, icon, complete = false, help, className = "", children }: Props) {
   const { t } = useTranslation("common");
   return (
     <ITCard className={className}>
@@ -42,6 +45,7 @@ export default function FormSection({ number, title, description, icon, complete
           <ITFlex align="center" gap={2} className="min-w-0">
             {icon && <ITText as="span" className="flex shrink-0 items-center text-slate-400">{icon}</ITText>}
             <ITText as="h3" className="m-0 truncate !text-[16px] font-bold !text-slate-800">{title}</ITText>
+            {help && <HelpTip text={help} />}
           </ITFlex>
           {description && <ITText className="m-0 mt-1 text-[12px] text-slate-500">{description}</ITText>}
         </ITFlex>
