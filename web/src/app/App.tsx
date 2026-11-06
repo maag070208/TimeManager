@@ -45,6 +45,7 @@ import CatalogsPage from "@pages/settings/CatalogsPage";
 import LeaveAdminPage from "@pages/leave/LeaveAdminPage";
 import WorkdayAgreementsPage from "@pages/nom/WorkdayAgreementsPage";
 import PayrollSettingsPage from "@pages/payroll/PayrollSettingsPage";
+import AssignPayrollPositionPage from "@pages/payroll/AssignPayrollPositionPage";
 import TenantDetailPage from "@pages/tenants/TenantDetailPage";
 import TenantsListPage from "@pages/tenants/TenantsListPage";
 import PayrollHistoryPage from "@pages/schedules/PayrollHistoryPage";
@@ -300,6 +301,14 @@ export default function App() {
           }
         />
 
+        <Route
+          path="/payroll/assign"
+          element={
+            <RequiresPermission permission="payroll.close">
+              <AssignPayrollPositionPage />
+            </RequiresPermission>
+          }
+        />
         <Route
           path="/payroll/settings"
           element={

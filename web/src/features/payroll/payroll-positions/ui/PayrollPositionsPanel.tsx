@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITDataTable, ITDialog, ITInput, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuPencil, LuPlus, LuPower, LuPowerOff, LuUserCheck, LuWallet } from "react-icons/lu";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
-import { usersApi, type User } from "@entities/user";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { HelpTip } from "@shared/ui/help-tip";
 import { DialogHeader } from "@shared/ui/dialog-header";
@@ -15,23 +14,18 @@ const money = (value: number) => value.toLocaleString("es-MX", { style: "currenc
 export default function PayrollPositionsPanel() {
   const navigate = useNavigate();
   const [positions, setPositions] = useState<PayrollPosition[]>([]);
-  const [employees, setEmployees] = useState<User[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<PayrollPosition | "new" | null>(null);
-  const [assigning, setAssigning] = useState<PayrollPosition | null>(null);
   const [statusTarget, setStatusTarget] = useState<PayrollPosition | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [form, setForm] = useState({ name: "", jobTitle: "", dailySalary: "", sbcDaily: "" });
-  const [selected, setSelected] = useState<string[]>([]);
 
   const load = async () => {
     try {
-      const [nextPositions, nextUsers] = await Promise.all([payrollApi.positions(), usersApi.list()]);
-      setPositions(nextPositions);
-      setEmployees(nextUsers.filter((user) => user.tenant?.id || true));
+      setPositions(await payrollApi.positions());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudieron cargar los perfiles de nómina.");
     }
@@ -74,24 +68,6 @@ export default function PayrollPositionsPanel() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo actualizar el perfil."); }
     finally { setSaving(false); }
   };
-  const openAssign = async (position: PayrollPosition) => {
-    setAssigning(position);
-    setSelected(position.employees.map((employee) => employee.id));
-  };
-  const saveAssign = async () => {
-    if (!assigning) return;
-    setSaving(true);
-    try {
-      await payrollApi.assignPosition(assigning.id, selected);
-      setToast("Personal asignado al perfil.");
-      setAssigning(null);
-      await load();
-      setReloadToken((value) => value + 1);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo asignar el personal.");
-    } finally { setSaving(false); }
-  };
-
   const visible = positions.filter((position) => filter === "all" || (filter === "active" ? position.active : !position.active));
   const assigned = positions.reduce((sum, position) => sum + position.employees.length, 0);
   const columns: Column<PayrollPosition>[] = [
@@ -103,7 +79,7 @@ export default function PayrollPositionsPanel() {
     { key: "actions", label: "", type: "actions", actions: (row) => (
       <div className="flex justify-end gap-1.5">
         <RowAction icon={<LuPencil size={14} />} label="Editar perfil" onClick={() => openEdit(row)} />
-        <RowAction icon={<LuUserCheck size={14} />} label="Asignar personal" tone="success" onClick={() => void openAssign(row)} />
+        <RowAction icon={<LuUserCheck size={14} />} label="Asignar personal" tone="success" onClick={() => navigate(`/payroll/assign?position=${row.id}`)} />
         <RowAction icon={row.active ? <LuPowerOff size={14} /> : <LuPower size={14} />} label={row.active ? "Desactivar perfil" : "Activar perfil"} tone={row.active ? "warning" : "success"} onClick={() => setStatusTarget(row)} />
       </div>
     ) },
@@ -153,21 +129,6 @@ export default function PayrollPositionsPanel() {
         variant={statusTarget?.active ? "warning" : "success"}
         loading={saving}
       />
-      <ITDialog isOpen={assigning !== null} onClose={() => setAssigning(null)} title={`Asignar personal · ${assigning?.name ?? ""}`}>
-        <div className="flex max-h-[55vh] flex-col gap-1 overflow-y-auto">
-          {employees.filter((employee) => employee.active).map((employee) => (
-            <label key={employee.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] hover:bg-slate-50">
-              <input type="checkbox" checked={selected.includes(employee.id)} onChange={(event) => setSelected((prev) => event.target.checked ? [...prev, employee.id] : prev.filter((id) => id !== employee.id))} />
-              <span className="min-w-0 flex-1 truncate">{employee.name}</span>
-              <span className="text-[11px] text-slate-400">{employee.jobTitle ?? ""}</span>
-            </label>
-          ))}
-        </div>
-        <div className="flex justify-end gap-2 pt-3">
-          <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => setAssigning(null)}>Cancelar</ITButton>
-          <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" disabled={saving} onClick={() => void saveAssign()}>Guardar asignación</ITButton>
-        </div>
-      </ITDialog>
       {toast && <ITToast message={toast} type="success" position="bottom-center" duration={2500} onClose={() => setToast(null)} />}
     </div>
   );
