@@ -9,6 +9,7 @@ import {
   ITText,
   ITToast, ITStack } from "@axzydev/axzy_ui_system";
 import { FaRegClock, FaSave } from "react-icons/fa";
+import { LuCalendarDays } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { scheduleApi, type ScheduleDayInput, type ScheduleInput } from "@entities/schedule";
 import { dyn } from "@shared/i18n/dyn";
@@ -203,60 +204,60 @@ export default function ScheduleForm({ id }: { id?: string }) {
         </ITAlert>
       )}
 
-      <div className="grid gap-4 xl:!grid-cols-[minmax(0,2fr)_minmax(0,1fr)] xl:items-start">
-        <PanelCard title="Datos del horario" icon={<FaRegClock size={16} />} className="min-w-0">
-          <ITFlex direction="column" gap={4}>
-            <ITInput
-              name="name"
-              label={t("name")}
-              placeholder={t("namePlaceholder")}
-              value={view.name}
-              onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-            />
-
-            <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
-              <ITInput name="entryToleranceMin" type="number" label={t("tolEntry")} value={String(form.entryToleranceMin)} onChange={(event) => setForm((current) => ({ ...current, entryToleranceMin: Number(event.target.value) }))} />
-              <ITInput name="exitToleranceMin" type="number" label={t("tolExit")} value={String(form.exitToleranceMin)} onChange={(event) => setForm((current) => ({ ...current, exitToleranceMin: Number(event.target.value) }))} />
-              <ITInput name="mealBreakMin" type="number" label={t("meal")} value={String(form.mealBreakMin)} onChange={(event) => setForm((current) => ({ ...current, mealBreakMin: Number(event.target.value) }))} />
-              <ITInput name="minOvertimeMin" type="number" label={t("minExtra")} value={String(form.minOvertimeMin)} onChange={(event) => setForm((current) => ({ ...current, minOvertimeMin: Number(event.target.value) }))} />
-            </div>
-
-            <div className="border-t border-slate-100 pt-3">
-              <ITText className="block font-bold !text-[13px]">Días y horario</ITText>
-              <ITText muted className="mt-0.5 block !text-[11.5px]">
-                Si la salida es menor que la entrada, el turno termina al día siguiente.
-              </ITText>
-              <div className="mt-3 flex flex-col gap-2">
-                {form.days.map((day) => (
-                  <div key={day.weekday} className="rounded-xl border border-slate-100 p-3">
-                    <ITFlex align="center" justify="between" gap={2} wrap="wrap">
-                      <ITText className="!text-[12.5px] font-bold !text-slate-700">{dyn(t)(`day${day.weekday}`)}</ITText>
-                      <ITCheckbox
-                        name={`restDay-${day.weekday}`}
-                        label="Descanso"
-                        checked={day.restDay}
-                        onChange={(checked) => updateDay(day.weekday, { restDay: checked })}
-                      />
-                    </ITFlex>
-                    {!day.restDay && (
-                      <div className="mt-2 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))" }}>
-                        <ITInput name={`start-${day.weekday}`} type="text" placeholder="HH:MM" label="Entrada" value={day.startTime ?? ""} onChange={(event) => updateDay(day.weekday, { startTime: event.target.value })} />
-                        <ITInput name={`end-${day.weekday}`} type="text" placeholder="HH:MM" label="Salida" value={day.endTime ?? ""} onChange={(event) => updateDay(day.weekday, { endTime: event.target.value })} />
-                        <ITInput name={`splitStart-${day.weekday}`} type="text" placeholder="HH:MM" label="Comida inicio (opcional)" value={day.splitStartTime ?? ""} onChange={(event) => updateDay(day.weekday, { splitStartTime: event.target.value || null })} />
-                        <ITInput name={`splitEnd-${day.weekday}`} type="text" placeholder="HH:MM" label="Comida fin (opcional)" value={day.splitEndTime ?? ""} onChange={(event) => updateDay(day.weekday, { splitEndTime: event.target.value || null })} />
-                      </div>
-                    )}
-                    {!day.restDay && day.startTime && day.endTime && day.endTime < day.startTime && (
-                      <ITText className="mt-2 block !text-[11.5px] font-semibold text-amber-700">Este turno termina al día siguiente.</ITText>
-                    )}
-                  </div>
-                ))}
+      <div className="grid items-start gap-4 xl:!grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-w-0 flex-col gap-4">
+          <PanelCard title="Datos del horario" icon={<FaRegClock size={16} />} className="tm-hero-card tm-hero-card--mint">
+            <ITFlex direction="column" gap={4}>
+              <ITInput
+                name="name"
+                label={t("name")}
+                placeholder={t("namePlaceholder")}
+                value={view.name}
+                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+              />
+              <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+                <ITInput name="entryToleranceMin" type="number" label={t("tolEntry")} value={String(form.entryToleranceMin)} onChange={(event) => setForm((current) => ({ ...current, entryToleranceMin: Number(event.target.value) }))} />
+                <ITInput name="exitToleranceMin" type="number" label={t("tolExit")} value={String(form.exitToleranceMin)} onChange={(event) => setForm((current) => ({ ...current, exitToleranceMin: Number(event.target.value) }))} />
+                <ITInput name="mealBreakMin" type="number" label={t("meal")} value={String(form.mealBreakMin)} onChange={(event) => setForm((current) => ({ ...current, mealBreakMin: Number(event.target.value) }))} />
+                <ITInput name="minOvertimeMin" type="number" label={t("minExtra")} value={String(form.minOvertimeMin)} onChange={(event) => setForm((current) => ({ ...current, minOvertimeMin: Number(event.target.value) }))} />
               </div>
-            </div>
-          </ITFlex>
-        </PanelCard>
+            </ITFlex>
+          </PanelCard>
 
-        <PanelCard title="Resumen del horario" icon={<FaRegClock size={16} />} className="xl:sticky xl:top-4">
+          <PanelCard title="Días y horario" icon={<LuCalendarDays size={16} />} className="tm-hero-card tm-hero-card--amber">
+            <ITText muted className="mb-3 block !text-[11.5px]">
+              Si la salida es menor que la entrada, el turno termina al día siguiente.
+            </ITText>
+            <div className="flex flex-col gap-2">
+              {form.days.map((day) => (
+                <div key={day.weekday} className="rounded-xl bg-slate-50/70 p-3">
+                  <ITFlex align="center" justify="between" gap={2} wrap="wrap">
+                    <ITText className="!text-[12.5px] font-bold !text-slate-700">{dyn(t)(`day${day.weekday}`)}</ITText>
+                    <ITCheckbox
+                      name={`restDay-${day.weekday}`}
+                      label="Descanso"
+                      checked={day.restDay}
+                      onChange={(checked) => updateDay(day.weekday, { restDay: checked })}
+                    />
+                  </ITFlex>
+                  {!day.restDay && (
+                    <div className="mt-2 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))" }}>
+                      <ITInput name={`start-${day.weekday}`} type="text" placeholder="HH:MM" label="Entrada" value={day.startTime ?? ""} onChange={(event) => updateDay(day.weekday, { startTime: event.target.value })} />
+                      <ITInput name={`end-${day.weekday}`} type="text" placeholder="HH:MM" label="Salida" value={day.endTime ?? ""} onChange={(event) => updateDay(day.weekday, { endTime: event.target.value })} />
+                      <ITInput name={`splitStart-${day.weekday}`} type="text" placeholder="HH:MM" label="Comida inicio (opcional)" value={day.splitStartTime ?? ""} onChange={(event) => updateDay(day.weekday, { splitStartTime: event.target.value || null })} />
+                      <ITInput name={`splitEnd-${day.weekday}`} type="text" placeholder="HH:MM" label="Comida fin (opcional)" value={day.splitEndTime ?? ""} onChange={(event) => updateDay(day.weekday, { splitEndTime: event.target.value || null })} />
+                    </div>
+                  )}
+                  {!day.restDay && day.startTime && day.endTime && day.endTime < day.startTime && (
+                    <ITText className="mt-2 block !text-[11.5px] font-semibold text-amber-700">Este turno termina al día siguiente.</ITText>
+                  )}
+                </div>
+              ))}
+            </div>
+          </PanelCard>
+        </div>
+
+        <PanelCard title="Resumen del horario" icon={<FaRegClock size={16} />} className="tm-hero-card tm-hero-card--sky xl:sticky xl:top-4">
           <ITFlex direction="column" gap={3}>
             <ITStack>
               {view.days.map((d) => (
