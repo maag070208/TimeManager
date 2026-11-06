@@ -164,6 +164,7 @@ export default function EmployeeDetailPage() {
         )}
         {section === "clock" && canManageClock && <EmployeeClockSection userName={profile.name} userId={profile.id} />}
         {section === "info" && <EmployeeInfoCards profile={profile} />}
+        <div className="h-10 shrink-0" aria-hidden />
       </ITFlex>
 
       <DeactivateDialog
