@@ -157,7 +157,7 @@ export default function WorkdayAgreementsPage() {
               ]}
               disabled={form.kind === "COLECTIVO"}
             />
-            <div className="sm:col-span-2">
+            <div>
               <ITDatePicker
                 name="agreementPeriod"
                 label="Vigencia del convenio"
