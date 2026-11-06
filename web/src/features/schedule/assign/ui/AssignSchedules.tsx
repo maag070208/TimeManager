@@ -5,7 +5,7 @@ import {
   ITButton,
   ITCard,
   ITCheckbox,
-  ITConfirmDialog,
+  ITDialog,
   ITFlex,
   ITInput,
   ITSearchSelect,
@@ -13,6 +13,7 @@ import {
   ITToast,
 } from "@axzydev/axzy_ui_system";
 import { FaArrowLeft, FaArrowRight, FaMinus, FaPlus } from "react-icons/fa";
+import { LuArrowLeftRight } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { usersApi, type User } from "@entities/user";
 import { useDepartmentOptions } from "@entities/department";
@@ -22,6 +23,7 @@ import { HelpTip } from "@shared/ui/help-tip";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { TicState } from "@shared/ui/tic";
+import { DialogHeader } from "@shared/ui/dialog-header";
 
 const toDateInput = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -189,18 +191,6 @@ export default function AssignSchedules() {
     void assign(ids);
   };
 
-  const changesDescription = (ids: string[]) =>
-    ids
-      .filter((id) => {
-        const current = assignmentByUser.get(id);
-        return current && current !== currentSchedule?.name;
-      })
-      .map((id) => {
-        const person = employeeById.get(id);
-        return `${person?.name ?? "Persona"} (${assignmentByUser.get(id)} → ${currentSchedule?.name ?? "nuevo horario"})`;
-      })
-      .join("; ");
-
   const remove = async (ids: string[]) => {
     if (!scheduleId || ids.length === 0) return;
     setSaving(true);
@@ -338,17 +328,41 @@ export default function AssignSchedules() {
 
       <ITText muted className="!text-[11px]">{t("assign.immediate")} · Una persona solo puede tener un horario vigente; al asignar otro se reemplaza el anterior.</ITText>
 
-      <ITConfirmDialog
-        isOpen={!!pendingAssign}
-        onClose={() => setPendingAssign(null)}
-        onConfirm={() => pendingAssign && void assign(pendingAssign)}
-        title="Cambiar horario"
-        message={`Estas personas ya tienen otro horario vigente y se les reemplazará: ${changesDescription(pendingAssign ?? [])}.`}
-        confirmLabel="Cambiar horario"
-        cancelLabel="Cancelar"
-        variant="warning"
-        loading={saving}
-      />
+      <ITDialog isOpen={!!pendingAssign} onClose={() => setPendingAssign(null)} className="max-w-xl">
+        <DialogHeader
+          icon={<LuArrowLeftRight size={20} />}
+          title="Cambiar horario"
+          subtitle={`Se reemplazará el horario vigente por ${currentSchedule?.name ?? "el horario seleccionado"}.`}
+        />
+        <div className="max-h-[52vh] overflow-y-auto">
+          <div className="mb-2 grid grid-cols-[1.2fr_1fr_auto_1fr] items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <span>Persona</span><span>Horario actual</span><span /><span>Nuevo horario</span>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {(pendingAssign ?? []).map((id) => {
+              const person = employeeById.get(id);
+              const current = assignmentByUser.get(id);
+              return (
+                <div key={id} className="grid grid-cols-[1.2fr_1fr_auto_1fr] items-center gap-2 rounded-xl border border-slate-100 px-3 py-2">
+                  <ITText className="truncate !text-[12.5px] font-semibold !text-slate-800">{person?.name ?? "Persona"}</ITText>
+                  <ITBadget color={current ? "warning" : "gray"} size="sm">{current ?? "Sin horario"}</ITBadget>
+                  <ITText className="text-center !text-slate-400">→</ITText>
+                  <ITBadget color="success" size="sm">{currentSchedule?.name ?? "—"}</ITBadget>
+                </div>
+              );
+            })}
+          </div>
+          <ITText muted className="mt-3 block !text-[11.5px]">
+            Las personas con otro horario quedarán reemplazadas; las que no tenían horario se asignarán por primera vez.
+          </ITText>
+        </div>
+        <ITFlex justify="end" gap={2} className="mt-4">
+          <ITButton variant="outlined" color="secondary" className="tm-save-button" onClick={() => setPendingAssign(null)} disabled={saving}>Cancelar</ITButton>
+          <ITButton variant="filled" color="primary" className="tm-save-button" onClick={() => pendingAssign && void assign(pendingAssign)} disabled={saving}>
+            {saving ? "Cambiando…" : "Cambiar horario"}
+          </ITButton>
+        </ITFlex>
+      </ITDialog>
 
       {toast && <ITToast message={toast} type="success" position="top-right" duration={3000} onClose={() => setToast(null)} />}
     </ITFlex>
