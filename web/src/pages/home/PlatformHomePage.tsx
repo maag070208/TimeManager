@@ -137,7 +137,7 @@ export default function PlatformHomePage() {
                     barColor="var(--color-success)"
                     height={230}
                     formatValue={(value) => String(value)}
-                    formatAxis={(value) => String(Math.round(value))}
+                    formatAxis={(value) => (Number.isInteger(value) ? String(value) : "")}
                   />
                 </PanelCard>
               </div>
