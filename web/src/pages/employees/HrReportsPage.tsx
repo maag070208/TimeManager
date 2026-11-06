@@ -3,7 +3,7 @@ import {
   ITButton,
   ITFlex,
   ITInput,
-  ITSelect,
+  ITSearchSelect,
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LuCalendarDays,
   LuClockAlert,
+  LuPlus,
   LuRotateCcw,
   LuScrollText,
   LuUserX,
@@ -27,6 +28,7 @@ import { useCan } from "@entities/user";
 import {
   DISCIPLINARY_REASONS,
   DisciplinaryReportsTable,
+  DisciplinaryReportDialog,
   useDisciplinaryReports,
   type DisciplinaryQuickFilter,
   type DisciplinaryReasonFilter,
@@ -39,6 +41,7 @@ export default function HrReportsPage() {
   const goBack = useGoBack();
   const fx = useDisciplinaryReports();
   const [disciplinaryReportToDelete, setDisciplinaryReportToDelete] = useState<DisciplinaryReport | null>(null);
+  const [newReportOpen, setNewReportOpen] = useState(false);
 
   // Consultar, levantar y eliminar actas piden el mismo permiso en la API.
   const canManage = useCan("hr.disciplinary_reports");
@@ -118,6 +121,16 @@ export default function HrReportsPage() {
         { label: tt("common:nav.home"), onClick: () => navigate("/") },
         { label: tt("breadcrumb") },
       ]}
+      actions={
+        canManage ? (
+          <ITButton variant="filled" color="primary" className="tm-row-button" onClick={() => setNewReportOpen(true)}>
+            <ITFlex align="center" gap={1}>
+              <LuPlus size={13} />
+              <ITText className="font-bold text-[11px]">{tt("newDisciplinaryReport")}</ITText>
+            </ITFlex>
+          </ITButton>
+        ) : undefined
+      }
     >
       {fx.error && (
         <ITAlert variant="error" dismissible onDismiss={() => fx.setError(null)}>
@@ -135,6 +148,16 @@ export default function HrReportsPage() {
             kind="empty"
             title={tt("empty.title")}
             description={tt("empty.description")}
+            action={
+              canManage ? (
+                <ITButton variant="filled" color="primary" className="tm-row-button" onClick={() => setNewReportOpen(true)}>
+                  <ITFlex align="center" gap={1}>
+                    <LuPlus size={13} />
+                    <ITText className="font-bold text-[11px]">{tt("newDisciplinaryReport")}</ITText>
+                  </ITFlex>
+                </ITButton>
+              ) : undefined
+            }
           />
         </PanelCard>
       ) : (
@@ -166,11 +189,11 @@ export default function HrReportsPage() {
             >
               <ITFlex align="center" wrap="wrap" gap={2}>
                 <div className="w-full sm:w-60">
-                  <ITSelect
+                  <ITSearchSelect
                     name="actasMotivo"
                     size="sm"
                     value={fx.reason}
-                    onChange={(event) => fx.setReasonFilter(event.target.value as DisciplinaryReasonFilter)}
+                    onChange={(value) => fx.setReasonFilter(String(value) as DisciplinaryReasonFilter)}
                     options={[
                       { value: "all", label: tt("filters.all") },
                       ...DISCIPLINARY_REASONS.map((reason) => ({
@@ -207,6 +230,17 @@ export default function HrReportsPage() {
           </PanelCard>
         </ITFlex>
       )}
+
+      <DisciplinaryReportDialog
+        isOpen={newReportOpen}
+        onClose={() => setNewReportOpen(false)}
+        onCreated={() => {
+          fx.reload();
+          setFlashNew(true);
+          if (flashTimer.current) window.clearTimeout(flashTimer.current);
+          flashTimer.current = window.setTimeout(() => setFlashNew(false), 2600);
+        }}
+      />
 
       <TicConfirm
         isOpen={!!disciplinaryReportToDelete}

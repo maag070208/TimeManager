@@ -2,7 +2,7 @@
   "title": "HR Reports",
   "description": "Administrative letters and records for employees",
   "breadcrumb": "HR Reports",
-  "newDisciplinaryReport": "New record",
+  "newDisciplinaryReport": "New report",
   "reasons": {
     "ABSENCE": "Absence",
     "TARDINESS": "Tardiness",

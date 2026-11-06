@@ -2,7 +2,7 @@
   "title": "Reportes de personal",
   "description": "Cartas y actas administrativas de los empleados",
   "breadcrumb": "Reportes de personal",
-  "newDisciplinaryReport": "Nueva acta",
+  "newDisciplinaryReport": "Nuevo reporte",
   "reasons": {
     "ABSENCE": "Inasistencia",
     "TARDINESS": "Retardo",
