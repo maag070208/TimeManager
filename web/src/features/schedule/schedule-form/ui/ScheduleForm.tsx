@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ITAlert,
+  ITCheckbox,
   ITConfirmDialog,
   ITButton,
   ITFlex,
@@ -12,7 +13,6 @@ import { useTranslation } from "react-i18next";
 import { scheduleApi, type ScheduleDayInput, type ScheduleInput } from "@entities/schedule";
 import { dyn } from "@shared/i18n/dyn";
 import { PanelCard } from "@shared/ui/panel-card";
-import ScheduleChat, { type ScheduleAgentPatch } from "./ScheduleAgent";
 import { formatMinutesAsHhMm } from "@shared/utils/dates";
 import { daysWorked, restDays, weeklyMinutes } from "../model/summary";
 import { i18n } from "@shared/i18n";
@@ -45,29 +45,24 @@ function ActionBar({
   saveLabel,
   onCancel,
   onSave,
-  showSave = true,
 }: {
   saving: boolean;
   cancelLabel: string;
   saveLabel: string;
   onCancel: () => void;
   onSave: () => void;
-  /** En alta el guardado lo hace Tic; en edición queda el botón de arriba. */
-  showSave?: boolean;
 }) {
   return (
     <ITFlex justify="end" gap={2}>
       <ITButton variant="outlined" color="secondary" onClick={onCancel}>
         {cancelLabel}
       </ITButton>
-      {showSave && (
-        <ITButton variant="filled" color="primary" onClick={onSave} disabled={saving}>
-          <ITFlex align="center" gap={1}>
-            <FaSave size={12} />
-            <ITText className="font-bold text-[11px]">{saveLabel}</ITText>
-          </ITFlex>
-        </ITButton>
-      )}
+      <ITButton variant="filled" color="primary" className="tm-save-button" onClick={onSave} disabled={saving}>
+        <ITFlex align="center" gap={1}>
+          <FaSave size={12} />
+          <ITText className="font-bold text-[11px]">{saveLabel}</ITText>
+        </ITFlex>
+      </ITButton>
     </ITFlex>
   );
 }
@@ -83,12 +78,8 @@ export default function ScheduleForm({ id }: { id?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [draft, setDraft] = useState<ScheduleAgentPatch | null>(null);
 
-  /** Lo que se ve en el preview: el borrador del chat si ya contestó algo. */
-  const view: ScheduleInput = draft
-    ? { ...form, name: draft.name ?? form.name, days: form.days.map((d) => draft.days.find((x) => x.weekday === d.weekday) ?? d) }
-    : form;
+  const view = form;
   const viewSummary = useMemo(
     () => ({
       days: daysWorked(view.days),
@@ -97,30 +88,14 @@ export default function ScheduleForm({ id }: { id?: string }) {
     }),
     [view.days, view.mealBreakMin],
   );
-  /** Aplicar el chat = guardar: llena el formulario y pide confirmación. */
-  const applyAgent = (patch: ScheduleAgentPatch) => {
-    const finalName = (form.name.trim() || patch.name?.trim() || "").trim();
-    if (!finalName) {
-      setError(t("nameRequired"));
-      return;
-    }
-    setForm((f) => ({
-      ...f,
-      name: finalName,
-      days: f.days.map((d) => {
-        const day = patch.days.find((x) => x.weekday === d.weekday);
-        return day ? { ...d, ...day } : d;
-      }),
-      crossesMidnight: patch.days.some((d) => d.endTime && d.startTime && d.endTime < d.startTime),
-      entryToleranceMin: patch.entryToleranceMin ?? f.entryToleranceMin,
-      exitToleranceMin: patch.exitToleranceMin ?? f.exitToleranceMin,
-      mealBreakMin: patch.mealBreakMin ?? f.mealBreakMin,
-      minOvertimeMin: patch.minOvertimeMin ?? f.minOvertimeMin,
-    }));
-    setDraft(null);
+
+  const updateDay = (weekday: number, patch: Partial<ScheduleDayInput>) => {
+    setForm((current) => {
+      const days = current.days.map((day) => day.weekday === weekday ? { ...day, ...patch } : day);
+      const crossesMidnight = days.some((day) => !day.restDay && day.startTime && day.endTime && day.endTime < day.startTime);
+      return { ...current, days, crossesMidnight };
+    });
     setError(null);
-    // Aplicar es guardar: el chat deja el horario listo y se confirma el alta.
-    setConfirmOpen(true);
   };
 
   useEffect(() => {
@@ -208,7 +183,6 @@ export default function ScheduleForm({ id }: { id?: string }) {
         saveLabel={t("save")}
         onCancel={() => goBack("/schedules")}
         onSave={save}
-        showSave={isEdit}
       />
 
       {error && (
@@ -217,46 +191,71 @@ export default function ScheduleForm({ id }: { id?: string }) {
         </ITAlert>
       )}
 
-      {/* Chat + resumen: Tic pregunta a la izquierda y el horario se arma a la derecha */}
       <div className="grid gap-4 xl:!grid-cols-[minmax(0,2fr)_minmax(0,1fr)] xl:items-start">
-        <ITStack className="min-w-0" spacing={4}>
-          <ScheduleChat onApply={applyAgent} onDraft={setDraft} />
-
-        </ITStack>
-
-        {/* Preview del horario: se llena mientras contestas */}
-        <PanelCard title={t("agent.summaryTitle")} icon={<FaRegClock size={16} />} className="xl:sticky xl:top-4">
-          <ITFlex direction="column" gap={3}>
+        <PanelCard title="Datos del horario" icon={<FaRegClock size={16} />} className="min-w-0">
+          <ITFlex direction="column" gap={4}>
             <ITInput
               name="name"
               label={t("name")}
               placeholder={t("namePlaceholder")}
               value={view.name}
-              onChange={(e) => {
-                const value = e.target.value;
-                setForm((f) => ({ ...f, name: value }));
-                setDraft((d) => (d ? { ...d, name: value } : d));
-                setError(null);
-              }}
+              onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
             />
 
+            <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+              <ITInput name="entryToleranceMin" type="number" label={t("tolEntry")} value={String(form.entryToleranceMin)} onChange={(event) => setForm((current) => ({ ...current, entryToleranceMin: Number(event.target.value) }))} />
+              <ITInput name="exitToleranceMin" type="number" label={t("tolExit")} value={String(form.exitToleranceMin)} onChange={(event) => setForm((current) => ({ ...current, exitToleranceMin: Number(event.target.value) }))} />
+              <ITInput name="mealBreakMin" type="number" label={t("meal")} value={String(form.mealBreakMin)} onChange={(event) => setForm((current) => ({ ...current, mealBreakMin: Number(event.target.value) }))} />
+              <ITInput name="minOvertimeMin" type="number" label={t("minExtra")} value={String(form.minOvertimeMin)} onChange={(event) => setForm((current) => ({ ...current, minOvertimeMin: Number(event.target.value) }))} />
+            </div>
+
+            <div className="border-t border-slate-100 pt-3">
+              <ITText className="block font-bold !text-[13px]">Días y horario</ITText>
+              <ITText muted className="mt-0.5 block !text-[11.5px]">
+                Si la salida es menor que la entrada, el turno termina al día siguiente.
+              </ITText>
+              <div className="mt-3 flex flex-col gap-2">
+                {form.days.map((day) => (
+                  <div key={day.weekday} className="rounded-xl border border-slate-100 p-3">
+                    <ITFlex align="center" justify="between" gap={2} wrap="wrap">
+                      <ITText className="!text-[12.5px] font-bold !text-slate-700">{dyn(t)(`day${day.weekday}`)}</ITText>
+                      <ITCheckbox
+                        name={`restDay-${day.weekday}`}
+                        label="Descanso"
+                        checked={day.restDay}
+                        onChange={(checked) => updateDay(day.weekday, { restDay: checked })}
+                      />
+                    </ITFlex>
+                    {!day.restDay && (
+                      <div className="mt-2 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))" }}>
+                        <ITInput name={`start-${day.weekday}`} type="text" placeholder="HH:MM" label="Entrada" value={day.startTime ?? ""} onChange={(event) => updateDay(day.weekday, { startTime: event.target.value })} />
+                        <ITInput name={`end-${day.weekday}`} type="text" placeholder="HH:MM" label="Salida" value={day.endTime ?? ""} onChange={(event) => updateDay(day.weekday, { endTime: event.target.value })} />
+                        <ITInput name={`splitStart-${day.weekday}`} type="text" placeholder="HH:MM" label="Comida inicio (opcional)" value={day.splitStartTime ?? ""} onChange={(event) => updateDay(day.weekday, { splitStartTime: event.target.value || null })} />
+                        <ITInput name={`splitEnd-${day.weekday}`} type="text" placeholder="HH:MM" label="Comida fin (opcional)" value={day.splitEndTime ?? ""} onChange={(event) => updateDay(day.weekday, { splitEndTime: event.target.value || null })} />
+                      </div>
+                    )}
+                    {!day.restDay && day.startTime && day.endTime && day.endTime < day.startTime && (
+                      <ITText className="mt-2 block !text-[11.5px] font-semibold text-amber-700">Este turno termina al día siguiente.</ITText>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </ITFlex>
+        </PanelCard>
+
+        <PanelCard title="Resumen del horario" icon={<FaRegClock size={16} />} className="xl:sticky xl:top-4">
+          <ITFlex direction="column" gap={3}>
             <ITStack>
               {view.days.map((d) => (
-                <div
-                  key={d.weekday}
-                  className="flex items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0"
-                >
+                <div key={d.weekday} className="flex items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0">
                   <ITText as="span" className="text-[12px] font-semibold text-slate-600">{dyn(t)(`day${d.weekday}`)}</ITText>
                   {d.restDay ? (
                     <ITText as="span" className="text-[11px] font-semibold text-slate-400">{t("rest")}</ITText>
                   ) : (
                     <ITText as="span" className="text-right text-[11px] font-bold tabular-nums text-slate-800">
                       {d.startTime || "—"}–{d.endTime || "—"}
-                      {d.splitStartTime ? (
-                        <ITText as="span" className="block font-medium text-slate-500">
-                          {d.splitStartTime}–{d.splitEndTime}
-                        </ITText>
-                      ) : null}
+                      {d.splitStartTime ? <ITText as="span" className="block font-medium text-slate-500">{d.splitStartTime}–{d.splitEndTime}</ITText> : null}
                     </ITText>
                   )}
                 </div>
@@ -264,46 +263,22 @@ export default function ScheduleForm({ id }: { id?: string }) {
             </ITStack>
 
             <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-3">
-              <div>
-                <ITText className="text-[11px] font-semibold text-slate-500">{t("summary.days")}</ITText>
-                <ITText className="text-[15px] font-black tabular-nums text-slate-800">{viewSummary.days}/7</ITText>
-              </div>
-              <div>
-                <ITText className="text-[11px] font-semibold text-slate-500">{t("summary.restDays")}</ITText>
-                <ITText className="text-[15px] font-black tabular-nums text-slate-800">{viewSummary.rest}</ITText>
-              </div>
-              <div>
-                <ITText className="text-[11px] font-semibold text-slate-500">{t("summary.weeklyHours")}</ITText>
-                <ITText className="text-[15px] font-black tabular-nums text-slate-800">{formatMinutesAsHhMm(viewSummary.weekly)}</ITText>
-              </div>
+              <div><ITText className="text-[11px] font-semibold text-slate-500">{t("summary.days")}</ITText><ITText className="block text-[15px] font-black tabular-nums text-slate-800">{viewSummary.days}/7</ITText></div>
+              <div><ITText className="text-[11px] font-semibold text-slate-500">{t("summary.restDays")}</ITText><ITText className="block text-[15px] font-black tabular-nums text-slate-800">{viewSummary.rest}</ITText></div>
+              <div><ITText className="text-[11px] font-semibold text-slate-500">{t("summary.weeklyHours")}</ITText><ITText className="block text-[15px] font-black tabular-nums text-slate-800">{formatMinutesAsHhMm(viewSummary.weekly)}</ITText></div>
             </div>
 
             <div className="border-t border-slate-100 pt-3">
-              <ITText className="mb-1 text-[11px] font-semibold text-slate-500">
-                {t("sections.rules")}
-              </ITText>
+              <ITText className="mb-1 text-[11px] font-semibold text-slate-500">{t("sections.rules")}</ITText>
               <ul className="m-0 flex list-none flex-col gap-0.5 p-0 text-[11px] text-slate-600">
-                <li className="flex justify-between gap-2">
-                  <ITText as="span">{t("tolEntry")}</ITText>
-                  <ITText as="b">{view.entryToleranceMin}</ITText>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <ITText as="span">{t("tolExit")}</ITText>
-                  <ITText as="b">{view.exitToleranceMin}</ITText>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <ITText as="span">{t("meal")}</ITText>
-                  <ITText as="b">{view.mealBreakMin}</ITText>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <ITText as="span">{t("minExtra")}</ITText>
-                  <ITText as="b">{view.minOvertimeMin}</ITText>
-                </li>
+                <li className="flex justify-between gap-2"><ITText as="span">{t("tolEntry")}</ITText><ITText as="b">{view.entryToleranceMin}</ITText></li>
+                <li className="flex justify-between gap-2"><ITText as="span">{t("tolExit")}</ITText><ITText as="b">{view.exitToleranceMin}</ITText></li>
+                <li className="flex justify-between gap-2"><ITText as="span">{t("meal")}</ITText><ITText as="b">{view.mealBreakMin}</ITText></li>
+                <li className="flex justify-between gap-2"><ITText as="span">{t("minExtra")}</ITText><ITText as="b">{view.minOvertimeMin}</ITText></li>
                 {view.crossesMidnight && <li className="font-semibold text-slate-700">{t("crossesMidnight")}</li>}
               </ul>
             </div>
-
-            <ITText className="text-[11px] text-slate-500">{t("agent.hintHint")}</ITText>
+            <ITText className="text-[11px] text-slate-500">Se actualiza mientras editas el horario.</ITText>
           </ITFlex>
         </PanelCard>
       </div>

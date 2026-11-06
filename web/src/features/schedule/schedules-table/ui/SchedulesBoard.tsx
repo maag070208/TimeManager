@@ -175,12 +175,14 @@ export default function SchedulesBoard() {
             .sort((a, b) => a.weekday - b.weekday)
             .map((d) => {
               const worked = dayMinutes(d, h.mealBreakMin) > 0;
+              const overnight = !d.restDay && !!d.startTime && !!d.endTime && d.endTime < d.startTime;
               return (
                 <ITText
                   key={d.weekday}
                   as="span"
-                  aria-label={d.restDay ? t("inactive") : undefined}
-                  className="flex h-6 w-6 items-center justify-center rounded-md !text-[10.5px] font-bold"
+                  title={overnight ? "Turno que termina al día siguiente" : d.restDay ? t("inactive") : undefined}
+                  aria-label={overnight ? "Termina al día siguiente" : d.restDay ? t("inactive") : undefined}
+                  className={`relative flex h-6 items-center justify-center rounded-md !text-[10.5px] font-bold ${overnight ? "w-8" : "w-6"}`}
                   style={{
                     background: worked
                       ? "color-mix(in srgb, var(--color-primary) 14%, transparent)"
@@ -189,6 +191,7 @@ export default function SchedulesBoard() {
                   }}
                 >
                   {dayAbbr(d.weekday)}
+                  {overnight && <span className="ml-0.5 text-[7px] font-black">+1</span>}
                 </ITText>
               );
             })}
