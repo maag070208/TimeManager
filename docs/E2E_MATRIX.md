@@ -1,3 +1,5 @@
+> **Documento histórico.** La matriz de cobertura vigente (pantallas, tabs, modales, acciones y plan de pruebas) está en [QA_MATRIX.md](QA_MATRIX.md).
+
 # Matriz de cobertura E2E (web)
 
 Pruebas de extremo a extremo con **Playwright** sobre el stack local: API real en

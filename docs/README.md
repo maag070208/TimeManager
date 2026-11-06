@@ -14,6 +14,7 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 | [SAAS_PLAN.md](SAAS_PLAN.md) | Plan de escalamiento a SaaS multi-cliente (multi-tenancy): decisiones, impacto por módulo y roadmap por fases |
 | [ARQUITECTURA.md](ARQUITECTURA.md) | Arquitectura de escalamiento: API stateless + workers, colas, índices y particionado de la BD, performance de la web |
 | [OPERACION_PRODUCCION.md](OPERACION_PRODUCCION.md) | Runbook de producción: procesos/workers, RLS, cola pg-boss, PgBouncer, observabilidad, respaldo/restore por cliente y prueba de carga |
+| [QA_MATRIX.md](QA_MATRIX.md) | Matriz QA integral: 49 pantallas, 39 tabs, 71 modales, acciones críticas, cobertura actual y orden de implementación de pruebas |
 | [modules/](modules/README.md) | Ficha por módulo del sistema: qué hace, endpoints, modelos, permisos, frontend y notas multi-tenant |
 
 ## Convenciones
@@ -22,6 +23,7 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 - Cada módulo de `api/src/modules/<modulo>` tiene su ficha en `docs/modules/<modulo>.md`.
 - Las fichas marcan el estado del módulo frente al SaaS: **núcleo RH** (entra al producto), **soporte** (necesario pero transversal) o **pendiente SaaS** (requiere trabajo de aislamiento por cliente).
 - Los requisitos normativos marcados "por validar" en `RH_MODULO_STANDALONE.md` no se dan por cerrados hasta confirmarlos contra el DOF / STPS.
+- [Matriz QA integral](QA_MATRIX.md)
 - [Pruebas de flujos completos](PRUEBAS_FLUJOS.md)
 - [Revisión legal de acuerdos](LEGAL_REVISION_ACUERDOS.md)
 - [Adaptación STPS](STPS_ADAPTACION.md)
