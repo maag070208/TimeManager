@@ -9,6 +9,7 @@ import type { AppDispatch, RootState } from "@app/store";
 import { meThunk } from "@entities/user";
 import { nomApi, type NomConfigDto } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
+import { TabBar } from "@shared/ui/tab-bar";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
@@ -22,6 +23,7 @@ export default function GeneralSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [tab, setTab] = useState<"operation" | "attendance" | "limits" | "checks">("operation");
   const [archiving, setArchiving] = useState(false);
   const [form, setForm] = useState({
     weekStartDay: 3,
@@ -121,15 +123,20 @@ export default function GeneralSettingsPage() {
   return (
     <ITPage
       className="min-w-full! max-w-none!"
-      title="Configuración del cliente"
-      description="Semana, asistencia, límites legales, checada web y convenios. Todo por cliente."
+      title="Configuración del sistema"
+      description="Ajustes de operación, asistencia, límites y checada web del cliente."
       icon={<LuBuilding2 size={20} />}
       actions={
-        <div className="lg:hidden">
-          <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button text-[12.5px] font-semibold shadow-none">
-            <LuSave size={14} className="mr-1.5" />
-            {saving ? "Guardando…" : "Guardar configuración"}
-          </ITButton>
+        <div className="flex items-center gap-2">
+          <Link to="/settings/catalogs" className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[12px] font-bold text-slate-700 transition hover:bg-slate-50">
+            Catálogos
+          </Link>
+          <div className="lg:hidden">
+            <ITButton variant="filled" color="primary" onClick={() => void save()} disabled={saving || loading} className="tm-save-button text-[12.5px] font-semibold shadow-none">
+              <LuSave size={14} className="mr-1.5" />
+              {saving ? "Guardando…" : "Guardar configuración"}
+            </ITButton>
+          </div>
         </div>
       }
     >
@@ -143,104 +150,101 @@ export default function GeneralSettingsPage() {
         )}
 
         <div className="flex flex-col gap-4 lg:col-span-8">
-          <ITCard contentClassName="!p-0">
-            <div className="tm-hero-card rounded-2xl px-5 py-4 text-slate-900">
-              <span className="flex items-center gap-1.5">
-                <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
-                  Operación del cliente
-                </ITText>
+          <TabBar
+            items={[
+              { id: "operation", label: "Operación", icon: <LuCalendarDays size={12} /> },
+              { id: "attendance", label: "Asistencia", icon: <LuClock size={12} /> },
+              { id: "limits", label: "Límites y retención", icon: <LuShieldCheck size={12} /> },
+              { id: "checks", label: "Checada web", icon: <LuShieldCheck size={12} /> },
+            ]}
+            value={tab}
+            onChange={(value) => setTab(value as typeof tab)}
+          />
+
+          {tab === "operation" && (
+            <ITCard className="tm-hero-card tm-hero-card--mint" contentClassName="!p-5">
+              <div className="flex items-center gap-2">
+                <LuCalendarDays size={16} className="text-slate-500" />
+                <ITText className="font-bold">Semana y zona horaria</ITText>
                 <HelpTip text="El primer día define cómo se agrupan los días en horarios, pre-nómina, tiempo extra y reportes. La zona horaria la define el cliente." />
-              </span>
-              <ITText className="!text-2xl font-extrabold !text-slate-900">
-                Semana {weekDay.toLowerCase()} → {DAYS[(form.weekStartDay + 6) % 7].toLowerCase()}
-              </ITText>
-              <ITText className="!text-[12px] !text-slate-600">
+              </div>
+              <div className="mt-4 grid gap-3" style={fieldSet}>
+                <ITSearchSelect
+                  name="weekStartDay"
+                  label="Primer día de la semana"
+                  value={String(form.weekStartDay)}
+                  onChange={(event) => set("weekStartDay", Number(event.target.value))}
+                  options={DAYS.map((day, index) => ({ value: String(index), label: day }))}
+                />
+                <ITInput name="timezone" label="Zona horaria" value={tenant?.timezone ?? "—"} disabled onChange={() => undefined} />
+              </div>
+              <ITText muted className="mt-3 block !text-[12px]">
                 Aplica a horarios, pre-nómina, tiempo extra, asistencia y bitácoras.
               </ITText>
-              <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
-                {summaryTiles.map((tile) => (
-                  <div key={tile.label} className="rounded-xl bg-white/60 px-3 py-2">
-                    <span className="flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide text-white/60">
-                      {tile.icon} {tile.label}
-                    </span>
-                    <span className="block text-[14px] font-bold capitalize text-slate-900">{tile.value}</span>
-                  </div>
-                ))}
+            </ITCard>
+          )}
+
+          {tab === "attendance" && (
+            <ITCard className="tm-hero-card tm-hero-card--sky" contentClassName="!p-5">
+              <div className="flex items-center gap-2">
+                <LuClock size={16} className="text-slate-500" />
+                <ITText className="font-bold">Política de asistencia</ITText>
+                <ITText muted className="!text-[11px]">(horarios nuevos)</ITText>
+                <HelpTip text="Valores por defecto al crear un horario: tolerancia de entrada/salida, comida y mínimo de tiempo extra para que cuente." />
               </div>
-            </div>
-            <div className="grid gap-3 p-4" style={fieldSet}>
-              <ITSearchSelect
-                name="weekStartDay"
-                label="Primer día de la semana"
-                value={String(form.weekStartDay)}
-                onChange={(event) => set("weekStartDay", Number(event.target.value))}
-                options={DAYS.map((day, index) => ({ value: String(index), label: day }))}
-              />
-              <ITInput
-                name="timezone"
-                label="Zona horaria"
-                value={tenant?.timezone ?? "—"}
-                disabled
-                onChange={() => undefined}
-              />
-            </div>
-          </ITCard>
+              <div className="mt-4 grid gap-3" style={fieldSet}>
+                <ITInput name="entryToleranceMin" label="Tolerancia de entrada (min)" type="number" value={String(form.entryToleranceMin)} onChange={(e) => set("entryToleranceMin", Number(e.target.value))} />
+                <ITInput name="exitToleranceMin" label="Tolerancia de salida (min)" type="number" value={String(form.exitToleranceMin)} onChange={(e) => set("exitToleranceMin", Number(e.target.value))} />
+                <ITInput name="mealBreakMin" label="Comida (min)" type="number" value={String(form.mealBreakMin)} onChange={(e) => set("mealBreakMin", Number(e.target.value))} />
+                <ITInput name="minOvertimeMin" label="Mínimo de tiempo extra (min)" type="number" value={String(form.minOvertimeMin)} onChange={(e) => set("minOvertimeMin", Number(e.target.value))} />
+              </div>
+              <Link to="/schedules" className="mt-3 inline-block text-[12px] font-semibold underline-offset-4 hover:underline">
+                Configurar horarios por puesto →
+              </Link>
+            </ITCard>
+          )}
 
-          <ITCard contentClassName="!p-5">
-            <div className="flex items-center gap-2">
-              <LuClock size={16} className="text-slate-500" />
-              <ITText className="font-bold">Política de asistencia</ITText>
-              <ITText muted className="!text-[11px]">(horarios nuevos)</ITText>
-              <HelpTip text="Valores por defecto al crear un horario: tolerancia de entrada/salida (minutos de gracia antes de marcar retardo), comida y mínimo de tiempo extra para que cuente." />
-            </div>
-            <div className="mt-3 grid gap-3" style={fieldSet}>
-              <ITInput name="entryToleranceMin" label="Tolerancia de entrada (min)" type="number" value={String(form.entryToleranceMin)} onChange={(e) => set("entryToleranceMin", Number(e.target.value))} />
-              <ITInput name="exitToleranceMin" label="Tolerancia de salida (min)" type="number" value={String(form.exitToleranceMin)} onChange={(e) => set("exitToleranceMin", Number(e.target.value))} />
-              <ITInput name="mealBreakMin" label="Comida (min)" type="number" value={String(form.mealBreakMin)} onChange={(e) => set("mealBreakMin", Number(e.target.value))} />
-              <ITInput name="minOvertimeMin" label="Mínimo de tiempo extra (min)" type="number" value={String(form.minOvertimeMin)} onChange={(e) => set("minOvertimeMin", Number(e.target.value))} />
-            </div>
-            <Link to="/schedules" className="mt-3 inline-block text-[12px] font-semibold underline-offset-4 hover:underline">
-              Configurar horarios por puesto →
-            </Link>
-          </ITCard>
+          {tab === "limits" && (
+            <ITCard className="tm-hero-card tm-hero-card--amber" contentClassName="!p-5">
+              <div className="flex items-center gap-2">
+                <LuShieldCheck size={16} className="text-slate-500" />
+                <ITText className="font-bold">Límites y retención</ITText>
+                <HelpTip text="Topes de jornada (solo puedes ser más estricto que la ley) y meses que se conservan los registros antes de moverlos al archivo legal." />
+              </div>
+              <div className="mt-4 grid gap-3" style={fieldSet}>
+                <ITInput name="workdayLimitMinutes" label="Máximo diario (min)" type="number" value={String(form.workdayLimitMinutes)} onChange={(e) => set("workdayLimitMinutes", Number(e.target.value))} />
+                <ITInput name="weeklyLimitMinutes" label="Máximo semanal (min)" type="number" value={String(form.weeklyLimitMinutes)} onChange={(e) => set("weeklyLimitMinutes", Number(e.target.value))} />
+                <ITInput name="retentionMonths" label="Retención (meses, vacío = sin archivar)" type="number" value={form.retentionMonths} onChange={(e) => set("retentionMonths", e.target.value)} />
+              </div>
+              {config?.legal && (
+                <ITText muted className="mt-2 block !text-[11.5px]">
+                  Ley {config.legal.year}: {Math.round(config.legal.workdayLimitMinutes / 60)} h/día y {Math.round(config.legal.weeklyLimitMinutes / 60)} h/semana. Solo topes más estrictos.
+                </ITText>
+              )}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <ITButton variant="outlined" color="secondary" size="sm" disabled={archiving} onClick={() => setConfirmArchive(true)}>
+                  {archiving ? "Archivando…" : "Archivar registros vencidos"}
+                </ITButton>
+                <ITText muted className="!text-[11px]">Mueve a archivo respetando el piso legal; queda auditado.</ITText>
+              </div>
+            </ITCard>
+          )}
 
-          <ITCard contentClassName="!p-5">
-            <div className="flex items-center gap-2">
-              <LuShieldCheck size={16} className="text-slate-500" />
-              <ITText className="font-bold">Límites y retención</ITText>
-              <HelpTip text="Topes de jornada (solo puedes ser más estricto que la ley) y meses que se conservan los registros antes de moverlos al archivo legal. El archivado nunca borra evidencia." />
-            </div>
-            <div className="mt-3 grid gap-3" style={fieldSet}>
-              <ITInput name="workdayLimitMinutes" label="Máximo diario (min)" type="number" value={String(form.workdayLimitMinutes)} onChange={(e) => set("workdayLimitMinutes", Number(e.target.value))} />
-              <ITInput name="weeklyLimitMinutes" label="Máximo semanal (min)" type="number" value={String(form.weeklyLimitMinutes)} onChange={(e) => set("weeklyLimitMinutes", Number(e.target.value))} />
-              <ITInput name="retentionMonths" label="Retención (meses, vacío = sin archivar)" type="number" value={form.retentionMonths} onChange={(e) => set("retentionMonths", e.target.value)} />
-            </div>
-            {config?.legal && (
-              <ITText muted className="mt-2 block !text-[11.5px]">
-                Ley {config.legal.year}: {Math.round(config.legal.workdayLimitMinutes / 60)} h/día y {Math.round(config.legal.weeklyLimitMinutes / 60)} h/semana. Solo topes más estrictos.
-              </ITText>
-            )}
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <ITButton variant="outlined" color="secondary" size="sm" disabled={archiving} onClick={() => setConfirmArchive(true)}>
-                {archiving ? "Archivando…" : "Archivar registros vencidos"}
-              </ITButton>
-              <ITText muted className="!text-[11px]">Mueve a archivo respetando el piso legal; queda auditado.</ITText>
-            </div>
-          </ITCard>
-
-          <ITCard contentClassName="!p-5">
-            <div className="flex items-center gap-2">
-              <LuShieldCheck size={16} className="text-slate-500" />
-              <ITText className="font-bold">Checada web y decisiones legales</ITText>
-              <HelpTip text="Controla si se puede checar desde la web/app, si esas checadas suman jornada, si se exige aceptar el acuerdo de método y si un convenio colectivo requiere firma sindical." />
-            </div>
-            <div className="mt-3 grid gap-3" style={fieldSet}>
-              <ITSearchSelect name="remotePunchEnabled" label="Checada desde la web" value={form.remotePunchEnabled ? "true" : "false"} onChange={(e) => set("remotePunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]} />
-              <ITSearchSelect name="remoteCountsForWorkday" label="Cuenta para la jornada" value={form.remoteCountsForWorkday ? "true" : "false"} onChange={(e) => set("remoteCountsForWorkday", e.target.value === "true")} options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]} />
-              <ITSearchSelect name="blockRemoteWithoutAgreement" label="Exigir acuerdo para checar web" value={form.blockRemoteWithoutAgreement ? "true" : "false"} onChange={(e) => set("blockRemoteWithoutAgreement", e.target.value === "true")} options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]} />
-              <ITSearchSelect name="requireUnionForCollective" label="Convenio colectivo exige sindicato" value={form.requireUnionForCollective ? "true" : "false"} onChange={(e) => set("requireUnionForCollective", e.target.value === "true")} options={[{ value: "true", label: "Sí" }, { value: "false", label: "No, permitir trabajador" }]} />
-            </div>
-          </ITCard>
+          {tab === "checks" && (
+            <ITCard className="tm-hero-card tm-hero-card--lavender" contentClassName="!p-5">
+              <div className="flex items-center gap-2">
+                <LuShieldCheck size={16} className="text-slate-500" />
+                <ITText className="font-bold">Checada web y decisiones legales</ITText>
+                <HelpTip text="Controla si se puede checar desde la web/app, si esas checadas suman jornada y si se exige aceptar el acuerdo de método." />
+              </div>
+              <div className="mt-4 grid gap-3" style={fieldSet}>
+                <ITSearchSelect name="remotePunchEnabled" label="Checada desde la web" value={form.remotePunchEnabled ? "true" : "false"} onChange={(e) => set("remotePunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Permitida" }, { value: "false", label: "Deshabilitada" }]} />
+                <ITSearchSelect name="remoteCountsForWorkday" label="Cuenta para la jornada" value={form.remoteCountsForWorkday ? "true" : "false"} onChange={(e) => set("remoteCountsForWorkday", e.target.value === "true")} options={[{ value: "true", label: "Sí (si no hay reloj)" }, { value: "false", label: "No" }]} />
+                <ITSearchSelect name="blockRemoteWithoutAgreement" label="Exigir acuerdo para checar web" value={form.blockRemoteWithoutAgreement ? "true" : "false"} onChange={(e) => set("blockRemoteWithoutAgreement", e.target.value === "true")} options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]} />
+                <ITSearchSelect name="requireUnionForCollective" label="Convenio colectivo exige sindicato" value={form.requireUnionForCollective ? "true" : "false"} onChange={(e) => set("requireUnionForCollective", e.target.value === "true")} options={[{ value: "true", label: "Sí" }, { value: "false", label: "No, permitir trabajador" }]} />
+              </div>
+            </ITCard>
+          )}
         </div>
 
         <aside className="flex flex-col gap-4 lg:col-span-4 lg:sticky lg:top-4">
