@@ -143,7 +143,7 @@ export default function GeneralSettingsPage() {
 
         <div className="flex flex-col gap-4 lg:col-span-8">
           <ITCard contentClassName="!p-0">
-            <div className="rounded-2xl bg-[linear-gradient(135deg,#edf8f2_0%,#e9f3fa_55%,#fdf6ea_100%)] px-5 py-4 text-slate-900">
+            <div className="rounded-2xl bg-[#eaf6ef] px-5 py-4 text-slate-900">
               <span className="flex items-center gap-1.5">
                 <ITText className="!text-[11px] font-semibold uppercase tracking-[0.08em] !text-slate-500">
                   Operación del cliente

@@ -186,8 +186,10 @@ export default function EmployeesTable({
         <ITFlex align="center" gap={2}>
           <ITButton
             onClick={() => onView(u)}
-            size="lg"
-            color="secondary"
+            variant="outlined"
+            color="primary"
+            className="tm-icon-button"
+            aria-label={tt("table.viewProfile")}
             title={tt("table.viewProfile")}
           >
             <LuUserRound size={15} />
@@ -195,8 +197,10 @@ export default function EmployeesTable({
           {canEdit && (
             <ITButton
               onClick={() => onEdit(u)}
-              size="lg"
-              color="gray"
+              variant="outlined"
+              color="warning"
+              className="tm-icon-button"
+              aria-label={tt("table.editEmployee")}
               title={tt("table.editEmployee")}
             >
               <LuPencil size={15} />

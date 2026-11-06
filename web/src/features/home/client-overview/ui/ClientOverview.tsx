@@ -80,8 +80,7 @@ export default function ClientOverview() {
     const withoutSchedule = fx.setup?.personalWithoutSchedule ?? 0;
     return (
       <ITCard contentClassName="!p-0">
-        <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#edf8f2_0%,#e9f3fa_55%,#fdf6ea_100%)] p-5 text-slate-900">
-          <Waves />
+        <div className="relative overflow-hidden rounded-2xl bg-[#eaf6ef] p-5 text-slate-900">
           <div className="relative flex flex-wrap items-start justify-between gap-2">
             <div>
               <ITText className="!text-[10.5px] font-semibold uppercase tracking-[0.12em] !text-slate-500">Hoy</ITText>
