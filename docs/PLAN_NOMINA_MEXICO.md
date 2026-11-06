@@ -1,6 +1,6 @@
 # Plan de nómina México (fiscal) — a partir de los datos del cliente
 
-Fecha: 2026-11-05. Estado: **planeación**. Complementa la pre-nómina de asistencia
+Fecha: 2026-11-05. Estado: **primera versión implementada** (motor configurable + UI; sin CFDI ni presentación IMSS, por decisión del cliente). Complementa la pre-nómina de asistencia
 (`docs/modules/nom.md`) con el cálculo de percepciones, deducciones y prestaciones.
 
 ## 1. Datos capturados
@@ -62,6 +62,15 @@ prima vacacional, finiquito, PTU, ISR e IMSS.
    persona con percepciones/deducciones, archivo CFDI (si aplica) y acuse.
 4. **Recibos**: PDF/CSV con desglose y totales; conciliación con pre-nómina.
 5. **Reportes**: ISR/IMSS por periodo, PTU y provisiones de aguinaldo/prima.
+
+## 4.1 Implementado (2026-11-05)
+
+- `payroll_settings` por cliente + motor puro + `GET/PUT /payroll/settings` y
+  `POST /payroll/calculate`.
+- UI `/payroll/settings`: salario, tope doble/triple, aguinaldo, prima, finiquito,
+  PTU, vales, fondo, ISR/IMSS en tablas JSON y cálculo de prueba.
+- **No** se timbra CFDI ni se presenta IMSS: cálculo y evidencia dentro de la plataforma.
+- Pruebas: **123 unitarias** y **192 de integración** (motor + API).
 
 ## 5. Primer entregable recomendado
 

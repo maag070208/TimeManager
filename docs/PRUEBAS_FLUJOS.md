@@ -44,7 +44,7 @@ GROUP BY t.slug ORDER BY 1;
 ## Resultados de referencia
 
 - Unitarios: **115/115**.
-- Integración en BD limpia (`tm_test_full`): **191/191** (56 suites).
+- Integración en BD limpia (`tm_test_full`): **192/192** (57 suites).
 - E2E web: **75/75** (escritorio + móvil; servidores y BD `tm_e2e` aislados).
 
 > Regenerar datos de demo: `DATABASE_URL=...tm_e2e npx ts-node -r tsconfig-paths/register scripts/e2e-seed.ts` y luego `DEMO_TENANT_ID=<id> RLS_ENABLED=true ... prisma/mock-attendance.ts`.

@@ -221,6 +221,7 @@ export default function GeneralSettingsPage() {
             <Link to="/hr/leave" className="hover:underline">Vacaciones y tipos de permiso →</Link>
             <Link to="/teletrabajo" className="hover:underline">Teletrabajo NOM-037 →</Link>
             <Link to="/schedules/overtime/approval" className="hover:underline">Tiempo extra →</Link>
+            <Link to="/payroll/settings" className="hover:underline">Nómina y prestaciones →</Link>
           </div>
         </ITCard>
 

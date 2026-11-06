@@ -84,6 +84,7 @@ model Tenant {
 
   // Configuración NOM por cliente (límites de jornada y retención).
   nomSettings NomSettings?
+  payrollSettings PayrollSettings?
 
   @@index([planId])
   @@map("tenants")
@@ -169,6 +170,7 @@ model User {
   weeklyOvertimeLedgers WeeklyOvertimeLedger[] @relation("WeeklyOvertimeLedgerUser")
   recordAgreement       WorkRecordAgreement? @relation("WorkRecordAgreementUser")
   recordAgreementsSigned WorkRecordAgreement[] @relation("WorkRecordAgreementEmployer")
+  payrollSettingsUpdated PayrollSettings[] @relation("PayrollSettingsUpdater")
   recordAcknowledgments WorkRecordAcknowledgment[] @relation("WorkRecordAcknowledgmentUser")
   overtimeRequests      OvertimeRequest[] @relation("OvertimeRequestUser")
   overtimeRequestsMade  OvertimeRequest[] @relation("OvertimeRequestRequester")
@@ -1592,6 +1594,45 @@ model PunchAdjustment {
 /// Configuración NOM por cliente. Si un campo es `null` se usa el default
 /// global de `sys_config` (o el default legal calculado, p. ej. tope semanal
 /// por año: 46 h 2027→2029, 40 h desde 2030).
+/// Configuración fiscal y de prestaciones por cliente. Todo es editable: el
+/// motor no hardcodea tablas de ISR/IMSS ni topes; si falta un dato, se reporta.
+model PayrollSettings {
+  tenantId                 String   @id
+  tenant                   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  currency                 String   @default("MXN")
+  defaultDailySalary       Decimal? @db.Decimal(12, 2)
+  sbcDaily                 Decimal? @db.Decimal(12, 2)
+  umaDaily                 Decimal? @db.Decimal(12, 2)
+  overtimeHourlyDivisor    Int      @default(8)
+  overtimeDoubleHoursPerWeek Int    @default(9)
+  overtimeDoubleMultiplier Decimal  @default(2) @db.Decimal(4, 2)
+  overtimeTripleMultiplier Decimal  @default(3) @db.Decimal(4, 2)
+  aguinaldoDays            Int      @default(15)
+  aguinaldoExemptUmas      Decimal  @default(30) @db.Decimal(6, 2)
+  vacationPremiumPct       Decimal  @default(25) @db.Decimal(5, 2)
+  primaVacacionalExemptUmas Decimal @default(15) @db.Decimal(6, 2)
+  valesMonthly             Decimal? @db.Decimal(12, 2)
+  valesExemptMonthly       Decimal? @db.Decimal(12, 2)
+  fondoAhorroPct           Decimal? @db.Decimal(5, 2)
+  fondoAhorroCapMonthly    Decimal? @db.Decimal(12, 2)
+  fondoAhorroExemptMonthly Decimal? @db.Decimal(12, 2)
+  ptuRatePct               Decimal  @default(10) @db.Decimal(5, 2)
+  isrEnabled               Boolean  @default(false)
+  isrBrackets              Json?
+  isrSubsidyMonthly        Decimal? @db.Decimal(12, 2)
+  imssEnabled              Boolean  @default(false)
+  imssRates                Json?
+  primaAntiguedadDaysPerYear Int    @default(12)
+  primaAntiguedadCapDaily  Decimal? @db.Decimal(12, 2)
+  severanceMonths          Decimal  @default(3) @db.Decimal(4, 2)
+  severanceDaysPerYear     Int      @default(20)
+  updatedById              String?
+  updatedBy                User?    @relation("PayrollSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt                DateTime @updatedAt
+
+  @@map("payroll_settings")
+}
+
 model NomSettings {
   tenantId             String    @id
   tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)

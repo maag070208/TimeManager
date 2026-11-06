@@ -52,7 +52,8 @@
     "telework": "Teletrabajo (NOM-037)",
     "generalSettings": "Configuración",
     "leave": "Vacaciones",
-    "workdayAgreements": "Convenios y acuerdos"
+    "workdayAgreements": "Convenios y acuerdos",
+    "payrollSettings": "Nómina"
   },
   "files": {
     "access": "accesos",

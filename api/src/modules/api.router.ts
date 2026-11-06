@@ -15,6 +15,7 @@ import { createTimeClockModule } from "./time-clock";
 import { createOvertimeModule } from "./overtime";
 import { createTenantsModule } from "./tenants";
 import { createNomModule } from "./nom";
+import { createPayrollModule } from "./payroll";
 import { createPlansModule } from "./plans";
 import { createAgentModule } from "./agent";
 import { EmployeeDocumentService } from "./hr/services/employee-document.service";
@@ -241,6 +242,8 @@ apiRouter.use("/access", accessRouter);
 apiRouter.use("/schedules", schedulesRouter);
 apiRouter.use("/overtime", overtimeRouter);
 apiRouter.use("/nom", nomRouter);
+const { router: payrollRouter } = createPayrollModule(auditPort.createLog);
+apiRouter.use("/payroll", payrollRouter);
 apiRouter.use("/time-clock", timeClockRouter);
 // Agente local del cliente (TimeManagerAgent): token de dispositivo propio,
 // ingesta de checadas y cola de trabajos hacia el reloj. No usa `authenticate`.

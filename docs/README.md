@@ -26,3 +26,4 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 - [Revisión legal de acuerdos](LEGAL_REVISION_ACUERDOS.md)
 - [Adaptación STPS](STPS_ADAPTACION.md)
 - [Plan de nómina México](PLAN_NOMINA_MEXICO.md)
+- [Módulo payroll](modules/payroll.md)
