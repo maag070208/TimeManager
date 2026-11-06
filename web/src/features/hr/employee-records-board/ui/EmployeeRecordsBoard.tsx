@@ -20,7 +20,7 @@ import { RowAction } from "@shared/ui/row-action";
 import type { RecordGapsRow } from "@entities/dashboard";
 import { recordStatus, type RecordFilter, type RecordStatus, type UseEmployeeRecords } from "../model/useEmployeeRecords";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
-import { BentoFilterCards, BentoKpiGrid, type BentoFilterItem } from "@shared/ui/bento-filter-cards";
+import { BentoFilterCards, type BentoFilterItem } from "@shared/ui/bento-filter-cards";
 
 const OTHER_DOCS_PREVIEW = 4;
 const FIELDS_PREVIEW = 4;
@@ -73,7 +73,7 @@ interface Props {
  */
 const hairline = "1px solid #edf1f5";
 
-export default function EmployeeRecordsBoard({ fx, hideKpis = false }: Props) {
+export default function EmployeeRecordsBoard({ fx }: Props) {
   const { t } = fx;
   const navigate = useNavigate();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -220,18 +220,6 @@ export default function EmployeeRecordsBoard({ fx, hideKpis = false }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Contexto del expediente en KPIs bento (blancos con waves). */}
-      {!hideKpis && (
-        <BentoKpiGrid
-          items={[
-            { id: "all", label: t("records.kpis.active"), value: fx.counts.total, icon: <LuUsersRound size={14} /> },
-            { id: "complete", label: t("records.kpis.complete"), value: fx.counts.COMPLETE, tone: "success", icon: <LuCircleCheck size={14} /> },
-            { id: "required", label: t("records.kpis.missingRequired"), value: fx.counts.REQUIRED, tone: "warning", icon: <LuCircleAlert size={14} /> },
-            { id: "incomplete", label: t("records.kpis.incomplete"), value: fx.counts.INCOMPLETE, icon: <LuCirclePause size={14} /> },
-          ]}
-        />
-      )}
-
       {fx.error && (
         <ITAlert variant="error">{fx.error}</ITAlert>
       )}
@@ -280,14 +268,13 @@ export default function EmployeeRecordsBoard({ fx, hideKpis = false }: Props) {
             columns={columns as any}
             fetchData={fetchData as any}
             onRowClick={(row) => fx.select((row as unknown as RecordGapsRow).userId)}
-            size="lg"
             className="border-0"
           />
 
         </ITCard>
 
         {/* Detalle */}
-        <ITCard className="xl:sticky xl:top-4" contentClassName="flex max-h-[760px] flex-col !p-4">
+        <ITCard className="tm-hero-card tm-hero-card--sky xl:sticky xl:top-4" contentClassName="flex max-h-[760px] flex-col !p-4">
           {!sel ? (
             <div className="p-8 text-center text-[12px] text-slate-400">{t("records.detail.select")}</div>
           ) : (
