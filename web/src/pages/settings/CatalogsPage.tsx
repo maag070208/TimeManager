@@ -282,7 +282,7 @@ export default function CatalogsPage() {
                 value={form.jobTitle}
                 onChange={(value) => setForm((f) => ({ ...f, jobTitle: String(value) }))}
                 options={[...new Set([form.jobTitle, ...jobTitles].filter(Boolean))].map((value) => ({ value, label: value }))}
-                placeholder="Analista, Gerente…"
+                placeholder="Selecciona un puesto del catálogo"
               />
               <ITInput name="catalogSalary" type="number" label="Salario diario" value={form.dailySalary} onChange={(event) => setForm((f) => ({ ...f, dailySalary: event.target.value }))} />
             </>

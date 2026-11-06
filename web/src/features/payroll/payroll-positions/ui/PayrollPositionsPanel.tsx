@@ -116,7 +116,7 @@ export default function PayrollPositionsPanel() {
             value={form.jobTitle}
             onChange={(value: string | number) => setForm((prev) => ({ ...prev, jobTitle: String(value) }))}
             options={[...new Set([form.jobTitle, ...jobTitles].filter(Boolean))].map((value) => ({ value, label: value }))}
-            placeholder="Analista, Gerente…"
+            placeholder="Selecciona un puesto del catálogo"
           />
           <ITInput name="payrollProfileSalary" label="Salario diario (MXN)" type="number" value={form.dailySalary} onChange={(event) => setForm((prev) => ({ ...prev, dailySalary: event.target.value }))} />
           <ITInput name="payrollProfileSbc" label="SBC diario (opcional)" type="number" value={form.sbcDaily} onChange={(event) => setForm((prev) => ({ ...prev, sbcDaily: event.target.value }))} />
