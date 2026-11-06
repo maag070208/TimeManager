@@ -121,7 +121,7 @@ export default function TeleworkAdminPage() {
       title={t("admin.title")}
       description={t("admin.description")}
       icon={<LuBriefcaseBusiness size={20} />}
-      maxWidth="5xl"
+      className="min-w-full! max-w-none!"
       actions={
         <ITButton variant="outlined" color="secondary" size="lg" onClick={() => void load()}>
           <LuRefreshCw size={14} className="mr-1" />
@@ -129,7 +129,7 @@ export default function TeleworkAdminPage() {
         </ITButton>
       }
     >
-      <ITFlex direction="column" gap={4} className="pb-12">
+      <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
         {error && (
           <ITText className="rounded-md border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700">
             {error}
@@ -140,7 +140,7 @@ export default function TeleworkAdminPage() {
           <ContentSkeleton />
         ) : (
           <>
-            <ITCard contentClassName="!p-5">
+            <ITCard className="lg:col-span-7" contentClassName="!p-5">
               <ITFlex direction="column" gap={3}>
                 <ITText className="font-bold">{t("admin.policyTitle")}</ITText>
                 <ITText muted className="!text-[11px]">
@@ -190,7 +190,7 @@ export default function TeleworkAdminPage() {
               </ITFlex>
             </ITCard>
 
-            <ITCard contentClassName="!p-5">
+            <ITCard className="lg:col-span-5" contentClassName="!p-5">
               <ITFlex direction="column" gap={3}>
                 <ITText className="font-bold">{t("admin.registrationsTitle")}</ITText>
                 <ITFlex gap={2} wrap="wrap" align="end">
@@ -292,7 +292,7 @@ export default function TeleworkAdminPage() {
               </ITFlex>
             </ITCard>
 
-            <ITCard contentClassName="!p-5">
+            <ITCard className="lg:col-span-7" contentClassName="!p-5">
               <ITFlex direction="column" gap={2}>
                 <ITText className="font-bold">{t("admin.checklistsTitle")}</ITText>
                 {checklists.length === 0 ? (
@@ -311,7 +311,7 @@ export default function TeleworkAdminPage() {
               </ITFlex>
             </ITCard>
 
-            <ITCard contentClassName="!p-5">
+            <ITCard className="lg:col-span-5" contentClassName="!p-5">
               <ITFlex direction="column" gap={3}>
                 <ITText className="font-bold">{t("admin.contactsTitle")}</ITText>
                 <ITText muted className="!text-[11px]">
@@ -382,7 +382,7 @@ export default function TeleworkAdminPage() {
             </ITCard>
           </>
         )}
-      </ITFlex>
+      </div>
     </ITPage>
   );
 }

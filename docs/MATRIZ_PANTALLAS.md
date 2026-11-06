@@ -57,11 +57,18 @@ Fecha: 2026-11-05. Objetivo: **una sola familia visual** (patrón bento TimeMana
 | 35 | Nómina configurable | `/payroll/settings` | `payroll.close` | `pages/payroll/PayrollSettingsPage` | **Bento ✅** | — |
 | 36 | Convenios y acuerdos | `/hr/jornada-acuerdos` | `time_clock.write` | `pages/nom/WorkdayAgreementsPage` | **Bento ✅** | — |
 | 37 | Vacaciones y permisos | `/hr/leave` | `time_clock.write` | `pages/leave/LeaveAdminPage` | **Bento ✅** | — |
-| 38 | Teletrabajo | `/teletrabajo` | `time_clock.view` | `pages/nom/TeleworkAdminPage` | Por refinar | B5 |
+| 38 | Teletrabajo | `/teletrabajo` | `time_clock.view` | `pages/nom/TeleworkAdminPage` | **Bento ✅** | — |
 | 39 | Configuración del cliente | `/settings/general` | `time_clock.write` | `pages/settings/GeneralSettingsPage` | **Bento ✅** | — |
 | 40 | Roles y permisos | `/roles` | `roles.manage` | `pages/roles/RolesPage` | Por refinar | B1 |
 | 41 | Planes | `/plans` | `plans.view` | `pages/plans/PlansPage` | Por refinar | B1 |
 | 42 | Notificaciones | `/notifications` | Sesión | `pages/notifications/NotificationsPage` | Por refinar | B1 |
+
+## Auditoría de ancho (2026-11-05)
+
+Se revisaron las 39 páginas con `ITPage`: **ninguna queda en columna angosta**; todas usan
+`min-w-full`/`noPadding` o `maxWidth="7xl"`. Las pantallas de empleados, horarios, checadas y
+relojes ya usan los componentes bento del sistema (`ITBentoStatStrip`, `ITBentoGrid`,
+`PanelCard`, `FilterPills`). El refinamiento restante es detalle por pantalla, no reescritura.
 
 ## Lotes de refinamiento
 
