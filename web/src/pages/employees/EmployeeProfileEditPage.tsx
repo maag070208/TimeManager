@@ -575,7 +575,7 @@ export default function EmployeeProfileEditPage() {
         </LiveSummary>
       </div>
 
-      <StickyActions>
+      <StickyActions className="mb-10 pb-4">
         {autoSave !== "idle" && (
           <ITText
             className={`mr-auto !text-[11.5px] font-semibold ${
