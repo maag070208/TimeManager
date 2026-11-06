@@ -589,3 +589,9 @@ header.sticky {
   box-shadow: 0 6px 20px -16px rgba(15, 23, 42, 0.32) !important;
   border: 1px solid #eef1f5;
 }
+
+/* Los diálogos viven dentro de <main>; al abrirse, elevan su contexto para
+   cubrir también sidebar y topbar (el overlay es fixed con z-[60]). */
+main:has(.fixed.inset-0) {
+  z-index: 60 !important;
+}
