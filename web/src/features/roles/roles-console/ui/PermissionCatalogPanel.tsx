@@ -6,6 +6,7 @@ import type { PermissionCatalog } from "@entities/permission";
 import type { PermissionScope } from "@entities/user";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { HelpTip } from "@shared/ui/help-tip";
+import { TicConfirm } from "@shared/ui/tic-confirm";
 import { usePermissionCatalog } from "../model/useRolesAdmin";
 import PermissionFormDialog, { type PermissionSubmit } from "./PermissionFormDialog";
 
@@ -27,6 +28,7 @@ export default function PermissionCatalogPanel({ modules, onChanged }: Props) {
   const { t } = useTranslation(["roles", "common"]);
   const { list, reloadKey, create, update, toggleActive, saving, error, setError } =
     usePermissionCatalog();
+  const [statusTarget, setStatusTarget] = useState<PermissionCatalog | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<PermissionCatalog | null>(null);
@@ -69,6 +71,7 @@ export default function PermissionCatalogPanel({ modules, onChanged }: Props) {
   const handleToggle = async (permission: PermissionCatalog) => {
     try {
       await toggleActive(permission);
+      setStatusTarget(null);
       onChanged();
       setToast({
         message: permission.active
@@ -212,7 +215,7 @@ export default function PermissionCatalogPanel({ modules, onChanged }: Props) {
             variant="outlined"
             color={permission.active ? "secondary" : "success"}
             size="sm"
-            onClick={() => handleToggle(permission)}
+            onClick={() => setStatusTarget(permission)}
             disabled={saving}
             title={permission.active ? t("catalog.deactivate") : t("catalog.activate")}
           >
@@ -258,6 +261,19 @@ export default function PermissionCatalogPanel({ modules, onChanged }: Props) {
         error={showForm ? error : null}
         onClose={() => setShowForm(false)}
         onSubmit={handleSubmit}
+      />
+
+      <TicConfirm
+        isOpen={!!statusTarget}
+        onClose={() => setStatusTarget(null)}
+        onConfirm={() => statusTarget && void handleToggle(statusTarget)}
+        title={statusTarget?.active ? t("catalog.deactivate") : t("catalog.activate")}
+        message={statusTarget?.active
+          ? `¿Desactivar el permiso "${statusTarget?.key ?? ""}"? El rol dejará de concederlo en nuevas evaluaciones; los registros históricos se conservan.`
+          : `¿Reactivar el permiso "${statusTarget?.key ?? ""}"? Volverá a estar disponible para los roles.`}
+        confirmLabel={statusTarget?.active ? t("catalog.deactivate") : t("catalog.activate")}
+        cancelLabel={t("common:actions.cancel")}
+        variant={statusTarget?.active ? "warning" : "success"}
       />
 
       {toast && (

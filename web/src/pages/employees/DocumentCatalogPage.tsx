@@ -38,6 +38,7 @@ export default function DocumentCatalogPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<DocumentType | null>(null);
+  const [statusTarget, setStatusTarget] = useState<DocumentType | null>(null);
   const [types, setTypes] = useState<DocumentType[] | null>(null);
 
   useEffect(() => {
@@ -108,6 +109,7 @@ export default function DocumentCatalogPage() {
     setError(null);
     try {
       await personalApi.updateDocumentType(type.id, { active: !type.active });
+      setStatusTarget(null);
       setReloadKey((k) => k + 1);
     } catch (e: any) {
       setError(e.message ?? tt("catalog.saveError"));
@@ -202,7 +204,7 @@ export default function DocumentCatalogPage() {
             icon={<LuPower size={12} />}
             label={type.active ? tt("catalog.deactivate") : tt("catalog.activate")}
             tone={type.active ? "secondary" : "success"}
-            onClick={() => toggleActive(type)}
+            onClick={() => setStatusTarget(type)}
           />
           {!type.active && (
             <RowAction icon={<LuTrash2 size={12} />} label={tt("catalog.deleteForever")} tone="error" onClick={() => setToDelete(type)} />
@@ -329,6 +331,19 @@ export default function DocumentCatalogPage() {
           />
         </PanelCard>
       )}
+
+      <TicConfirm
+        isOpen={!!statusTarget}
+        onClose={() => setStatusTarget(null)}
+        onConfirm={() => statusTarget && void toggleActive(statusTarget)}
+        title={statusTarget?.active ? tt("catalog.deactivate") : tt("catalog.activate")}
+        message={statusTarget?.active
+          ? `¿Desactivar "${statusTarget?.name ?? ""}"? Dejará de solicitarse en nuevos expedientes; los documentos existentes se conservan.`
+          : `¿Reactivar "${statusTarget?.name ?? ""}"? Volverá a solicitarse en los expedientes.`}
+        confirmLabel={statusTarget?.active ? tt("catalog.deactivate") : tt("catalog.activate")}
+        cancelLabel={tt("common:actions.cancel")}
+        variant={statusTarget?.active ? "warning" : "success"}
+      />
 
       <TicConfirm
         isOpen={!!toDelete}

@@ -114,16 +114,11 @@ export default function SchedulesBoard() {
     };
   }, [rows]);
 
-  const toggleActive = async (h: Schedule) => {
-    await scheduleApi.update(h.id, { active: !h.active });
-    load();
-  };
-
   const confirmDeactivate = async () => {
     if (!toDeactivate) return;
     setSaving(true);
     try {
-      await scheduleApi.update(toDeactivate.id, { active: false });
+      await scheduleApi.update(toDeactivate.id, { active: !toDeactivate.active });
       load();
     } finally {
       setSaving(false);
@@ -275,7 +270,7 @@ export default function SchedulesBoard() {
             icon={h.active ? <LuTrash2 size={13} /> : <LuCalendarCheck size={13} />}
             ariaLabel={h.active ? t("delete") : t("reactivate")}
             title={h.active ? t("delete") : t("reactivate")}
-            onClick={() => (h.active ? setToDeactivate(h) : void toggleActive(h))}
+            onClick={() => setToDeactivate(h)}
           />
         </ITFlex>
       ),
@@ -342,9 +337,10 @@ export default function SchedulesBoard() {
         isOpen={!!toDeactivate}
         onClose={() => setToDeactivate(null)}
         onConfirm={() => void confirmDeactivate()}
-        title={t("deactivateDialog.title")}
-        message={t("deactivateDialog.message", { name: toDeactivate?.name ?? "" })}
-        confirmLabel={t("deactivateDialog.confirm")}
+        title={toDeactivate?.active ? t("deactivateDialog.title") : t("activateDialog.title")}
+        message={toDeactivate?.active ? t("deactivateDialog.message", { name: toDeactivate?.name ?? "" }) : t("activateDialog.message", { name: toDeactivate?.name ?? "" })}
+        confirmLabel={toDeactivate?.active ? t("deactivateDialog.confirm") : t("activateDialog.confirm")}
+        variant={toDeactivate?.active ? "warning" : "success"}
         cancelLabel={t("cancel")}
         loading={saving}
       />

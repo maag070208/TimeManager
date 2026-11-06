@@ -253,5 +253,10 @@
     "placeholderName": "Nombre del horario",
     "placeholderHours": "09:00-18:00",
     "placeholderRules": "10 60 30 0"
+  },
+  "activateDialog": {
+    "title": "Activar horario",
+    "message": "¿Activar el horario «{{name}}»? Volverá a aplicarse en el cálculo de asistencia y horas extra.",
+    "confirm": "Activar"
   }
 }

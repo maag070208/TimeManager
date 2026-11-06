@@ -253,5 +253,10 @@
     "placeholderName": "Schedule name",
     "placeholderHours": "09:00-18:00",
     "placeholderRules": "10 60 30 0"
+  },
+  "activateDialog": {
+    "title": "Activate schedule",
+    "message": "Activate schedule \"{{name}}\"? It will apply again to attendance and overtime.",
+    "confirm": "Activate"
   }
 }

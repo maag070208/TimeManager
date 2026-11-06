@@ -7,6 +7,7 @@ import type { PoliciesState } from "../../model/usePolicies";
 import PolicySentence from "../shared/PolicySentence";
 import PolicyEditorDialog, { type PolicySubmit } from "../PolicyEditorDialog";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { TicConfirm } from "@shared/ui/tic-confirm";
 
 interface Props {
   policies: PoliciesState;
@@ -26,6 +27,7 @@ export default function PoliciesPanel({ policies, onTest, notify }: Props) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<PolicyAdmin | null>(null);
   const [newForAction, setNewForAction] = useState<string | null>(null);
+  const [toggleTarget, setToggleTarget] = useState<{ policy: PolicyAdmin; active: boolean } | null>(null);
 
   const grouped = useMemo(() => {
     if (!data) return [];
@@ -164,7 +166,7 @@ export default function PoliciesPanel({ policies, onTest, notify }: Props) {
                       activeColor="var(--color-primary)"
                       isOn={policy.active}
                       disabled={saving}
-                      onToggle={(active) => void runQuick(setActive(policy, active))}
+                      onToggle={(active) => setToggleTarget({ policy, active })}
                     />
                   </ITText>
                   <button
@@ -192,6 +194,23 @@ export default function PoliciesPanel({ policies, onTest, notify }: Props) {
           </ol>
         </ITCard>
       ))}
+
+      <TicConfirm
+        isOpen={!!toggleTarget}
+        onClose={() => setToggleTarget(null)}
+        onConfirm={() => {
+          if (!toggleTarget) return;
+          void runQuick(setActive(toggleTarget.policy, toggleTarget.active));
+          setToggleTarget(null);
+        }}
+        title={toggleTarget?.active ? t("policies.turnOn") : t("policies.turnOff")}
+        message={toggleTarget?.active
+          ? "La regla volverá a evaluarse para las decisiones de acceso."
+          : "La regla dejará de evaluarse. Las demás reglas y el historial se conservan."}
+        confirmLabel={toggleTarget?.active ? "Activar" : "Desactivar"}
+        cancelLabel="Cancelar"
+        variant={toggleTarget?.active ? "success" : "warning"}
+      />
 
       <PolicyEditorDialog
         isOpen={editorOpen}
