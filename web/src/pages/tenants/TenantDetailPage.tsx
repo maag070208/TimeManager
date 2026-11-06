@@ -281,7 +281,55 @@ export default function TenantDetailPage() {
 
           {tab === "summary" && (
             <div className="grid items-start gap-4 lg:grid-cols-12">
-              <div className="lg:col-span-8"><Padre title="Módulos y pantallas" icon={<LuBuilding2 size={16} />} action={<ITButton variant="text" color="primary" size="sm" onClick={() => setTab("modules")}>Gestionar</ITButton>}>{moduleList(filteredModules)}</Padre></div>
+              <div className="lg:col-span-8">
+                <Padre title="Resumen de módulos" icon={<LuBuilding2 size={16} />} action={<ITButton variant="outlined" color="primary" size="sm" className="tm-row-button" onClick={() => setTab("modules")}>Gestionar módulos</ITButton>}>
+                  <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+                    {groups.map((group) => {
+                      const rows = TENANT_MODULES.filter((module) => module.group === group);
+                      const active = rows.filter((module) => !disabled.includes(module.id)).length;
+                      return (
+                        <button key={group} type="button" onClick={() => setTab("modules")} className="rounded-xl border border-slate-100 bg-slate-50/50 p-3 text-left transition hover:bg-slate-50">
+                          <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-slate-400">{group}</span>
+                          <span className="mt-1 block text-[22px] font-black tabular-nums text-slate-900">{active}<span className="text-[13px] font-semibold text-slate-400"> / {rows.length}</span></span>
+                          <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-200/70"><span className="block h-full rounded-full bg-emerald-500" style={{ width: `${(active / rows.length) * 100}%` }} /></span>
+                          <span className="mt-1 block text-[11px] text-slate-500">módulos activos</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 flex flex-col gap-2">
+                    {disabled.length === 0 ? (
+                      <div className="rounded-xl bg-emerald-50/70 px-3 py-2 text-[12px] text-emerald-800">Todos los módulos están activos para este cliente.</div>
+                    ) : (
+                      <>
+                        <ITText className="!text-[11px] font-semibold uppercase tracking-wide text-slate-400">Apagados</ITText>
+                        {TENANT_MODULES.filter((module) => disabled.includes(module.id)).map((module) => (
+                          <div key={module.id} className="flex items-center justify-between gap-2 rounded-xl bg-amber-50/70 px-3 py-2">
+                            <span className="text-[12.5px] font-semibold text-amber-900">{module.label}</span>
+                            <ITButton variant="text" color="primary" size="sm" onClick={() => void toggleModule(module.id)}>Activar</ITButton>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </Padre>
+                <div className="mt-4">
+                  <Padre title="Accesos rápidos" icon={<LuChevronRight size={16} />}>
+                    <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+                      {[
+                        { label: "Gestionar módulos", action: () => setTab("modules") },
+                        { label: "Ver facturación", action: () => setTab("billing") },
+                        { label: "Registrar cargo", action: () => setChargeOpen(true) },
+                        { label: "Entrar como cliente", action: () => window.open(tenantUrl(tenant.slug), "_blank", "noopener") },
+                      ].map((item) => (
+                        <button key={item.label} type="button" onClick={item.action} className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-left text-[12.5px] font-semibold text-slate-700 transition hover:bg-slate-50">
+                          {item.label} <LuChevronRight size={14} className="text-slate-400" />
+                        </button>
+                      ))}
+                    </div>
+                  </Padre>
+                </div>
+              </div>
               <div className="lg:col-span-4">{sidePanel}</div>
             </div>
           )}
