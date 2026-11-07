@@ -71,7 +71,7 @@ test.describe("Subáreas (CLIENT_ADMIN)", () => {
     await expect(modal.getByText("Editar subárea")).toBeVisible();
     const input = modal.locator('input[name="editName"]');
     await expect(input).toHaveValue(name);
-    const renamed = `${name} PRO`;
+    const renamed = `Cambiada ${uniqueRef("SUB")}`;
     await input.fill(renamed);
     await modal.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(row(page, renamed)).toBeVisible({ timeout: 20_000 });
@@ -105,7 +105,7 @@ test.describe("Subáreas (CLIENT_ADMIN)", () => {
     await page.getByRole("button", { name: "Eliminar", exact: true }).click();
     await expect(row(page, name).getByText("inactiva")).toBeVisible({ timeout: 20_000 });
     await row(page, name).getByRole("button", { name: "Eliminar definitivamente" }).click();
-    await expect(page.getByText(/Eliminar definitivamente la subárea/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Eliminar definitivamente", exact: true })).toBeVisible({ timeout: 20_000 });
     await page.getByRole("button", { name: "Eliminar definitivamente", exact: true }).click();
     await expect(row(page, name)).toHaveCount(0, { timeout: 20_000 });
   });

@@ -27,7 +27,7 @@ const greeting: Record<AcmeRole, RegExp> = {
  */
 export async function loginAcme(page: Page, role: AcmeRole = "admin"): Promise<void> {
   const username = role === "rh" ? ACME.rh : ACME.admin;
-  const ready = greeting[role].first();
+  const ready = page.getByText(greeting[role]).first();
   let lastError: unknown;
 
   for (let attempt = 0; attempt < 4; attempt += 1) {

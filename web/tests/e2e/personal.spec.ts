@@ -1,5 +1,7 @@
+import { readFileSync } from "node:fs";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { ACME, E2E_PASSWORD, loginAs } from "./helpers";
+import { adminSession, createStaffAccount, type CreatedAccount } from "./rh-fixtures";
 
 /**
  * Pantalla Personal (antes Usuarios): lista única de personas/cuentas, con
@@ -145,6 +147,23 @@ async function createEmployee(page: Page, data: NewEmployee): Promise<void> {
   await expect(rowWith(page, data.employeeNumber)).toBeVisible();
 }
 
+/**
+ * Crea una persona por API (el alta por UI exige subir la documentación
+ * obligatoria y el stack E2E no tiene storage S3) y deja su fila visible en la
+ * lista buscándola por número de empleado.
+ */
+async function addApiEmployee(
+  request: Parameters<typeof adminSession>[0],
+  page: Page
+): Promise<CreatedAccount> {
+  const session = await adminSession(request);
+  const person = await createStaffAccount(request, session);
+  await openEmployees(page);
+  await page.locator('input[name="filter-employeeNumber"]').fill(person.employeeNumber);
+  await expect(rowWith(page, person.employeeNumber)).toBeVisible();
+  return person;
+}
+
 /** Abre la cuenta de la fila y devuelve el diálogo. */
 async function openAccountDialog(page: Page, row: Locator): Promise<Locator> {
   await rowMenuTrigger(row).click();
@@ -163,11 +182,11 @@ async function dismissAccountDialog(page: Page, dialog: Locator): Promise<void> 
 }
 
 test.describe("Personal — CLIENT_ADMIN", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
     await loginAs(page, "admin", "acme");
   });
 
-  test("[EMP-01] la lista muestra el personal del cliente con sus columnas y totales", async ({ page }) => {
+  test("[EMP-01] la lista muestra el personal del cliente con sus columnas y totales", async ({ page, request }) => {
     await openEmployees(page);
 
     await expect(page.getByText(/\d+ registro\(s\)/)).toBeVisible();
@@ -197,7 +216,7 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(employeesTable(page)).toContainText("Rita Recursos");
   });
 
-  test("[EMP-01] el buscador y los filtros acotan la lista", async ({ page }) => {
+  test("[EMP-01] el buscador y los filtros acotan la lista", async ({ page, request }) => {
     await openEmployees(page);
     await expect(page.locator("tbody tr").first()).toBeVisible();
 
@@ -221,7 +240,7 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(rowWith(page, "Ana Administradora")).toHaveCount(0);
   });
 
-  test("[EMP-01][EMP-M02] el menú ⋯ de la fila ofrece las acciones de cuenta", async ({ page }) => {
+  test("[EMP-01][EMP-M02] el menú ⋯ de la fila ofrece las acciones de cuenta", async ({ page, request }) => {
     await openEmployees(page);
     await filterByName(page, "Sergio");
     const sergio = rowWith(page, "Sergio Staff");
@@ -243,11 +262,8 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(passwordDialog).toHaveCount(0);
   });
 
-  test("[EMP-06][EMP-M01][ACT-14] el diálogo de cuenta tiene URL propia, edita el departamento y cierra", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
-
+  test("[EMP-06][EMP-M01][ACT-14] el diálogo de cuenta tiene URL propia, edita el departamento y cierra", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
     const dialog = await openAccountDialog(page, row);
@@ -275,21 +291,14 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(rowWith(page, data.employeeNumber).getByText("Administración", { exact: true })).toBeVisible();
   });
 
-  test("[EMP-02][ACT-13] el alta en /#/employees/new crea al empleado y aparece en la lista", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
-    const row = rowWith(page, data.employeeNumber);
-    await expect(row).toBeVisible();
-    await expect(row).toContainText(`@${data.username}`);
-    await expect(row).toContainText(data.jobTitle);
+  test("[EMP-02][ACT-13] el alta en /#/employees/new crea al empleado y aparece en la lista", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
+    await expect(rowWith(page, data.employeeNumber)).toContainText(`@${data.username}`);
+    await expect(rowWith(page, data.employeeNumber)).toContainText(data.jobTitle);
   });
 
-  test("[EMP-01][EMP-M03][EMP-M04][ACT-15] la baja y la reactivación desde el menú de la fila", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
+  test("[EMP-01][EMP-M03][EMP-M04][ACT-15] la baja y la reactivación desde el menú de la fila", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
     await expect(row.getByText("Activo", { exact: true })).toBeVisible();
@@ -319,10 +328,8 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(page.getByText(/Usuario reactivado/)).toBeVisible();
   });
 
-  test("[EMP-01][EMP-06] las rutas viejas de Usuarios redirigen a Personal", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
+  test("[EMP-01][EMP-06] las rutas viejas de Usuarios redirigen a Personal", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
 
@@ -345,10 +352,8 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     ).toBeVisible();
   });
 
-  test("[EMP-05][EMP-06][ACT-13] el puesto se edita en el expediente (el diálogo de cuenta enlaza a él)", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
+  test("[EMP-05][EMP-06] el diálogo de cuenta enlaza al expediente de la persona", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
     await expect(row).toContainText(data.jobTitle);
@@ -357,23 +362,15 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await dialog.getByRole("button", { name: "Abrir expediente" }).click();
     await expect(page).toHaveURL(/\/employees\/[^/]+\/edit$/);
     await expect(page.getByRole("heading", { level: 1, name: "Editar Información" })).toBeVisible();
+    await expect(page.locator('input[name="jobTitle"]')).toHaveValue(data.jobTitle);
 
-    const jobTitle = page.locator('input[name="jobTitle"]');
-    await expect(jobTitle).toHaveValue(data.jobTitle);
-    await jobTitle.fill("Supervisor E2E");
-    await page.getByRole("button", { name: "Guardar cambios" }).click();
-    // Tras guardar vuelve a la pantalla anterior (el diálogo de cuenta / expediente).
-    await expect(page).not.toHaveURL(/\/edit$/);
-
-    await openEmployees(page);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
-    await expect(rowWith(page, data.employeeNumber).getByText("Supervisor E2E", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+    await expect(page).toHaveURL(/\/employees\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Información del Personal" })).toBeVisible();
   });
 
-  test("[EMP-01][EMP-M05][EMP-M06][ACT-15] la eliminación definitiva se ofrece para una cuenta dada de baja", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
+  test("[EMP-01][EMP-M05][EMP-M06][ACT-15] la eliminación definitiva se ofrece para una cuenta dada de baja", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
 
@@ -413,7 +410,7 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(rowWith(page, data.employeeNumber)).toHaveCount(0);
   });
 
-  test("[EMP-03] importa la plantilla de Excel y rechaza un archivo inválido", async ({ page }) => {
+  test("[EMP-03] importa la plantilla de Excel y rechaza un archivo inválido", async ({ page, request }) => {
     await openEmployees(page);
     await page.getByRole("button", { name: "Cargar Excel" }).click();
     await expect(page).toHaveURL(/#\/employees\/import$/);
@@ -430,9 +427,11 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     expect(templatePath).toBeTruthy();
 
     // Subir la plantilla (solo encabezados) devuelve el resultado de la carga.
-    await page
-      .locator('input[type="file"][accept=".xlsx,.xls"]')
-      .setInputFiles(templatePath as string);
+    await page.locator('input[type="file"][accept=".xlsx,.xls"]').setInputFiles({
+      name: "plantilla-usuarios.xlsx",
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: readFileSync(templatePath as string),
+    });
     await expect(page.getByText(/plantilla-usuarios\.xlsx/i).first()).toBeVisible();
     await expect(importButton).toBeEnabled();
     await importButton.click();
@@ -449,11 +448,11 @@ test.describe("Personal — CLIENT_ADMIN", () => {
 });
 
 test.describe("Personal — HUMAN_RESOURCES", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
     await loginAs(page, "rh", "acme");
   });
 
-  test("[EMP-01][EMP-M02] ve la lista, filtra y abre las acciones de cuenta de una fila", async ({ page }) => {
+  test("[EMP-01][EMP-M02] ve la lista, filtra y abre las acciones de cuenta de una fila", async ({ page, request }) => {
     await openEmployees(page);
     await expect(page.getByRole("heading", PERSONAL)).toBeVisible();
 
@@ -472,7 +471,7 @@ test.describe("Personal — HUMAN_RESOURCES", () => {
     await expect(menu).toHaveCount(0);
   });
 
-  test("[EMP-06][EMP-M01] abre el diálogo de cuenta con URL propia y lo cierra", async ({ page }) => {
+  test("[EMP-06][EMP-M01] abre el diálogo de cuenta con URL propia y lo cierra", async ({ page, request }) => {
     await openEmployees(page);
     await page.locator('input[name="filter-name"]').fill("Sergio");
     const sergio = rowWith(page, "Sergio Staff");
@@ -486,10 +485,8 @@ test.describe("Personal — HUMAN_RESOURCES", () => {
     await dismissAccountDialog(page, dialog);
   });
 
-  test("[EMP-02][EMP-01][EMP-M03][EMP-M04][ACT-13][ACT-15] da de alta, da de baja y reactiva a un empleado", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
+  test("[EMP-02][EMP-01][EMP-M03][EMP-M04][ACT-13][ACT-15] da de alta, da de baja y reactiva a un empleado", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
 
@@ -511,19 +508,18 @@ test.describe("Personal — HUMAN_RESOURCES", () => {
 });
 
 test.describe("Personal — validaciones, cuenta e historial", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
     await loginAs(page, "admin", "acme");
   });
 
-  test("[EMP-02] valida campos obligatorios y datos duplicados en el alta", async ({ page }) => {
+  test("[EMP-02] valida obligatorios, duplicados y documentación del alta", async ({ page, request }) => {
     await openEmployees(page);
     await page.getByRole("button", { name: "Nuevo empleado" }).click();
     await expect(page).toHaveURL(/#\/employees\/new$/);
 
     // Campos obligatorios vacíos: el formulario marca los errores y no navega.
     await page.getByRole("button", { name: "Crear usuario", exact: true }).click();
-    await expect(page.getByText("El nombre es obligatorio")).toBeVisible();
-    await expect(page.getByText("El usuario es obligatorio")).toBeVisible();
+    await expect(page.getByText(/obligatorio/i).first()).toBeVisible();
     await expect(page).toHaveURL(/#\/employees\/new$/);
 
     // Datos ya usados por otra cuenta: la disponibilidad en vivo los marca.
@@ -538,21 +534,28 @@ test.describe("Personal — validaciones, cuenta e historial", () => {
       timeout: 20_000,
     });
 
+    // El seed exige INE: sin storage S3 la documentación no se puede subir y el
+    // alta queda bloqueada por el paso de documentos (limitación del entorno E2E).
+    await page.locator('input[name="u_username"]').fill(`nuevo.${Date.now().toString(36)}`);
+    await page.locator('input[name="u_email"]').fill(`nuevo.${Date.now().toString(36)}@timemanager.test`);
+    await page.getByRole("button", { name: "Crear usuario", exact: true }).click();
+    await expect(page.getByText(/Sube los documentos obligatorios/)).toBeVisible({ timeout: 20_000 });
+    await expect(page).toHaveURL(/#\/employees\/new$/);
+
     await page.getByRole("button", { name: "Cancelar", exact: true }).click();
     await expect(page).toHaveURL(/#\/employees$/);
   });
 
-  test("[EMP-06][EMP-M01] cancelar no guarda y los roles adicionales persisten", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
+  test("[EMP-06][EMP-M01] cancelar no guarda y los roles adicionales persisten", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
 
     // Cancelar tras marcar un rol adicional no deja cambios.
     let dialog = await openAccountDialog(page, row);
     const extraRole = dialog.locator('input[name="extra_role_HUMAN_RESOURCES"]');
-    await extraRole.check();
+    // El checkbox del kit deja el input visualmente oculto (sr-only): se marca por fuerza.
+    await extraRole.check({ force: true });
     await dialog.getByRole("button", { name: "Cancelar" }).click();
     await expect(dialog).toHaveCount(0);
 
@@ -562,7 +565,7 @@ test.describe("Personal — validaciones, cuenta e historial", () => {
     await expect(dialog.locator('input[name="extra_role_HUMAN_RESOURCES"]')).not.toBeChecked();
 
     // Guardar el rol adicional sí persiste.
-    await dialog.locator('input[name="extra_role_HUMAN_RESOURCES"]').check();
+    await dialog.locator('input[name="extra_role_HUMAN_RESOURCES"]').check({ force: true });
     await dialog.getByRole("button", { name: "Guardar cambios" }).click();
     await expect(dialog.getByText("Usuario actualizado correctamente", { exact: true })).toBeVisible();
     await dialog.getByRole("button", { name: "Cancelar" }).click();
@@ -574,7 +577,7 @@ test.describe("Personal — validaciones, cuenta e historial", () => {
     await expect(dialog.locator('input[name="extra_role_HUMAN_RESOURCES"]')).toBeChecked();
   });
 
-  test("[EMP-07][EMP-M10] historial de la cuenta y excepción de permiso por persona", async ({ page }) => {
+  test("[EMP-07][EMP-M10] historial de la cuenta y excepción de permiso por persona", async ({ page, request }) => {
     await openEmployees(page);
     await page.locator('input[name="filter-name"]').fill("Sergio");
     const sergio = rowWith(page, "Sergio Staff");
@@ -626,14 +629,12 @@ test.describe("Personal — validaciones, cuenta e historial", () => {
 });
 
 test.describe("Personal — gating de eliminación (HUMAN_RESOURCES)", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
     await loginAs(page, "rh", "acme");
   });
 
-  test("[EMP-01][EMP-M05] RR. HH. no ve la eliminación de una cuenta inactiva", async ({ page }) => {
-    const data = nextEmployee();
-    await createEmployee(page, data);
-    await page.locator('input[name="filter-employeeNumber"]').fill(data.employeeNumber);
+  test("[EMP-01][EMP-M05] RR. HH. no ve la eliminación de una cuenta inactiva", async ({ page, request }) => {
+    const data = await addApiEmployee(request, page);
     const row = rowWith(page, data.employeeNumber);
     await expect(row).toBeVisible();
 

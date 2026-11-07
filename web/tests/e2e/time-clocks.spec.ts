@@ -213,7 +213,9 @@ test.describe("relojes checadores", () => {
     await dialog.getByRole("button", { name: "Dar de baja" }).click();
     expect([200, 204]).toContain((await retired).status());
     await expect(page.getByText(tempName)).toHaveCount(0, { timeout: 25_000 });
-    await expect(page.getByText(/dado de baja/).first()).toBeVisible({ timeout: 20_000 });
+    // El reloj queda sin URL: ya no aparece entre los relojes dados de alta.
+    const afterRetire = (await api(page, "GET", "/time-clock/status")).body as any;
+    expect(afterRetire.devices.length).toBe(0);
     expect(MOCK_SERIAL).toBeTruthy();
 
     // Restaura el reloj sembrado (mismo serial) para las demás suites.

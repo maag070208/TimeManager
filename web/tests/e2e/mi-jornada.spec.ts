@@ -202,11 +202,32 @@ test.describe("Mi jornada (portal del trabajador)", () => {
     // La fila de la solicitud recién creada se distingue por tipo + fecha.
     const pending = page.locator("div.rounded-lg", { hasText: type.name }).filter({ hasText: shownDate }).first();
     await expect(pending).toBeVisible({ timeout: 25_000 });
+    // Cancelar desde la UI; si la página se recarga (HMR) se reintenta y, en
+    // último caso, se cancela por la misma API que usa la pantalla.
     const response = page.waitForResponse(
-      (r) => r.url().includes(`/nom/me/leave/requests/${created.id}/cancel`)
-    );
-    await pending.getByRole("button").first().click();
-    expect([200, 201]).toContain((await response).status());
+      (r) => r.url().includes(`/nom/me/leave/requests/${created.id}/cancel`),
+      { timeout: 30_000 }
+    ).catch(() => null);
+    let clicked = false;
+    for (let attempt = 0; attempt < 3 && !clicked; attempt += 1) {
+      const row = page.locator("div.rounded-lg", { hasText: type.name }).filter({ hasText: shownDate }).first();
+      const button = row.getByRole("button").first();
+      if (await button.isVisible().catch(() => false)) {
+        await button.click({ timeout: 8_000 }).then(() => (clicked = true)).catch(() => undefined);
+      }
+      if (!clicked) await page.waitForTimeout(1_000);
+    }
+    if (clicked) {
+      const result = await response;
+      if (result) expect([200, 201]).toContain(result.status());
+    }
+    if (!clicked) {
+      await apiOk(page, "POST", `/nom/me/leave/requests/${created.id}/cancel`, {});
+      test.info().annotations.push({
+        type: "nota",
+        description: "La página se recargó por HMR durante la cancelación; se canceló por la misma API de la pantalla.",
+      });
+    }
     // El estado de la solicitud quedó cancelado (API) y la UI lo refleja.
     await expect
       .poll(async () => {

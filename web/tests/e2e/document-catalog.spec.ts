@@ -48,7 +48,7 @@ test.describe("Catálogo de Documentos (ADMIN de plataforma operando acme)", () 
     await rowAction(tableRowWith(page, name), "Editar tipo de documento").click();
     const input = page.locator('input[name="name"]');
     await expect(input).toHaveValue(name);
-    const edited = `${name} ED`;
+    const edited = `Editado ${uniqueRef("CAT")}`;
     await input.fill(edited);
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(tableRowWith(page, edited)).toBeVisible({ timeout: 20_000 });

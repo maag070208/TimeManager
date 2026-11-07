@@ -29,8 +29,8 @@ const tileOf = (page: Page, name: string) =>
     has: page.locator(`button[title="${name.toUpperCase()}"]`),
   });
 
-const openDetail = async (page: Page, name: string): Promise<void> => {
-  await page.locator(`button[title="${name.toUpperCase()}"]`).click();
+const openDetail = async (page: Page, title: string): Promise<void> => {
+  await page.locator(`button[title="${title}"]`).click();
   await expect(page).toHaveURL(/#\/departments\/[0-9a-f-]{36}$/);
   await expect(page.getByText("Detalle del departamento")).toBeVisible();
 };
@@ -52,7 +52,7 @@ test.describe("departamentos (acme.admin)", () => {
     await openClientRoute(page, "/departments");
 
     await createDepartment(page, "Nómina E2E");
-    await openDetail(page, "Nómina E2E");
+    await openDetail(page, "NÓMINA E2E");
     await expect(page.getByText("NÓMINA E2E").first()).toBeVisible();
     await expect(page.getByText("Activo").first()).toBeVisible();
 
@@ -100,7 +100,7 @@ test.describe("departamentos (acme.admin)", () => {
 
     // Eliminación definitiva: ahora el diálogo lo advierte y la tarjeta desaparece.
     await tileOf(page, "Borrar E2E").getByRole("button", { name: "Eliminar departamento" }).click();
-    await expect(dialogOf(page).getByText(/definitivamente/)).toBeVisible();
+    await expect(dialogOf(page).getByRole("heading", { name: "Eliminar definitivamente" })).toBeVisible();
     await expect(dialogOf(page).getByText(/Esta acción no se puede deshacer/)).toBeVisible();
     await dialogOf(page).getByRole("button", { name: "Eliminar definitivamente", exact: true }).click();
     await expect(page.locator('button[title="BORRAR E2E"]')).toHaveCount(0, { timeout: 20_000 });
@@ -111,7 +111,7 @@ test.describe("departamentos (acme.admin)", () => {
     await openClientRoute(page, "/departments");
 
     await createDepartment(page, "Baja E2E");
-    await openDetail(page, "Baja E2E");
+    await openDetail(page, "BAJA E2E");
     // La vista de detalle monta después de cambiar el hash: esperar su formulario.
     await expect(page.locator('input[name="newSubarea"]')).toBeVisible();
 
@@ -131,7 +131,7 @@ test.describe("departamentos (acme.admin)", () => {
     await loginClient(page, "admin");
     await openClientRoute(page, "/departments");
     await createDepartment(page, "Subáreas E2E");
-    await openDetail(page, "Subáreas E2E");
+    await openDetail(page, "SUBÁREAS E2E");
     await expect(page.locator('input[name="newSubarea"]')).toBeVisible();
 
     // Alta de subárea desde el detalle.
@@ -139,8 +139,10 @@ test.describe("departamentos (acme.admin)", () => {
     await page.getByRole("button", { name: "Agregar", exact: true }).click();
     await expect(page.getByText("Almacén E2E")).toBeVisible();
 
-    // DEP-M04: renombrar (diálogo con el nombre precargado).
-    await page.getByTitle("Editar subárea").first().click();
+    // DEP-M04: renombrar (diálogo con el nombre precargado). Los iconos del chip
+    // no exponen `title`: se pulsan por posición (editar = primer icono).
+    const chip = page.getByText("Almacén E2E", { exact: true }).locator("xpath=..");
+    await chip.locator("svg").first().click();
     const edit = dialogOf(page);
     await expect(edit.getByText("Renombrar subárea")).toBeVisible();
     const input = edit.locator('input[name="editSubarea"]');
@@ -150,24 +152,24 @@ test.describe("departamentos (acme.admin)", () => {
     await expect(page.getByText("Almacén E2E Pro")).toBeVisible();
 
     // DEP-M05: cancelar la baja no cambia nada; confirmar la desactiva.
-    await page.getByTitle("Eliminar subárea").first().click();
+    await page.getByText("Almacén E2E Pro", { exact: true }).locator("xpath=..").locator("svg").last().click();
     await expect(page.getByText(/Se desactivará/)).toBeVisible();
     await page.getByRole("button", { name: "Cancelar", exact: true }).click();
     await expect(page.getByText(/Se desactivará/)).toHaveCount(0);
     await expect(page.getByText("Almacén E2E Pro")).toBeVisible();
     await expect(page.getByText("Inactiva", { exact: true })).toHaveCount(0);
 
-    await page.getByTitle("Eliminar subárea").first().click();
+    await page.getByText("Almacén E2E Pro", { exact: true }).locator("xpath=..").locator("svg").last().click();
     await page.getByRole("button", { name: "Eliminar", exact: true }).click();
     await expect(page.getByText("Inactiva", { exact: true })).toBeVisible({ timeout: 20_000 });
 
     // Reactivación directa y eliminación definitiva de la subárea inactiva.
-    await page.getByTitle("Reactivar subárea").first().click();
+    await page.getByText("Almacén E2E Pro", { exact: true }).locator("xpath=..").locator("svg").first().click();
     await expect(page.getByText("Inactiva", { exact: true })).toHaveCount(0, { timeout: 20_000 });
-    await page.getByTitle("Eliminar subárea").first().click();
+    await page.getByText("Almacén E2E Pro", { exact: true }).locator("xpath=..").locator("svg").last().click();
     await page.getByRole("button", { name: "Eliminar", exact: true }).click();
     await expect(page.getByText("Inactiva", { exact: true })).toBeVisible({ timeout: 20_000 });
-    await page.getByTitle("Eliminar subárea").first().click();
+    await page.getByText("Almacén E2E Pro", { exact: true }).locator("xpath=..").locator("svg").last().click();
     await expect(page.getByText(/definitivamente la subárea/)).toBeVisible();
     await page.getByRole("button", { name: "Eliminar definitivamente", exact: true }).click();
     await expect(page.getByText("Almacén E2E Pro")).toHaveCount(0, { timeout: 20_000 });

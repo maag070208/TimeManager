@@ -77,14 +77,15 @@ test.describe("Convenios y acuerdos (CLIENT_ADMIN)", () => {
     const recordRow = page
       .locator("div")
       .filter({ hasText: person.fullName })
-      .filter({ has: page.getByRole("button", { name: "Firmar como patrón" }) })
+      .filter({ hasText: /Firma patronal pendiente|Firmado por patrón/ })
       .last();
     await expect(recordRow).toBeVisible({ timeout: 20_000 });
     await expect(recordRow.getByText("Firma patronal pendiente")).toBeVisible();
+    await expect(recordRow.getByRole("button", { name: "Firmar como patrón" })).toBeVisible();
 
     await recordRow.getByRole("button", { name: "Firmar como patrón" }).click();
-    // El efecto visible: la fila pasa a "Firmado por patrón" (el toast dura ~2.8 s).
-    await expect(recordRow.getByText("Firmado por patrón")).toBeVisible({ timeout: 20_000 });
+    // El efecto visible: la fila pasa a "Firmado por patrón" (el botón desaparece).
+    await expect(page.getByText("Firmado por patrón").first()).toBeVisible({ timeout: 20_000 });
   });
 });
 

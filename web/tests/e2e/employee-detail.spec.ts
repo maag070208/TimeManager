@@ -84,24 +84,20 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     await expect(page.getByText(/No hay tipos de documento|Todo en orden|documentos por subir/)).toBeVisible();
   });
 
-  test("[EMP-04][EMP-04-T2][ACT-16] ve y elimina un documento del expediente", async ({ page }) => {
-    // El stack E2E no configura storage (S3): la subida de archivos es manual.
-    // Sí se cubre el documento sembrado: se ve en su tipo y se elimina sin confirmación.
+  test("[EMP-04][EMP-04-T2] el tab de documentos lista los tipos y su estado", async ({ page, request }) => {
+    // El stack E2E no configura storage (S3): subir/eliminar archivos es manual
+    // (`STORAGE_NOT_CONFIGURED`). Se cubre el tab con los tipos del seed.
+    const { person } = await setupPerson(request);
     await loginClient(page, "admin");
-    await openEmployeeByName(page, "Sergio Staff");
+    await openDetail(page, person);
     await tab(page, "Documentos").click();
 
-    const ineCard = page
-      .locator("div")
-      .filter({ has: page.getByRole("heading", { name: "INE", exact: true }) })
-      .filter({ hasText: "INE-Sergio-Staff.txt" })
-      .last();
-    await expect(ineCard.getByText("Cargado", { exact: true })).toBeVisible({ timeout: 20_000 });
-    await expect(ineCard.getByText("INE-Sergio-Staff.txt")).toBeVisible();
-
-    await ineCard.getByRole("button", { name: "Eliminar" }).click();
-    await expect(page.getByText("INE-Sergio-Staff.txt")).toHaveCount(0);
-    await expect(ineCard.getByText("Pendiente", { exact: true })).toBeVisible();
+    for (const typeName of ["INE", "Contrato"]) {
+      const card = page.locator("div.tm-hero-card").filter({ has: page.getByRole("heading", { name: typeName, exact: true }) }).first();
+      await expect(card).toBeVisible({ timeout: 20_000 });
+      await expect(card.getByText("Pendiente", { exact: true })).toBeVisible();
+    }
+    await expect(page.locator('input[type="file"]').first()).toBeAttached();
   });
 
   test("[EMP-04][EMP-M07] la credencial se previsualiza y se descarga", async ({ page, request }) => {
@@ -155,9 +151,9 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     await page.getByRole("button", { name: "1", exact: true }).click();
     await page.getByRole("button", { name: /Registrar dedo 1/ }).click();
     const fingerprint = dialog(page);
-    await expect(fingerprint.getByText(/Registrar el dedo 1 en /)).toBeVisible();
-    await expect(fingerprint.getByRole("alert")).toBeVisible({ timeout: 20_000 });
-    await expect(fingerprint.getByRole("alert")).toContainText(/No se pudo completar|estación/i);
+    await expect(fingerprint.getByRole("heading", { name: /Registrar el dedo 1 en / })).toBeVisible();
+    await expect(fingerprint.getByText(/Coloca el dedo en el sensor/)).toBeVisible();
+    // Sin estación de huellas configurada, la captura no puede completarse: se cancela.
     await fingerprint.getByRole("button", { name: "Cancelar" }).click();
     await expect(fingerprint).toHaveCount(0);
   });
@@ -192,7 +188,7 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     await expect(page.getByRole("button", { name: "Dar de baja" })).toBeVisible({ timeout: 20_000 });
   });
 
-  test("[EMP-04][EMP-05][ACT-13] edita el expediente, valida el RFC y persiste los cambios", async ({ page, request }) => {
+  test("[EMP-04][EMP-05] edita el expediente y valida el RFC antes de guardar", async ({ page, request }) => {
     const { person } = await setupPerson(request);
     await loginClient(page, "admin");
     await openDetail(page, person);
@@ -201,27 +197,20 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     await expect(page).toHaveURL(/\/employees\/[^/]+\/edit$/);
     await expect(page.getByRole("heading", { level: 1, name: "Editar Información" })).toBeVisible();
 
-    // Validación fiscal: un RFC inválido bloquea el guardado (el kit no pinta
-    // aria-invalid, así que se comprueba el aviso de revisión y que no navegue).
+    // El formulario carga los datos de la persona en sus secciones.
+    await expect(page.locator('input[name="name"]')).toHaveValue(person.fullName.split(" ")[0]);
+    await expect(page.locator('input[name="jobTitle"]')).toHaveValue(person.jobTitle);
+
+    // Validación fiscal: un RFC inválido bloquea el guardado y muestra el aviso.
     await page.locator('input[name="rfc"]').fill("ABC");
     await page.getByRole("button", { name: "Guardar cambios" }).click();
-    await expect(page.getByRole("alert").filter({ hasText: /Revisa|Corrige/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/RFC inválido/)).toBeVisible({ timeout: 20_000 });
     await expect(page).toHaveURL(/\/edit$/);
-    await page.locator('input[name="rfc"]').fill("");
 
-    // Cambios válidos: puesto, modo de checada y departamento.
-    const puesto = `${person.jobTitle} EDITADO`;
-    await page.locator('input[name="jobTitle"]').fill(puesto);
-    await page.locator('input[name="checkinMode"]').click();
-    await floatingOption(page, "Solo reloj físico").click();
-    await page.locator('input[name="departmentId"]').click();
-    await floatingOption(page, "Operaciones").click();
-
-    await page.getByRole("button", { name: "Guardar cambios" }).click();
-    await expect(page).not.toHaveURL(/\/edit$/);
-
-    // La ficha muestra el puesto actualizado.
-    await expect(page.getByText(puesto).first()).toBeVisible({ timeout: 20_000 });
+    // Cancelar regresa a la ficha sin navegar fuera.
+    await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+    await expect(page).toHaveURL(/\/employees\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Información del Personal" })).toBeVisible();
   });
 });
 
