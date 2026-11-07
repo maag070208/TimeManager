@@ -156,7 +156,7 @@ export class PayrollSettingsService {
   ) {
     const existing = await this.db.payrollPosition.findFirst({ where: { id, tenantId } });
     if (!existing) throw new HttpError(404, "PAYROLL_POSITION_NOT_FOUND");
-    if (!existing.active) throw new HttpError(400, "PAYROLL_POSITION_INACTIVE");
+    if (!existing.active && input.active !== true) throw new HttpError(400, "PAYROLL_POSITION_INACTIVE");
     await this.db.$transaction([
       this.db.payrollPosition.update({
         where: { id },

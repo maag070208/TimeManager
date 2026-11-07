@@ -15,13 +15,13 @@ export type InspectTab = "overview" | "users" | "cards" | "events";
  * Lo que tiene un reloj registrado, leído del propio equipo. Solo lectura: esta
  * pantalla no crea, cambia ni borra nada en el reloj.
  */
-export const useTimeClockInspect = (controlledSerial?: string) => {
+export const useTimeClockInspect = (controlledSerial?: string, initialTab: InspectTab = "overview") => {
   const { t } = useTranslation("time-clock");
   const [devices, setDevices] = useState<TimeClockDevice[]>([]);
   const [internalSerial, setInternalSerial] = useState<string>("");
   const serial = controlledSerial ?? internalSerial;
   const setSerial = setInternalSerial;
-  const [tab, setTab] = useState<InspectTab>("overview");
+  const [tab, setTab] = useState<InspectTab>(initialTab);
   const [days, setDays] = useState(2);
   const [overview, setOverview] = useState<TimeClockInspectOverview | null>(null);
   const [users, setUsers] = useState<TimeClockInspectUsers | null>(null);

@@ -36,20 +36,20 @@ test.describe("verificación y cierre de pre-nómina", () => {
     const reviewDialog = dialog(page, "Verificar pre-nómina");
     await expect(reviewDialog).toBeVisible();
     await expect(reviewDialog).toContainText("departamentos por revisar");
-    await expect(reviewDialog.getByText("Revisado").first()).toBeVisible();
+    await expect(reviewDialog.getByText("Revisado", { exact: true }).first()).toBeVisible();
 
     const firstReview = reviewDialog.locator('input[type="checkbox"]').first();
     const unmark = waitForApi(page, "/schedules/payroll/reviews", "PUT");
     await toggleCheckbox(firstReview, false);
     expect((await unmark).ok()).toBe(true);
-    await expect(reviewDialog.getByText("Por revisar").first()).toBeVisible();
+    await expect(reviewDialog.getByText("Por revisar", { exact: true }).first()).toBeVisible();
 
     const reMarkAll = waitForApi(page, "/schedules/payroll/reviews/mark-all");
     await reviewDialog.getByRole("button", { name: /Marcar todos como revisados/ }).click();
     expect((await reMarkAll).ok()).toBe(true);
-    await expect(reviewDialog.getByText("Por revisar")).toHaveCount(0);
+    await expect(reviewDialog.getByText("Por revisar", { exact: true })).toHaveCount(0);
     await expect(reviewDialog.getByRole("button", { name: "Cerrar pre-nómina" })).toBeEnabled();
-    await reviewDialog.getByRole("button", { name: "Cerrar", exact: true }).click();
+    await page.keyboard.press("Escape");
     await expect(reviewDialog).toBeHidden();
   });
 
@@ -67,7 +67,8 @@ test.describe("verificación y cierre de pre-nómina", () => {
     const unmark = waitForApi(page, "/schedules/payroll/reviews", "PUT");
     await toggleCheckbox(firstReview, false);
     expect((await unmark).ok()).toBe(true);
-    await reviewDialog.getByRole("button", { name: "Cerrar", exact: true }).click();
+    await expect(reviewDialog.getByText("Por revisar", { exact: true }).first()).toBeVisible();
+    await page.keyboard.press("Escape");
     await expect(reviewDialog).toBeHidden();
 
     // El botón de cierre queda deshabilitado mientras falte revisar.
@@ -75,14 +76,13 @@ test.describe("verificación y cierre de pre-nómina", () => {
     await expect(closeButton).toBeDisabled();
     await expect(page.getByText(/se habilita cuando todos los departamentos están revisados/)).toBeVisible();
 
-    // Restaura el estado revisando el pendiente (para los casos siguientes).
-    await page.getByRole("button", { name: /Verificar por departamento/ }).click();
-    const reopenDialog = dialog(page, "Verificar pre-nómina");
+    // Restaura el estado con el flujo de la barra (marcar todo + confirmar).
+    await page.getByRole("button", { name: /Verificar toda la pre-nómina/ }).click();
+    const verifyAll = dialog(page, "Verificar toda la pre-nómina");
     const markAll = waitForApi(page, "/schedules/payroll/reviews/mark-all");
-    await reopenDialog.getByRole("button", { name: /Marcar todos como revisados/ }).click();
+    await verifyAll.getByRole("button", { name: "Sí, verificar toda" }).click();
     expect((await markAll).ok()).toBe(true);
-    await reopenDialog.getByRole("button", { name: "Cerrar", exact: true }).click();
-    await expect(page.getByRole("button", { name: /Cerrar pre-nómina/ })).toBeEnabled();
+    await expect(page.getByRole("button", { name: /Cerrar pre-nómina/ })).toBeEnabled({ timeout: 20_000 });
   });
 
   test("[PAY-01][PAY-M04][ACT-26] cierra la semana y reabre desde el historial", async ({ page }) => {
@@ -91,8 +91,23 @@ test.describe("verificación y cierre de pre-nómina", () => {
     await gotoRoute(page, "/schedules/payroll");
     expect((await report).ok()).toBe(true);
 
-    // Cierre con confirmación (PAY-M04).
+    // Cierre con confirmación (PAY-M04). Si quedó algún departamento pendiente
+    // (estado compartido del archivo), se verifica todo antes de continuar.
+    await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 20_000 });
     const closeButton = page.getByRole("button", { name: /Cerrar pre-nómina/ });
+    const verifyAllButton = page.getByRole("button", { name: /Verificar toda la pre-nómina/ });
+    await expect
+      .poll(async () => (await closeButton.isEnabled()) || (await verifyAllButton.isVisible().catch(() => false)), {
+        timeout: 20_000,
+      })
+      .toBe(true);
+    if (await closeButton.isDisabled()) {
+      await verifyAllButton.click();
+      const verifyAll = dialog(page, "Verificar toda la pre-nómina");
+      const markAll = waitForApi(page, "/schedules/payroll/reviews/mark-all");
+      await verifyAll.getByRole("button", { name: "Sí, verificar toda" }).click();
+      expect((await markAll).ok()).toBe(true);
+    }
     await expect(closeButton).toBeEnabled({ timeout: 20_000 });
     await closeButton.click();
     const closeDialog = dialog(page, "Cerrar la semana");

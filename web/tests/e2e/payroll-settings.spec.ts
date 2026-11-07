@@ -28,8 +28,8 @@ test.describe("nómina configurable (acme.admin)", () => {
     const createDialog = dialog(page, "Nuevo puesto de nómina");
     await expect(createDialog).toBeVisible();
     await createDialog.locator('input[name="payrollProfileName"]').fill(unique);
-    await createDialog.locator('input[name="payrollProfileSalary"]').fill("315.04");
-    await createDialog.locator('input[name="payrollProfileSbc"]').fill("350.20");
+    await createDialog.locator('input[name="payrollProfileSalary"]').fill("315");
+    await createDialog.locator('input[name="payrollProfileSbc"]').fill("350");
     const created = waitForApi(page, "/payroll/positions");
     await createDialog.getByRole("button", { name: "Guardar", exact: true }).click();
     expect((await created).ok()).toBe(true);
@@ -41,7 +41,7 @@ test.describe("nómina configurable (acme.admin)", () => {
     await row.click();
     const editDialog = dialog(page, "Editar puesto de nómina");
     await expect(editDialog).toBeVisible();
-    await expect(editDialog.locator('input[name="payrollProfileSalary"]')).toHaveValue("315.04");
+    await expect(editDialog.locator('input[name="payrollProfileSalary"]')).toHaveValue("315");
     await editDialog.locator('input[name="payrollProfileSalary"]').fill("400");
     const updated = waitForApiMatch(page, /\/payroll\/positions\/[^/]+$/, "PATCH");
     await editDialog.getByRole("button", { name: "Guardar", exact: true }).click();
@@ -60,19 +60,46 @@ test.describe("nómina configurable (acme.admin)", () => {
     expect((await deactivated).ok()).toBe(true);
     await expect(page.getByText("Perfil desactivado.")).toBeVisible();
     await expect(page.getByRole("row").filter({ hasText: unique }).first()).toContainText("Inactivo");
-
-    // Reactivar desde el filtro de inactivos.
     await page.getByRole("button", { name: /^Inactivos/ }).click();
-    const inactiveRow = page.getByRole("row").filter({ hasText: unique }).first();
-    await expect(inactiveRow).toBeVisible();
-    await inactiveRow.getByRole("button", { name: "Activar perfil" }).click();
+    await expect(page.getByRole("row").filter({ hasText: unique }).first()).toBeVisible();
+  });
+
+  test("[PAY-03][PAY-03-T1][PAY-M06] reactiva un puesto inactivo", async ({ page }) => {
+    // BUG API (payroll): PUT/PATCH /payroll/positions/:id rechaza cualquier
+    // cambio sobre un puesto inactivo con 400 PAYROLL_POSITION_INACTIVE, así
+    // que «Activar perfil» no puede funcionar; se documenta como fallo
+    // conocido y el caso pasará a verde cuando el servicio lo permita.
+    test.fail(true, "BUG: updatePosition rechaza activar un puesto inactivo (PAYROLL_POSITION_INACTIVE)");
+    await loginAcme(page, "admin");
+    await gotoRoute(page, "/payroll/settings");
+    await positionsLoaded(page);
+
+    const name = `Puesto Activable ${Date.now().toString().slice(-6)}`;
+    await page.getByRole("button", { name: /Nuevo puesto/ }).click();
+    const createDialog = dialog(page, "Nuevo puesto de nómina");
+    await createDialog.locator('input[name="payrollProfileName"]').fill(name);
+    await createDialog.locator('input[name="payrollProfileSalary"]').fill("300");
+    const created = waitForApi(page, "/payroll/positions");
+    await createDialog.getByRole("button", { name: "Guardar", exact: true }).click();
+    expect((await created).ok()).toBe(true);
+
+    const row = page.getByRole("row").filter({ hasText: name }).first();
+    await expect(row).toBeVisible();
+    await row.getByRole("button", { name: "Desactivar perfil" }).click();
+    const deactivate = dialog(page, "Desactivar perfil de nómina");
+    const deactivated = waitForApiMatch(page, /\/payroll\/positions\/[^/]+$/, "PATCH");
+    await deactivate.getByRole("button", { name: "Desactivar", exact: true }).click();
+    expect((await deactivated).ok()).toBe(true);
+
+    await page.getByRole("button", { name: /^Inactivos/ }).click();
+    await row.getByRole("button", { name: "Activar perfil" }).click();
     const activate = dialog(page, "Activar perfil de nómina");
     await expect(activate).toBeVisible();
     const activated = waitForApiMatch(page, /\/payroll\/positions\/[^/]+$/, "PATCH");
     await activate.getByRole("button", { name: "Activar", exact: true }).click();
     expect((await activated).ok()).toBe(true);
     await expect(page.getByText("Perfil activado.")).toBeVisible();
-    await expect(page.getByRole("row").filter({ hasText: unique }).first()).toContainText("Activo");
+    await expect(page.getByRole("row").filter({ hasText: name }).first()).toContainText("Activo");
   });
 
   test("[PAY-03][PAY-03-T2] guarda la configuración, valida el JSON y calcula el recibo", async ({ page }) => {

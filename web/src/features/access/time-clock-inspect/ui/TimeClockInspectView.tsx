@@ -26,7 +26,7 @@ interface Props {
 
 export default function TimeClockInspectView({ clockSerial, tabs = ALL_TABS }: Props) {
   const { t } = useTranslation("time-clock");
-  const fx = useTimeClockInspect(clockSerial);
+  const fx = useTimeClockInspect(clockSerial, tabs[0]);
   const controlled = clockSerial !== undefined;
   const singleTab = tabs.length === 1;
   // Con el panel, la vista de resumen no repite barra de herramientas ni pestañas.

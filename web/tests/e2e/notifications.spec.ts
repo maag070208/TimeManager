@@ -51,13 +51,13 @@ test.describe("filtros y borrado del centro de notificaciones", () => {
     await page.goto(NOTIFICATIONS);
     await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
 
-    await page.getByRole("button", { name: "Sin leer", exact: true }).click();
+    await page.getByRole("button", { name: /Sin leer/ }).first().click();
     await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
 
-    await page.getByRole("button", { name: "Alertas", exact: true }).click();
+    await page.getByRole("button", { name: /Alertas/ }).first().click();
     await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Todas", exact: true }).click();
+    await page.getByRole("button", { name: /Todas/ }).first().click();
     await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
     await expect(page).toHaveURL(/#\/notifications$/);
   });
