@@ -9,11 +9,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "@playwright/test";
+import { login, settle, withTenant as tenantUrl } from "./lib/demo-session.mjs";
 
 const [base = "http://localhost:5019", idsFile, outDir = "capturas"] = process.argv.slice(2);
 const ids = idsFile ? JSON.parse(fs.readFileSync(idsFile, "utf8")) : {};
-const PASSWORD = "Demo2026!";
-const withTenant = (slug) => (slug ? base.replace("://", `://${slug}.`) : base);
+const withTenant = (slug) => tenantUrl(base, slug);
 
 const SESSIONS = [
   {
@@ -50,11 +50,6 @@ const SESSIONS = [
 
 const slugOf = (route) => (route === "/" ? "inicio" : route.replace(/^\//, "").replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, "id").replace(/\//g, "_"));
 
-const settle = async (page) => {
-  await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
-  await page.waitForTimeout(1200);
-};
-
 const browser = await chromium.launch();
 const manifest = [];
 fs.mkdirSync(outDir, { recursive: true });
@@ -82,14 +77,7 @@ const shoot = async (page, file, meta) => {
 for (const [index, session] of SESSIONS.entries()) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "es-MX" });
   const page = await context.newPage();
-  const root = withTenant(session.tenant);
-  await page.goto(`${root}/#/login`);
-  await page.locator('input[name="username"]').waitFor({ timeout: 20000 });
-  await page.locator('input[name="username"]').fill(session.username);
-  await page.locator('input[name="password"]').fill(PASSWORD);
-  await page.locator('button[type="submit"]').first().click({ force: true });
-  await page.waitForURL((url) => !url.hash.includes("login"), { timeout: 20000 }).catch(() => {});
-  await settle(page);
+  const root = await login(page, { base, tenant: session.tenant, username: session.username });
   for (const route of session.routes) {
     await page.goto(`${root}/#${route}`);
     await settle(page);

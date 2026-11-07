@@ -1,5 +1,5 @@
-import { ITLayout, ITSidebarProps, ITToast, type ITNavigationItem } from "@axzydev/axzy_ui_system";
-import { useEffect, useState, useCallback, type ReactNode } from "react";
+import { ITLayout, ITPage, ITSidebarProps, ITToast, type ITNavigationItem } from "@axzydev/axzy_ui_system";
+import { Suspense, useEffect, useState, useCallback, type ReactNode } from "react";
 import { LuHouse, LuUsers, LuSettings, LuCalendarCheck, LuBuilding2 } from "react-icons/lu";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -335,7 +335,9 @@ export default function PrivateRoutes() {
   return (
     <>
       <ITLayout className="bg-white" topBar={topBar} sidebar={sidebar} sidebarFullHeight contentClassName="max-w-screen! m-0! !px-2 bg-white">
-        <Outlet />
+        <Suspense fallback={<ITPage loading><div /></ITPage>}>
+          <Outlet />
+        </Suspense>
       </ITLayout>
       {toast && (
         <ITToast

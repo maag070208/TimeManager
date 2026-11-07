@@ -1,0 +1,70 @@
+{
+  "agreements": {
+    "width": 2000,
+    "height": 1236
+  },
+  "attendance-week": {
+    "width": 2000,
+    "height": 1236
+  },
+  "clock-dashboard": {
+    "width": 2000,
+    "height": 1236
+  },
+  "clocks": {
+    "width": 2000,
+    "height": 1236
+  },
+  "employee-records": {
+    "width": 2000,
+    "height": 1236
+  },
+  "hero-home": {
+    "width": 2000,
+    "height": 1236
+  },
+  "hero-mobile-jornada": {
+    "width": 780,
+    "height": 1688
+  },
+  "landing-map-cut": {
+    "width": 1650,
+    "height": 458
+  },
+  "leave": {
+    "width": 2000,
+    "height": 1236
+  },
+  "mi-jornada-map": {
+    "width": 2000,
+    "height": 1241
+  },
+  "overtime-lft": {
+    "width": 2000,
+    "height": 949
+  },
+  "payroll": {
+    "width": 2000,
+    "height": 1236
+  },
+  "payroll-history": {
+    "width": 2000,
+    "height": 1236
+  },
+  "payroll-settings": {
+    "width": 2000,
+    "height": 1236
+  },
+  "schedule-assign": {
+    "width": 2000,
+    "height": 1236
+  },
+  "schedules": {
+    "width": 2000,
+    "height": 1236
+  },
+  "telework": {
+    "width": 2000,
+    "height": 1236
+  }
+}

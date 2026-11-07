@@ -4,20 +4,48 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "timemanager-web", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "timemanager-web",
+        "dev"
+      ],
       "port": 5009
     },
     {
       "name": "api-demo",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd api && PORT=4021 WEB_ORIGIN='http://localhost:5019,http://*.localhost:5019' DATABASE_URL=postgresql://postgres:test@127.0.0.1:55433/tm_demo npx ts-node -r tsconfig-paths/register src/index.ts"],
+      "runtimeArgs": [
+        "-c",
+        "cd api && PORT=4021 TIME_CLOCK_USER=mock TIME_CLOCK_PASS=mock-pass-123 WEB_ORIGIN='http://localhost:5019,http://*.localhost:5019' DATABASE_URL=postgresql://postgres:test@127.0.0.1:55433/tm_demo npx ts-node -r tsconfig-paths/register src/index.ts"
+      ],
       "port": 4021
     },
     {
       "name": "web-demo",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd web && VITE_API_URL=http://localhost:4021/api/v1 npx vite --port 5019 --strictPort --host 0.0.0.0"],
+      "runtimeArgs": [
+        "-c",
+        "cd web && VITE_API_URL=http://localhost:4021/api/v1 npx vite --port 5019 --strictPort --host 0.0.0.0"
+      ],
       "port": 5019
+    },
+    {
+      "name": "isapi-mock",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd api && npx ts-node scripts/isapi-mock/server.ts"
+      ],
+      "port": 4801
+    },
+    {
+      "name": "web-landing-prod",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd web && npx vite preview --outDir /private/tmp/claude-501/-Users-axzy--claude-spares-spare-m7rSJS/16b61609-dfaf-4f91-8eec-b78e1789fcce/scratchpad/dist --port 5029 --strictPort"
+      ],
+      "port": 5029
     }
   ]
 }

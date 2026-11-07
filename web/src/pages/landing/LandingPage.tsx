@@ -1,91 +1,144 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import type { IconType } from "react-icons";
 import {
   LuArrowRight,
-  LuBell,
+  LuBriefcase,
   LuCalendarCheck,
+  LuCalendarClock,
   LuCheck,
   LuFileLock2,
   LuFingerprint,
+  LuFolderOpen,
   LuHouse,
   LuLayers,
-  LuLaptop,
+  LuMapPin,
   LuMenu,
-  LuMoon,
-  LuPlus,
+  LuPlane,
   LuScale,
   LuServer,
+  LuShieldCheck,
   LuSmartphone,
-  LuSun,
   LuTimer,
   LuUsers,
-  LuWifiOff,
   LuX,
 } from "react-icons/lu";
-import HeroConsole from "./ui/HeroConsole";
-import {
-  AgentVisual,
-  AlertsVisual,
-  AuditVisual,
-  CellHead,
-  OvertimeVisual,
-  PayrollVisual,
-  PortalVisual,
-  ReformVisual,
-  TeleworkVisual,
-  TenantsVisual,
-} from "./ui/BentoCells";
+import { AgentVisual, CellHead, ReformVisual } from "./ui/BentoCells";
+import { Shot, ShotWindow, type ShotName } from "./ui/Shot";
+import { useLandingSeo } from "./useLandingSeo";
 import "./landing.css";
 
+/** Las demos se piden por WhatsApp (+52 1 55 3045 1099). */
 const DEMO_URL =
-  "mailto:hola@axzy.dev?subject=" +
-  encodeURIComponent("Demo de CheckLab") +
-  "&body=" +
+  "https://wa.me/525530451099?text=" +
   encodeURIComponent("Hola, quiero una demo de CheckLab. Mi empresa es ___ y tenemos aprox. ___ personas.");
+const DEMO_LINK = { href: DEMO_URL, target: "_blank", rel: "noopener noreferrer" } as const;
 
 const NAV = [
   { id: "producto", label: "Producto" },
+  { id: "modulos", label: "Módulos" },
   { id: "cumplimiento", label: "Cumplimiento" },
-  { id: "como-funciona", label: "Cómo funciona" },
   { id: "planes", label: "Planes" },
   { id: "faq", label: "Preguntas" },
 ];
 
 const FACTS = [
   { value: "0", label: "checadas editables", sub: "se corrigen con ajuste aprobado" },
-  { value: "5 min", label: "sincronización del reloj", sub: "automática, sin abrir puertos" },
+  { value: "2", label: "formas de checar", sub: "reloj físico o web con ubicación" },
   { value: "12 h", label: "tope diario vigilado", sub: "con alerta a RH" },
   { value: "48→40 h", label: "transición LFT", sub: "aplicada semana a semana" },
 ];
 
-const INDUSTRIES = ["Logística", "Salud", "Restaurantes", "Manufactura", "Retail", "Seguridad privada"];
+type Chapter = {
+  icon: IconType;
+  label: string;
+  title: string;
+  text: string;
+  points: string[];
+  shot: ShotName;
+  path: string;
+  alt: string;
+};
+
+const CHAPTERS: Chapter[] = [
+  {
+    icon: LuMapPin,
+    label: "Checar",
+    title: "Con reloj o desde el teléfono, con el punto en el mapa",
+    text: "¿No quieres comprar reloj? Tu equipo checa desde la web: entrada, salida a comer, regreso y salida. La ubicación se toma solo en el momento del marcaje.",
+    points: ["Latitud, longitud y precisión por marcaje", "Sin rastreo continuo", "Cuenta para asistencia y pre-nómina, igual que el reloj"],
+    shot: "landing-map-cut",
+    path: "/mi-jornada",
+    alt: "Mapa con la ubicación de la última checada web de una persona",
+  },
+  {
+    icon: LuCalendarCheck,
+    label: "Ver el día",
+    title: "La semana de cada persona, en una rejilla",
+    text: "Quién llegó a tiempo, quién con retardo y quién no ha llegado. Las checadas del reloj y las de la web se ven juntas, día por día.",
+    points: ["Retardos y faltas contra el horario", "Filtros por departamento", "Export de la semana"],
+    shot: "attendance-week",
+    path: "/hr/time-clock/entries-exits",
+    alt: "Rejilla semanal de asistencia con entradas, salidas y retardos",
+  },
+  {
+    icon: LuTimer,
+    label: "Horas extra LFT",
+    title: "Dobles, triples y excedente ilegal, ya clasificados",
+    text: "Cada semana se compara contra el horario y se separa con las reglas de la LFT. RH confirma la semana y la nómina recibe cifras cerradas.",
+    points: ["Tope al doble del año en curso", "Triples y excedente marcados", "Confirmación semanal por persona"],
+    shot: "overtime-lft",
+    path: "/schedules/overtime/approval",
+    alt: "Tabla de horas extra por semana con horas dobles, triples y excedente",
+  },
+  {
+    icon: LuBriefcase,
+    label: "Pre-nómina",
+    title: "Revisa por departamento y cierra la semana",
+    text: "Costo de la plantilla, sueldo diario de cada persona y horas extra en una sola vista. Al cerrar se guarda una fotografía de las cifras; si hace falta, se reabre con registro.",
+    points: ["Revisión por departamento", "Cierre con snapshot", "Historial de cierres y reaperturas"],
+    shot: "payroll",
+    path: "/schedules/payroll",
+    alt: "Pre-nómina con indicadores de horas, costo de plantilla y revisión por departamento",
+  },
+  {
+    icon: LuFileLock2,
+    label: "Prueba ante la autoridad",
+    title: "Convenios, método de registro y nada que se borre",
+    text: "Convenios del art. 58, acuerdo del método de registro y constancia semanal. La checada original nunca cambia: cada corrección lleva motivo y aprobador.",
+    points: ["Convenios de distribución de jornada", "Acuerdo del método de registro", "Bitácora inmutable y export con hash"],
+    shot: "agreements",
+    path: "/hr/jornada-acuerdos",
+    alt: "Pantalla de convenios y acuerdos del método de registro",
+  },
+];
 
 const COMPLIANCE = [
   "Inicio y fin de jornada de todas las modalidades: reloj, web y teletrabajo",
+  "Ubicación por marcaje, opcional y sin rastreo continuo",
   "Checadas inmutables; cada corrección con motivo y aprobador distinto",
   "Horas extra al doble y al triple con los topes de los arts. 66 y 68",
   "Acuerdo del método de registro y constancia semanal del trabajador",
   "Convenios de distribución de jornada para turnos nocturnos",
   "Teletrabajo NOM-037: política, consentimiento, checklist y desconexión",
   "Export de registros para la autoridad con hash de integridad",
-  "Retención y archivo de registros configurable por cliente",
 ];
 
 const STEPS = [
   {
-    icon: LuServer,
-    title: "Instalamos el reloj",
-    text: "Un Hikvision de rostro y huella por sitio. Damos de alta a tu personal desde CheckLab, sin capturar en el equipo.",
+    icon: LuFingerprint,
+    title: "Elige cómo checar",
+    text: "Reloj Hikvision con el agente en tu red, checada web desde el teléfono o las dos. Todo llega al mismo registro.",
   },
   {
-    icon: LuLaptop,
-    title: "Conectamos el agente",
-    text: "CheckLab Agent corre en una PC de tu red, lee el reloj y sube las checadas. Sin VPN y con cola local si falla el internet.",
+    icon: LuCalendarClock,
+    title: "Configura tu operación",
+    text: "Importa a tu personal, arma horarios de 7 días con descansos y turnos nocturnos, y define puestos y salarios.",
   },
   {
-    icon: LuCalendarCheck,
-    title: "Tu equipo opera",
-    text: "Horarios, retardos, horas extra y pre-nómina se calculan solos. RH revisa, aprueba y cierra la semana.",
+    icon: LuShieldCheck,
+    title: "RH opera la semana",
+    text: "Revisa asistencia, confirma horas extra y cierra la pre-nómina. CheckLab deja la prueba de cada paso.",
   },
 ];
 
@@ -95,7 +148,7 @@ const PLANS = [
     price: "500",
     people: "Hasta 500 personas",
     clocks: "1 reloj",
-    features: ["Checadas y asistencia", "Personal y expedientes", "Portal del trabajador", "Reportes y export"],
+    features: ["Checada con reloj o web", "Asistencia y expedientes", "Portal Mi jornada", "Reportes y export"],
     highlight: false,
   },
   {
@@ -103,7 +156,7 @@ const PLANS = [
     price: "750",
     people: "Hasta 750 personas",
     clocks: "2 relojes",
-    features: ["Todo lo del Básico", "Horarios y pre-nómina", "Agente local incluido", "Roles adicionales"],
+    features: ["Todo lo del Básico", "Horarios y horas extra LFT", "Pre-nómina con cierre", "Agente local incluido"],
     highlight: true,
   },
   {
@@ -111,7 +164,7 @@ const PLANS = [
     price: "1,000",
     people: "Hasta 1,000 personas",
     clocks: "3 relojes",
-    features: ["Todo lo del Profesional", "Varias sucursales", "Consola multi-empresa", "Soporte prioritario"],
+    features: ["Todo lo del Profesional", "Varias sucursales", "Roles y permisos a medida", "Soporte prioritario"],
     highlight: false,
   },
 ];
@@ -122,20 +175,20 @@ const FAQ = [
     a: "Registra inicio y fin de jornada de todas las modalidades (reloj, web y teletrabajo), guarda las checadas de forma inmutable, documenta cada corrección con su aprobador y genera el export de registros con hash. El formato oficial y la retención definitiva dependen de las disposiciones que publique la STPS; el sistema está hecho para ajustarse a ellas.",
   },
   {
-    q: "¿Cómo calcula las horas extra?",
-    a: "Compara lo trabajado contra el horario de cada persona y clasifica la semana con las reglas de la LFT: horas al doble hasta el tope del año, excedente al triple y lo que rebasa la ley marcado como infracción. Cuando la jornada ordinaria baje rumbo a 40 horas, el tope se aplica según el año de cada semana.",
-  },
-  {
-    q: "¿Cómo se conecta el reloj checador?",
-    a: "Instalamos un reloj Hikvision en tu sitio y el CheckLab Agent (app de escritorio) se conecta a él por tu red local, lee las checadas y las envía al sistema. No necesitas abrir puertos ni contratar VPN: el agente solo hace conexiones de salida.",
+    q: "¿Necesito comprar un reloj checador?",
+    a: "No. Puedes operar solo con la checada web: cada persona marca entrada, salida a comer, regreso y salida desde su teléfono o computadora, y esas checadas cuentan para asistencia y pre-nómina igual que las del reloj. Si prefieres reloj, instalamos uno por sitio.",
   },
   {
     q: "¿Sirve para home office y personal en campo?",
-    a: "Sí. Cada persona tiene su portal Mi jornada para marcar entrada y salida desde el teléfono, ver sus marcajes y reportar discrepancias. La ubicación es opcional y solo se toma en el momento del marcaje.",
+    a: "Sí. En Mi jornada cada persona tiene su checada, su teletrabajo, su registro y horas extra, y sus vacaciones y permisos. Puede compartir su ubicación solo en el momento de marcar: no hay rastreo continuo.",
   },
   {
-    q: "¿Qué pasa si se cae el internet del sitio?",
-    a: "El agente guarda las checadas en una cola local y las reenvía cuando vuelve la conexión. La ingesta es idempotente: aunque reintente, nunca duplica marcajes.",
+    q: "¿Cómo calcula las horas extra?",
+    a: "Compara lo trabajado contra el horario de cada persona y clasifica la semana con las reglas de la LFT: horas al doble hasta el tope del año, excedente al triple y lo que rebasa la ley marcado aparte. Cuando la jornada ordinaria baje rumbo a 40 horas, el tope se aplica según el año de cada semana.",
+  },
+  {
+    q: "¿Cómo se conecta el reloj checador?",
+    a: "El CheckLab Agent (app de escritorio) se conecta al reloj por tu red local, lee las checadas y las envía al sistema. No necesitas abrir puertos ni contratar VPN, y si se cae el internet las checadas esperan en una cola local sin duplicarse.",
   },
   {
     q: "¿Puedo cambiar de plan o dar de baja a alguien?",
@@ -144,18 +197,50 @@ const FAQ = [
 ];
 
 const Logo = ({ className = "h-8" }: { className?: string }) => (
-  <>
-    <img src="/brand/svg/checklab-logo-for-light-bg.svg" alt="CheckLab" className={`cl-logo-light w-auto ${className}`} />
-    <img src="/brand/svg/checklab-logo-for-dark-bg.svg" alt="CheckLab" className={`cl-logo-dark w-auto ${className}`} />
-  </>
+  <img src="/brand/svg/checklab-logo-for-light-bg.svg" alt="CheckLab" width={150} height={32} className={`w-auto ${className}`} />
 );
 
 const SectionHead = ({ id, eyebrow, title, text }: { id?: string; eyebrow: string; title: string; text?: string }) => (
-  <div id={id} className="mx-auto max-w-2xl scroll-mt-24 text-center" data-reveal>
+  <div id={id} className="mx-auto max-w-[720px] scroll-mt-24 text-center" data-reveal>
     <span className="cl-eyebrow">{eyebrow}</span>
-    <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">{title}</h2>
-    {text && <p className="cl-muted mx-auto mt-4 max-w-xl text-pretty text-[15px] leading-relaxed">{text}</p>}
+    <h2 className="cl-h2 mt-3 text-balance">{title}</h2>
+    {text && <p className="cl-muted mx-auto mt-4 max-w-[580px] text-pretty text-[16px] leading-relaxed">{text}</p>}
   </div>
+);
+
+const Check = ({ children }: { children: ReactNode }) => (
+  <li className="flex items-start gap-2.5 text-[14px] leading-snug">
+    <LuCheck size={16} className="cl-mint mt-0.5 shrink-0" strokeWidth={3} />
+    <span>{children}</span>
+  </li>
+);
+
+/** Celda del bento con encabezado y captura recortada. */
+const ShotCell = ({
+  span,
+  icon,
+  label,
+  title,
+  text,
+  shot,
+  alt,
+  crop = "16 / 10",
+}: {
+  span: string;
+  icon: IconType;
+  label: string;
+  title: string;
+  text: string;
+  shot: ShotName;
+  alt: string;
+  crop?: string;
+}) => (
+  <article data-reveal className={`cl-card flex flex-col gap-6 p-6 sm:p-7 ${span}`}>
+    <CellHead icon={icon} label={label} title={title} text={text} />
+    <div className="cl-shot-frame mt-auto">
+      <Shot name={shot} alt={alt} crop={crop} sizes="(min-width: 1024px) 680px, (min-width: 768px) 50vw, 100vw" />
+    </div>
+  </article>
 );
 
 /** Spotlight del bento: el halo sigue al puntero dentro de cada tarjeta. */
@@ -167,36 +252,10 @@ const trackPointer = (event: PointerEvent<HTMLDivElement>) => {
   card.style.setProperty("--my", `${event.clientY - rect.top}px`);
 };
 
-const readTheme = (): "light" | "dark" => {
-  try {
-    const saved = window.localStorage.getItem("cl-landing-theme");
-    if (saved === "light" || saved === "dark") return saved;
-  } catch {
-    // Almacenamiento bloqueado: se usa la preferencia del sistema.
-  }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-};
-
 export default function LandingPage() {
-  const [theme, setTheme] = useState<"light" | "dark">(readTheme);
   const [menuOpen, setMenuOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem("cl-landing-theme", theme);
-    } catch {
-      // Sin almacenamiento el tema solo dura la visita.
-    }
-  }, [theme]);
-
-  useEffect(() => {
-    const previous = document.title;
-    document.title = "CheckLab · Registro de jornada con prueba plena";
-    return () => {
-      document.title = previous;
-    };
-  }, []);
+  useLandingSeo();
 
   useEffect(() => {
     const nodes = root.current?.querySelectorAll<HTMLElement>("[data-reveal]");
@@ -213,7 +272,7 @@ export default function LandingPage() {
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
     );
     nodes.forEach((node, index) => {
       node.style.transitionDelay = `${(index % 4) * 60}ms`;
@@ -223,19 +282,16 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div ref={root} className="cl-landing relative min-h-screen antialiased" data-theme={theme}>
+    <div ref={root} className="cl-landing relative min-h-screen antialiased">
       <div className="cl-backdrop" aria-hidden="true" />
 
       {/* ── Navegación ───────────────────────────────────────── */}
-      <header
-        className="sticky top-0 z-50 border-b"
-        style={{ borderColor: "var(--line)", backgroundColor: "color-mix(in srgb, var(--bg) 80%, transparent)", backdropFilter: "blur(14px)" }}
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <header className="cl-header sticky top-0 z-50 border-b">
+        <div className="cl-wrap flex items-center justify-between gap-4 py-3">
           <a href="#top" aria-label="CheckLab, inicio">
-            <Logo className="h-7 sm:h-8" />
+            <Logo className="h-8" />
           </a>
-          <nav className="hidden items-center gap-7 text-[13px] font-semibold md:flex" aria-label="Secciones">
+          <nav className="hidden items-center gap-7 text-[14px] font-semibold md:flex" aria-label="Secciones">
             {NAV.map((item) => (
               <a key={item.id} href={`#${item.id}`} className="cl-link">
                 {item.label}
@@ -243,34 +299,30 @@ export default function LandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="cl-icon-btn"
-              onClick={() => setTheme((value) => (value === "dark" ? "light" : "dark"))}
-              aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-            >
-              {theme === "dark" ? <LuSun size={16} /> : <LuMoon size={16} />}
-            </button>
-            <Link to="/login" className="cl-link hidden px-2 text-[13px] font-semibold sm:block">
+            <Link to="/login" className="cl-link hidden px-2 text-[14px] font-semibold sm:block">
               Iniciar sesión
             </Link>
-            <a href={DEMO_URL} className="cl-btn cl-btn-primary hidden !px-4 !py-2.5 text-[13px] sm:inline-flex">
-              Solicitar demo
-            </a>
-            <button
-              type="button"
-              className="cl-icon-btn md:hidden"
-              onClick={() => setMenuOpen((value) => !value)}
-              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-              aria-expanded={menuOpen}
-            >
-              {menuOpen ? <LuX size={17} /> : <LuMenu size={17} />}
-            </button>
+            <span className="hidden sm:block">
+              <a {...DEMO_LINK} className="cl-btn cl-btn-primary !px-4 !py-2.5 !text-[14px]">
+                Solicitar demo
+              </a>
+            </span>
+            <span className="md:hidden">
+              <button
+                type="button"
+                className="cl-icon-btn"
+                onClick={() => setMenuOpen((value) => !value)}
+                aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+                aria-expanded={menuOpen}
+              >
+                {menuOpen ? <LuX size={18} /> : <LuMenu size={18} />}
+              </button>
+            </span>
           </div>
         </div>
         {menuOpen && (
-          <nav className="border-t px-4 py-4 md:hidden" style={{ borderColor: "var(--line)", background: "var(--bg)" }} aria-label="Secciones">
-            <div className="grid gap-3 text-sm font-semibold">
+          <nav className="border-t px-4 py-4 md:hidden" style={{ borderColor: "var(--line)", background: "var(--bg)" }} aria-label="Secciones (menú)">
+            <div className="grid gap-3 text-[15px] font-semibold">
               {NAV.map((item) => (
                 <a key={item.id} href={`#${item.id}`} onClick={() => setMenuOpen(false)}>
                   {item.label}
@@ -280,7 +332,7 @@ export default function LandingPage() {
                 <Link to="/login" className="cl-btn cl-btn-ghost">
                   Iniciar sesión
                 </Link>
-                <a href={DEMO_URL} className="cl-btn cl-btn-primary">
+                <a {...DEMO_LINK} className="cl-btn cl-btn-primary">
                   Solicitar demo
                 </a>
               </div>
@@ -291,186 +343,267 @@ export default function LandingPage() {
 
       <main className="relative z-10">
         {/* ── Hero ─────────────────────────────────────────────── */}
-        <section id="top" className="mx-auto grid max-w-6xl gap-14 px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-[1fr_1.02fr] lg:items-center lg:gap-14 lg:pb-24 lg:pt-24">
+        <section id="top" className="cl-wrap grid gap-14 pb-16 pt-12 sm:pt-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-12 lg:pb-24 lg:pt-20">
           <div data-reveal>
             <span className="cl-chip">
-              <span className="cl-pulse" /> Listo para la reforma de 40 horas
+              <span className="cl-pulse" /> Reloj checador o checada web con ubicación
             </span>
-            <h1 className="mt-6 text-balance text-[2.6rem] font-black leading-[1.02] tracking-[-0.035em] sm:text-6xl lg:text-[4.1rem]">
-              Cada checada cuenta.{" "}
-              <span className="cl-mint">Y se puede comprobar.</span>
+            <h1 className="cl-h1 mt-6 text-balance">
+              Cada checada cuenta. <span className="cl-mint">Y se puede comprobar.</span>
             </h1>
-            <p className="cl-muted mt-6 max-w-xl text-pretty text-[16px] leading-relaxed sm:text-[17px]">
-              Reloj, web y teletrabajo en un solo registro de jornada. Horarios, retardos, horas extra al doble y al
-              triple y pre-nómina que se calculan solos, con la prueba que pide la ley.
+            <p className="cl-muted mt-6 max-w-[560px] text-pretty text-[17px] leading-relaxed sm:text-[18px]">
+              Asistencia, horas extra con la LFT y pre-nómina en un solo registro de jornada. Tu equipo checa con el reloj
+              o desde el teléfono, y RH cierra la semana con la prueba que pide la ley.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href={DEMO_URL} className="cl-btn cl-btn-primary">
-                Solicitar demo <LuArrowRight size={16} />
+              <a {...DEMO_LINK} className="cl-btn cl-btn-primary">
+                Solicitar demo <LuArrowRight size={17} />
               </a>
               <a href="#producto" className="cl-btn cl-btn-ghost">
                 Ver el producto
               </a>
             </div>
-            <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold">
-              {["Sin VPN ni puertos abiertos", "Datos aislados por empresa", "Soporte en español"].map((item) => (
+            <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-semibold">
+              {["Sin reloj obligatorio", "Datos aislados por empresa", "Soporte en español"].map((item) => (
                 <li key={item} className="cl-muted flex items-center gap-1.5">
-                  <LuCheck size={15} className="cl-mint" strokeWidth={3} /> {item}
+                  <LuCheck size={16} className="cl-mint" strokeWidth={3} /> {item}
                 </li>
               ))}
             </ul>
           </div>
-          <div data-reveal className="lg:pl-4">
-            <HeroConsole />
+
+          <div data-reveal className="cl-hero-stage">
+            <ShotWindow path="/" className="cl-hero-window">
+              <Shot
+                name="hero-home"
+                alt="Inicio de CheckLab con personas en sitio, retardos, expedientes y horas extra de la semana"
+                sizes="(min-width: 1024px) 640px, 86vw"
+                eager
+              />
+            </ShotWindow>
+            <div className="cl-phone cl-hero-phone">
+              <Shot name="hero-mobile-jornada" alt="Mi jornada en el teléfono con la entrada registrada" eager />
+            </div>
+            <div className="cl-float-card cl-float" aria-hidden="true">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ background: "var(--mint-soft)", color: "var(--mint)" }}>
+                <LuMapPin size={19} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[13.5px] font-extrabold leading-tight">Checada web registrada</p>
+                <p className="cl-muted text-[12.5px] leading-tight">Entrada · 12:02 · ubicación ±18 m</p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ── Industrias y cifras ──────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div data-reveal className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-[13px] font-semibold">
-            <span className="cl-faint">Hecho para operaciones con turnos:</span>
-            {INDUSTRIES.map((item) => (
-              <span key={item} className="cl-muted">
-                {item}
-              </span>
-            ))}
-          </div>
-          <div className="mt-10 grid grid-cols-2 overflow-hidden rounded-[26px] border lg:grid-cols-4" style={{ borderColor: "var(--line)", background: "var(--line)", gap: "1px" }}>
+        {/* ── Cifras ───────────────────────────────────────────── */}
+        <section className="cl-wrap">
+          <div className="cl-facts grid grid-cols-2 overflow-hidden rounded-[24px] border lg:grid-cols-4">
             {FACTS.map((fact) => (
-              <div key={fact.label} data-reveal className="px-5 py-6 sm:px-7" style={{ background: "var(--surface)" }}>
-                <p className="text-3xl font-black tracking-tight sm:text-4xl">{fact.value}</p>
-                <p className="mt-1 text-[13px] font-bold">{fact.label}</p>
-                <p className="cl-faint text-[12px]">{fact.sub}</p>
+              <div key={fact.label} data-reveal className="px-5 py-6 sm:px-7">
+                <p className="text-[32px] font-black leading-none tracking-tight sm:text-[38px]">{fact.value}</p>
+                <p className="mt-2 text-[14px] font-bold">{fact.label}</p>
+                <p className="cl-faint text-[13px]">{fact.sub}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── Bento del producto ───────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-32">
+        {/* ── Recorrido ────────────────────────────────────────── */}
+        <section className="cl-wrap py-24 lg:py-32">
           <SectionHead
             id="producto"
             eyebrow="Producto"
-            title="Todo el registro de jornada, en un solo lugar"
-            text="De la checada en el reloj al cierre de la pre-nómina: cada pieza conectada, auditable y pensada para RH."
+            title="De la checada al cierre de nómina, sin hojas de cálculo"
+            text="Un solo flujo: tu gente checa, RH ve el día, las horas extra salen con la ley y la pre-nómina se cierra con prueba."
+          />
+          <ol className="mt-14 grid gap-5">
+            {CHAPTERS.map((chapter, index) => (
+              <li key={chapter.label} data-reveal className="cl-card grid gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:items-center lg:gap-10">
+                <div className={`lg:col-span-5 ${index % 2 ? "lg:order-2" : ""}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="cl-step-num">0{index + 1}</span>
+                    <span className="cl-eyebrow">
+                      <chapter.icon size={14} /> {chapter.label}
+                    </span>
+                  </div>
+                  <h3 className="cl-h3 cl-h3-lg mt-4 text-balance">{chapter.title}</h3>
+                  <p className="cl-muted mt-3 text-pretty text-[15px] leading-relaxed">{chapter.text}</p>
+                  <ul className="mt-5 space-y-2.5">
+                    {chapter.points.map((point) => (
+                      <Check key={point}>{point}</Check>
+                    ))}
+                  </ul>
+                </div>
+                <div className="lg:col-span-7">
+                  <ShotWindow path={chapter.path}>
+                    <Shot name={chapter.shot} alt={chapter.alt} />
+                  </ShotWindow>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* ── Bento de módulos ─────────────────────────────────── */}
+        <section className="cl-wrap pb-24 lg:pb-32">
+          <SectionHead
+            id="modulos"
+            eyebrow="Módulos"
+            title="Todo lo que RH opera cada semana"
+            text="Pantallas reales del producto con datos de demostración."
           />
 
           <div className="cl-bento mt-14 grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-12" onPointerMove={trackPointer}>
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-7">
-              <CellHead
-                icon={LuTimer}
-                label="Motor de horas extra"
-                title="Doble, triple y fuera de ley, sin hojas de cálculo"
-                text="Cada semana se clasifica con las reglas de la LFT: tope al doble del año, excedente al triple, máximo de días y de horas por día. RH aprueba y la nómina recibe cifras cerradas."
-              />
-              <OvertimeVisual />
-            </article>
-
+            <ShotCell
+              span="md:col-span-6 lg:col-span-7"
+              icon={LuSmartphone}
+              label="Mi jornada"
+              title="El portal de cada persona, ordenado por tabs"
+              text="Mi checada, Teletrabajo, Registro y horas extra, y Vacaciones y permisos. Con el mapa de su última checada web."
+              shot="mi-jornada-map"
+              alt="Mi jornada con las cuatro checadas del día, el siguiente paso y el mapa de ubicación"
+            />
             <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-5">
               <CellHead
-                icon={LuFingerprint}
+                icon={LuServer}
                 label="Reloj y agente local"
                 title="Tu reloj, conectado sin tocar la red"
-                text="El agente habla con el reloj por la red local y sube las checadas a la nube. Si se cae el internet, nada se pierde."
+                text="El agente habla con el reloj por la red local y sube las checadas a la nube. Alta y baja del personal en el reloj desde CheckLab."
               />
-              <AgentVisual />
-              <div className="cl-panel mt-auto flex items-center gap-3 px-4 py-3">
-                <LuWifiOff size={18} className="cl-mint shrink-0" />
-                <p className="cl-muted text-[12.5px] leading-snug">
-                  Alta y baja del personal en el reloj desde CheckLab, con padrón que detecta a quien dejó de checar.
-                </p>
+              <div className="mt-auto">
+                <AgentVisual />
               </div>
             </article>
 
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-4">
-              <CellHead
-                icon={LuSmartphone}
-                label="Mi jornada"
-                title="Home office y campo, desde el teléfono"
-                text="Marcaje web con ubicación solo al marcar, historial y discrepancias del propio trabajador."
-              />
-              <PortalVisual />
-            </article>
-
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-8">
-              <CellHead
-                icon={LuFileLock2}
-                label="Prueba plena"
-                title="Nada se borra. Todo se explica."
-                text="La checada original nunca cambia. Cada corrección lleva motivo, quién la pidió y quién la aprobó, y el export para la autoridad sale con hash de integridad."
-              />
-              <AuditVisual />
-              <div className="mt-auto grid gap-3 sm:grid-cols-2">
-                <div className="cl-panel px-4 py-3">
-                  <p className="text-[12.5px] font-bold">Acuerdo del método de registro</p>
-                  <p className="cl-faint text-[11.5px]">Firmado por trabajador y empresa, con fecha, IP y hash.</p>
-                </div>
-                <div className="cl-panel px-4 py-3">
-                  <p className="text-[12.5px] font-bold">Constancia semanal</p>
-                  <p className="cl-faint text-[11.5px]">El trabajador acepta su semana o reporta una discrepancia.</p>
-                </div>
-              </div>
-            </article>
-
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-4">
-              <CellHead icon={LuCalendarCheck} label="Pre-nómina" title="Revisa por área, cierra la semana" text="Cada departamento se revisa y la semana se cierra con una fotografía de las cifras." />
-              <PayrollVisual />
-            </article>
-
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-4">
-              <CellHead icon={LuBell} label="Alertas" title="Te avisa antes del problema" text="Jornadas de más de 12 horas, ajustes por aprobar y bajas del reloj llegan a RH." />
-              <AlertsVisual />
-            </article>
-
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-4">
-              <CellHead icon={LuHouse} label="Teletrabajo NOM-037" title="Teletrabajo en regla" text="Política y aviso con consentimiento, checklist del lugar de trabajo y desconexión digital." />
-              <TeleworkVisual />
-            </article>
-
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-6">
-              <CellHead
-                icon={LuLayers}
-                label="Varias empresas o sucursales"
-                title="Cada cliente, su propio espacio"
-                text="Subdominio, marca, planes y límites por cliente. Los datos de cada empresa quedan aislados desde la base de datos."
-              />
-              <TenantsVisual />
-            </article>
-
-            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-6" style={{ background: "linear-gradient(160deg, var(--surface) 55%, var(--mint-soft))" }}>
+            <ShotCell
+              span="md:col-span-6 lg:col-span-8"
+              icon={LuFingerprint}
+              label="Relojes"
+              title="Estado en línea, alertas y padrón de cada reloj"
+              text="Tabs de estado, personas, eventos, cámara, lector y relojes. Vincula cada reloj con su persona y detecta a quien dejó de checar."
+              shot="clock-dashboard"
+              alt="Dashboard del reloj con estado en línea, personas, eventos y alertas"
+            />
+            <article
+              data-reveal
+              className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-4"
+              style={{ background: "linear-gradient(160deg, var(--surface) 55%, var(--mint-soft))" }}
+            >
               <CellHead
                 icon={LuScale}
                 label="Reforma laboral"
                 title="De 48 a 40 horas, año por año"
-                text="La jornada ordinaria baja dos horas por año desde 2027 y el tope al doble sube. CheckLab aplica el límite que corresponde a cada semana."
+                text="La jornada ordinaria baja dos horas por año desde 2027. CheckLab aplica el límite que corresponde a cada semana."
               />
-              <ReformVisual />
+              <div className="my-auto">
+                <ReformVisual />
+              </div>
+            </article>
+
+            <ShotCell
+              span="md:col-span-3 lg:col-span-6"
+              icon={LuCalendarClock}
+              label="Horarios"
+              title="Semana de 7 días, descansos y turnos nocturnos"
+              text="Validación legal al guardar y aviso antes de reemplazar un horario en uso."
+              shot="schedules"
+              alt="Lista de horarios con los días de la semana y horas por jornada"
+            />
+            <ShotCell
+              span="md:col-span-3 lg:col-span-6"
+              icon={LuUsers}
+              label="Asignación"
+              title="Asigna horarios en dos columnas"
+              text="Pasa personas de un lado a otro con flechas. Cada persona tiene una sola asignación vigente."
+              shot="schedule-assign"
+              alt="Asignación de horario con personas sin horario y con horario en dos columnas"
+            />
+
+            <ShotCell
+              span="md:col-span-3 lg:col-span-4"
+              icon={LuHouse}
+              label="Teletrabajo NOM-037"
+              title="Teletrabajo en regla"
+              text="Política con consentimiento, checklists del lugar y desconexión digital."
+              shot="telework"
+              alt="Teletrabajo con política, teletrabajadores, checklists y comunicaciones"
+            />
+            <ShotCell
+              span="md:col-span-3 lg:col-span-4"
+              icon={LuFolderOpen}
+              label="Expedientes"
+              title="Documentos completos y faltantes a la vista"
+              text="Catálogo de documentos obligatorios y avance por persona."
+              shot="employee-records"
+              alt="Expedientes de empleados con documentos obligatorios y faltantes"
+            />
+            <ShotCell
+              span="md:col-span-6 lg:col-span-4"
+              icon={LuPlane}
+              label="Vacaciones y permisos"
+              title="Una bandeja para aprobar"
+              text="Solicitudes del portal, saldos e historial por persona."
+              shot="leave"
+              alt="Bandeja de vacaciones y permisos pendientes de aprobar"
+            />
+
+            <ShotCell
+              span="md:col-span-6 lg:col-span-7"
+              icon={LuBriefcase}
+              label="Puestos de nómina"
+              title="Puestos, salarios y sueldo diario"
+              text="El salario de cada puesto alimenta el costo de la plantilla en la pre-nómina."
+              shot="payroll-settings"
+              alt="Puestos de nómina con salario diario, salario base y personal asignado"
+            />
+            <article data-reveal className="cl-card flex flex-col gap-5 p-6 sm:p-7 md:col-span-6 lg:col-span-5">
+              <CellHead
+                icon={LuLayers}
+                label="Control y multi-empresa"
+                title="Cada quien ve lo que le toca"
+                text="Roles y permisos por pantalla, bitácora que no se puede editar y una consola para operar varias empresas o sucursales."
+              />
+              <ul className="mt-auto grid gap-2.5">
+                {[
+                  ["Roles y permisos", "Administrador, RH y personal, o roles a tu medida"],
+                  ["Auditoría inmutable", "Quién hizo qué y cuándo, sin poder borrarlo"],
+                  ["Consola multi-cliente", "Subdominio, plan y límites por empresa; datos aislados"],
+                ].map(([title, sub]) => (
+                  <li key={title} className="cl-panel flex items-start gap-3 px-4 py-3">
+                    <LuCheck size={16} className="cl-mint mt-0.5 shrink-0" strokeWidth={3} />
+                    <span>
+                      <span className="block text-[14px] font-bold">{title}</span>
+                      <span className="cl-faint block text-[13px] leading-snug">{sub}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </article>
           </div>
         </section>
 
         {/* ── Cumplimiento ─────────────────────────────────────── */}
-        <section id="cumplimiento" className="scroll-mt-20 px-4 sm:px-6">
-          <div data-reveal className="mx-auto max-w-6xl overflow-hidden rounded-[32px] p-7 sm:p-12" style={{ background: "var(--navy)", color: "#F4F6FA" }}>
+        <section id="cumplimiento" className="cl-wrap scroll-mt-20">
+          <div data-reveal className="cl-navy overflow-hidden rounded-[32px] p-7 sm:p-12">
             <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
               <div>
                 <span className="cl-eyebrow" style={{ color: "#34D399" }}>
                   Cumplimiento
                 </span>
-                <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">
-                  El registro electrónico que la ley ya pide
-                </h2>
-                <p className="mt-4 text-[15px] leading-relaxed" style={{ color: "rgba(244,246,250,0.72)" }}>
-                  La reforma a la Ley Federal del Trabajo obliga a registrar electrónicamente el inicio y fin de la jornada
-                  de cada trabajador. CheckLab cubre el flujo completo y deja el rastro auditable.
+                <h2 className="cl-h2 mt-3 text-balance">El registro electrónico que la ley ya pide</h2>
+                <p className="mt-4 text-[16px] leading-relaxed" style={{ color: "rgba(244,246,250,0.78)" }}>
+                  La reforma a la Ley Federal del Trabajo obliga a registrar electrónicamente el inicio y fin de la jornada de
+                  cada trabajador. CheckLab cubre el flujo completo y deja el rastro auditable.
                 </p>
-                <p className="mt-4 text-[12px] leading-relaxed" style={{ color: "rgba(244,246,250,0.5)" }}>
-                  El formato oficial y la retención definitiva dependen de las disposiciones que publique la STPS.
+                <p className="mt-4 text-[13px] leading-relaxed" style={{ color: "rgba(244,246,250,0.68)" }}>
+                  El formato oficial y la retención definitiva dependen de las disposiciones que publique la STPS. Validamos
+                  cada ajuste contigo antes de aplicarlo.
                 </p>
               </div>
               <ul className="grid gap-2.5 sm:grid-cols-2">
                 {COMPLIANCE.map((item) => (
-                  <li key={item} className="flex items-start gap-3 rounded-2xl px-4 py-3.5 text-[13px] leading-snug" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <li key={item} className="cl-navy-item flex items-start gap-3 rounded-2xl px-4 py-3.5 text-[14px] leading-snug">
                     <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full" style={{ background: "#34D399", color: "#06281C" }}>
                       <LuCheck size={12} strokeWidth={3.5} />
                     </span>
@@ -483,7 +616,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── Cómo funciona ────────────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-32">
+        <section className="cl-wrap py-24 lg:py-32">
           <SectionHead id="como-funciona" eyebrow="Cómo funciona" title="Operando en días, no en meses" text="Nos encargamos de la instalación; tu equipo solo aprende a revisar y aprobar." />
           <ol className="mt-14 grid gap-4 md:grid-cols-3">
             {STEPS.map(({ icon: Icon, title, text }, index) => (
@@ -492,12 +625,10 @@ export default function LandingPage() {
                   <span className="flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: "var(--mint-soft)", color: "var(--mint)" }}>
                     <Icon size={20} />
                   </span>
-                  <span className="text-4xl font-black tabular-nums tracking-tight" style={{ color: "var(--line-strong)" }}>
-                    0{index + 1}
-                  </span>
+                  <span className="cl-step-num !text-[40px]">0{index + 1}</span>
                 </div>
-                <h3 className="mt-5 text-lg font-extrabold">{title}</h3>
-                <p className="cl-muted mt-2 text-[13.5px] leading-relaxed">{text}</p>
+                <h3 className="cl-h3 mt-5">{title}</h3>
+                <p className="cl-muted mt-2 text-[15px] leading-relaxed">{text}</p>
               </li>
             ))}
           </ol>
@@ -505,7 +636,7 @@ export default function LandingPage() {
 
         {/* ── Planes ───────────────────────────────────────────── */}
         <section id="planes" className="scroll-mt-20 border-y" style={{ borderColor: "var(--line)", background: "var(--surface-2)" }}>
-          <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-28">
+          <div className="cl-wrap py-24 lg:py-28">
             <SectionHead eyebrow="Planes" title="Precio simple, por tamaño de empresa" text="Elige por personas activas y relojes. Cambia de plan cuando quieras sin perder información." />
             <div className="mt-14 grid gap-4 lg:grid-cols-3">
               {PLANS.map((plan) => (
@@ -516,72 +647,69 @@ export default function LandingPage() {
                   style={plan.highlight ? { borderColor: "var(--mint)", boxShadow: "0 0 0 1px var(--mint), var(--shadow)" } : undefined}
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-extrabold">{plan.name}</h3>
+                    <h3 className="cl-h3">{plan.name}</h3>
                     {plan.highlight && <span className="cl-tag cl-tag-mint">Más elegido</span>}
                   </div>
                   <p className="mt-5 flex items-baseline gap-1.5">
-                    <span className="cl-faint text-[13px] font-semibold">desde</span>
-                    <span className="text-4xl font-black tracking-tight">${plan.price}</span>
-                    <span className="cl-muted text-[13px] font-semibold">MXN/mes</span>
+                    <span className="cl-faint text-[14px] font-semibold">desde</span>
+                    <span className="text-[40px] font-black leading-none tracking-tight">${plan.price}</span>
+                    <span className="cl-muted text-[14px] font-semibold">MXN/mes</span>
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="cl-chip">
-                      <LuUsers size={12} /> {plan.people}
+                      <LuUsers size={13} /> {plan.people}
                     </span>
                     <span className="cl-chip">
-                      <LuFingerprint size={12} /> {plan.clocks}
+                      <LuFingerprint size={13} /> {plan.clocks}
                     </span>
                   </div>
                   <ul className="mt-6 space-y-2.5">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5 text-[13.5px]">
-                        <LuCheck size={16} className="cl-mint mt-0.5 shrink-0" strokeWidth={3} />
-                        {feature}
-                      </li>
+                      <Check key={feature}>{feature}</Check>
                     ))}
                   </ul>
-                  <a href={DEMO_URL} className={`cl-btn mt-8 w-full ${plan.highlight ? "cl-btn-primary" : "cl-btn-ghost"}`}>
+                  <a {...DEMO_LINK} className={`cl-btn mt-8 w-full ${plan.highlight ? "cl-btn-primary" : "cl-btn-ghost"}`}>
                     Solicitar demo
                   </a>
                 </article>
               ))}
             </div>
-            <p className="cl-faint mt-6 text-center text-[12px]">Precios de referencia; los definitivos se confirman en la demo.</p>
+            <p className="cl-muted mt-6 text-center text-[13px]">Precios de referencia; los definitivos se confirman en la demo.</p>
           </div>
         </section>
 
         {/* ── Preguntas ────────────────────────────────────────── */}
-        <section className="mx-auto max-w-3xl px-4 py-24 sm:px-6 lg:py-28">
+        <section className="mx-auto max-w-[820px] px-4 py-24 sm:px-6 lg:py-28">
           <SectionHead id="faq" eyebrow="Preguntas frecuentes" title="Lo que suelen preguntarnos" />
           <div className="mt-12 space-y-3">
             {FAQ.map((item) => (
               <details key={item.q} data-reveal className="cl-card cl-faq !rounded-[20px] px-5 py-4">
-                <summary className="flex items-center justify-between gap-4 text-[14.5px] font-bold">
+                <summary className="flex items-center justify-between gap-4 text-[15.5px] font-bold">
                   {item.q}
-                  <LuPlus size={17} className="cl-faq-icon cl-muted shrink-0" />
+                  <span className="cl-faq-icon cl-muted shrink-0 text-[22px] leading-none" aria-hidden="true">
+                    +
+                  </span>
                 </summary>
-                <p className="cl-muted mt-3 text-[13.5px] leading-relaxed">{item.a}</p>
+                <p className="cl-muted mt-3 text-[15px] leading-relaxed">{item.a}</p>
               </details>
             ))}
           </div>
         </section>
 
         {/* ── Llamado final ────────────────────────────────────── */}
-        <section className="px-4 pb-24 sm:px-6">
-          <div data-reveal className="relative mx-auto max-w-6xl overflow-hidden rounded-[32px] px-6 py-14 text-center sm:px-14 sm:py-20" style={{ background: "var(--navy)", color: "#F4F6FA" }}>
+        <section className="cl-wrap pb-24">
+          <div data-reveal className="cl-navy relative overflow-hidden rounded-[32px] px-6 py-14 text-center sm:px-14 sm:py-20">
             <img src="/brand/svg/checklab-symbol-for-dark-bg.svg" alt="" aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 opacity-[0.07] sm:h-80 sm:w-80" />
-            <h2 className="mx-auto max-w-2xl text-balance text-3xl font-black tracking-tight sm:text-5xl">
-              Llega a la reforma con el registro de jornada resuelto
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed" style={{ color: "rgba(244,246,250,0.72)" }}>
-              Te mostramos CheckLab con una operación de turnos completa. Si te convence, instalamos el reloj y el agente
-              y tu equipo empieza a operar en días.
+            <h2 className="cl-h2 mx-auto max-w-[680px] text-balance">Llega a la reforma con el registro de jornada resuelto</h2>
+            <p className="mx-auto mt-4 max-w-[580px] text-[16px] leading-relaxed" style={{ color: "rgba(244,246,250,0.78)" }}>
+              Te mostramos CheckLab con una operación de turnos completa. Si te convence, arrancas con la checada web o
+              instalamos el reloj, y tu equipo empieza a operar en días.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <a href={DEMO_URL} className="cl-btn cl-btn-amber">
-                Solicitar demo <LuArrowRight size={16} />
+              <a {...DEMO_LINK} className="cl-btn cl-btn-amber">
+                Solicitar demo <LuArrowRight size={17} />
               </a>
-              <Link to="/login" className="cl-btn" style={{ border: "1px solid rgba(244,246,250,0.25)", color: "#F4F6FA" }}>
+              <Link to="/login" className="cl-btn" style={{ border: "1px solid rgba(244,246,250,0.3)", color: "#F4F6FA" }}>
                 Iniciar sesión
               </Link>
             </div>
@@ -590,10 +718,10 @@ export default function LandingPage() {
       </main>
 
       <footer className="relative z-10 border-t" style={{ borderColor: "var(--line)" }}>
-        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="cl-wrap flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
           <Logo className="h-7" />
-          <p className="cl-faint text-[12px]">Registro de jornada, asistencia y pre-nómina · Hecho por AXZY</p>
-          <div className="flex gap-5 text-[12.5px] font-semibold">
+          <p className="cl-muted text-[13px]">Registro de jornada, asistencia y pre-nómina · Hecho por AXZY</p>
+          <div className="flex gap-5 text-[13.5px] font-semibold">
             <a href="#cumplimiento" className="cl-link">
               Cumplimiento
             </a>

@@ -1,5 +1,23 @@
-/* Landing pública de CheckLab: bento con mini-interfaces del producto.
-   Marca: azul marino #1D2636 · papel #F4F6FA · menta (entrada) · ámbar (salida). */
+/* Landing pública de CheckLab: bento con capturas reales del producto.
+   Marca: azul marino #1D2636 · papel #F4F6FA · menta (entrada) · ámbar (salida).
+   Solo tema claro (como la app); el bloque de cumplimiento es navy por diseño.
+   Tipografía en px: la app fija html a 12.8px y el CSS del design system
+   deja h1–h6 en `inherit`, así que los títulos usan clases propias sin capa. */
+
+/* El CSS del design system se importa dos veces (main.tsx e index.css) y su
+   capa queda por encima de `utilities`: su reset `* { margin: 0; padding: 0 }`
+   anula las utilidades de Tailwind. Dentro de la landing se revierte ese reset
+   desde la misma subcapa para que las utilidades vuelvan a aplicar. */
+@layer axzy-ui-system {
+  @layer base {
+    .cl-landing,
+    .cl-landing *,
+    .cl-landing ::before,
+    .cl-landing ::after {
+      all: revert-layer;
+    }
+  }
+}
 
 .cl-landing {
   --bg: #f4f6fa;
@@ -7,7 +25,7 @@
   --surface-2: #eef1f7;
   --fg: #111a2b;
   --muted: #5b667a;
-  --faint: #8a94a7;
+  --faint: #667085;
   --line: rgba(29, 38, 54, 0.09);
   --line-strong: rgba(29, 38, 54, 0.16);
   --navy: #1d2636;
@@ -17,43 +35,57 @@
   --amber: #f59e0b;
   --amber-ink: #a35a00;
   --amber-soft: rgba(245, 158, 11, 0.14);
-  --rose: #e5484d;
-  --rose-soft: rgba(229, 72, 77, 0.12);
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 24px 48px -30px rgba(17, 26, 43, 0.32);
   --spot: rgba(14, 159, 110, 0.1);
   overflow-x: clip;
+  font-size: 16px;
+  line-height: 1.5;
   color: var(--fg);
   background: var(--bg);
   font-feature-settings: "cv11", "ss01";
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-.cl-landing[data-theme="dark"] {
-  --bg: #0a0f19;
-  --surface: #111827;
-  --surface-2: #0d1421;
-  --fg: #eef2f8;
-  --muted: #9aa6bb;
-  --faint: #6b778c;
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.16);
-  --navy: #1d2636;
-  --navy-2: #2a3850;
-  --mint: #34d399;
-  --mint-soft: rgba(52, 211, 153, 0.14);
-  --amber: #fbbf24;
-  --amber-ink: #fcd34d;
-  --amber-soft: rgba(251, 191, 36, 0.14);
-  --rose: #ff6b6f;
-  --rose-soft: rgba(255, 107, 111, 0.14);
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 28px 60px -34px rgba(0, 0, 0, 0.9);
-  --spot: rgba(52, 211, 153, 0.09);
+.cl-wrap {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 16px;
 }
+@media (min-width: 640px) { .cl-wrap { padding-inline: 24px; } }
+@media (min-width: 1024px) { .cl-wrap { padding-inline: 32px; } }
+
+.cl-landing .cl-h1 {
+  color: inherit;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+@media (min-width: 640px) { .cl-landing .cl-h1 { font-size: 48px; } }
+@media (min-width: 1024px) { .cl-landing .cl-h1 { font-size: 60px; } }
+@media (min-width: 1280px) { .cl-landing .cl-h1 { font-size: 66px; } }
+
+.cl-landing .cl-h2 {
+  color: inherit;
+  font-size: 30px;
+  font-weight: 850;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+@media (min-width: 640px) { .cl-landing .cl-h2 { font-size: 42px; } }
+
+.cl-landing .cl-h3 {
+  color: inherit;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+@media (min-width: 1024px) { .cl-landing .cl-h3-lg { font-size: 28px; } }
 
 .cl-muted { color: var(--muted); }
 .cl-faint { color: var(--faint); }
 .cl-mint { color: var(--mint); }
-.cl-amber { color: var(--amber-ink); }
 
 /* Fondo: rejilla tenue que se desvanece y halos de marca. */
 .cl-backdrop {
@@ -149,9 +181,6 @@
   white-space: nowrap;
 }
 .cl-tag-mint { background: var(--mint-soft); color: var(--mint); }
-.cl-tag-amber { background: var(--amber-soft); color: var(--amber-ink); }
-.cl-tag-rose { background: var(--rose-soft); color: var(--rose); }
-.cl-tag-plain { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
 
 .cl-btn {
   display: inline-flex;
@@ -193,22 +222,102 @@
 .cl-link { color: var(--muted); transition: color 0.15s ease; }
 .cl-link:hover { color: var(--fg); }
 
-.cl-avatar {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  width: 30px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #fff;
+.cl-header {
+  border-color: var(--line);
+  background-color: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(14px);
 }
 
-.cl-logo-dark { display: none; }
-.cl-landing[data-theme="dark"] .cl-logo-light { display: none; }
-.cl-landing[data-theme="dark"] .cl-logo-dark { display: block; }
+.cl-facts { border-color: var(--line); background: var(--line); gap: 1px; }
+.cl-facts > div { background: var(--surface); }
+
+.cl-step-num {
+  font-size: 15px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #9aa4b5;
+}
+
+.cl-navy { background: var(--navy); color: #f4f6fa; }
+.cl-navy-item { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.09); }
+
+/* ── Capturas ────────────────────────────────────────────── */
+.cl-shot { margin: 0; overflow: hidden; background: #fff; }
+.cl-shot-frame {
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid #eef1f5;
+  box-shadow: 0 12px 30px -22px rgba(17, 26, 43, 0.35);
+}
+
+.cl-window {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid #e3e8ef;
+  background: #fff;
+  box-shadow: 0 30px 70px -40px rgba(17, 26, 43, 0.45);
+}
+.cl-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #eef1f5;
+  background: #f8fafc;
+}
+.cl-window-dots { display: flex; gap: 6px; flex-shrink: 0; }
+.cl-window-dots i { display: block; height: 9px; width: 9px; border-radius: 999px; background: #d7dde6; }
+.cl-window-url {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.cl-demo-tag {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber-ink);
+  background: var(--amber-soft);
+}
+@media (max-width: 420px) { .cl-window-url { display: none; } .cl-demo-tag { margin-left: auto; } }
+
+/* ── Hero: captura + teléfono + tarjeta flotante ─────────── */
+.cl-hero-stage { position: relative; padding-bottom: 96px; }
+.cl-hero-window { margin-right: 12%; }
+.cl-hero-phone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 27%;
+  max-width: 210px;
+}
+.cl-float-card {
+  position: absolute;
+  left: -12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 290px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 18px;
+  border: 1px solid #eef1f5;
+  background: #fff;
+  box-shadow: 0 20px 40px -20px rgba(17, 26, 43, 0.4);
+}
+@media (max-width: 639px) {
+  .cl-hero-stage { padding-bottom: 72px; }
+  .cl-hero-window { margin-right: 14%; }
+  .cl-float-card { left: 0; bottom: 0; max-width: 240px; padding: 10px 12px 10px 10px; }
+}
 
 /* ── Hero: consola en vivo ───────────────────────────────── */
 .cl-pulse {
@@ -231,11 +340,6 @@
   75%, 100% { transform: scale(2.6); opacity: 0; }
 }
 
-.cl-feed-row { animation: cl-feed-in 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
-@keyframes cl-feed-in {
-  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
-  to { opacity: 1; transform: none; }
-}
 
 .cl-float { animation: cl-float 6s ease-in-out infinite; }
 .cl-float-late { animation: cl-float 7s ease-in-out 1.2s infinite; }
@@ -245,8 +349,6 @@
 }
 
 /* ── Celdas del bento ────────────────────────────────────── */
-.cl-bar { transform-origin: bottom; transform: scaleY(0); transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.3, 1); }
-.is-visible .cl-bar { transform: scaleY(1); }
 .cl-hbar { transform-origin: left; transform: scaleX(0); transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.3, 1); }
 .is-visible .cl-hbar { transform: scaleX(1); }
 
@@ -280,36 +382,14 @@
 }
 
 .cl-phone {
-  width: 100%;
-  max-width: 236px;
-  margin-inline: auto;
-  border-radius: 34px;
-  border: 7px solid var(--navy);
+  border-radius: 30px;
+  border: 6px solid var(--navy);
   background: var(--surface);
   box-shadow: 0 30px 60px -30px rgba(17, 26, 43, 0.6);
   overflow: hidden;
 }
-.cl-landing[data-theme="dark"] .cl-phone { border-color: #263248; }
+@media (max-width: 639px) { .cl-phone { border-width: 4px; border-radius: 20px; } }
 
-.cl-switch {
-  position: relative;
-  display: inline-flex;
-  height: 20px;
-  width: 34px;
-  flex-shrink: 0;
-  border-radius: 999px;
-  background: var(--mint);
-}
-.cl-switch::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  height: 14px;
-  width: 14px;
-  border-radius: 999px;
-  background: #fff;
-}
 
 /* ── Aparición al hacer scroll ───────────────────────────── */
 [data-reveal] {
@@ -332,6 +412,5 @@
     transition: none !important;
   }
   [data-reveal] { opacity: 1; transform: none; }
-  .cl-bar { transform: scaleY(1); }
   .cl-hbar { transform: scaleX(1); }
 }
