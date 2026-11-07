@@ -1,10 +1,9 @@
 import { Blobatar } from "@blobatar/react";
-import { Lottie } from "lottie-react";
 import type { IconType } from "react-icons";
 import { LuCalendarClock, LuFileChartColumn, LuFingerprint, LuTimer } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { ITFlex, ITText } from "@axzydev/axzy_ui_system";
-import logoIntro from "@shared/assets/lottie/checklab-logo-intro-for-dark-bg.json";
+import logoForDarkBg from "@shared/assets/brand/checklab-logo-for-dark-bg.svg";
 import type { PublicBranding } from "@entities/user";
 import "./login.css";
 
@@ -38,25 +37,35 @@ export default function LoginBrandPanel({ branding }: { branding: PublicBranding
       <div aria-hidden className="login-ring login-ring--accent pointer-events-none absolute -bottom-24 -right-24 h-[18rem] w-[18rem] rounded-full" />
 
       <div className="login-rise relative">
-        {branding?.logoDataUrl ? (
-          <img
-            src={branding.logoDataUrl}
-            alt={branding.name ?? tt("login.brand.logoAlt")}
-            className="h-[48px] w-auto lg:h-[60px]"
-          />
-        ) : (
-          <div className="login-logo-anim h-[52px] w-[190px] lg:h-[60px] lg:w-[220px]" role="img" aria-label={tt("login.brand.logoAlt")}>
-            <Lottie src={logoIntro} loop={false} autoplay />
+        {branding?.name ? (
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white text-[15px] font-black text-[color:var(--tm-navy)]">
+              {branding.logoDataUrl ? (
+                <img src={branding.logoDataUrl} alt={branding.name} className="h-full w-full object-contain p-1.5" />
+              ) : (
+                branding.name
+                  .split(/\s+/)
+                  .slice(-2)
+                  .map((word) => word[0])
+                  .join("")
+                  .toUpperCase()
+              )}
+            </span>
+            <div className="min-w-0">
+              <ITText className="login-on-brand block truncate text-[15px] font-bold leading-tight">{branding.name}</ITText>
+              <ITText className="login-on-brand-muted block text-[11px] font-medium">con CheckLab</ITText>
+            </div>
           </div>
+        ) : (
+          <img
+            src={logoForDarkBg}
+            alt={tt("login.brand.logoAlt")}
+            style={{ height: 68, width: "auto" }}
+          />
         )}
-        <ITText className="login-on-brand-muted mt-1 block pl-1 text-[10.5px] font-semibold uppercase tracking-[0.18em]">
-          {branding?.name ?? tt("login.brand.eyebrow")}
+        <ITText className="login-on-brand-muted mt-3 block pl-0.5 text-[9.5px] font-bold uppercase tracking-[0.18em]">
+          {tt("login.brand.eyebrow")}
         </ITText>
-        {branding?.name && (
-          <ITText className="login-on-brand-muted mt-1 block pl-1 text-[11px] font-semibold tracking-[0.08em]">
-            {tt("login.tenantActive")}
-          </ITText>
-        )}
       </div>
 
       <div className="relative mt-8 hidden lg:block">
@@ -82,13 +91,11 @@ export default function LoginBrandPanel({ branding }: { branding: PublicBranding
           </ITFlex>
         </div>
 
-        <ul className="bento-stagger mt-3 grid grid-cols-2 gap-2.5">
+        <ul className="bento-stagger mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5">
           {FEATURES.map(({ labelKey, icon: Icon }) => (
-            <li key={labelKey} className="login-glass flex items-center gap-2.5 rounded-2xl px-3 py-2.5">
-              <ITText as="span" aria-hidden className="login-chip flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
-                <Icon size={16} />
-              </ITText>
-              <ITText as="span" className="login-on-brand text-[12.5px] font-semibold leading-tight">{tt(labelKey)}</ITText>
+            <li key={labelKey} className="flex items-center gap-2">
+              <Icon size={14} className="shrink-0 text-[color:var(--tm-mint)]" aria-hidden />
+              <ITText as="span" className="login-on-brand text-[12px] font-medium leading-tight">{tt(labelKey)}</ITText>
             </li>
           ))}
         </ul>

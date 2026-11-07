@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { ITAlert, ITButton, ITInput, ITToast, ITText } from "@axzydev/axzy_ui_system";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LuLogIn, LuUser } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import "./login.css";
@@ -41,6 +42,10 @@ export default function LoginForm({
   onSubmit,
 }: LoginFormProps) {
   const { t: tt } = useTranslation(["auth"]);
+  const navigate = useNavigate();
+  const [companyCode, setCompanyCode] = useState("");
+  const [companyOpen, setCompanyOpen] = useState(false);
+  const shortTenant = tenantName?.replace(/^Cliente\s+(E2E\s+)?/i, "") ?? tenantName;
   return (
     <>
       <section className="login-form-panel flex flex-1 items-center justify-center px-[24px] py-[40px] sm:px-[32px] lg:px-[40px] lg:py-[44px]">
@@ -90,7 +95,7 @@ export default function LoginForm({
               <ITInput
                 name="username"
                 size="lg"
-                label={tt("login.userLabel")}
+                label={tenantSlug ? tt("login.userLabelTenant") : tt("login.userLabel")}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin"
@@ -132,10 +137,59 @@ export default function LoginForm({
             >
               <ITText as="span" className="flex items-center justify-center gap-2 text-sm font-bold">
                 <LuLogIn aria-hidden size={16} className="login-submit-icon" />
-                {isSubmitting ? tt("login.submitting") : tt("login.submit")}
+                {isSubmitting
+                  ? tt("login.submitting")
+                  : tenantSlug && tenantName
+                    ? tt("login.submitTenant", { name: shortTenant })
+                    : tt("login.submit")}
               </ITText>
             </ITButton>
           </form>
+
+          {tenantSlug ? (
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="login-muted mt-5 flex w-full items-center justify-center gap-1 text-[12px] font-semibold hover:underline"
+            >
+              {tt("login.tenantSwitch")}
+            </button>
+          ) : (
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/60 p-3">
+              <button
+                type="button"
+                onClick={() => setCompanyOpen((open) => !open)}
+                className="flex w-full items-start justify-between gap-3 text-left"
+              >
+                <span>
+                  <ITText className="block !text-[12px] font-bold !text-slate-700">{tt("login.company.title")}</ITText>
+                  <ITText className="block !text-[11.5px] !text-slate-500">{tt("login.company.text")}</ITText>
+                </span>
+                <span aria-hidden className="mt-0.5 text-slate-400">→</span>
+              </button>
+              {companyOpen && (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const code = companyCode.trim().toLowerCase();
+                    if (code) navigate(`/${encodeURIComponent(code)}/login`);
+                  }}
+                  className="mt-3 flex gap-2"
+                >
+                  <ITInput
+                    name="companyCode"
+                    size="sm"
+                    placeholder={tt("login.company.placeholder")}
+                    value={companyCode}
+                    onChange={(event) => setCompanyCode(event.target.value)}
+                  />
+                  <ITButton type="submit" variant="filled" color="primary" size="sm" disabled={!companyCode.trim()}>
+                    {tt("login.company.go")}
+                  </ITButton>
+                </form>
+              )}
+            </div>
+          )}
 
           <footer className="login-muted mt-8 flex items-center justify-between text-[11.5px]">
             <ITText as="span">{tt("login.footer")}</ITText>

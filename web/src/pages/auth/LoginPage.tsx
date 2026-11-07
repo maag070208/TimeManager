@@ -48,8 +48,11 @@ export default function LoginPage() {
               <ITText as="span" className="login-badge inline-block rounded-full px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em]">
                 Acceso no disponible
               </ITText>
-              <ITText as="h1" className="login-heading mt-6 flex items-center gap-2 text-[26px] font-extrabold tracking-tight sm:text-[28px]">
-                <LuShieldAlert size={26} className="shrink-0" /> Cliente no encontrado
+              <span className="mt-6 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                <LuShieldAlert size={22} />
+              </span>
+              <ITText as="h1" className="login-heading mt-3 text-[26px] font-extrabold tracking-tight sm:text-[28px]">
+                Cliente no encontrado
               </ITText>
               <ITText className="login-muted mt-2 block text-[13px] leading-relaxed">
                 La ruta no corresponde a un cliente activo. Revisa la dirección o entra con una cuenta de plataforma.

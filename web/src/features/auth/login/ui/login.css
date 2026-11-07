@@ -47,7 +47,7 @@
   color: rgb(244 246 250 / 0.7);
 }
 .login-brand .login-accent {
-  color: var(--tm-amber);
+  color: var(--tm-mint);
 }
 .login-brand .login-glass {
   background: rgb(244 246 250 / 0.06);
@@ -100,12 +100,12 @@
 }
 
 .login-badge {
-  background: color-mix(in srgb, var(--tm-amber) 16%, #ffffff);
-  color: var(--tm-amber-text);
+  background: #eaf6ef;
+  color: #0e9f6e;
 }
 .dark .login-badge {
-  background: color-mix(in srgb, var(--tm-amber) 16%, transparent);
-  color: var(--tm-amber);
+  background: color-mix(in srgb, var(--tm-mint) 16%, transparent);
+  color: var(--tm-mint);
 }
 
 /* Misma silueta de píldora que los campos del kit. */
@@ -124,7 +124,7 @@
   outline-offset: 2px;
 }
 .login-submit .login-submit-icon {
-  color: var(--tm-amber);
+  color: var(--tm-paper);
 }
 .dark .login-submit {
   background: var(--tm-amber) !important;
