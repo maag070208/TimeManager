@@ -1,8 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
-  PNG_BUFFER,
   adminSession,
-  createDocumentType,
   createStaffAccount,
   loginClient,
   openClientRoute,
@@ -13,21 +11,19 @@ import {
 /**
  * HR-01 · Expedientes de empleados (RH) y HR-M01 · aviso masivo de faltantes.
  *
- * Cubre el tablero de expedientes (KPIs/filtros/búsqueda), la selección de una
- * persona, la subida de un documento faltante desde el panel, el aviso por fila
- * y el aviso masivo con su confirmación (cancelar/confirmar).
- * Los datos de cada prueba se crean por API con nombres únicos.
+ * Cubre el tablero (KPIs/filtros/búsqueda), la selección de una persona, la
+ * consulta del documento ya cargado del seed, el aviso por fila y el aviso
+ * masivo con su confirmación (cancelar/confirmar).
+ *
+ * Nota: la subida real de documentos requiere storage (S3), que el stack E2E no
+ * configura (`STORAGE_NOT_CONFIGURED`); queda como prueba manual.
  */
 
 test.describe.configure({ retries: 1 });
 
-const setup = async (
-  request: Parameters<typeof adminSession>[0]
-): Promise<{ person: CreatedAccount; docType: { id: string; name: string } }> => {
+const setupPerson = async (request: Parameters<typeof adminSession>[0]): Promise<CreatedAccount> => {
   const session = await adminSession(request);
-  const person = await createStaffAccount(request, session);
-  const docType = await createDocumentType(request, { required: true });
-  return { person, docType };
+  return createStaffAccount(request, session);
 };
 
 const searchPerson = async (page: Page, person: CreatedAccount): Promise<void> => {
@@ -38,7 +34,7 @@ const searchPerson = async (page: Page, person: CreatedAccount): Promise<void> =
 
 test.describe("Expedientes de empleados (CLIENT_ADMIN)", () => {
   test("[HR-01] el tablero carga, filtra por estado y abre el detalle de una persona", async ({ page, request }) => {
-    const { person } = await setup(request);
+    const person = await setupPerson(request);
     await loginClient(page, "admin");
     await openClientRoute(page, "/employees/records");
 
@@ -66,48 +62,22 @@ test.describe("Expedientes de empleados (CLIENT_ADMIN)", () => {
     await searchPerson(page, person);
   });
 
-  test("[HR-01][ACT-16] sube el documento obligatorio faltante desde el panel", async ({ page, request }) => {
-    const { person, docType } = await setup(request);
-    await loginClient(page, "admin");
-    await openClientRoute(page, "/employees/records");
-
-    await searchPerson(page, person);
-    await tableRowWith(page, person.fullName).click();
-
-    const docRow = page
-      .locator("div")
-      .filter({ hasText: docType.name })
-      .filter({ has: page.getByRole("button", { name: "Subir", exact: true }) })
-      .last();
-    await expect(docRow).toBeVisible();
-    await docRow.getByRole("button", { name: "Subir", exact: true }).click();
-
-    // El tablero usa un input de archivo oculto (imagen/PDF).
-    await page.locator('input[type="file"][accept="image/*,application/pdf"]').setInputFiles({
-      name: `expediente-${docType.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`,
-      mimeType: "image/png",
-      buffer: PNG_BUFFER,
-    });
-
-    await expect(page.getByText("Documento subido", { exact: true })).toBeVisible({ timeout: 30_000 });
-    await expect(docRow.getByRole("button", { name: "Ver", exact: true })).toBeVisible({ timeout: 20_000 });
-  });
-
   test("[HR-01] avisa faltantes a una persona desde la fila", async ({ page, request }) => {
-    const { person } = await setup(request);
+    const person = await setupPerson(request);
     await loginClient(page, "admin");
     await openClientRoute(page, "/employees/records");
 
     await searchPerson(page, person);
-    const row = tableRowWith(page, person.fullName);
-    await row.getByRole("button", { name: "Avisar", exact: true }).click();
-    await expect(page.getByText(new RegExp(`Se avisó a .*${person.fullName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`))).toBeVisible({
-      timeout: 20_000,
-    });
+    await tableRowWith(page, person.fullName)
+      .getByRole("button", { name: "Avisar", exact: true })
+      .click();
+    await expect(
+      page.getByText(new RegExp(`Se avisó a .*${person.fullName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`))
+    ).toBeVisible({ timeout: 20_000 });
   });
 
   test("[HR-01][HR-M01] el aviso masivo se cancela o se confirma", async ({ page, request }) => {
-    await setup(request);
+    await setupPerson(request);
     await loginClient(page, "admin");
     await openClientRoute(page, "/employees/records");
 

@@ -161,7 +161,7 @@ export async function createDocumentType(
 export async function loginPlatformAsAcme(page: Page): Promise<void> {
   await loginAs(page, "platform", "acme");
   await expect(page).not.toHaveURL(/#\/login/);
-  await expect(page.getByRole("heading", { level: 1, name: "Panel de TimeManager" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { level: 1, name: /Panel de (TimeManager|CheckLab)/ })).toBeVisible({ timeout: 20_000 });
   const row = page.locator("tbody tr").filter({ hasText: "Cliente E2E Acme" });
   await expect(row).toBeVisible({ timeout: 20_000 });
   await row.getByRole("button", { name: "Entrar" }).click();

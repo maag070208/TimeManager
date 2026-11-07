@@ -43,6 +43,18 @@ const openDetail = async (page: Page, person: CreatedAccount): Promise<void> => 
 const tab = (page: Page, name: string) =>
   page.getByRole("button", { name, exact: true }).first();
 
+/** Abre la ficha de una persona del seed desde la lista (buscándola por nombre). */
+const openEmployeeByName = async (page: Page, name: string): Promise<void> => {
+  await openClientRoute(page, "/employees");
+  await expect(page.getByRole("heading", { level: 1, name: "Personal" })).toBeVisible();
+  await page.locator('input[name="filter-name"]').fill(name);
+  const row = page.locator("tbody tr").filter({ hasText: name });
+  await expect(row).toBeVisible({ timeout: 20_000 });
+  await row.click();
+  await expect(page.getByRole("heading", { level: 1, name: "Información del Personal" })).toBeVisible();
+  await expect(page.getByText(name).first()).toBeVisible();
+};
+
 test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
   test("[EMP-04][EMP-04-T1][EMP-04-T4] la ficha carga y los tabs de Actividad y Datos funcionan", async ({ page, request }) => {
     const { person } = await setupPerson(request);
@@ -72,36 +84,24 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     await expect(page.getByText(/No hay tipos de documento|Todo en orden|documentos por subir/)).toBeVisible();
   });
 
-  test("[EMP-04][EMP-04-T2][ACT-16] sube y elimina un documento del expediente", async ({ page, request }) => {
-    const { person } = await setupPerson(request);
-    // Tipo de documento único (obligatorio) para que la ficha lo muestre como pendiente.
-    const docType = await createDocumentType(request, { required: true });
-
+  test("[EMP-04][EMP-04-T2][ACT-16] ve y elimina un documento del expediente", async ({ page }) => {
+    // El stack E2E no configura storage (S3): la subida de archivos es manual.
+    // Sí se cubre el documento sembrado: se ve en su tipo y se elimina sin confirmación.
     await loginClient(page, "admin");
-    await openDetail(page, person);
+    await openEmployeeByName(page, "Sergio Staff");
     await tab(page, "Documentos").click();
 
-    const card = page
+    const ineCard = page
       .locator("div")
-      .filter({ has: page.getByRole("heading", { name: docType.name }) })
-      .filter({ has: page.locator('input[type="file"]') })
+      .filter({ has: page.getByRole("heading", { name: "INE", exact: true }) })
+      .filter({ hasText: "INE-Sergio-Staff.txt" })
       .last();
-    await expect(card).toBeVisible();
+    await expect(ineCard.getByText("Cargado", { exact: true })).toBeVisible({ timeout: 20_000 });
+    await expect(ineCard.getByText("INE-Sergio-Staff.txt")).toBeVisible();
 
-    // Subida real por el dropfile: el archivo entra por el input oculto.
-    const fileName = `documento-${uniqueRef("DOC").toLowerCase()}.png`;
-    await card.locator('input[type="file"]').setInputFiles({
-      name: fileName,
-      mimeType: "image/png",
-      buffer: PNG_BUFFER,
-    });
-    await expect(card.getByText(fileName)).toBeVisible({ timeout: 30_000 });
-    await expect(card.getByText("Cargado", { exact: true })).toBeVisible();
-
-    // El borrado de documento no pide confirmación (comportamiento actual).
-    await card.getByRole("button", { name: "Eliminar" }).click();
-    await expect(card.getByText(fileName)).toHaveCount(0);
-    await expect(card.getByText("Pendiente", { exact: true })).toBeVisible();
+    await ineCard.getByRole("button", { name: "Eliminar" }).click();
+    await expect(page.getByText("INE-Sergio-Staff.txt")).toHaveCount(0);
+    await expect(ineCard.getByText("Pendiente", { exact: true })).toBeVisible();
   });
 
   test("[EMP-04][EMP-M07] la credencial se previsualiza y se descarga", async ({ page, request }) => {
@@ -138,14 +138,14 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     // Cancelar no cambia el estado.
     await altaButton.click();
     const confirm = dialog(page);
-    await expect(confirm.getByText(/^Dar de alta en /)).toBeVisible();
+    await expect(confirm.getByRole("heading", { name: /^Dar de alta en / })).toBeVisible();
     await confirm.getByRole("button", { name: "No", exact: true }).click();
     await expect(confirm).toHaveCount(0);
     await expect(altaButton).toBeVisible();
 
     // Confirmar el alta en el reloj de prueba.
     await altaButton.click();
-    await dialog(page).getByRole("button", { name: "Dar de alta en el reloj" }).click();
+    await dialog(page).getByRole("button", { name: "Dar de alta en el reloj", exact: true }).click();
     await expect(page.getByText(/quedó dada de alta en/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Dada de alta", { exact: true })).toBeVisible();
 
@@ -201,10 +201,11 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     await expect(page).toHaveURL(/\/employees\/[^/]+\/edit$/);
     await expect(page.getByRole("heading", { level: 1, name: "Editar Información" })).toBeVisible();
 
-    // Validación fiscal: un RFC inválido bloquea el guardado.
+    // Validación fiscal: un RFC inválido bloquea el guardado (el kit no pinta
+    // aria-invalid, así que se comprueba el aviso de revisión y que no navegue).
     await page.locator('input[name="rfc"]').fill("ABC");
     await page.getByRole("button", { name: "Guardar cambios" }).click();
-    await expect(page.locator('input[name="rfc"]')).toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByRole("alert").filter({ hasText: /Revisa|Corrige/ })).toBeVisible({ timeout: 20_000 });
     await expect(page).toHaveURL(/\/edit$/);
     await page.locator('input[name="rfc"]').fill("");
 

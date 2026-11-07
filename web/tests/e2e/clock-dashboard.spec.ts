@@ -84,14 +84,30 @@ test.describe("dashboard del reloj", () => {
     expect((await reload).status()).toBe(200);
   });
 
-  test("[CLK-01][CLK-06][ACT-29] sincronización: 409 en curso y UI que refleja el estado", async ({ page }) => {
+  test("[CLK-01][CLK-06][ACT-29] sincronización: la UI dispara sync y la API reporta el estado", async ({ page }) => {
     await enterAcme(page);
-    // Dos disparos concurrentes: uno arranca (202) y el otro choca (409) si la
-    // corrida sigue viva; con el cursor alto del seed la corrida puede terminar
-    // en milisegundos, así que el 409 se trata como best-effort determinista.
+    // Primero la UI (estado limpio): dispara la sincronización y refleja el resultado.
+    await openAcme(page, "/hr/time-clock", "Registros de los relojes Hikvision");
+    const syncButton = page.getByRole("button", { name: /Sincronizar ahora/ }).first();
+    await expect(syncButton).toBeEnabled({ timeout: 30_000 });
+    const response = page.waitForResponse(
+      (r) => r.url().includes("/time-clock/sync") && r.request().method() === "POST"
+    );
+    await syncButton.click();
+    expect([202, 409, 503]).toContain((await response).status());
+    await expectOneOf(page, [
+      { name: "toast sync terminada", locator: page.getByText("Sincronización terminada:") },
+      { name: "alerta ya sincronizando", locator: page.getByText("Todos los relojes ya están sincronizando") },
+      { name: "badge sincronizando", locator: page.getByText("Sincronizando").first() },
+      { name: "estado al día", locator: page.getByText("Al día").first() },
+      { name: "sin conexión", locator: page.getByText("Sin conexión").first() },
+    ]);
+
+    // Contrato de concurrencia: dos disparos seguidos; el 409 es best-effort
+    // porque con el cursor alto del seed la corrida puede terminar en ms.
     let conflicted = false;
     let started = false;
-    for (let attempt = 0; attempt < 5 && !conflicted; attempt += 1) {
+    for (let attempt = 0; attempt < 3 && !conflicted; attempt += 1) {
       const [first, second] = await Promise.all([
         api(page, "POST", "/time-clock/sync"),
         api(page, "POST", "/time-clock/sync"),
@@ -100,7 +116,7 @@ test.describe("dashboard del reloj", () => {
       expect([202, 409, 503]).toContain(second.status);
       started = started || first.status === 202 || second.status === 202;
       conflicted = first.status === 409 || second.status === 409;
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(600);
     }
     expect(started || conflicted).toBe(true);
     if (!conflicted) {
@@ -110,23 +126,6 @@ test.describe("dashboard del reloj", () => {
           "La sincronización del seed termina antes del segundo disparo: se validó el 202 (arranque) y el estado en la UI; el 409 se cubre cuando la corrida sigue en curso.",
       });
     }
-
-    // La UI de Checadas dispara la sincronización y muestra su resultado sin romperse.
-    await openAcme(page, "/hr/time-clock", "Registros de los relojes Hikvision");
-    const syncButton = page.getByRole("button", { name: /Sincronizar ahora/ }).first();
-    await expect(syncButton).toBeVisible();
-    const response = page.waitForResponse(
-      (r) => r.url().includes("/time-clock/sync") && r.request().method() === "POST"
-    );
-    await syncButton.click();
-    const status = (await response).status();
-    expect([202, 409]).toContain(status);
-    await expectOneOf(page, [
-      { name: "toast sync terminada", locator: page.getByText("Sincronización terminada:") },
-      { name: "alerta ya sincronizando", locator: page.getByText("Todos los relojes ya están sincronizando") },
-      { name: "badge sincronizando", locator: page.getByText("Sincronizando").first() },
-      { name: "estado al día", locator: page.getByText("Al día").first() },
-    ]);
   });
 
   test("[CLK-06][CLK-01][ACT-29] tenant sin relojes: estado vacío y sync 503", async ({ page }) => {

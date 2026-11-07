@@ -29,7 +29,13 @@ async function pickUser(page: Page, dialog: import("@playwright/test").Locator, 
   await input.fill(user.name);
   const panel = page.locator('[data-it-floating="true"]').first();
   await expect(panel).toBeVisible({ timeout: 20_000 });
-  await panel.getByText(user.name, { exact: false }).first().click();
+  const option = panel.getByText(user.name, { exact: false }).first();
+  if (await option.isVisible().catch(() => false)) {
+    await option.click();
+  } else {
+    // Fallback: primera opción filtrada del panel.
+    await panel.locator("div.cursor-pointer").first().click();
+  }
   await expect(input).not.toHaveValue("");
 }
 

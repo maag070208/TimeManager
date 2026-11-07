@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { gotoRoute, loginAcme } from "./ops-helpers";
+import { loginClient, openClientRoute } from "./rh-fixtures";
 
 /**
  * DEP-01 · Departamentos + DEP-M01..M03 (alta, edición, baja/eliminación)
@@ -37,8 +37,8 @@ const openDetail = async (page: Page, name: string): Promise<void> => {
 
 test.describe("departamentos (acme.admin)", () => {
   test("[DEP-01] lista los departamentos sembrados", async ({ page }) => {
-    await loginAcme(page, "admin");
-    await gotoRoute(page, "/departments");
+    await loginClient(page, "admin");
+    await openClientRoute(page, "/departments");
 
     await expect(page.getByText("Estructura organizacional de tu empresa")).toBeVisible();
     for (const name of ["Recursos Humanos", "Operaciones", "Administración"]) {
@@ -48,8 +48,8 @@ test.describe("departamentos (acme.admin)", () => {
   });
 
   test("[DEP-01][DEP-M01][DEP-02][ACT-20] crea un departamento, abre su detalle y le agrega una subárea", async ({ page }) => {
-    await loginAcme(page, "admin");
-    await gotoRoute(page, "/departments");
+    await loginClient(page, "admin");
+    await openClientRoute(page, "/departments");
 
     await createDepartment(page, "Nómina E2E");
     await openDetail(page, "Nómina E2E");
@@ -63,8 +63,8 @@ test.describe("departamentos (acme.admin)", () => {
   });
 
   test("[DEP-01][DEP-M02][ACT-20] edita el nombre de un departamento desde la lista", async ({ page }) => {
-    await loginAcme(page, "admin");
-    await gotoRoute(page, "/departments");
+    await loginClient(page, "admin");
+    await openClientRoute(page, "/departments");
 
     await createDepartment(page, "Editable E2E");
     await tileOf(page, "Editable E2E").getByRole("button", { name: "Editar nombre" }).click();
@@ -82,8 +82,8 @@ test.describe("departamentos (acme.admin)", () => {
   });
 
   test("[DEP-01][DEP-M03][ACT-20] baja lógica y eliminación definitiva desde la lista", async ({ page }) => {
-    await loginAcme(page, "admin");
-    await gotoRoute(page, "/departments");
+    await loginClient(page, "admin");
+    await openClientRoute(page, "/departments");
     await createDepartment(page, "Borrar E2E");
     const tile = tileOf(page, "Borrar E2E");
 
@@ -107,8 +107,8 @@ test.describe("departamentos (acme.admin)", () => {
   });
 
   test("[DEP-02][DEP-M06][ACT-20] desactiva el departamento desde el detalle", async ({ page }) => {
-    await loginAcme(page, "admin");
-    await gotoRoute(page, "/departments");
+    await loginClient(page, "admin");
+    await openClientRoute(page, "/departments");
 
     await createDepartment(page, "Baja E2E");
     await openDetail(page, "Baja E2E");
@@ -128,8 +128,8 @@ test.describe("departamentos (acme.admin)", () => {
   });
 
   test("[DEP-02][DEP-M04][DEP-M05][ACT-20] detalle: editar, quitar y reactivar una subárea", async ({ page }) => {
-    await loginAcme(page, "admin");
-    await gotoRoute(page, "/departments");
+    await loginClient(page, "admin");
+    await openClientRoute(page, "/departments");
     await createDepartment(page, "Subáreas E2E");
     await openDetail(page, "Subáreas E2E");
     await expect(page.locator('input[name="newSubarea"]')).toBeVisible();
@@ -174,8 +174,8 @@ test.describe("departamentos (acme.admin)", () => {
   });
 
   test("[DEP-01][DEP-02] RR. HH. sin departments.manage ve la organización en solo lectura", async ({ page }) => {
-    await loginAcme(page, "rh");
-    await gotoRoute(page, "/departments");
+    await loginClient(page, "rh");
+    await openClientRoute(page, "/departments");
     await expect(page.locator('button[title="Operaciones"]')).toBeVisible();
     await expect(page.getByRole("button", { name: "Nuevo departamento" })).toHaveCount(0);
 
@@ -186,8 +186,8 @@ test.describe("departamentos (acme.admin)", () => {
   });
 
   test("[DEP-03] abre la pantalla de subáreas", async ({ page }) => {
-    await loginAcme(page, "admin");
-    await gotoRoute(page, "/subareas");
+    await loginClient(page, "admin");
+    await openClientRoute(page, "/subareas");
 
     await expect(page.getByText("Sublugares dentro de cada departamento", { exact: false })).toBeVisible();
     await expect(page.getByRole("button", { name: "Nueva subárea" })).toBeVisible();

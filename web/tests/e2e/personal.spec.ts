@@ -69,6 +69,11 @@ const rowWith = (page: Page, text: string): Locator =>
 const rowMenuTrigger = (row: Locator): Locator =>
   row.getByRole("button", { name: /^Más acciones de / });
 
+/** Acota la tabla por nombre (el seed puede quedar fuera de la primera página). */
+async function filterByName(page: Page, name: string): Promise<void> {
+  await page.locator('input[name="filter-name"]').fill(name);
+}
+
 /** Espera a que la lista pinte al menos una fila. */
 async function expectList(page: Page): Promise<void> {
   await expect(page.getByRole("heading", PERSONAL)).toBeVisible();
@@ -175,32 +180,34 @@ test.describe("Personal — CLIENT_ADMIN", () => {
       await expect(page.getByText(column, { exact: true }).first()).toBeVisible();
     }
 
-    // Personal sembrado: 1001 Ana (R. H.), 1002 Rita (R. H.), 1003 Sergio (Operaciones).
+    // Personal sembrado: 1001 Ana (Administración), 1002 Rita (R. H.), 1003 Sergio (Operaciones).
+    await filterByName(page, "Ana Administradora");
     const ana = rowWith(page, "Ana Administradora");
     await expect(ana).toContainText("1001");
     await expect(ana).toContainText("Gerente general");
     await expect(ana.getByText("Activo", { exact: true })).toBeVisible();
 
+    await filterByName(page, "Sergio Staff");
     const sergio = rowWith(page, "Sergio Staff");
     await expect(sergio).toContainText("1003");
     await expect(sergio).toContainText("Analista");
     await expect(sergio).toContainText("Operaciones");
 
+    await filterByName(page, "Rita Recursos");
     await expect(employeesTable(page)).toContainText("Rita Recursos");
   });
 
   test("[EMP-01] el buscador y los filtros acotan la lista", async ({ page }) => {
     await openEmployees(page);
-    await expect(rowWith(page, "Ana Administradora")).toBeVisible();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
 
     // Buscar por nombre.
-    await page.locator('input[name="filter-name"]').fill("Rita");
+    await filterByName(page, "Rita");
     await expect(rowWith(page, "Rita Recursos")).toBeVisible();
     await expect(rowWith(page, "Ana Administradora")).toHaveCount(0);
 
     // Limpiar y buscar por número de empleado.
-    await page.locator('input[name="filter-name"]').fill("");
-    await expect(rowWith(page, "Ana Administradora")).toBeVisible();
+    await filterByName(page, "");
     await page.locator('input[name="filter-employeeNumber"]').fill("1003");
     await expect(rowWith(page, "Sergio Staff")).toBeVisible();
     await expect(rowWith(page, "Ana Administradora")).toHaveCount(0);
@@ -208,6 +215,7 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     // Filtro por rol (columna Rol).
     await page.locator('input[name="filter-employeeNumber"]').fill("");
     await expect(page.locator('select[name="filter-role"] option[value="CLIENT_STAFF"]')).toHaveCount(1);
+    await filterByName(page, "Sergio");
     await page.locator('select[name="filter-role"]').selectOption("CLIENT_STAFF");
     await expect(rowWith(page, "Sergio Staff")).toBeVisible();
     await expect(rowWith(page, "Ana Administradora")).toHaveCount(0);
@@ -215,7 +223,9 @@ test.describe("Personal — CLIENT_ADMIN", () => {
 
   test("[EMP-01][EMP-M02] el menú ⋯ de la fila ofrece las acciones de cuenta", async ({ page }) => {
     await openEmployees(page);
+    await filterByName(page, "Sergio");
     const sergio = rowWith(page, "Sergio Staff");
+    await expect(sergio).toBeVisible();
 
     await rowMenuTrigger(sergio).click();
     const menu = page.getByRole("menu");
