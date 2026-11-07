@@ -72,6 +72,50 @@ checklab/
 - [ ] ¿La app requiere offline de checada? Propuesta: sí, cola cifrada idempotente.
 - [ ] ¿Se publica en Play Store/App Store o distribución interna? Impacta firma, review y privacidad.
 
+## 3. Identidad visual, iconos y splash (assets oficiales)
+
+La app debe usar el paquete oficial **`brand/CheckLab-brand-package`**, no recuperar iconos de la
+plantilla ni dibujar la marca de nuevo.
+
+| Asset oficial | Uso en la app |
+|---|---|
+| `svg/checklab-logo-for-dark-bg.svg` / `for-light-bg.svg` | Wordmark en login, splash y cabeceras |
+| `svg/checklab-symbol-*.svg` | Símbolo compacto en top bars, avatares de tenant y estados |
+| `web/png/checklab-icon-512.png` / `checklab-icon-1024.png` | Icono base Android/Play Store |
+| `android/play-store/ic_launcher-512.png` + `feature-graphic-1024x500.png` | Ficha de Play Store |
+| `android` adaptive icon | Foreground: símbolo CheckLab; background: navy `#1D2636` |
+| `ios/AppIcon.appiconset/*` | App icon iOS (normal, dark y tinted) con su `Contents.json` |
+| `lottie/checklab-logo-intro-for-dark-bg.json` | Animación de marca en splash/login oscuro |
+| `lottie/checklab-logo-intro-for-light-bg.json` | Variante clara |
+| `lottie/checklab-icon-intro.json` | Intro del icono en el arranque |
+| `lottie/checklab-checkin-for-*.json` / `checkout` | Confirmación animada después de checar |
+| `lottie/checklab-loader-for-*.json` | Procesos de checada/sincronización, no skeletons de páginas completas |
+
+Reglas:
+
+- **Iconos de app**: reemplazar los mipmaps de plantilla de `androidApp` por densidades desde
+  `checklab-icon-512/1024`; en iOS copiar el `AppIcon.appiconset` oficial.
+- **Splash Android 12+**: usar `SplashScreen` API con fondo navy e icono oficial; después montar la
+  animación Lottie `checklab-icon-intro` una sola vez y saltar a login/home.
+- **Splash iOS**: Launch Screen estática con fondo navy + símbolo; después animar
+  `checklab-logo-intro-for-dark-bg` en la primera pantalla.
+- **Lottie en KMP**: no hay Lottie oficial en Compose Multiplatform; usar `lottie-compose` en Android y
+  `lottie-ios`/SwiftUI (o un wrapper `expect/actual`) en iOS. Los JSON viven en
+  `shared/src/commonMain/composeResources/files/lottie/`.
+- **Tema**: navy `#1D2636`, mint `#34D399`, texto mint `#0E9F6E`, amber `#F59E0B`, paper `#F4F6FA`.
+- **No** usar animaciones Lottie como spinner de carga de cada pantalla; para carga usar skeletons y
+  para checada/splash usar las animaciones de marca.
+- Respetar `prefers-reduced-motion`/reduce motion: si está activo, mostrar el frame final estático.
+- Probar iconos en Android adaptive/maskable y en iOS light/dark/tinted antes de release.
+
+### Tareas de assets para Fase 0
+
+1. Copiar iconos oficiales Android/iOS y reemplazar los de plantilla.
+2. Configurar splash Android 12+ e iOS launch screen con navy + símbolo.
+3. Integrar Lottie Android/iOS con `expect/actual` y las animaciones de logo/checkin.
+4. Crear `BrandTokens` compartido (colores, tipografía, radios, spacing) desde la marca.
+5. Screenshot test de launcher, splash y login en Android/iOS.
+
 ## 3. Fases
 
 ### Fase 0 — Fundaciones (1–2 semanas)
