@@ -58,7 +58,7 @@ export default function LoginPage() {
                 variant="filled"
                 color="primary"
                 className="tm-save-button mt-6 w-full"
-                onClick={() => navigate("/login", { replace: true })}
+                onClick={() => window.location.assign("/#/login")}
               >
                 Ir al acceso de plataforma
               </ITButton>

@@ -117,3 +117,17 @@ test.describe("consola de clientes", () => {
     await expect(page.getByText(/Primeros pasos/).first()).toBeVisible();
   });
 });
+
+test.describe("cancelar acciones de cliente", () => {
+  test("[PLAT-03][PLAT-M4] cancelar la suspensión deja al cliente activo", async ({ page }) => {
+    await enter(page);
+    const beta = rowOf(page, "Cliente E2E Beta");
+    await beta.getByRole("button", { name: "Suspender" }).click();
+    const confirm = dialog(page);
+    await expect(confirm.getByText("¿Suspender a Cliente E2E Beta?")).toBeVisible();
+    await confirm.getByRole("button", { name: "Cancelar" }).click();
+    await expect(dialog(page)).toHaveCount(0, { timeout: 20_000 });
+    await expect(rowOf(page, "Cliente E2E Beta").getByText("Activo").first()).toBeVisible();
+    await expect(rowOf(page, "Cliente E2E Beta").getByRole("button", { name: "Suspender" })).toBeVisible();
+  });
+});

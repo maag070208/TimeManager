@@ -29,7 +29,7 @@ async function openEmployees(page: Page): Promise<void> {
 }
 
 test.describe("Personal en móvil", () => {
-  test("el cliente entra, ve la lista y abre el diálogo de cuenta", async ({ page }) => {
+  test("[EMP-01][EMP-06][EMP-M01] el cliente entra, ve la lista y abre el diálogo de cuenta", async ({ page }) => {
     await loginAs(page, "admin", "acme");
     await openEmployees(page);
 
@@ -50,10 +50,10 @@ test.describe("Personal en móvil", () => {
     // La organización también es alcanzable en el teléfono.
     await expect(dialog.locator('input[name="u_dept"]')).toHaveValue("Operaciones");
 
-    // Cerrar sin cambios vuelve a la lista.
+    // Cerrar sin cambios abre la ficha de la persona.
     await dialog.getByRole("button", { name: "Cancelar" }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(page).toHaveURL(/#\/employees$/);
-    await expect(page.getByRole("heading", PERSONAL)).toBeVisible();
+    await expect(page).toHaveURL(/#\/employees\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Información del Personal" })).toBeVisible();
   });
 });

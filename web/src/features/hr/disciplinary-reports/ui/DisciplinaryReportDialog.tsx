@@ -102,6 +102,8 @@ export default function DisciplinaryReportDialog({ isOpen, onClose, onCreated }:
                 label={t("form.employee")}
                 placeholder={t("form.employeeHint")}
                 options={(people.data as never) ?? []}
+                valueField="id"
+                labelField="name"
                 value={userId}
                 onChange={(value) => setUserId(String(value))}
                 required

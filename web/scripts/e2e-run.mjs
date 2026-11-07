@@ -11,7 +11,7 @@ import { mkdirSync, rmSync, statSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const LOCK = "/tmp/tm-e2e-run.lock";
-const STALE_MS = 15 * 60 * 1000;
+const STALE_MS = 90 * 60 * 1000;
 
 const release = () => rmSync(LOCK, { recursive: true, force: true });
 

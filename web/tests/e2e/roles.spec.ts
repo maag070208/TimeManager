@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { PLATFORM } from "./helpers";
+import { dialog } from "./platform-kit";
 import { loginReady } from "./session";
 
 /**
@@ -126,4 +127,23 @@ test.describe("consola de roles", () => {
     await expect(menu.getByRole("menuitem", { name: "SOPORTE", exact: true })).toBeVisible();
   });
 
+});
+
+test.describe("personas del rol", () => {
+  test("[PLAT-06][PLAT-06-T3][PLAT-M10] cancelar no quita a la persona del rol", async ({ page }) => {
+    await enter(page);
+    await selectAcmeTenant(page);
+    await openRoles(page);
+    await page.getByText("ADMINISTRADOR DEL CLIENTE", { exact: true }).first().click();
+    await page.getByText(/^Personas · /).first().click();
+    await expect(page.getByText("Ana Administradora", { exact: true }).first()).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole("button", { name: "Quitar", exact: true }).first().click();
+    const confirm = dialog(page);
+    await expect(confirm.getByText("Quitar rol adicional", { exact: true })).toBeVisible();
+    await expect(confirm.getByText(/Deja de recibir sus permisos de inmediato/)).toBeVisible();
+    await confirm.getByRole("button", { name: "Cancelar" }).click();
+    await expect(dialog(page)).toHaveCount(0, { timeout: 20_000 });
+    await expect(page.getByText("Ana Administradora", { exact: true }).first()).toBeVisible();
+  });
 });

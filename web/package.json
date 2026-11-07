@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "test:e2e:mobile": "playwright test --project=mobile",
     "test:e2e:report": "playwright show-report",
-    "test:e2e:serial": "node scripts/e2e-run.mjs"
+    "test:e2e:serial": "node scripts/e2e-run.mjs",
+    "test:unit": "node --import ./src/test/register.mjs --test $(find src -name \"*.test.ts\")"
   },
   "dependencies": {
     "@axzydev/axzy_ui_system": "1.8.14",

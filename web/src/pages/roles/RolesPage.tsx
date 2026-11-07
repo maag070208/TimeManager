@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { ITButton, ITText, ITFlex } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
-import { FaCubes, FaDownload, FaPlus, FaQuestionCircle, FaUserShield } from "react-icons/fa";
+import { FaCubes, FaDownload, FaPlus, FaQuestionCircle, FaUserShield, FaVial } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCan } from "@entities/user";
@@ -55,6 +55,11 @@ function RolesConsole() {
               </ITText>
             </ITButton>
           )}
+          <ITButton variant="outlined" color="secondary" onClick={() => workspace.openTester({})}>
+            <ITText as="span" className="flex items-center gap-1.5 text-[11px] font-bold">
+              <FaVial size={11} /> {t("simulator.open")}
+            </ITText>
+          </ITButton>
           <ITButton variant="outlined" color="secondary" onClick={() => workspace.setHelpOpen(true)}>
             <ITText as="span" className="flex items-center gap-1.5 text-[11px] font-bold">
               <FaQuestionCircle size={12} /> {t("help.open")}

@@ -134,7 +134,7 @@ after(async () => {
 });
 
 describe("credenciales del reloj", () => {
-  test("alta con contraseña incorrecta: 502 TIME_CLOCK_INVALID_CREDENTIALS y no queda el reloj", async () => {
+  test("[CLK-M02][ACT-28] alta con contraseña incorrecta: 502 TIME_CLOCK_INVALID_CREDENTIALS y no queda el reloj", async () => {
     const response = await createClock({ url: MOCK_URL, username: MOCK_USER, password: "contraseña-incorrecta" });
     expectError(response, 502, "TIME_CLOCK_INVALID_CREDENTIALS", "alta del reloj con credenciales incorrectas");
     assertNoPasswordLeak(response, "alta fallida");

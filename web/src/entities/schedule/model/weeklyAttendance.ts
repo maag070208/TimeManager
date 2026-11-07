@@ -64,10 +64,11 @@ export const WEEKLY_APPROVAL_BADGE: Record<WeeklyAttendanceApproval, WeeklyBadge
 };
 
 /** Minutos → horas decimales como en el Excel (`8.55`). */
-export const hoursDecimal = (minutes: number): string => (minutes / 60).toFixed(2);
+export { hoursDecimal, toDayKey, dayLabel } from "./weeklyAttendanceFormat";
 
 /** Minutos → `h:mm` (T.T del Excel). */
-export const workedTime = (minutes: number): string => formatMinutesAsHhMm(minutes).replace(/^0(\d)/, "$1");
+export const workedTime = (minutes: number): string =>
+  formatMinutesAsHhMm(minutes).replace(/^0(\d)/, "$1");
 
 /** Día local `YYYY-MM-DD` de un instante en la zona del reporte. */
 export const dayKeyInZone = (iso: string, timeZone: string): string =>
@@ -87,15 +88,7 @@ export const dayHeader = (dayKey: string): string =>
     .replace(/\./g, "")
     .toUpperCase();
 
-/** Fecha corta "16/09/2026" de una clave de día. */
-export const dayLabel = (dayKey: string): string => {
-  const [y, m, d] = dayKey.split("-");
-  return `${d}/${m}/${y}`;
-};
 
-/** Clave local `YYYY-MM-DD` de un Date del navegador (el día que el usuario eligió). */
-export const toDayKey = (date: Date): string =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
 /** Renglón del resumen por departamento de la pre-nómina. */
 export interface WeeklyDepartmentRow {

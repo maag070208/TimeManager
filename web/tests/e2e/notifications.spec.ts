@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { ACME, loginAs } from "./helpers";
+import { loginWithRetry } from "./platform-kit";
 
 const NOTIFICATIONS = `${ACME.base}/#/notifications`;
 
@@ -41,5 +42,40 @@ test.describe("centro de notificaciones", () => {
     await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
     await expect(page.getByRole("img", { name: "Sin leer" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Marcar todo como leído" })).toHaveCount(0);
+  });
+});
+
+test.describe("filtros y borrado del centro de notificaciones", () => {
+  test("[PLAT-07] los filtros acotan la bandeja sin salir de la ruta", async ({ page }) => {
+    await loginWithRetry(page, "admin", "acme");
+    await page.goto(NOTIFICATIONS);
+    await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Sin leer", exact: true }).click();
+    await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Alertas", exact: true }).click();
+    await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Todas", exact: true }).click();
+    await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/#\/notifications$/);
+  });
+
+  test("[PLAT-07] borrar un aviso lo quita del listado", async ({ page }) => {
+    await loginWithRetry(page, "admin", "acme");
+    await page.goto(NOTIFICATIONS);
+    const notice = page.getByText("Cuenta de prueba E2E", { exact: true });
+    await expect(notice).toBeVisible();
+
+    // El botón de borrar vive en la misma fila que el aviso.
+    const row = page
+      .locator("div")
+      .filter({ has: page.getByText("Cuenta de prueba E2E", { exact: true }) })
+      .filter({ has: page.getByRole("button", { name: "Eliminar" }) })
+      .last();
+    await row.getByRole("button", { name: "Eliminar" }).click();
+    await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toHaveCount(0, { timeout: 20_000 });
+    await expect(page).toHaveURL(/#\/notifications$/);
   });
 });

@@ -141,11 +141,12 @@ before(async () => {
     days: days("09:00", "18:00"),
   });
 
-  // DEMO-911: primero se asigna el Vespertino (vigente desde el día 3) y luego
-  // se captura una corrección HACIA ATRÁS al Matutino (desde el día 1). El alta
-  // no cierra la asignación del día 3 → las dos quedan vigentes el día 5.
-  await assign(admin, vespertino, [demo.id], "2026-11-03");
+  // DEMO-911 con la regla de UNA sola asignación vigente: primero se asigna el
+  // Matutino (desde el día 1) y después la corrección al Vespertino (desde el
+  // día 3). Asignar cierra la vigencia anterior, así que el día 5 debe resolver
+  // el Vespertino —la última entrada en vigor— y NO el Matutino viejo.
   await assign(admin, matutino, [demo.id], "2026-11-01");
+  await assign(admin, vespertino, [demo.id], "2026-11-03");
 
   // Retardo de 5 minutos: entrada 09:05 contra 09:00 sin tolerancia.
   await assign(admin, oficina, [five.id], "2026-11-01");

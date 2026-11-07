@@ -1,4 +1,5 @@
 import { i18n } from "@shared/i18n";
+import { isValidEmail } from "./patterns";
 
 /**
  * Lite email validator (RFC-5322-ish). Allows null/empty.
@@ -7,7 +8,5 @@ import { i18n } from "@shared/i18n";
  */
 export const validateEmail = (value: string | null | undefined): string | null => {
   if (value == null || value.trim() === "") return null;
-  const v = value.trim();
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(v) ? null : i18n.t("common:validation.invalidEmail");
+  return isValidEmail(value) ? null : i18n.t("common:validation.invalidEmail");
 };

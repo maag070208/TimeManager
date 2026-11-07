@@ -79,7 +79,7 @@ const idsOf = (body: unknown, field = "id"): string[] =>
   ((body as { data?: Array<Record<string, unknown>> })?.data ?? []).map((row) => String(row[field]));
 
 describe("cursor en el resto de /query", () => {
-  test("departamentos: nextCursor y pagina 2 sin repetir", async () => {
+  test("[DEP-01] departamentos: nextCursor y pagina 2 sin repetir", async () => {
     const first = await pageOne("/departments/query", admin.token);
     expectStatus(first, 200, "departamentos p1");
     const firstIds = idsOf(first.body);
