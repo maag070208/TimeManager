@@ -47,7 +47,7 @@ test.describe("Mi jornada (portal del trabajador)", () => {
 
     await expect(punchButton(page)).toBeVisible();
     for (const label of ["Salida a comer", "Regreso de comer"]) {
-      await expect(page.getByRole("button", { name: new RegExp(label, "i") }).first()).toBeVisible();
+      await expect(page.getByText(new RegExp(`^${label}$`, "i")).first()).toBeVisible();
     }
     // El botón grande del siguiente paso ("Registrar Entrada"/"Registrar Salida").
     await expect(page.getByRole("button", { name: /Registrar (entrada|salida)/i }).first()).toBeVisible();

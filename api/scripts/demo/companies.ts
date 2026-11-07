@@ -2,12 +2,11 @@
  * Empresas ficticias del seed demo. Todo es inventado: nombres, RFC, domicilios
  * y correos (dominio reservado `.test`, nunca entregable).
  *
- * Horarios: `days` usa 1=lunes … 7=domingo; `null` = descanso. Un tramo de
- * cuatro horas es turno partido.
+ * Horarios: `days` usa 1=lunes … 7=domingo; `null` = descanso.
  */
 export type CheckinMode = "WEB" | "CLOCK" | "HYBRID";
 export type RoleKey = "CLIENT_ADMIN" | "HUMAN_RESOURCES" | "CLIENT_STAFF";
-type Shift = [string, string] | [string, string, string, string] | null;
+type Shift = [string, string] | null;
 
 export interface ScheduleSpec {
   name: string;
@@ -173,7 +172,7 @@ export const COMPANIES: CompanySpec[] = [
       { name: "Enfermería vespertino", days: weekdays(["15:00", "22:00"], ["15:00", "22:00"]), mealBreakMin: 30, overtimeChance: 0.1, worksHolidays: true },
       { name: "Guardia nocturna", days: { 1: ["21:00", "07:00"], 2: null, 3: ["21:00", "07:00"], 4: null, 5: ["21:00", "07:00"], 6: null, 7: null }, mealBreakMin: 0, crossesMidnight: true, overtimeChance: 0.04, worksHolidays: true },
       { name: "Laboratorio", days: weekdays(["07:00", "15:00"], ["08:00", "13:00"]), mealBreakMin: 30, overtimeChance: 0.06 },
-      { name: "Recepción turno partido", days: weekdays(["08:00", "13:00", "16:00", "20:00"], ["09:00", "14:00"]), mealBreakMin: 0, overtimeChance: 0.03 },
+      { name: "Recepción", days: weekdays(["08:00", "16:00"], ["09:00", "14:00"]), mealBreakMin: 30, overtimeChance: 0.03 },
       { name: "Administrativo", days: weekdays(["09:00", "17:00"]), mealBreakMin: 60, overtimeChance: 0.05 },
     ],
     positions: [
@@ -199,7 +198,7 @@ export const COMPANIES: CompanySpec[] = [
       { department: "Enfermería", subarea: "Urgencias", jobTitle: "Enfermera de urgencias", schedule: "Guardia nocturna", position: "Enfermería especialista", count: 3, checkin: "CLOCK", clock: "SL-K1T804-1120" },
       { department: "Cuerpo médico", jobTitle: "Médico adscrito", schedule: "Enfermería matutino", position: "Médico", count: 3, checkin: "CLOCK", clock: "SL-K1T804-1120" },
       { department: "Laboratorio", jobTitle: "Químico clínico", schedule: "Laboratorio", position: "Químico", count: 3, checkin: "CLOCK", clock: "SL-K1T804-1120" },
-      { department: "Recepción y caja", jobTitle: "Recepcionista", schedule: "Recepción turno partido", position: "Recepción", count: 3, checkin: "CLOCK", clock: "SL-K1T804-1120" },
+      { department: "Recepción y caja", jobTitle: "Recepcionista", schedule: "Recepción", position: "Recepción", count: 3, checkin: "CLOCK", clock: "SL-K1T804-1120" },
       { department: "Facturación y cobranza", jobTitle: "Auxiliar de facturación", schedule: "Administrativo", position: "Administración", count: 2, checkin: "HYBRID", clock: "SL-K1T804-1120", telework: "HIBRIDO" },
       { department: "Limpieza", jobTitle: "Intendente", schedule: "Enfermería matutino", position: "Intendencia", count: 3, checkin: "CLOCK", clock: "SL-K1T804-1120" },
     ],

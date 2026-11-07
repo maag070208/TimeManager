@@ -12,6 +12,7 @@
     "prisma:generate": "pnpm --filter timemanager-api prisma:generate",
     "prisma:migrate": "pnpm --filter timemanager-api prisma:migrate",
     "seed": "pnpm --filter timemanager-api seed",
+    "demo:seed": "pnpm --filter timemanager-api demo:seed",
     "test:web": "pnpm --filter timemanager-web test:unit",
     "qa:coverage": "node scripts/qa-coverage.mjs"
   }

@@ -14,6 +14,7 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 | [SAAS_PLAN.md](SAAS_PLAN.md) | Plan de escalamiento a SaaS multi-cliente (multi-tenancy): decisiones, impacto por módulo y roadmap por fases |
 | [ARQUITECTURA.md](ARQUITECTURA.md) | Arquitectura de escalamiento: API stateless + workers, colas, índices y particionado de la BD, performance de la web |
 | [OPERACION_PRODUCCION.md](OPERACION_PRODUCCION.md) | Runbook de producción: procesos/workers, RLS, cola pg-boss, PgBouncer, observabilidad, respaldo/restore por cliente y prueba de carga |
+| [DEMO_DATA.md](DEMO_DATA.md) | Datos demo: tres empresas ficticias con personal, checadas de varias semanas y flujos de RH/NOM completos; cuentas y cómo cargarlos |
 | [QA_MATRIX.md](QA_MATRIX.md) | Matriz QA integral: 49 pantallas, 39 tabs, 71 modales, acciones críticas, cobertura actual y orden de implementación de pruebas |
 | [modules/](modules/README.md) | Ficha por módulo del sistema: qué hace, endpoints, modelos, permisos, frontend y notas multi-tenant |
 

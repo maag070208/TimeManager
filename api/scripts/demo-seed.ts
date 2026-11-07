@@ -234,8 +234,6 @@ async function seedCompany(
             restDay: shift === null,
             startTime: shift?.[0] ?? null,
             endTime: shift?.[1] ?? null,
-            splitStartTime: shift?.[2] ?? null,
-            splitEndTime: shift?.[3] ?? null,
           };
         }),
       });
@@ -489,22 +487,17 @@ async function seedCompany(
         const late = rng.chance(person.lateProne) ? rng.int(11, 42) : 0;
         const entry = late ? start + late : start - rng.int(2, 18);
         if (late && key < todayKey) lateDays.push({ person, key, minutes: late });
-        const wantsExtra =
-          rng.chance(spec.overtimeChance * (0.4 + person.overtimeBias * 1.6) * (monthEndRush(key) ? 1.8 : 1)) && !shift[2];
-        const exit = wantsExtra ? end + rng.int(45, person.overtimeBias > 0.85 ? 330 : 170) : end + rng.int(0, 14);
+        const wantsExtra = rng.chance(
+          spec.overtimeChance * (0.4 + person.overtimeBias * 1.6) * (monthEndRush(key) ? 1.8 : 1)
+        );
+        const exit = wantsExtra ? end + rng.int(45, person.overtimeBias > 0.85 ? 300 : 170) : end + rng.int(0, 14);
 
         const stamps: number[] = [entry];
-        if (shift[2] && shift[3]) {
-          stamps.push(toMinutes(shift[1]) + rng.int(0, 6), toMinutes(shift[2]) - rng.int(1, 9));
-          end = toMinutes(shift[3]);
-          stamps.push(end + rng.int(0, 12));
-        } else {
-          if (spec.mealBreakMin >= 60 && !remoteToday && rng.chance(0.55)) {
-            const out = start + Math.floor((end - start) / 2) - rng.int(0, 40);
-            stamps.push(out, out + rng.int(spec.mealBreakMin - 8, spec.mealBreakMin + 12));
-          }
-          stamps.push(exit);
+        if (spec.mealBreakMin >= 60 && !remoteToday && rng.chance(0.55)) {
+          const out = start + Math.floor((end - start) / 2) - rng.int(0, 40);
+          stamps.push(out, out + rng.int(spec.mealBreakMin - 8, spec.mealBreakMin + 12));
         }
+        stamps.push(exit);
         const forgotExit = !remoteToday && rng.chance(0.012);
         if (forgotExit) stamps.pop();
 
@@ -676,7 +669,7 @@ async function seedCompany(
       };
       const row = await db.workRecordAgreement.create({ data: { userId: person.id, ...agreement } });
       await db.workRecordAgreementVersion.create({ data: { agreementId: row.id, userId: person.id, ...agreement, employerAcceptedById: admin.id } });
-      if (person.schedule.crossesMidnight || person.schedule.name.includes("partido")) {
+      if (person.schedule.crossesMidnight) {
         await db.workdayDistributionAgreement.create({
           data: {
             userId: person.id,
