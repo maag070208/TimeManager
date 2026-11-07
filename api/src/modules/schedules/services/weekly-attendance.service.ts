@@ -150,6 +150,35 @@ export class WeeklyAttendanceService {
     });
     const userIds = people.map((p) => p.id);
 
+    // Checadas web/app (sin reloj): cuentan igual que las del reloj para
+    // asistencia, horas trabajadas y pre-nómina.
+    const remotePunches = await this.db.remotePunch.findMany({
+      where: {
+        userId: { in: userIds },
+        occurredAt: { gte: range.start, lt: range.end },
+      },
+      orderBy: { occurredAt: "asc" },
+      select: { id: true, userId: true, type: true, occurredAt: true },
+    });
+    const remoteSessionsByKey = new Map<string, Array<{ entryAt: string; exitAt: string | null; workedMinutes: number }>>();
+    const remoteOpenByUser = new Map<string, Date>();
+    for (const punch of remotePunches) {
+      const key = `${punch.userId}|${localDateKey(punch.occurredAt, timezone)}`;
+      const list = remoteSessionsByKey.get(key) ?? [];
+      const open = remoteOpenByUser.get(punch.userId);
+      if (punch.type === "ENTRY" || punch.type === "LUNCH_END") {
+        remoteOpenByUser.set(punch.userId, punch.occurredAt);
+      } else if (open) {
+        list.push({
+          entryAt: open.toISOString(),
+          exitAt: punch.occurredAt.toISOString(),
+          workedMinutes: Math.max(0, Math.round((punch.occurredAt.getTime() - open.getTime()) / 60_000)),
+        });
+        remoteOpenByUser.delete(punch.userId);
+      }
+      remoteSessionsByKey.set(key, list);
+    }
+
     const agreements = await this.db.workdayDistributionAgreement.findMany({
       where: {
         userId: { in: userIds },
@@ -172,14 +201,23 @@ export class WeeklyAttendanceService {
     const rows: WeeklyAttendanceRow[] = people.map((person) => {
       const clockNumbers = person.timeClockEmployees.map((t) => t.employeeNumber);
       // RJ-02: con checadas web/app la persona también tiene registro ese día.
-      const linked = clockNumbers.length > 0 || withSessions.includes(person.id);
+      const remoteDays = days.filter((day) => remoteSessionsByKey.has(`${person.id}|${day}`));
+      const linked = clockNumbers.length > 0 || withSessions.includes(person.id) || remoteDays.length > 0;
       const totals = emptyTotals();
       let scheduleName: string | null = null;
 
       const personDays = days.map((dayKey): WeeklyAttendanceDay => {
         const schedule = scheduleOn(assignments, person.id, dayKey);
         scheduleName = schedule?.name ?? scheduleName;
-        const daySessions = sessionsByKey.get(`${person.id}|${dayKey}`) ?? [];
+        const daySessions = [
+          ...(sessionsByKey.get(`${person.id}|${dayKey}`) ?? []),
+          ...(remoteSessionsByKey.get(`${person.id}|${dayKey}`) ?? []).map((s) => ({
+            entryAt: s.entryAt,
+            exitAt: s.exitAt,
+            workedMinutes: s.workedMinutes,
+            incident: null,
+          })),
+        ].sort((a, b) => (a.entryAt ?? "").localeCompare(b.entryAt ?? ""));
         const workday = computeWorkday(
           dayKey,
           daySessions,

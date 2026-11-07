@@ -7,7 +7,7 @@ import {
   ITFlex,
   ITInput,
   ITText,
-  ITTextarea, ITDatePicker } from "@axzydev/axzy_ui_system";
+  ITTextarea, ITDatePicker, ITDialog } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,12 +24,14 @@ import {
   LuRefreshCw,
   LuX,
 } from "react-icons/lu";
-import type { PunchType } from "@entities/nom";
+import type { MyPunch, PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { dateLocale } from "@shared/i18n";
 import { HelpTip } from "@shared/ui/help-tip";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
+import { LocationMap } from "@shared/ui/location-map";
+import { DialogHeader } from "@shared/ui/dialog-header";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
 import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
 import { useMyLeave } from "@features/nom/worker-portal/model/useMyLeave";
@@ -82,7 +84,8 @@ export default function MyWorkdayPage() {
   const wc = useWorkerCompliance();
   const leave = useMyLeave();
   const [note, setNote] = useState("");
-  const [withGeo, setWithGeo] = useState(false);
+  const [withGeo, setWithGeo] = useState(true);
+  const [mapPunch, setMapPunch] = useState<MyPunch | null>(null);
   const [workMode, setWorkMode] = useState<"PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO">("REMOTO");
   const [selectedPunch, setSelectedPunch] = useState<string | null>(null);
   const [reason, setReason] = useState("");
@@ -95,6 +98,10 @@ export default function MyWorkdayPage() {
   const [tab, setTab] = useState<"checada" | "telework" | "compliance" | "leave">("checada");
 
   const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
+  const lastGeoPunch = useMemo(
+    () => fx.punches.find((row) => row.latitude != null && row.longitude != null) ?? null,
+    [fx.punches]
+  );
   const telework = fx.telework;
   const checklistItems = telework?.checklistTemplate.items ?? [];
 
@@ -336,6 +343,21 @@ export default function MyWorkdayPage() {
                     <ITText muted className="!text-[11px]">{t("punch.privacy")}</ITText>
                   </div>
                 </details>
+
+                {lastGeoPunch?.latitude != null && lastGeoPunch?.longitude != null && (
+                  <div className="rounded-2xl border border-slate-100 bg-white p-3">
+                    <ITFlex align="center" gap={1} className="mb-2">
+                      <LuMapPin size={13} className="text-rose-500" />
+                      <ITText className="!text-[12px] font-bold !text-slate-700">Ubicación de tu última checada web</ITText>
+                    </ITFlex>
+                    <LocationMap
+                      latitude={lastGeoPunch.latitude}
+                      longitude={lastGeoPunch.longitude}
+                      height={160}
+                      caption={`${dateOf(lastGeoPunch.occurredAt)} · ${timeOf(lastGeoPunch.occurredAt)}`}
+                    />
+                  </div>
+                )}
               </ITFlex>
             </ITCard>
 
@@ -374,6 +396,19 @@ export default function MyWorkdayPage() {
                           <ITBadget color={row.source === "REMOTE" ? "info" : "gray"} size="sm">
                             {tr(SOURCE_LABEL[row.source])}
                           </ITBadget>
+                          {row.latitude != null && row.longitude != null && (
+                            <ITButton
+                              variant="text"
+                              color="secondary"
+                              size="sm"
+                              className="!h-7 !min-h-7 !w-7 !border-0 !bg-slate-100 !p-0 !text-slate-500"
+                              title="Ver ubicación en el mapa"
+                              aria-label="Ver ubicación en el mapa"
+                              onClick={() => setMapPunch(row)}
+                            >
+                              <LuMapPin size={12} />
+                            </ITButton>
+                          )}
                           {row.source !== "ACCESS" && (
                             <ITButton
                               variant="text"
@@ -784,6 +819,19 @@ export default function MyWorkdayPage() {
           </>
         )}
       </div>
+      <ITDialog isOpen={!!mapPunch} onClose={() => setMapPunch(null)} className="max-w-2xl">
+        <DialogHeader
+          icon={<LuMapPin size={20} />}
+          title="Ubicación de la checada web"
+          subtitle={mapPunch ? `${dateOf(mapPunch.occurredAt)} · ${timeOf(mapPunch.occurredAt)}` : undefined}
+        />
+        {mapPunch?.latitude != null && mapPunch?.longitude != null && (
+          <LocationMap latitude={mapPunch.latitude} longitude={mapPunch.longitude} height={320} caption="Solo se guardó al momento de la checada." />
+        )}
+        <ITFlex justify="end" className="mt-4">
+          <ITButton variant="outlined" color="secondary" onClick={() => setMapPunch(null)}>Cerrar</ITButton>
+        </ITFlex>
+      </ITDialog>
     </ITPage>
   );
 }

@@ -380,7 +380,7 @@ export class PunchAdjustmentsService {
       where: { userId, occurredAt: { gte: from, lt: to } },
       orderBy: { occurredAt: "desc" },
       take: limit,
-      select: { id: true, occurredAt: true, type: true, workMode: true },
+      select: { id: true, occurredAt: true, type: true, workMode: true, latitude: true, longitude: true },
     });
 
     const merged: MyPunch[] = [
@@ -407,6 +407,8 @@ export class PunchAdjustmentsService {
         occurredAt: punch.occurredAt.toISOString(),
         method: punch.workMode,
         clockSerial: null,
+        latitude: punch.latitude,
+        longitude: punch.longitude,
       })),
     ];
     merged.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));

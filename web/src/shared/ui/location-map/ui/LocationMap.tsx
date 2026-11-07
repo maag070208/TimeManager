@@ -3,8 +3,11 @@ import { ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { FaExternalLinkAlt, FaMapMarkerAlt } from "react-icons/fa";
 import { i18n } from "@shared/i18n";
 
-const API_KEY = (import.meta.env as Record<string, string | undefined>)
+const RAW_KEY = (import.meta.env as Record<string, string | undefined>)
   .VITE_GOOGLE_MAPS_API_KEY;
+// Las claves válidas de Google Maps empiezan con `AIza`. Si el valor es un
+// placeholder (p. ej. `TEASDNASLKDNAS`), se usa OSM para no romper el mapa.
+const API_KEY = RAW_KEY?.startsWith("AIza") ? RAW_KEY : undefined;
 
 let googleMapsPromise: Promise<void> | null = null;
 

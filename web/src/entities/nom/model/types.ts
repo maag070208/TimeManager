@@ -11,6 +11,8 @@ export interface MyPunch {
   occurredAt: string;
   method: string;
   clockSerial: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface RemotePunchResult {
