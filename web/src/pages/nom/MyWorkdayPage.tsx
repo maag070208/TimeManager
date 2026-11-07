@@ -29,6 +29,7 @@ import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { dateLocale } from "@shared/i18n";
 import { HelpTip } from "@shared/ui/help-tip";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
 import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
 import { useMyLeave } from "@features/nom/worker-portal/model/useMyLeave";
@@ -91,6 +92,7 @@ export default function MyWorkdayPage() {
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
+  const [tab, setTab] = useState<"checada" | "telework" | "compliance" | "leave">("checada");
 
   const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
   const telework = fx.telework;
@@ -150,6 +152,12 @@ export default function MyWorkdayPage() {
     LUNCH_END: tr("punch.status.back"),
     EXIT: tr("punch.status.done"),
   };
+  const PUNCH_CONFIRM: Record<PunchType, string> = {
+    ENTRY: "entrada",
+    LUNCH_START: "salida a comer",
+    LUNCH_END: "regreso de comer",
+    EXIT: "salida",
+  };
   const statusTone = !lastType ? "gray" : lastType === "LUNCH_START" ? "warning" : lastType === "EXIT" ? "gray" : "success";
   const primaryLabel =
     primaryNext === "ENTRY" || primaryNext === "EXIT"
@@ -182,6 +190,18 @@ export default function MyWorkdayPage() {
         </ITButton>
       }
     >
+      <TabBar
+        items={[
+          { id: "checada", label: "Mi checada", icon: <LuCalendarCheck size={13} /> },
+          { id: "telework", label: "Teletrabajo", icon: <LuLaptop size={13} /> },
+          { id: "compliance", label: "Registro y horas extra", icon: <LuFileText size={13} /> },
+          { id: "leave", label: "Vacaciones y permisos", icon: <LuClock size={13} /> },
+        ] as TabBarItem<"checada" | "telework" | "compliance" | "leave">[]}
+        value={tab}
+        onChange={setTab}
+      />
+
+      <div className={tab === "checada" ? "" : "hidden"}>
       <BentoKpiGrid
         items={[
           { id: "entry", label: PUNCH_LABEL.ENTRY, value: timeByType("ENTRY") ?? "—", caption: timeByType("ENTRY") ? "Registrada" : "Pendiente", icon: <LuLogIn size={14} />, tone: "success" },
@@ -190,6 +210,7 @@ export default function MyWorkdayPage() {
           { id: "exit", label: PUNCH_LABEL.EXIT, value: timeByType("EXIT") ?? "—", caption: timeByType("EXIT") ? "Registrada" : "Pendiente", icon: <LuLogOut size={14} />, tone: "neutral" },
         ]}
       />
+      </div>
 
       <div className="mt-4 grid grid-cols-1 items-start gap-4 pb-12 lg:grid-cols-12">
         {fx.error && (
@@ -203,7 +224,7 @@ export default function MyWorkdayPage() {
         ) : (
           <>
             {/* Checada del día: siguiente paso grande + los 4 movimientos. */}
-            <ITCard className="tm-hero-card tm-hero-card--mint lg:col-span-7" contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--mint ${tab === "checada" ? "lg:col-span-7" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={4}>
                 <ITFlex align="center" justify="between" gap={2} wrap="wrap">
                   <ITFlex direction="column" gap={0.5}>
@@ -223,7 +244,8 @@ export default function MyWorkdayPage() {
                   type="button"
                   disabled={fx.busy}
                   onClick={() => void doPunch(primaryNext)}
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-[#eaf6ef] px-4 py-4 text-left text-slate-900 transition hover:border-emerald-200 hover:brightness-[0.99] disabled:opacity-60"
+                  className="flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left text-slate-900 transition hover:brightness-[0.99] disabled:opacity-60"
+                  style={{ backgroundColor: "#eaf6ef", borderColor: "#d1fae5", color: "#0f172a" }}
                 >
                   <span className="flex items-center gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -243,6 +265,9 @@ export default function MyWorkdayPage() {
                   </span>
                 </button>
 
+                <ITText className="!text-[12px] !text-slate-600">
+                  Presiona aquí para confirmar tu <ITText as="span" className="font-bold !text-slate-900">{PUNCH_CONFIRM[primaryNext]}</ITText>.
+                </ITText>
                 <ITFlex align="center" gap={1}>
                   <ITText muted className="!text-[11.5px]">
                     {tr("punch.channelHint")}
@@ -315,7 +340,7 @@ export default function MyWorkdayPage() {
             </ITCard>
 
             {/* Mis marcajes */}
-            <ITCard className="tm-hero-card tm-hero-card--sky lg:col-span-5" contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--sky ${tab === "checada" ? "lg:col-span-5" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuCalendarCheck size={16} />} title={t("punches.title")} />
                 <div className="min-w-0">
@@ -351,10 +376,10 @@ export default function MyWorkdayPage() {
                           </ITBadget>
                           {row.source !== "ACCESS" && (
                             <ITButton
-                              variant="outlined"
+                              variant="text"
                               color="secondary"
                               size="sm"
-                              className="tm-icon-button"
+                              className="!h-7 !min-h-7 !w-7 !border-0 !bg-slate-100 !p-0 !text-slate-500"
                               title={`${t("punches.report")} · ${timeOf(row.occurredAt)}`}
                               aria-label={`${t("punches.report")} · ${timeOf(row.occurredAt)}`}
                               onClick={() => {
@@ -405,7 +430,7 @@ export default function MyWorkdayPage() {
             </ITCard>
 
             {/* Teletrabajo */}
-            <ITCard className="tm-hero-card tm-hero-card--amber lg:col-span-6" contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--amber ${tab === "telework" ? "lg:col-span-12" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuLaptop size={16} />} title={t("telework.title")} help="NOM-037: el teletrabajo requiere registro, política de desconexión, aviso de privacidad, consentimiento y checklist del lugar. Sin consentimiento no se habilita reportar desde casa." />
                 {!telework || !telework.registration ? (
@@ -514,7 +539,7 @@ export default function MyWorkdayPage() {
               </ITFlex>
             </ITCard>
             {/* Consentimiento de horas extra (F3/1.5) */}
-            <ITCard className="tm-hero-card tm-hero-card--amber lg:col-span-6" contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--amber ${tab === "compliance" ? "lg:col-span-6" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuClock size={16} />} title={tr("requests.title")} help="El trabajo fuera de jornada requiere tu consentimiento: aquí ves y decides cada solicitud antes de programarla. La decisión queda auditada." />
                 <ITText muted className="!text-[12px]">{tr("requests.hint")}</ITText>
@@ -573,7 +598,7 @@ export default function MyWorkdayPage() {
               </ITFlex>
             </ITCard>
             {/* Prueba plena (R-01): método de registro y conformidad semanal */}
-            <ITCard className="tm-hero-card tm-hero-card--mint lg:col-span-7" contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--mint ${tab === "compliance" ? "lg:col-span-7" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuFileText size={16} />} title={tr("record.title")} help="Prueba plena del registro electrónico: aceptas el método (reloj, web, app o mixto) y la conformidad semanal; si algo no coincide, reportas la discrepancia con nota." />
                 <ITText muted className="!text-[12px]">{tr("record.hint")}</ITText>
@@ -661,7 +686,7 @@ export default function MyWorkdayPage() {
             </ITCard>
 
             {/* Vacaciones y permisos */}
-            <ITCard className="tm-hero-card tm-hero-card--sky lg:col-span-5" contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--sky ${tab === "leave" ? "lg:col-span-12" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuCalendarCheck size={16} />} title={tr("leave.title")} />
                 <ITText muted className="!text-[12px]">{tr("leave.hint")}</ITText>

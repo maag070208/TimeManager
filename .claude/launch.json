@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "timemanager-web", "dev"],
+      "port": 5009
+    },
+    {
+      "name": "api-demo",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd api && PORT=4021 WEB_ORIGIN='http://localhost:5019,http://*.localhost:5019' DATABASE_URL=postgresql://postgres:test@127.0.0.1:55433/tm_demo npx ts-node -r tsconfig-paths/register src/index.ts"],
+      "port": 4021
+    },
+    {
+      "name": "web-demo",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd web && VITE_API_URL=http://localhost:4021/api/v1 npx vite --port 5019 --strictPort --host 0.0.0.0"],
+      "port": 5019
+    }
+  ]
+}

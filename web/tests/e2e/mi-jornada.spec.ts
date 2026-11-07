@@ -52,9 +52,11 @@ test.describe("Mi jornada (portal del trabajador)", () => {
     // El botón grande del siguiente paso ("Registrar Entrada"/"Registrar Salida").
     await expect(page.getByRole("button", { name: /Registrar (entrada|salida)/i }).first()).toBeVisible();
     await expect(page.locator('input[name="punchesRange"]')).toBeVisible();
-    await expect(page.locator('input[name="leaveRange"]')).toBeVisible();
     await expect(page.getByText("Mis marcajes")).toBeVisible();
+    await page.getByRole("button", { name: /Teletrabajo/ }).click();
     await expect(page.getByText("Mi teletrabajo")).toBeVisible();
+    await page.getByRole("button", { name: /Vacaciones y permisos/ }).click();
+    await expect(page.locator('input[name="leaveRange"]')).toBeVisible();
     await expect(page.getByText(/requiere un cliente en contexto/i)).toHaveCount(0);
   });
 
@@ -138,6 +140,7 @@ test.describe("Mi jornada (portal del trabajador)", () => {
   test("[NOM-01-S3] mi teletrabajo: acepta la política y completa el checklist", async ({ page }) => {
     await enterStaff(page);
     await openWorkday(page);
+    await page.getByRole("button", { name: /Teletrabajo/ }).click();
 
     await expect(page.getByText("Checklist del lugar de teletrabajo")).toBeVisible({ timeout: 25_000 });
     const accept = page.getByRole("button", { name: "Aceptar" }).first();
@@ -164,6 +167,7 @@ test.describe("Mi jornada (portal del trabajador)", () => {
   test("[NOM-01-S4] registro electrónico: conformidad semanal", async ({ page }) => {
     await enterStaff(page);
     await openWorkday(page);
+    await page.getByRole("button", { name: /Registro y horas extra/ }).click();
 
     const acceptWeek = page.getByRole("button", { name: "Confirmar mi semana" }).first();
     if (await page.getByText(/Última conformidad/).isVisible().catch(() => false)) {
@@ -198,6 +202,7 @@ test.describe("Mi jornada (portal del trabajador)", () => {
     });
 
     await openWorkday(page);
+    await page.getByRole("button", { name: /Vacaciones y permisos/ }).click();
     await page.getByRole("button", { name: "Actualizar" }).click();
     // La fila de la solicitud recién creada se distingue por tipo + fecha.
     const pending = page.locator("div.rounded-lg", { hasText: type.name }).filter({ hasText: shownDate }).first();

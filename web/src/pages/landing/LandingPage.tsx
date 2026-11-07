@@ -1,29 +1,40 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   LuArrowRight,
-  LuBadgeCheck,
   LuBell,
   LuCalendarCheck,
   LuCheck,
-  LuChevronDown,
-  LuClock,
-  LuFileText,
+  LuFileLock2,
   LuFingerprint,
+  LuHouse,
   LuLayers,
   LuLaptop,
-  LuMapPin,
   LuMenu,
   LuMoon,
+  LuPlus,
+  LuScale,
   LuServer,
-  LuShieldCheck,
   LuSmartphone,
-  LuSparkles,
   LuSun,
+  LuTimer,
   LuUsers,
   LuWifiOff,
   LuX,
 } from "react-icons/lu";
+import HeroConsole from "./ui/HeroConsole";
+import {
+  AgentVisual,
+  AlertsVisual,
+  AuditVisual,
+  CellHead,
+  OvertimeVisual,
+  PayrollVisual,
+  PortalVisual,
+  ReformVisual,
+  TeleworkVisual,
+  TenantsVisual,
+} from "./ui/BentoCells";
 import "./landing.css";
 
 const DEMO_URL =
@@ -34,51 +45,73 @@ const DEMO_URL =
 
 const NAV = [
   { id: "producto", label: "Producto" },
-  { id: "reloj", label: "Reloj y agente" },
   { id: "cumplimiento", label: "Cumplimiento" },
+  { id: "como-funciona", label: "Cómo funciona" },
   { id: "planes", label: "Planes" },
   { id: "faq", label: "Preguntas" },
 ];
 
-const TRUST = [
-  { icon: LuShieldCheck, text: "Alineado a la reforma LFT 2027" },
-  { icon: LuLayers, text: "Multi-cliente con datos aislados" },
-  { icon: LuWifiOff, text: "Agente local: no necesitas VPN" },
-  { icon: LuSmartphone, text: "Portal móvil para tu personal" },
+const FACTS = [
+  { value: "0", label: "checadas editables", sub: "se corrigen con ajuste aprobado" },
+  { value: "5 min", label: "sincronización del reloj", sub: "automática, sin abrir puertos" },
+  { value: "12 h", label: "tope diario vigilado", sub: "con alerta a RH" },
+  { value: "48→40 h", label: "transición LFT", sub: "aplicada semana a semana" },
 ];
 
-const NOM_CHECKS = [
-  "Registro de entrada y salida de todas las modalidades",
-  "Inmutabilidad de checadas y ajustes auditados",
-  "Límites de jornada 12 h/día y 46 → 40 h semanales",
-  "Export de registros para la autoridad (STPS)",
-  "Portal con discrepancia del trabajador",
-  "Teletrabajo y desconexión NOM-037",
+const INDUSTRIES = ["Logística", "Salud", "Restaurantes", "Manufactura", "Retail", "Seguridad privada"];
+
+const COMPLIANCE = [
+  "Inicio y fin de jornada de todas las modalidades: reloj, web y teletrabajo",
+  "Checadas inmutables; cada corrección con motivo y aprobador distinto",
+  "Horas extra al doble y al triple con los topes de los arts. 66 y 68",
+  "Acuerdo del método de registro y constancia semanal del trabajador",
+  "Convenios de distribución de jornada para turnos nocturnos",
+  "Teletrabajo NOM-037: política, consentimiento, checklist y desconexión",
+  "Export de registros para la autoridad con hash de integridad",
+  "Retención y archivo de registros configurable por cliente",
+];
+
+const STEPS = [
+  {
+    icon: LuServer,
+    title: "Instalamos el reloj",
+    text: "Un Hikvision de rostro y huella por sitio. Damos de alta a tu personal desde CheckLab, sin capturar en el equipo.",
+  },
+  {
+    icon: LuLaptop,
+    title: "Conectamos el agente",
+    text: "CheckLab Agent corre en una PC de tu red, lee el reloj y sube las checadas. Sin VPN y con cola local si falla el internet.",
+  },
+  {
+    icon: LuCalendarCheck,
+    title: "Tu equipo opera",
+    text: "Horarios, retardos, horas extra y pre-nómina se calculan solos. RH revisa, aprueba y cierra la semana.",
+  },
 ];
 
 const PLANS = [
   {
     name: "Básico",
-    people: "500 personas",
+    price: "500",
+    people: "Hasta 500 personas",
     clocks: "1 reloj",
-    price: "desde $500 MXN/mes",
     features: ["Checadas y asistencia", "Personal y expedientes", "Portal del trabajador", "Reportes y export"],
     highlight: false,
   },
   {
     name: "Profesional",
-    people: "750 personas",
+    price: "750",
+    people: "Hasta 750 personas",
     clocks: "2 relojes",
-    price: "desde $750 MXN/mes",
     features: ["Todo lo del Básico", "Horarios y pre-nómina", "Agente local incluido", "Roles adicionales"],
     highlight: true,
   },
   {
     name: "Empresarial",
-    people: "1,000 personas",
+    price: "1,000",
+    people: "Hasta 1,000 personas",
     clocks: "3 relojes",
-    price: "desde $1,000 MXN/mes",
-    features: ["Todo lo del Profesional", "Multi-sucursal", "Consola de plataforma", "Soporte prioritario"],
+    features: ["Todo lo del Profesional", "Varias sucursales", "Consola multi-empresa", "Soporte prioritario"],
     highlight: false,
   },
 ];
@@ -86,15 +119,19 @@ const PLANS = [
 const FAQ = [
   {
     q: "¿CheckLab cumple con el registro electrónico de jornada?",
-    a: "El sistema registra inicio y fin de jornada de todas las modalidades (reloj, acceso y marcaje remoto), guarda las checadas de forma inmutable, documenta cada corrección con su aprobador y genera el export de registros con hash. El formato oficial y la retención definitiva dependen de las disposiciones que publique la STPS para 2027; el sistema queda listo para ajustarse.",
+    a: "Registra inicio y fin de jornada de todas las modalidades (reloj, web y teletrabajo), guarda las checadas de forma inmutable, documenta cada corrección con su aprobador y genera el export de registros con hash. El formato oficial y la retención definitiva dependen de las disposiciones que publique la STPS; el sistema está hecho para ajustarse a ellas.",
+  },
+  {
+    q: "¿Cómo calcula las horas extra?",
+    a: "Compara lo trabajado contra el horario de cada persona y clasifica la semana con las reglas de la LFT: horas al doble hasta el tope del año, excedente al triple y lo que rebasa la ley marcado como infracción. Cuando la jornada ordinaria baje rumbo a 40 horas, el tope se aplica según el año de cada semana.",
   },
   {
     q: "¿Cómo se conecta el reloj checador?",
-    a: "Instalamos un reloj Hikvision en tu sitio y el CheckLab Agent (app de escritorio) se conecta a él por tu red local, lee las checadas y las envía al sistema en bloques configurables. No necesitas abrir puertos ni contratar VPN: el agente solamente hace conexiones de salida.",
+    a: "Instalamos un reloj Hikvision en tu sitio y el CheckLab Agent (app de escritorio) se conecta a él por tu red local, lee las checadas y las envía al sistema. No necesitas abrir puertos ni contratar VPN: el agente solo hace conexiones de salida.",
   },
   {
     q: "¿Sirve para home office y personal en campo?",
-    a: "Sí. Además del reloj, cada persona tiene su portal Mi jornada para marcar entrada y salida desde el teléfono, consultar sus marcajes y reportar discrepancias. La ubicación es opcional y solo se comparte en el momento del marcaje.",
+    a: "Sí. Cada persona tiene su portal Mi jornada para marcar entrada y salida desde el teléfono, ver sus marcajes y reportar discrepancias. La ubicación es opcional y solo se toma en el momento del marcaje.",
   },
   {
     q: "¿Qué pasa si se cae el internet del sitio?",
@@ -102,85 +139,65 @@ const FAQ = [
   },
   {
     q: "¿Puedo cambiar de plan o dar de baja a alguien?",
-    a: "Sí. Los planes se administran por número de personas activas y relojes; dar de baja libera lugar y bajar de plan no borra información, solo bloquea altas nuevas por encima del límite.",
+    a: "Sí. Los planes se miden por personas activas y relojes. Dar de baja libera lugar, y bajar de plan no borra información: solo limita nuevas altas por encima del límite.",
   },
 ];
 
-const ThemeToggle = ({ theme, onToggle }: { theme: "light" | "dark"; onToggle: () => void }) => (
-  <button
-    type="button"
-    onClick={onToggle}
-    aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-    className="lp-card flex h-10 w-10 items-center justify-center !rounded-full"
-    style={{ color: "var(--lp-fg)" }}
-  >
-    {theme === "dark" ? <LuSun size={17} /> : <LuMoon size={17} />}
-  </button>
+const Logo = ({ className = "h-8" }: { className?: string }) => (
+  <>
+    <img src="/brand/svg/checklab-logo-for-light-bg.svg" alt="CheckLab" className={`cl-logo-light w-auto ${className}`} />
+    <img src="/brand/svg/checklab-logo-for-dark-bg.svg" alt="CheckLab" className={`cl-logo-dark w-auto ${className}`} />
+  </>
 );
 
-const BrowserFrame = ({
-  src,
-  alt,
-  url,
-  className = "",
-}: {
-  src: string;
-  alt: string;
-  url: string;
-  className?: string;
-}) => (
-  <div className={`lp-browser ${className}`}>
-    <div className="lp-browser-bar">
-      <span className="lp-browser-dot" />
-      <span className="lp-browser-dot" />
-      <span className="lp-browser-dot" />
-      <span className="lp-browser-url">{url}</span>
-    </div>
-    <img src={src} alt={alt} loading="lazy" className="block w-full" />
-  </div>
-);
-
-const SectionTitle = ({
-  eyebrow,
-  title,
-  text,
-  id,
-}: {
-  eyebrow: string;
-  title: string;
-  text?: string;
-  id?: string;
-}) => (
+const SectionHead = ({ id, eyebrow, title, text }: { id?: string; eyebrow: string; title: string; text?: string }) => (
   <div id={id} className="mx-auto max-w-2xl scroll-mt-24 text-center" data-reveal>
-    <span
-      className="lp-chip"
-      style={{ borderColor: "var(--lp-line)", color: "var(--lp-accent-ink)" }}
-    >
-      <LuSparkles size={13} />
-      {eyebrow}
-    </span>
-    <h2 className="mt-4 text-balance text-3xl font-extrabold tracking-tight sm:text-[2.5rem] sm:leading-[1.1]">
-      {title}
-    </h2>
-    {text && <p className="lp-muted mx-auto mt-3 max-w-xl text-pretty text-[15px] leading-relaxed">{text}</p>}
+    <span className="cl-eyebrow">{eyebrow}</span>
+    <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">{title}</h2>
+    {text && <p className="cl-muted mx-auto mt-4 max-w-xl text-pretty text-[15px] leading-relaxed">{text}</p>}
   </div>
 );
+
+/** Spotlight del bento: el halo sigue al puntero dentro de cada tarjeta. */
+const trackPointer = (event: PointerEvent<HTMLDivElement>) => {
+  const card = (event.target as HTMLElement).closest<HTMLElement>(".cl-card");
+  if (!card || card.parentElement !== event.currentTarget) return;
+  const rect = card.getBoundingClientRect();
+  card.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+  card.style.setProperty("--my", `${event.clientY - rect.top}px`);
+};
+
+const readTheme = (): "light" | "dark" => {
+  try {
+    const saved = window.localStorage.getItem("cl-landing-theme");
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {
+    // Almacenamiento bloqueado: se usa la preferencia del sistema.
+  }
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+};
 
 export default function LandingPage() {
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "light";
-    const saved = window.localStorage.getItem("tm-landing-theme");
-    if (saved === "light" || saved === "dark") return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  });
+  const [theme, setTheme] = useState<"light" | "dark">(readTheme);
   const [menuOpen, setMenuOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    window.localStorage.setItem("tm-landing-theme", theme);
+    try {
+      window.localStorage.setItem("cl-landing-theme", theme);
+    } catch {
+      // Sin almacenamiento el tema solo dura la visita.
+    }
   }, [theme]);
 
-  // Aparición suave de secciones y tarjetas al hacer scroll.
+  useEffect(() => {
+    const previous = document.title;
+    document.title = "CheckLab · Registro de jornada con prueba plena";
+    return () => {
+      document.title = previous;
+    };
+  }, []);
+
   useEffect(() => {
     const nodes = root.current?.querySelectorAll<HTMLElement>("[data-reveal]");
     if (!nodes?.length) return;
@@ -190,482 +207,405 @@ export default function LandingPage() {
     }
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
           entry.target.classList.add("is-visible");
           observer.unobserve(entry.target);
-        });
+        }
       },
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
     nodes.forEach((node, index) => {
-      node.style.transitionDelay = `${Math.min(index % 5, 4) * 55}ms`;
+      node.style.transitionDelay = `${(index % 4) * 60}ms`;
       observer.observe(node);
     });
     return () => observer.disconnect();
   }, []);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-
   return (
-    <div
-      ref={root}
-      className="tm-landing min-h-screen scroll-smooth antialiased"
-      data-theme={theme}
-      style={{ fontFamily: "inherit" }}
-    >
-      <div className="lp-grid-bg">
-        {/* ── Nav ─────────────────────────────────────────────── */}
-        <header className="sticky top-0 z-50 border-b" style={{ borderColor: "var(--lp-line)", backgroundColor: "color-mix(in srgb, var(--lp-bg) 82%, transparent)", backdropFilter: "blur(14px)" }}>
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <a href="#top" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--lp-navy)" }}>
-                <LuClock size={19} style={{ color: "var(--lp-accent)" }} />
-              </span>
-              <span className="text-[15px] font-extrabold tracking-tight">
-                Time<span className="lp-accent">Manager</span>
-              </span>
-            </a>
+    <div ref={root} className="cl-landing relative min-h-screen antialiased" data-theme={theme}>
+      <div className="cl-backdrop" aria-hidden="true" />
 
-            <nav className="hidden items-center gap-7 text-[13px] font-semibold md:flex" style={{ color: "var(--lp-muted)" }}>
+      {/* ── Navegación ───────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-50 border-b"
+        style={{ borderColor: "var(--line)", backgroundColor: "color-mix(in srgb, var(--bg) 80%, transparent)", backdropFilter: "blur(14px)" }}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <a href="#top" aria-label="CheckLab, inicio">
+            <Logo className="h-7 sm:h-8" />
+          </a>
+          <nav className="hidden items-center gap-7 text-[13px] font-semibold md:flex" aria-label="Secciones">
+            {NAV.map((item) => (
+              <a key={item.id} href={`#${item.id}`} className="cl-link">
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="cl-icon-btn"
+              onClick={() => setTheme((value) => (value === "dark" ? "light" : "dark"))}
+              aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+            >
+              {theme === "dark" ? <LuSun size={16} /> : <LuMoon size={16} />}
+            </button>
+            <Link to="/login" className="cl-link hidden px-2 text-[13px] font-semibold sm:block">
+              Iniciar sesión
+            </Link>
+            <a href={DEMO_URL} className="cl-btn cl-btn-primary hidden !px-4 !py-2.5 text-[13px] sm:inline-flex">
+              Solicitar demo
+            </a>
+            <button
+              type="button"
+              className="cl-icon-btn md:hidden"
+              onClick={() => setMenuOpen((value) => !value)}
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={menuOpen}
+            >
+              {menuOpen ? <LuX size={17} /> : <LuMenu size={17} />}
+            </button>
+          </div>
+        </div>
+        {menuOpen && (
+          <nav className="border-t px-4 py-4 md:hidden" style={{ borderColor: "var(--line)", background: "var(--bg)" }} aria-label="Secciones">
+            <div className="grid gap-3 text-sm font-semibold">
               {NAV.map((item) => (
-                <a key={item.id} href={`#${item.id}`} className="lp-nav-link transition-colors hover:opacity-100">
+                <a key={item.id} href={`#${item.id}`} onClick={() => setMenuOpen(false)}>
                   {item.label}
                 </a>
               ))}
-            </nav>
-
-            <div className="flex items-center gap-2">
-              <ThemeToggle theme={theme} onToggle={toggleTheme} />
-              <Link to="/login" className="lp-btn-primary lp-nav-cta !px-4 !py-2.5 text-[13px]">
-                Iniciar sesión
-              </Link>
-              <button
-                type="button"
-                aria-label="Abrir menú"
-                onClick={() => setMenuOpen((v) => !v)}
-                className="lp-card flex h-10 w-10 items-center justify-center !rounded-full md:hidden"
-                style={{ color: "var(--lp-fg)" }}
-              >
-                {menuOpen ? <LuX size={18} /> : <LuMenu size={18} />}
-              </button>
-            </div>
-          </div>
-
-          {menuOpen && (
-            <div className="border-t px-4 py-4 md:hidden" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-bg)" }}>
-              <nav className="grid gap-3 text-sm font-semibold" style={{ color: "var(--lp-fg)" }}>
-                {NAV.map((item) => (
-                  <a key={item.id} href={`#${item.id}`} onClick={() => setMenuOpen(false)}>
-                    {item.label}
-                  </a>
-                ))}
-                <Link to="/login" className="lp-btn-primary mt-2">
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Link to="/login" className="cl-btn cl-btn-ghost">
                   Iniciar sesión
                 </Link>
-              </nav>
+                <a href={DEMO_URL} className="cl-btn cl-btn-primary">
+                  Solicitar demo
+                </a>
+              </div>
             </div>
-          )}
-        </header>
+          </nav>
+        )}
+      </header>
 
-        {/* ── Hero ────────────────────────────────────────────── */}
-        <section id="top" className="relative isolate mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-16 sm:px-6 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
-          <div className="lp-aurora" aria-hidden="true" />
-          <div className="relative z-10" data-reveal>
-            <span className="lp-chip" style={{ color: "var(--lp-accent-ink)" }}>
-              <LuBadgeCheck size={14} />
-              Registro electrónico LFT 2027 · NOM-037
+      <main className="relative z-10">
+        {/* ── Hero ─────────────────────────────────────────────── */}
+        <section id="top" className="mx-auto grid max-w-6xl gap-14 px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-[1fr_1.02fr] lg:items-center lg:gap-14 lg:pb-24 lg:pt-24">
+          <div data-reveal>
+            <span className="cl-chip">
+              <span className="cl-pulse" /> Listo para la reforma de 40 horas
             </span>
-            <h1 className="mt-5 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.4rem]">
-              El registro de jornada que tu empresa{" "}
-              <span className="lp-accent">va a necesitar</span>.
+            <h1 className="mt-6 text-balance text-[2.6rem] font-black leading-[1.02] tracking-[-0.035em] sm:text-6xl lg:text-[4.1rem]">
+              Cada checada cuenta.{" "}
+              <span className="cl-mint">Y se puede comprobar.</span>
             </h1>
-            <p className="lp-muted mt-5 max-w-xl text-pretty text-[15px] leading-relaxed sm:text-base">
-              Checadas con reloj Hikvision, asistencia, horarios, horas extra y expedientes en un solo sistema
-              multi-cliente. Con agente local para la red de cada empresa y portal móvil para su personal.
+            <p className="cl-muted mt-6 max-w-xl text-pretty text-[16px] leading-relaxed sm:text-[17px]">
+              Reloj, web y teletrabajo en un solo registro de jornada. Horarios, retardos, horas extra al doble y al
+              triple y pre-nómina que se calculan solos, con la prueba que pide la ley.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <a href={DEMO_URL} className="lp-btn-primary">
-                Solicitar demo
-                <LuArrowRight size={16} />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a href={DEMO_URL} className="cl-btn cl-btn-primary">
+                Solicitar demo <LuArrowRight size={16} />
               </a>
-              <Link to="/login" className="lp-btn-ghost">
-                Entrar al sistema
-              </Link>
+              <a href="#producto" className="cl-btn cl-btn-ghost">
+                Ver el producto
+              </a>
             </div>
-            <div className="mt-8 flex flex-wrap gap-2">
-              <span className="lp-chip"><LuShieldCheck size={13} /> Inmutable y auditable</span>
-              <span className="lp-chip"><LuLayers size={13} /> Multi-cliente</span>
-              <span className="lp-chip"><LuWifiOff size={13} /> Trabaja sin VPN</span>
-            </div>
+            <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold">
+              {["Sin VPN ni puertos abiertos", "Datos aislados por empresa", "Soporte en español"].map((item) => (
+                <li key={item} className="cl-muted flex items-center gap-1.5">
+                  <LuCheck size={15} className="cl-mint" strokeWidth={3} /> {item}
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <div className="relative z-10" data-reveal>
-            <BrowserFrame src="/landing/home.jpg" alt="Inicio del cliente con asistencia y personal" url="acme.checklab.mx" />
-            <div className="lp-card lp-float absolute -bottom-6 -left-2 hidden max-w-[220px] p-4 sm:block">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full" style={{ background: "var(--lp-glow)", color: "var(--lp-accent-ink)" }}>
-                  <LuCheck size={15} />
-                </span>
-                <div>
-                  <p className="text-[12px] font-bold">Asistencia al día</p>
-                  <p className="lp-muted text-[11px]">Entradas, retardos y ubicaciones</p>
-                </div>
-              </div>
-            </div>
-            <div className="lp-card lp-float-soft absolute -right-2 -top-5 hidden items-center gap-2 !rounded-full px-4 py-2 font-bold sm:flex">
-              <span className="h-2 w-2 rounded-full" style={{ background: "#22c55e" }} />
-              <span className="text-[12px]">Reloj conectado</span>
-            </div>
+          <div data-reveal className="lg:pl-4">
+            <HeroConsole />
           </div>
         </section>
 
-        {/* ── Trust strip ─────────────────────────────────────── */}
-        <section className="border-y" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-surface-2)" }}>
-          <div className="mx-auto grid max-w-6xl gap-5 px-4 py-8 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-            {TRUST.map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2.5">
-                <Icon size={16} style={{ color: "var(--lp-accent-ink)" }} />
-                <span className="text-[12.5px] font-semibold" style={{ color: "var(--lp-muted)" }}>
-                  {text}
-                </span>
+        {/* ── Industrias y cifras ──────────────────────────────── */}
+        <section className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div data-reveal className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-[13px] font-semibold">
+            <span className="cl-faint">Hecho para operaciones con turnos:</span>
+            {INDUSTRIES.map((item) => (
+              <span key={item} className="cl-muted">
+                {item}
+              </span>
+            ))}
+          </div>
+          <div className="mt-10 grid grid-cols-2 overflow-hidden rounded-[26px] border lg:grid-cols-4" style={{ borderColor: "var(--line)", background: "var(--line)", gap: "1px" }}>
+            {FACTS.map((fact) => (
+              <div key={fact.label} data-reveal className="px-5 py-6 sm:px-7" style={{ background: "var(--surface)" }}>
+                <p className="text-3xl font-black tracking-tight sm:text-4xl">{fact.value}</p>
+                <p className="mt-1 text-[13px] font-bold">{fact.label}</p>
+                <p className="cl-faint text-[12px]">{fact.sub}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── Bento producto ──────────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-          <SectionTitle
+        {/* ── Bento del producto ───────────────────────────────── */}
+        <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-32">
+          <SectionHead
             id="producto"
-            eyebrow="Un solo sistema"
-            title="Todo lo que tu operación necesita, en un tablero"
-            text="Diseñado para RH y administración: la persona, su horario, sus checadas y su expediente conectados."
+            eyebrow="Producto"
+            title="Todo el registro de jornada, en un solo lugar"
+            text="De la checada en el reloj al cierre de la pre-nómina: cada pieza conectada, auditable y pensada para RH."
           />
 
-          <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-12">
-            {/* Asistencia */}
-            <article data-reveal className="lp-card overflow-hidden lg:col-span-7">
-              <div className="flex items-start justify-between gap-4 p-6 pb-0 sm:p-7">
-                <div>
-                  <span className="lp-chip"><LuClock size={13} /> Asistencia</span>
-                  <h3 className="mt-3 text-xl font-extrabold tracking-tight">Entradas, salidas y retardos en vivo</h3>
-                  <p className="lp-muted mt-1.5 max-w-sm text-[13.5px] leading-relaxed">
-                    Resumen de hoy, retardos y conciliación del reloj contra el sistema, sin descargar hojas de cálculo.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-5 px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/attendance.jpg" alt="Pantalla de entradas y salidas" url="acme.checklab.mx/#/hr/time-clock/entries-exits" />
-              </div>
+          <div className="cl-bento mt-14 grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-12" onPointerMove={trackPointer}>
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-7">
+              <CellHead
+                icon={LuTimer}
+                label="Motor de horas extra"
+                title="Doble, triple y fuera de ley, sin hojas de cálculo"
+                text="Cada semana se clasifica con las reglas de la LFT: tope al doble del año, excedente al triple, máximo de días y de horas por día. RH aprueba y la nómina recibe cifras cerradas."
+              />
+              <OvertimeVisual />
             </article>
 
-            {/* Personal */}
-            <article data-reveal className="lp-card flex flex-col overflow-hidden lg:col-span-5">
-              <div className="p-6 sm:p-7">
-                <span className="lp-chip"><LuUsers size={13} /> Personal</span>
-                <h3 className="mt-3 text-xl font-extrabold tracking-tight">Una persona, una cuenta</h3>
-                <p className="lp-muted mt-1.5 text-[13.5px] leading-relaxed">
-                  Expediente, cuenta, permisos y baja lógica en una sola pantalla. Sin duplicados ni listas paralelas.
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-5">
+              <CellHead
+                icon={LuFingerprint}
+                label="Reloj y agente local"
+                title="Tu reloj, conectado sin tocar la red"
+                text="El agente habla con el reloj por la red local y sube las checadas a la nube. Si se cae el internet, nada se pierde."
+              />
+              <AgentVisual />
+              <div className="cl-panel mt-auto flex items-center gap-3 px-4 py-3">
+                <LuWifiOff size={18} className="cl-mint shrink-0" />
+                <p className="cl-muted text-[12.5px] leading-snug">
+                  Alta y baja del personal en el reloj desde CheckLab, con padrón que detecta a quien dejó de checar.
                 </p>
               </div>
-              <div className="mt-auto px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/personal.jpg" alt="Listado de personal" url="acme.checklab.mx/#/employees" />
-              </div>
             </article>
 
-            {/* Horarios y pre-nómina */}
-            <article data-reveal className="lp-card overflow-hidden lg:col-span-5">
-              <div className="p-6 sm:p-7">
-                <span className="lp-chip"><LuCalendarCheck size={13} /> Horarios y nómina</span>
-                <h3 className="mt-3 text-xl font-extrabold tracking-tight">Turnos, tolerancias y pre-nómina</h3>
-                <p className="lp-muted mt-1.5 text-[13.5px] leading-relaxed">
-                  Reglas por horario para retardos y tiempo extra, cierres semanales y revisión por departamento.
-                </p>
-              </div>
-              <div className="mt-4 px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/schedules.jpg" alt="Pantalla de horarios" url="acme.checklab.mx/#/schedules" />
-              </div>
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-4">
+              <CellHead
+                icon={LuSmartphone}
+                label="Mi jornada"
+                title="Home office y campo, desde el teléfono"
+                text="Marcaje web con ubicación solo al marcar, historial y discrepancias del propio trabajador."
+              />
+              <PortalVisual />
             </article>
 
-            {/* Portal del trabajador */}
-            <article data-reveal className="lp-card overflow-hidden lg:col-span-7">
-              <div className="grid gap-6 p-6 sm:grid-cols-[1fr_260px] sm:p-7">
-                <div>
-                  <span className="lp-chip"><LuSmartphone size={13} /> Portal del trabajador</span>
-                  <h3 className="mt-3 text-xl font-extrabold tracking-tight">Mi jornada, desde el teléfono</h3>
-                  <p className="lp-muted mt-1.5 text-[13.5px] leading-relaxed">
-                    Home office, campo y teletrabajo: marcar entrada y salida, consultar marcajes y reportar
-                    discrepancias. Ubicación opcional y solo al momento del marcaje.
-                  </p>
-                  <ul className="mt-4 space-y-2">
-                    {["Marcaje remoto sin reloj", "Portal responsive para cualquier teléfono", "Teletrabajo, desconexión y consentimiento"].map((item) => (
-                      <li key={item} className="flex items-start gap-2 text-[13px]">
-                        <LuCheck size={15} className="mt-0.5 shrink-0" style={{ color: "var(--lp-accent-ink)" }} />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-8">
+              <CellHead
+                icon={LuFileLock2}
+                label="Prueba plena"
+                title="Nada se borra. Todo se explica."
+                text="La checada original nunca cambia. Cada corrección lleva motivo, quién la pidió y quién la aprobó, y el export para la autoridad sale con hash de integridad."
+              />
+              <AuditVisual />
+              <div className="mt-auto grid gap-3 sm:grid-cols-2">
+                <div className="cl-panel px-4 py-3">
+                  <p className="text-[12.5px] font-bold">Acuerdo del método de registro</p>
+                  <p className="cl-faint text-[11.5px]">Firmado por trabajador y empresa, con fecha, IP y hash.</p>
                 </div>
-                <div className="self-center">
-                  <div className="lp-phone">
-                    <img src="/landing/portal-mobile.jpg" alt="Portal Mi jornada en el teléfono" loading="lazy" />
-                  </div>
+                <div className="cl-panel px-4 py-3">
+                  <p className="text-[12.5px] font-bold">Constancia semanal</p>
+                  <p className="cl-faint text-[11.5px]">El trabajador acepta su semana o reporta una discrepancia.</p>
                 </div>
               </div>
             </article>
 
-            {/* Reloj + agente */}
-            <article data-reveal className="lp-card lp-brand-card overflow-hidden lg:col-span-6">
-              <div className="p-6 sm:p-7">
-                <span className="lp-chip">
-                  <LuFingerprint size={13} /> Reloj y agente local
-                </span>
-                <h3 className="mt-3 text-xl font-extrabold tracking-tight">
-                  Tu reloj Hikvision, sin abrir la red
-                </h3>
-                <p className="mt-2 max-w-md text-[13.5px] leading-relaxed">
-                  El CheckLab Agent se instala en una PC del cliente, se conecta al reloj por LAN y envía las
-                  checadas al sistema en bloques configurables. Cola local si se cae el internet.
-                </p>
-                <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] font-bold">
-                  <span className="lp-chip">Reloj</span>
-                  <LuArrowRight size={14} className="lp-muted" />
-                  <span className="lp-chip">Agente</span>
-                  <LuArrowRight size={14} className="lp-muted" />
-                  <span className="lp-chip">API CheckLab</span>
-                </div>
-              </div>
-              <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.checklab.mx/#/time-clocks" />
-              </div>
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-4">
+              <CellHead icon={LuCalendarCheck} label="Pre-nómina" title="Revisa por área, cierra la semana" text="Cada departamento se revisa y la semana se cierra con una fotografía de las cifras." />
+              <PayrollVisual />
             </article>
 
-            {/* Multi-cliente y planes */}
-            <article data-reveal className="lp-card overflow-hidden lg:col-span-6">
-              <div className="p-6 sm:p-7">
-                <span className="lp-chip"><LuLayers size={13} /> Multi-cliente</span>
-                <h3 className="mt-3 text-xl font-extrabold tracking-tight">Cada cliente, su espacio</h3>
-                <p className="lp-muted mt-1.5 text-[13.5px] leading-relaxed">
-                  Consola de plataforma con clientes, planes y uso. Los datos de cada empresa quedan aislados y con
-                  límites de personal y relojes por plan.
-                </p>
-              </div>
-              <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                <BrowserFrame className="lp-shot" src="/landing/multi-cliente.jpg" alt="Consola de clientes de plataforma" url="checklab.mx" />
-              </div>
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-3 lg:col-span-4">
+              <CellHead icon={LuBell} label="Alertas" title="Te avisa antes del problema" text="Jornadas de más de 12 horas, ajustes por aprobar y bajas del reloj llegan a RH." />
+              <AlertsVisual />
             </article>
 
-            {/* Cumplimiento */}
-            <article id="cumplimiento" className="lp-card scroll-mt-24 p-6 sm:p-7 lg:col-span-12">
-              <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-                <div>
-                  <span className="lp-chip"><LuShieldCheck size={13} /> Cumplimiento</span>
-                  <h3 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
-                    Listo para el registro electrónico de 2027
-                  </h3>
-                  <p className="lp-muted mt-2 text-[14px] leading-relaxed">
-                    La reforma a la LFT obliga a registrar electrónicamente inicio y fin de jornada de todos los
-                    trabajadores. CheckLab cubre el flujo completo y deja el rastro auditable; la NOM-037 de
-                    teletrabajo se atiende con políticas, consentimiento y control de desconexión.
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    <span className="lp-chip"><LuFileText size={13} /> Export con hash</span>
-                    <span className="lp-chip"><LuBell size={13} /> Alertas de jornada</span>
-                    <span className="lp-chip"><LuMapPin size={13} /> GPS solo al marcar</span>
-                  </div>
-                </div>
-                <ul className="grid gap-2 sm:grid-cols-2">
-                  {NOM_CHECKS.map((item) => (
-                    <li key={item} className="lp-card-soft flex items-start gap-2.5 p-3.5 text-[12.5px] leading-snug">
-                      <LuCheck size={15} className="mt-0.5 shrink-0" style={{ color: "var(--lp-accent-ink)" }} />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-4">
+              <CellHead icon={LuHouse} label="Teletrabajo NOM-037" title="Teletrabajo en regla" text="Política y aviso con consentimiento, checklist del lugar de trabajo y desconexión digital." />
+              <TeleworkVisual />
+            </article>
+
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-6">
+              <CellHead
+                icon={LuLayers}
+                label="Varias empresas o sucursales"
+                title="Cada cliente, su propio espacio"
+                text="Subdominio, marca, planes y límites por cliente. Los datos de cada empresa quedan aislados desde la base de datos."
+              />
+              <TenantsVisual />
+            </article>
+
+            <article data-reveal className="cl-card flex flex-col gap-6 p-6 sm:p-7 md:col-span-6 lg:col-span-6" style={{ background: "linear-gradient(160deg, var(--surface) 55%, var(--mint-soft))" }}>
+              <CellHead
+                icon={LuScale}
+                label="Reforma laboral"
+                title="De 48 a 40 horas, año por año"
+                text="La jornada ordinaria baja dos horas por año desde 2027 y el tope al doble sube. CheckLab aplica el límite que corresponde a cada semana."
+              />
+              <ReformVisual />
             </article>
           </div>
         </section>
 
-        {/* ── Galería ─────────────────────────────────────────── */}
-        <section className="border-y" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-surface-2)" }}>
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-24">
-            <SectionTitle eyebrow="Así se ve" title="Así se ve el sistema" text="Pantallas del producto con datos de demostración; nombres y clientes ilustrativos." />
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
-              <div data-reveal>
-                <BrowserFrame className="lp-shot" src="/landing/clock-dashboard.jpg" alt="Dashboard del reloj" url="acme.checklab.mx/#/time-clocks/dashboard" />
+        {/* ── Cumplimiento ─────────────────────────────────────── */}
+        <section id="cumplimiento" className="scroll-mt-20 px-4 sm:px-6">
+          <div data-reveal className="mx-auto max-w-6xl overflow-hidden rounded-[32px] p-7 sm:p-12" style={{ background: "var(--navy)", color: "#F4F6FA" }}>
+            <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+              <div>
+                <span className="cl-eyebrow" style={{ color: "#34D399" }}>
+                  Cumplimiento
+                </span>
+                <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  El registro electrónico que la ley ya pide
+                </h2>
+                <p className="mt-4 text-[15px] leading-relaxed" style={{ color: "rgba(244,246,250,0.72)" }}>
+                  La reforma a la Ley Federal del Trabajo obliga a registrar electrónicamente el inicio y fin de la jornada
+                  de cada trabajador. CheckLab cubre el flujo completo y deja el rastro auditable.
+                </p>
+                <p className="mt-4 text-[12px] leading-relaxed" style={{ color: "rgba(244,246,250,0.5)" }}>
+                  El formato oficial y la retención definitiva dependen de las disposiciones que publique la STPS.
+                </p>
               </div>
-              <div data-reveal>
-                <BrowserFrame className="lp-shot" src="/landing/time-clocks.jpg" alt="Configuración de relojes" url="acme.checklab.mx/#/time-clocks" />
-              </div>
-              <div data-reveal>
-                <BrowserFrame className="lp-shot" src="/landing/portal.jpg" alt="Portal del trabajador" url="acme.checklab.mx/#/mi-jornada" />
-              </div>
+              <ul className="grid gap-2.5 sm:grid-cols-2">
+                {COMPLIANCE.map((item) => (
+                  <li key={item} className="flex items-start gap-3 rounded-2xl px-4 py-3.5 text-[13px] leading-snug" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full" style={{ background: "#34D399", color: "#06281C" }}>
+                      <LuCheck size={12} strokeWidth={3.5} />
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
 
-        {/* ── Agente ──────────────────────────────────────────── */}
-        <section id="reloj" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6 lg:py-28">
-          <SectionTitle
-            eyebrow="CheckLab Agent"
-            title="El brazo de CheckLab en la red del cliente"
-            text="Una app de escritorio con nuestra interfaz: conecta el reloj, sincroniza las checadas y ejecuta las altas del padrón."
-          />
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {[
-              {
-                icon: LuLaptop,
-                step: "01",
-                title: "Instala el agente",
-                text: "Una PC del cliente con Windows o Linux. Se conecta con su credencial de dispositivo, sin VPN ni puertos abiertos.",
-              },
-              {
-                icon: LuServer,
-                step: "02",
-                title: "Lee el reloj",
-                text: "Habla con el Hikvision por la red local, lee las checadas por cursor y guarda una cola local si no hay internet.",
-              },
-              {
-                icon: LuWifiOff,
-                step: "03",
-                title: "Sincroniza en bloques",
-                text: "Sube las checadas cada 15–30 segundos (configurable), de forma idempotente, y ejecuta las altas/bajas que se piden desde la consola.",
-              },
-            ].map(({ icon: Icon, step, title, text }) => (
-              <article key={step} data-reveal className="lp-card p-6">
+        {/* ── Cómo funciona ────────────────────────────────────── */}
+        <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-32">
+          <SectionHead id="como-funciona" eyebrow="Cómo funciona" title="Operando en días, no en meses" text="Nos encargamos de la instalación; tu equipo solo aprende a revisar y aprobar." />
+          <ol className="mt-14 grid gap-4 md:grid-cols-3">
+            {STEPS.map(({ icon: Icon, title, text }, index) => (
+              <li key={title} data-reveal className="cl-card p-7">
                 <div className="flex items-center justify-between">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "var(--lp-glow)", color: "var(--lp-accent-ink)" }}>
-                    <Icon size={18} />
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: "var(--mint-soft)", color: "var(--mint)" }}>
+                    <Icon size={20} />
                   </span>
-                  <span className="text-2xl font-black tracking-tight" style={{ color: "var(--lp-line-strong)" }}>{step}</span>
+                  <span className="text-4xl font-black tabular-nums tracking-tight" style={{ color: "var(--line-strong)" }}>
+                    0{index + 1}
+                  </span>
                 </div>
-                <h3 className="mt-4 text-base font-extrabold">{title}</h3>
-                <p className="lp-muted mt-1.5 text-[13px] leading-relaxed">{text}</p>
-              </article>
+                <h3 className="mt-5 text-lg font-extrabold">{title}</h3>
+                <p className="cl-muted mt-2 text-[13.5px] leading-relaxed">{text}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
-        {/* ── Planes ──────────────────────────────────────────── */}
-        <section id="planes" className="scroll-mt-24 border-y" style={{ borderColor: "var(--lp-line)", backgroundColor: "var(--lp-surface-2)" }}>
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-            <SectionTitle
-              eyebrow="Planes"
-              title="Precios simples por tamaño de empresa"
-              text="Elige por número de personas activas y relojes. Los límites se aplican solos y puedes cambiar de plan sin perder datos."
-            />
-            <div className="mt-12 grid gap-5 lg:grid-cols-3">
+        {/* ── Planes ───────────────────────────────────────────── */}
+        <section id="planes" className="scroll-mt-20 border-y" style={{ borderColor: "var(--line)", background: "var(--surface-2)" }}>
+          <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-28">
+            <SectionHead eyebrow="Planes" title="Precio simple, por tamaño de empresa" text="Elige por personas activas y relojes. Cambia de plan cuando quieras sin perder información." />
+            <div className="mt-14 grid gap-4 lg:grid-cols-3">
               {PLANS.map((plan) => (
                 <article
                   key={plan.name}
                   data-reveal
-                  className={`lp-card relative flex flex-col p-7 ${plan.highlight ? "ring-2 pt-9" : ""}`}
-                  style={plan.highlight ? { boxShadow: "var(--lp-shadow)", borderColor: "var(--lp-accent)" } : undefined}
+                  className="cl-card flex flex-col p-7"
+                  style={plan.highlight ? { borderColor: "var(--mint)", boxShadow: "0 0 0 1px var(--mint), var(--shadow)" } : undefined}
                 >
-                  {plan.highlight && (
-                    <span className="absolute -top-3 left-6 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider" style={{ background: "var(--lp-accent)", color: "#2a1a00" }}>
-                      Más elegido
-                    </span>
-                  )}
-                  <h3 className="text-lg font-extrabold">{plan.name}</h3>
-                  <p className="mt-1 text-[13px] font-semibold" style={{ color: "var(--lp-accent-ink)" }}>{plan.price}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="lp-chip"><LuUsers size={12} /> {plan.people}</span>
-                    <span className="lp-chip"><LuClock size={12} /> {plan.clocks}</span>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-extrabold">{plan.name}</h3>
+                    {plan.highlight && <span className="cl-tag cl-tag-mint">Más elegido</span>}
                   </div>
-                  <ul className="mt-5 space-y-2">
+                  <p className="mt-5 flex items-baseline gap-1.5">
+                    <span className="cl-faint text-[13px] font-semibold">desde</span>
+                    <span className="text-4xl font-black tracking-tight">${plan.price}</span>
+                    <span className="cl-muted text-[13px] font-semibold">MXN/mes</span>
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="cl-chip">
+                      <LuUsers size={12} /> {plan.people}
+                    </span>
+                    <span className="cl-chip">
+                      <LuFingerprint size={12} /> {plan.clocks}
+                    </span>
+                  </div>
+                  <ul className="mt-6 space-y-2.5">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2 text-[13px]">
-                        <LuCheck size={15} className="mt-0.5 shrink-0" style={{ color: "var(--lp-accent-ink)" }} />
-                        <span>{feature}</span>
+                      <li key={feature} className="flex items-start gap-2.5 text-[13.5px]">
+                        <LuCheck size={16} className="cl-mint mt-0.5 shrink-0" strokeWidth={3} />
+                        {feature}
                       </li>
                     ))}
                   </ul>
-                  <a href={DEMO_URL} className={`mt-6 ${plan.highlight ? "lp-btn-primary" : "lp-btn-ghost"} w-full`}>
+                  <a href={DEMO_URL} className={`cl-btn mt-8 w-full ${plan.highlight ? "cl-btn-primary" : "cl-btn-ghost"}`}>
                     Solicitar demo
                   </a>
                 </article>
               ))}
             </div>
-            <p className="lp-muted mt-6 text-center text-[12px]">
-              Precios de referencia. El catálogo de planes es configurable por cliente desde la consola.
-            </p>
+            <p className="cl-faint mt-6 text-center text-[12px]">Precios de referencia; los definitivos se confirman en la demo.</p>
           </div>
         </section>
 
-        {/* ── FAQ ─────────────────────────────────────────────── */}
-        <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-4 py-20 sm:px-6 lg:py-28">
-          <SectionTitle eyebrow="Preguntas frecuentes" title="Lo que suelen preguntarnos" />
-          <div className="mt-10 space-y-3">
+        {/* ── Preguntas ────────────────────────────────────────── */}
+        <section className="mx-auto max-w-3xl px-4 py-24 sm:px-6 lg:py-28">
+          <SectionHead id="faq" eyebrow="Preguntas frecuentes" title="Lo que suelen preguntarnos" />
+          <div className="mt-12 space-y-3">
             {FAQ.map((item) => (
-              <details key={item.q} data-reveal className="lp-card group p-5">
-                <summary className="flex items-center justify-between gap-4 text-[14px] font-bold">
+              <details key={item.q} data-reveal className="cl-card cl-faq !rounded-[20px] px-5 py-4">
+                <summary className="flex items-center justify-between gap-4 text-[14.5px] font-bold">
                   {item.q}
-                  <LuChevronDown size={16} className="shrink-0" style={{ color: "var(--lp-muted)" }} />
+                  <LuPlus size={17} className="cl-faq-icon cl-muted shrink-0" />
                 </summary>
-                <p className="lp-muted mt-3 text-[13px] leading-relaxed">{item.a}</p>
+                <p className="cl-muted mt-3 text-[13.5px] leading-relaxed">{item.a}</p>
               </details>
             ))}
           </div>
         </section>
 
-        {/* ── CTA final ───────────────────────────────────────── */}
-        <section className="px-4 pb-20 sm:px-6">
-          <div className="lp-card lp-brand-card relative isolate mx-auto max-w-5xl overflow-hidden p-8 text-center sm:p-14" data-reveal>
-            <div className="lp-cta-glow" aria-hidden="true" />
-            <svg viewBox="16 16 88 88" className="lp-cta-mark" aria-hidden="true">
-              <path d="M75.96 29.98 A34 34 0 1 1 44.04 29.98" fill="none" stroke="#F4F6FA" strokeWidth="8" strokeLinecap="round" />
-              <path d="M38 30 H82" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
-              <path d="M60 30 V60" stroke="#F2A93B" strokeWidth="8" strokeLinecap="round" />
-              <path d="M60 60 L77 70" stroke="#F4F6FA" strokeWidth="6" strokeLinecap="round" />
-              <circle cx="60" cy="60" r="5" fill="#F2A93B" />
-            </svg>
-            <span className="lp-chip">
-              <LuSparkles size={13} /> Empieza hoy
-            </span>
-            <h2 className="mx-auto mt-4 max-w-2xl text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Llega a 2027 con el registro de jornada listo
+        {/* ── Llamado final ────────────────────────────────────── */}
+        <section className="px-4 pb-24 sm:px-6">
+          <div data-reveal className="relative mx-auto max-w-6xl overflow-hidden rounded-[32px] px-6 py-14 text-center sm:px-14 sm:py-20" style={{ background: "var(--navy)", color: "#F4F6FA" }}>
+            <img src="/brand/svg/checklab-symbol-for-dark-bg.svg" alt="" aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 opacity-[0.07] sm:h-80 sm:w-80" />
+            <h2 className="mx-auto max-w-2xl text-balance text-3xl font-black tracking-tight sm:text-5xl">
+              Llega a la reforma con el registro de jornada resuelto
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-[14px] leading-relaxed">
-              Te mostramos el sistema con tus pantallas y tus planes. Instalamos el reloj, el agente y dejamos a tu
-              personal operando en días, no meses.
+            <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed" style={{ color: "rgba(244,246,250,0.72)" }}>
+              Te mostramos CheckLab con una operación de turnos completa. Si te convence, instalamos el reloj y el agente
+              y tu equipo empieza a operar en días.
             </p>
-            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-              <a href={DEMO_URL} className="lp-btn-primary" style={{ background: "var(--lp-accent)", color: "#2a1a00" }}>
-                Solicitar demo
-                <LuArrowRight size={16} />
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <a href={DEMO_URL} className="cl-btn cl-btn-amber">
+                Solicitar demo <LuArrowRight size={16} />
               </a>
-              <Link to="/login" className="lp-btn-ghost">
+              <Link to="/login" className="cl-btn" style={{ border: "1px solid rgba(244,246,250,0.25)", color: "#F4F6FA" }}>
                 Iniciar sesión
               </Link>
             </div>
           </div>
         </section>
+      </main>
 
-        {/* ── Footer ──────────────────────────────────────────── */}
-        <footer className="border-t" style={{ borderColor: "var(--lp-line)" }}>
-          <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: "var(--lp-navy)" }}>
-                <LuClock size={16} style={{ color: "var(--lp-accent)" }} />
-              </span>
-              <span className="text-[13px] font-extrabold">
-                Time<span className="lp-accent">Manager</span>
-              </span>
-            </div>
-            <p className="lp-muted text-[11.5px]">
-              Registro de jornada y checadas multi-cliente · Hecho por AXZY
-            </p>
-            <div className="lp-muted flex gap-4 text-[12px] font-semibold">
-              <a href="#cumplimiento">Cumplimiento</a>
-              <a href="#planes">Planes</a>
-              <Link to="/login">Iniciar sesión</Link>
-            </div>
+      <footer className="relative z-10 border-t" style={{ borderColor: "var(--line)" }}>
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <Logo className="h-7" />
+          <p className="cl-faint text-[12px]">Registro de jornada, asistencia y pre-nómina · Hecho por AXZY</p>
+          <div className="flex gap-5 text-[12.5px] font-semibold">
+            <a href="#cumplimiento" className="cl-link">
+              Cumplimiento
+            </a>
+            <a href="#planes" className="cl-link">
+              Planes
+            </a>
+            <Link to="/login" className="cl-link">
+              Iniciar sesión
+            </Link>
           </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </div>
   );
 }
