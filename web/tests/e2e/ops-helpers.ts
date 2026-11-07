@@ -1,6 +1,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { ACME } from "./helpers";
-import { loginReady } from "./session";
+import { ACME, E2E_PASSWORD, loginForm } from "./helpers";
+
+/** Navegación tolerante: no espera `load` completo (Vite/HMR puede tardar). */
+const NAV = { waitUntil: "domcontentloaded" as const, timeout: 45_000 };
 
 /**
  * Helpers locales de las suites de operación (Horarios/HE/Nómina).
@@ -18,21 +20,54 @@ const greeting: Record<AcmeRole, RegExp> = {
   rh: /Hola, Rita/,
 };
 
-/** Login con una cuenta de acme y espera a que Inicio termine de pintar. */
+/**
+ * Login con una cuenta de acme y espera a que Inicio termine de pintar.
+ * Tolerante al arranque del stack compartido: reintenta si la app se recargó
+ * (HMR de otra suite) o si el submit animado del login no quedó estable.
+ */
 export async function loginAcme(page: Page, role: AcmeRole = "admin"): Promise<void> {
-  await loginReady(page, ACME.base, role === "rh" ? ACME.rh : ACME.admin, greeting[role]);
+  const username = role === "rh" ? ACME.rh : ACME.admin;
+  const ready = greeting[role].first();
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      if (!(await loginForm(page).isVisible().catch(() => false))) {
+        await page.goto(`${ACME.base}/`, NAV);
+      }
+      const form = loginForm(page);
+      await form.waitFor({ state: "visible", timeout: 20_000 });
+      await page.locator('input[name="username"]').fill(username);
+      await page.locator('input[name="password"]').fill(E2E_PASSWORD);
+      // El botón del login tiene animación de entrada: `force` evita esperar
+      // estabilidad y el onChange del formulario se dispara igual.
+      await form.locator('button[type="submit"]').click({ force: true });
+      await expect(ready).toBeVisible({ timeout: 20_000 });
+      await page.waitForTimeout(400);
+      return;
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(1_000);
+    }
+  }
+
+  throw lastError;
 }
 
 /** Navega a una ruta del HashRouter y confirma que la URL quedó en ella. */
 export async function gotoRoute(page: Page, route: string, base: string = ACME.base): Promise<void> {
   const target = `${base}/#${route}`;
   const expected = `#${route}`;
-  await page.goto(target);
-  for (let attempt = 0; attempt < 8; attempt += 1) {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      await page.goto(target, NAV);
+    } catch {
+      // Reintenta: el stack compartido puede estar recargando (HMR).
+    }
     if (new URL(page.url()).hash === expected) return;
-    await page.waitForTimeout(250);
-    await page.goto(target);
+    await page.waitForTimeout(400);
   }
+  await page.goto(target, NAV);
   expect(new URL(page.url()).hash).toBe(expected);
 }
 

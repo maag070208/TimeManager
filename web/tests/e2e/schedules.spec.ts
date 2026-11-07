@@ -74,7 +74,7 @@ const rowOf = (page: Page, name: string) => page.getByRole("row").filter({ hasTe
 
 /** Recarga el tablero para ver el estado persistido (la tabla no refetchea sola). */
 async function reloadBoard(page: Page): Promise<void> {
-  await page.reload();
+  await page.reload({ waitUntil: "domcontentloaded", timeout: 45_000 });
   await expect(page.getByText(/\d+ horario\(s\)/)).toBeVisible({ timeout: 20_000 });
 }
 
