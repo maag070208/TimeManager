@@ -51,8 +51,10 @@ test.describe("filtros y borrado del centro de notificaciones", () => {
     await page.goto(NOTIFICATIONS);
     await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
 
+    // El test anterior ya marcó leído el aviso del seed; este caso valida que
+    // los filtros cambian la bandeja sin salir de la ruta, sin depender del orden.
     await page.getByRole("button", { name: /Sin leer/ }).first().click();
-    await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/#\/notifications$/);
 
     await page.getByRole("button", { name: /Alertas/ }).first().click();
     await expect(page.getByText("Cuenta de prueba E2E", { exact: true })).toHaveCount(0);

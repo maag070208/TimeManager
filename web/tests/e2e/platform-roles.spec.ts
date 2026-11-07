@@ -159,9 +159,9 @@ test.describe("consola de roles y permisos", () => {
     await page.getByRole("button", { name: "Todo", exact: true }).click();
 
     await page.getByText("Dar acceso", { exact: true }).first().click();
-    await page.getByRole("menuitem", { name: /Dárselo solo a Sergio Staff/ }).click();
+    await page.getByText(/Dárselo solo a Sergio/).last().click();
     const exception = dialog(page);
-    await expect(exception.getByText("Dar acceso solo a Sergio Staff")).toBeVisible();
+    await expect(exception.getByText(/Dar acceso solo a Sergio/)).toBeVisible();
     await exception.locator('input[name="exception_reason"]').fill("Cobertura E2E");
     await exception.getByRole("button", { name: "Dar acceso", exact: true }).click();
     await expect(dialog(page)).toHaveCount(0, { timeout: 20_000 });

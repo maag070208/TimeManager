@@ -215,6 +215,9 @@ const MAIN = async (): Promise<void> => {
           select: { id: true, name: true, employeeNumber: true },
         });
         created.set(user.username, { id: row.id, employeeNumber: row.employeeNumber ?? "", name: row.name });
+        if (user.username === "acme.emilio") {
+          await db.userRole.create({ data: { userId: row.id, role: "CLIENT_ADMIN" } });
+        }
         summary.users[user.username] = row.id;
       }
 

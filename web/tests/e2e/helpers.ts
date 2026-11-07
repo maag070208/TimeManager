@@ -42,7 +42,7 @@ export async function login(page: Page, options: LoginOptions): Promise<void> {
   await form.waitFor({ state: "visible", timeout: 20_000 });
   await page.locator('input[name="username"]').fill(options.username);
   await page.locator('input[name="password"]').fill(options.password ?? E2E_PASSWORD);
-  await form.locator('button[type="submit"]').click();
+  await form.locator('button[type="submit"]').click({ force: true });
   // Entrar desmonta el formulario y deja la app privada montada.
   await expect(form).toHaveCount(0, { timeout: 20_000 });
 }

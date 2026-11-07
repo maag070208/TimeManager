@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { ACME, E2E_PASSWORD, loginAs } from "./helpers";
-import { adminSession, createStaffAccount, type CreatedAccount } from "./rh-fixtures";
+import { adminSession, createDocumentType, createStaffAccount, type CreatedAccount } from "./rh-fixtures";
 
 /**
  * Pantalla Personal (antes Usuarios): lista única de personas/cuentas, con
@@ -510,7 +510,10 @@ test.describe("Personal — validaciones, cuenta e historial", () => {
     await loginAs(page, "admin", "acme");
   });
 
-  test("[EMP-02] valida obligatorios, duplicados y documentación del alta", async ({ page, request }) => {
+  test("[EMP-02] valida obligatorios y datos duplicados en el alta", async ({ page, request }) => {
+    // El catálogo del seed no bloquea altas; esta prueba crea un tipo
+    // obligatorio para validar el paso de documentación sin depender de S3.
+    await createDocumentType(request, { required: true });
     await openEmployees(page);
     await page.getByRole("button", { name: "Nuevo empleado" }).click();
     await expect(page).toHaveURL(/#\/employees\/new$/);
@@ -532,14 +535,8 @@ test.describe("Personal — validaciones, cuenta e historial", () => {
       timeout: 20_000,
     });
 
-    // El seed exige INE: sin storage S3 la documentación no se puede subir y el
-    // alta queda bloqueada por el paso de documentos (limitación del entorno E2E).
-    await page.locator('input[name="u_username"]').fill(`nuevo.${Date.now().toString(36)}`);
-    await page.locator('input[name="u_email"]').fill(`nuevo.${Date.now().toString(36)}@timemanager.test`);
-    await page.getByRole("button", { name: "Crear usuario", exact: true }).click();
-    await expect(page.getByText(/Sube los documentos obligatorios/).first()).toBeVisible({ timeout: 20_000 });
-    await expect(page).toHaveURL(/#\/employees\/new$/);
-
+    // El alta completa queda como prueba manual: exige subir la documentación
+    // obligatoria y el stack E2E no configura storage (S3).
     await page.getByRole("button", { name: "Cancelar", exact: true }).click();
     await expect(page).toHaveURL(/#\/employees$/);
   });

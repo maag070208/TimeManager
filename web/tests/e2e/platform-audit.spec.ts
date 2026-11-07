@@ -63,7 +63,8 @@ test.describe("auditoría de plataforma", () => {
     await gotoPlatform(page, "/audit");
     await expect(page.getByRole("heading", { level: 1, name: "Auditoría" })).toBeVisible({ timeout: 30_000 });
     // El filtro por cliente solo existe para la plataforma.
-    await expect(page.getByText("Todos los clientes", { exact: true }).first()).toBeVisible();
+    // El filtro de cliente es exclusivo de plataforma y se anuncia con su label.
+    await expect(page.getByText("Cliente", { exact: true }).first()).toBeVisible();
 
     await page.locator('input[name="auditSearch"]').fill("e2e.admin");
     await expect(page.getByRole("table").first()).toBeVisible({ timeout: 20_000 });

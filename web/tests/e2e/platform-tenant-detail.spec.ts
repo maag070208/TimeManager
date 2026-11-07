@@ -48,17 +48,18 @@ test.describe("detalle del cliente", () => {
     await expect(page.getByText("Módulos y pantallas")).toBeVisible();
 
     const moduleName = "Teletrabajo NOM-037";
-    const row = page.locator("div").filter({ hasText: moduleName }).last();
+    const row = page.locator("div.flex.items-center.gap-3").filter({ hasText: moduleName }).last();
     const toggle = row.getByRole("switch").first();
     await toggle.click();
     await expect(page.getByText(/Apagado\. Los .* usuarios ya no ven/)).toBeVisible({ timeout: 20_000 });
 
     await page.reload();
+    await page.getByRole("button", { name: /^Módulos \d+\/\d+$/ }).click();
     await expect(page.getByText("Módulos y pantallas")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/Apagado\. Los .* usuarios ya no ven/)).toBeVisible();
 
     // Limpieza: el módulo vuelve a estar activo.
-    await page.locator("div").filter({ hasText: moduleName }).last().getByRole("switch").first().click();
+    await page.locator("div.flex.items-center.gap-3").filter({ hasText: moduleName }).last().getByRole("switch").first().click();
     await expect(page.getByText(/Apagado\. Los .* usuarios ya no ven/)).toHaveCount(0, { timeout: 20_000 });
   });
 
@@ -79,7 +80,7 @@ test.describe("detalle del cliente", () => {
     await charge.getByRole("button", { name: "Registrar", exact: true }).click();
     await expect(dialog(page)).toHaveCount(0, { timeout: 20_000 });
 
-    await expect(page.getByText(concept, { exact: true })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(concept, { exact: true }).first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText("Pendiente").first()).toBeVisible();
     await page.getByRole("button", { name: "Registrar pago" }).first().click();
     await expect(page.getByText("Pagado").first()).toBeVisible({ timeout: 20_000 });

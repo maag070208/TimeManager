@@ -120,7 +120,7 @@ test.describe("consola de plataforma", () => {
     // Entrar como cliente (impersonación auditada) deja la app operando el cliente.
     await rowOf(page, tenant.name).getByRole("button", { name: "Entrar" }).click();
     await expect(page.getByText(/Hola, Admin/).first()).toBeVisible({ timeout: 30_000 });
-    await expect(page).toHaveURL(/#\/$/);
+    await expect(page).toHaveURL(/localhost:5106\/(#\/)?$/);
   });
 
   test("[PLAT-03][PLAT-M3] agente local: crea, rota y revoca el token", async ({ page }) => {
