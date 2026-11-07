@@ -15,6 +15,8 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 | [ARQUITECTURA.md](ARQUITECTURA.md) | Arquitectura de escalamiento: API stateless + workers, colas, índices y particionado de la BD, performance de la web |
 | [OPERACION_PRODUCCION.md](OPERACION_PRODUCCION.md) | Runbook de producción: procesos/workers, RLS, cola pg-boss, PgBouncer, observabilidad, respaldo/restore por cliente y prueba de carga |
 | [DEMO_DATA.md](DEMO_DATA.md) | Datos demo: tres empresas ficticias con personal, checadas de varias semanas y flujos de RH/NOM completos; cuentas y cómo cargarlos |
+| [PLAN_LANDING.md](PLAN_LANDING.md) | Plan de la landing pública: pantallas que venden el producto, hallazgos del sistema que la bloquean, estructura, pipeline de capturas y decisiones abiertas |
+| [USER_MATRIX.md](USER_MATRIX.md) | Matriz de usuarios demo/E2E, credenciales, roles, permisos efectivos y casos de acceso por cuenta |
 | [QA_MATRIX.md](QA_MATRIX.md) | Matriz QA integral: 49 pantallas, 39 tabs, 71 modales, acciones críticas, cobertura actual y orden de implementación de pruebas |
 | [modules/](modules/README.md) | Ficha por módulo del sistema: qué hace, endpoints, modelos, permisos, frontend y notas multi-tenant |
 
