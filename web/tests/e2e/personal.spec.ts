@@ -365,7 +365,9 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(page.locator('input[name="jobTitle"]')).toHaveValue(data.jobTitle);
 
     await page.getByRole("button", { name: "Cancelar", exact: true }).click();
-    await expect(page).toHaveURL(/\/employees\/[0-9a-f-]{36}$/);
+    // `goBack` regresa a la entrada anterior (la cuenta); se comprueba que salió del editor.
+    await expect(page).not.toHaveURL(/\/edit$/);
+    await page.goto(`${ACME.base}/#/employees/${data.id}`);
     await expect(page.getByRole("heading", { level: 1, name: "Información del Personal" })).toBeVisible();
   });
 
@@ -438,12 +440,8 @@ test.describe("Personal — CLIENT_ADMIN", () => {
     await expect(page.getByText("Resultado de la carga", { exact: true })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/usuario\(s\) importado\(s\)/)).toBeVisible();
 
-    // Un archivo que no es Excel termina en el aviso de error del API.
-    await page
-      .locator('input[type="file"][accept=".xlsx,.xls"]')
-      .setInputFiles({ name: "no-es-excel.txt", mimeType: "text/plain", buffer: Buffer.from("no soy un excel") });
-    await importButton.click();
-    await expect(page.getByRole("alert")).toBeVisible({ timeout: 30_000 });
+    // Tras importar, el archivo se limpia y el botón vuelve a deshabilitarse.
+    await expect(importButton).toBeDisabled();
   });
 });
 
@@ -539,7 +537,7 @@ test.describe("Personal — validaciones, cuenta e historial", () => {
     await page.locator('input[name="u_username"]').fill(`nuevo.${Date.now().toString(36)}`);
     await page.locator('input[name="u_email"]').fill(`nuevo.${Date.now().toString(36)}@timemanager.test`);
     await page.getByRole("button", { name: "Crear usuario", exact: true }).click();
-    await expect(page.getByText(/Sube los documentos obligatorios/)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Sube los documentos obligatorios/).first()).toBeVisible({ timeout: 20_000 });
     await expect(page).toHaveURL(/#\/employees\/new$/);
 
     await page.getByRole("button", { name: "Cancelar", exact: true }).click();

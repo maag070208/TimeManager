@@ -65,11 +65,6 @@ test.describe("nómina configurable (acme.admin)", () => {
   });
 
   test("[PAY-03][PAY-03-T1][PAY-M06] reactiva un puesto inactivo", async ({ page }) => {
-    // BUG API (payroll): PUT/PATCH /payroll/positions/:id rechaza cualquier
-    // cambio sobre un puesto inactivo con 400 PAYROLL_POSITION_INACTIVE, así
-    // que «Activar perfil» no puede funcionar; se documenta como fallo
-    // conocido y el caso pasará a verde cuando el servicio lo permita.
-    test.fail(true, "BUG: updatePosition rechaza activar un puesto inactivo (PAYROLL_POSITION_INACTIVE)");
     await loginAcme(page, "admin");
     await gotoRoute(page, "/payroll/settings");
     await positionsLoaded(page);
@@ -99,6 +94,10 @@ test.describe("nómina configurable (acme.admin)", () => {
     await activate.getByRole("button", { name: "Activar", exact: true }).click();
     expect((await activated).ok()).toBe(true);
     await expect(page.getByText("Perfil activado.")).toBeVisible();
+
+    // Ya no está en inactivos y reaparece como activo en el catálogo.
+    await expect(page.getByRole("row").filter({ hasText: name })).toHaveCount(0);
+    await page.getByRole("button", { name: /^Activos/ }).click();
     await expect(page.getByRole("row").filter({ hasText: name }).first()).toContainText("Activo");
   });
 

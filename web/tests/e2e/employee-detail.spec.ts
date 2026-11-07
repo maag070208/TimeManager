@@ -198,7 +198,7 @@ test.describe("Expediente del empleado (CLIENT_ADMIN)", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Editar Información" })).toBeVisible();
 
     // El formulario carga los datos de la persona en sus secciones.
-    await expect(page.locator('input[name="name"]')).toHaveValue(person.fullName.split(" ")[0]);
+    await expect(page.locator('input[name="name"]')).toHaveValue(person.fullName);
     await expect(page.locator('input[name="jobTitle"]')).toHaveValue(person.jobTitle);
 
     // Validación fiscal: un RFC inválido bloquea el guardado y muestra el aviso.

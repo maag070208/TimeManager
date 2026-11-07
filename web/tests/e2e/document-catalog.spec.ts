@@ -34,7 +34,12 @@ const createType = async (page: Page, name: string): Promise<void> => {
   await page.locator('input[name="name"]').fill(name);
   await page.getByRole("button", { name: "Guardar", exact: true }).click();
   await expect(page.locator('input[name="name"]')).toHaveCount(0);
-  await expect(tableRowWith(page, name)).toBeVisible({ timeout: 20_000 });
+  const row = tableRowWith(page, name);
+  await expect(row).toBeVisible({ timeout: 20_000 });
+  // El alta nace como obligatoria y contaminaría el alta de empleados de otras
+  // suites; se deja opcional salvo que la prueba lo cambie a propósito.
+  const optional = row.locator('button[title="Marcar como opcional"]');
+  if (await optional.count()) await optional.click();
 };
 
 test.describe("Catálogo de Documentos (ADMIN de plataforma operando acme)", () => {

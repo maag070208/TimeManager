@@ -105,8 +105,8 @@ test.describe("Subáreas (CLIENT_ADMIN)", () => {
     await page.getByRole("button", { name: "Eliminar", exact: true }).click();
     await expect(row(page, name).getByText("inactiva")).toBeVisible({ timeout: 20_000 });
     await row(page, name).getByRole("button", { name: "Eliminar definitivamente" }).click();
-    await expect(page.getByRole("button", { name: "Eliminar definitivamente", exact: true })).toBeVisible({ timeout: 20_000 });
-    await page.getByRole("button", { name: "Eliminar definitivamente", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Eliminar definitivamente", exact: true }).last()).toBeVisible({ timeout: 20_000 });
+    await page.getByRole("button", { name: "Eliminar definitivamente", exact: true }).last().click();
     await expect(row(page, name)).toHaveCount(0, { timeout: 20_000 });
   });
 });

@@ -456,7 +456,7 @@ const MAIN = async (): Promise<void> => {
         });
 
         // ── Expediente: INE obligatorio cargado, Contrato faltante ────────
-        const ineType = await db.documentType.create({ data: { name: "INE", required: true, sortOrder: 1 } });
+        const ineType = await db.documentType.create({ data: { name: "INE", required: false, sortOrder: 1 } });
         const contractType = await db.documentType.create({ data: { name: "Contrato", required: false, sortOrder: 2 } });
         summary.documentTypes = { INE: ineType.id, Contrato: contractType.id };
         await db.employeeDocument.create({

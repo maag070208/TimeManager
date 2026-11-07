@@ -85,7 +85,7 @@ test.describe("verificación y cierre de pre-nómina", () => {
     await expect(page.getByRole("button", { name: /Cerrar pre-nómina/ })).toBeEnabled({ timeout: 20_000 });
   });
 
-  test("[PAY-01][PAY-M04][ACT-26] cierra la semana y reabre desde el historial", async ({ page }) => {
+  test("[PAY-01][PAY-02][PAY-M04][ACT-26] cierra la semana y reabre desde el historial", async ({ page }) => {
     await loginAcme(page, "admin");
     const report = weeklyReport(page);
     await gotoRoute(page, "/schedules/payroll");
