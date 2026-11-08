@@ -51,14 +51,11 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
 
 @Serializable
@@ -215,8 +212,8 @@ class AttendanceApi(private val client: HttpClient) {
     suspend fun week(date: String): AttendanceWeek = apiCall { client.post("schedules/weekly-attendance") { setBody(WeekQuery(date)) } }
 }
 
-class AttendanceViewModel(private val api: AttendanceApi) : ListViewModel<AttendanceWeek>() {
-    var date: String = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
+class AttendanceViewModel(private val api: AttendanceApi, today: () -> LocalDate) : ListViewModel<AttendanceWeek>() {
+    var date: String = today().toString()
         private set
     var query = ""
         private set

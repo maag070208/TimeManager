@@ -34,6 +34,10 @@ class SessionRepository(
     private val _state = MutableStateFlow<SessionState>(SessionState.Restoring)
     val state: StateFlow<SessionState> = _state.asStateFlow()
 
+    /** Hoy en la zona de la empresa de la sesión. */
+    fun today(): kotlinx.datetime.LocalDate =
+        com.axzydev.checklab.core.time.tenantToday((_state.value as? SessionState.SignedIn)?.me?.tenant?.timezone)
+
     /** Último código de empresa usado: se sugiere al volver al login. */
     val lastTenant: String? get() = store.get(KEY_LAST_TENANT)
 

@@ -98,3 +98,17 @@ class AttendanceTest {
         assertEquals(listOf("✓", "+", "F", "½", "D", "D+", "·", "?"), symbols)
     }
 }
+
+class AttendanceWeekNavigationTest {
+    @Test
+    fun laSemanaArrancaEnElHoyDeLaEmpresaYAvanzaDeSieteEnSiete() {
+        val api = MockApi { ok(WEEKLY_ATTENDANCE) }
+        val vm = AttendanceViewModel(AttendanceApi(api.client)) { kotlinx.datetime.LocalDate(2026, 11, 7) }
+        assertEquals("2026-11-07", vm.date)
+        vm.shift(1)
+        assertEquals("2026-11-14", vm.date)
+        vm.shift(-1)
+        vm.shift(-1)
+        assertEquals("2026-10-31", vm.date)
+    }
+}

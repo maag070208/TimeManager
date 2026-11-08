@@ -58,9 +58,6 @@ import io.ktor.client.request.setBody
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
-import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
 
 @Serializable
@@ -330,7 +327,7 @@ fun ColumnScope.AssignContent(me: Me, vm: AssignViewModel = koinViewModel()) {
     val state by vm.state.collectAsState()
     val selected = remember { mutableStateListOf<String>() }
     var q by rememberSaveable { mutableStateOf("") }
-    var from by rememberSaveable { mutableStateOf(Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()) }
+    var from by rememberSaveable { mutableStateOf(com.axzydev.checklab.core.time.tenantToday(me.tenant?.timezone).toString()) }
     LaunchedEffect(Unit) { vm.load() }
     val canManage = me.can("schedules.manage")
 

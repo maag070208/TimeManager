@@ -60,11 +60,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
-import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Estado común de una lista que se carga, se filtra y tiene acciones. */
@@ -181,10 +178,10 @@ fun ColumnScope.NotificationsContent(vm: NotificationsViewModel = koinViewModel(
 
 // ── Tiempo extra (aprobación por día) ─────────────────────────────────────
 
-class OvertimeApprovalViewModel(private val api: ApprovalsApi) : ListViewModel<OvertimePage>() {
+class OvertimeApprovalViewModel(private val api: ApprovalsApi, today: () -> kotlinx.datetime.LocalDate) : ListViewModel<OvertimePage>() {
     var status = "PENDING"
         private set
-    var date: String = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
+    var date: String = today().toString()
         private set
 
     override suspend fun fetch() = api.overtime(date, status)

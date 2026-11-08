@@ -9,13 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
-import kotlin.time.Clock
+import kotlinx.datetime.LocalDate
+import com.axzydev.checklab.core.time.mondayToSunday
 
 data class Compliance(
     val agreement: RecordAgreement?,
@@ -36,7 +31,7 @@ data class WorkerPortalState(
 )
 
 /** Pestañas de Mi jornada fuera de la checada: teletrabajo, registro y horas extra, vacaciones. */
-class WorkerPortalViewModel(private val api: WorkerApi) : ViewModel() {
+class WorkerPortalViewModel(private val api: WorkerApi, private val today: () -> LocalDate) : ViewModel() {
     private val _state = MutableStateFlow(WorkerPortalState())
     val state: StateFlow<WorkerPortalState> = _state.asStateFlow()
 
@@ -44,7 +39,7 @@ class WorkerPortalViewModel(private val api: WorkerApi) : ViewModel() {
         fetch({ api.telework() }) { s, v -> s.copy(telework = v) }
         fetch({ Compliance(api.recordAgreement(), api.recordProposal(), api.acknowledgments(), api.overtimeRequests()) }) { s, v -> s.copy(compliance = v) }
         fetch({
-            val year = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
+            val year = today().year
             LeaveData(api.leaveBalance(year), api.leaveTypes().filter { it.active }, api.myLeave())
         }) { s, v -> s.copy(leave = v) }
     }
@@ -100,12 +95,6 @@ class WorkerPortalViewModel(private val api: WorkerApi) : ViewModel() {
 
     fun cancelLeave(id: String) = act("Solicitud cancelada.") { api.cancelLeave(id) }
 
-    companion object {
-        /** Semana en curso de lunes a domingo, la misma que propone confirmar la web. */
-        fun currentWeek(): Pair<String, String> {
-            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-            val monday = today.minus(DatePeriod(days = today.dayOfWeek.ordinal - DayOfWeek.MONDAY.ordinal))
-            return monday.toString() to monday.plus(DatePeriod(days = 6)).toString()
-        }
-    }
+    /** Semana en curso de lunes a domingo en la zona de la empresa, la misma que propone confirmar la web. */
+    fun currentWeek(): Pair<String, String> = mondayToSunday(today())
 }

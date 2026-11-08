@@ -217,7 +217,7 @@ private fun ComplianceTab(c: Compliance, busy: Boolean, vm: WorkerPortalViewMode
 
 @Composable
 private fun WeekCard(c: Compliance, busy: Boolean, vm: WorkerPortalViewModel) {
-    val (start, end) = WorkerPortalViewModel.currentWeek()
+    val (start, end) = vm.currentWeek()
     var note by remember { mutableStateOf("") }
     val done = c.acknowledgments.firstOrNull { day(it.periodStart) == start }
     BentoCard(Modifier.fillMaxWidth()) {

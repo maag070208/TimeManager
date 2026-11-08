@@ -48,16 +48,15 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.math.roundToLong
-import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
 
 @Serializable
@@ -152,7 +151,21 @@ data class PositionActive(val active: Boolean)
 class PayrollApi(private val client: HttpClient) {
     suspend fun week(date: String): WeekReport = apiCall { client.post("schedules/weekly-attendance") { setBody(WeekQuery(date)) } }
     suspend fun reviewState(weekStart: String): ReviewState = apiCall { client.get("schedules/payroll/review-state") { parameter("weekStart", weekStart) } }
-    suspend fun setReview(r: SetReview): ReviewState = apiCall { client.put("schedules/payroll/reviews") { setBody(r) } }
+    /**
+     * `departmentId` es obligatorio en `PayrollReviewUpsertDto` aunque admita null (el grupo "Sin
+     * departamento"). `ApiJson` omite los null, así que el cuerpo se arma con el null explícito.
+     */
+    suspend fun setReview(r: SetReview): ReviewState = apiCall {
+        client.put("schedules/payroll/reviews") {
+            setBody(
+                buildJsonObject {
+                    put("weekStart", r.weekStart)
+                    put("departmentId", r.departmentId)
+                    put("reviewed", r.reviewed)
+                },
+            )
+        }
+    }
     suspend fun close(c: CloseWeek): ReviewState = apiCall { client.post("schedules/payroll/close") { setBody(c) } }
     suspend fun reopen(weekStart: String): ReviewState = apiCall { client.post("schedules/payroll/reopen") { setBody(Reopen(weekStart)) } }
     suspend fun closures(): List<Closure> = apiCall { client.get("schedules/payroll/closures") }
@@ -197,8 +210,8 @@ fun PayrollWeek.snapshot(): JsonObject = JsonObject(
     ),
 )
 
-class PayrollViewModel(private val api: PayrollApi) : ListViewModel<PayrollWeek>() {
-    var date: String = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
+class PayrollViewModel(private val api: PayrollApi, today: () -> kotlinx.datetime.LocalDate) : ListViewModel<PayrollWeek>() {
+    var date: String = today().toString()
         private set
 
     override suspend fun fetch(): PayrollWeek {

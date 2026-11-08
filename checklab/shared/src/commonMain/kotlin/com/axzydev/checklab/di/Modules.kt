@@ -54,9 +54,9 @@ fun appModules(apiUrl: String, platform: Module): List<Module> = listOf(
         viewModel { ChangePasswordViewModel(get()) }
         viewModel { HomeViewModel(get()) }
         viewModel { MyWorkdayViewModel(get(), get()) }
-        viewModel { WorkerPortalViewModel(get()) }
+        viewModel { WorkerPortalViewModel(get(), get<SessionRepository>()::today) }
         viewModel { NotificationsViewModel(get()) }
-        viewModel { OvertimeApprovalViewModel(get()) }
+        viewModel { OvertimeApprovalViewModel(get(), get<SessionRepository>()::today) }
         viewModel { LeaveApprovalViewModel(get()) }
         viewModel { ProfileViewModel(get()) }
         viewModel { PeopleViewModel(get()) }
@@ -66,11 +66,11 @@ fun appModules(apiUrl: String, platform: Module): List<Module> = listOf(
         viewModel { ActasViewModel(get()) }
         viewModel { SchedulesViewModel(get()) }
         viewModel { AssignViewModel(get(), get()) }
-        viewModel { PayrollViewModel(get()) }
+        viewModel { PayrollViewModel(get(), get<SessionRepository>()::today) }
         viewModel { ClosuresViewModel(get()) }
         viewModel { PositionsViewModel(get()) }
         viewModel { com.axzydev.checklab.clocks.ClocksViewModel(get()) }
-        viewModel { com.axzydev.checklab.clocks.AttendanceViewModel(get()) }
+        viewModel { com.axzydev.checklab.clocks.AttendanceViewModel(get(), get<SessionRepository>()::today) }
         viewModel { com.axzydev.checklab.settings.ConfigViewModel(get()) }
         viewModel { com.axzydev.checklab.settings.AgreementsViewModel(get(), get(), get()) }
         viewModel { com.axzydev.checklab.settings.TeleworkAdminViewModel(get()) }
