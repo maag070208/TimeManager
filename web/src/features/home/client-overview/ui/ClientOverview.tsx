@@ -69,7 +69,11 @@ export default function ClientOverview() {
 
   const attendanceHero = fx.attendance && (() => {
     const a = fx.attendance!;
-    const scheduled = a.counts.PRESENT + a.counts.LATE + a.counts.NOT_ARRIVED;
+    // Tres lecturas que no se mezclan: quién llegó de los programados de hoy,
+    // cómo llegó, y quién sigue adentro ahorita (quien ya salió llegó, pero ya no está).
+    const arrived = a.counts.PRESENT + a.counts.LATE;
+    const scheduled = arrived + a.counts.NOT_ARRIVED;
+    const finished = Math.max(0, arrived - a.counts.onSite);
     const withoutSchedule = fx.setup?.personalWithoutSchedule ?? 0;
     return (
       <ITCard contentClassName="!p-0">
@@ -80,7 +84,7 @@ export default function ClientOverview() {
               <ITText className="!text-[20px] font-extrabold !text-slate-900">{today}</ITText>
             </div>
             <div className="flex items-center gap-2">
-              <ITBadget color="success" size="sm">{a.counts.onSite} en sitio</ITBadget>
+              <ITBadget color="success" size="sm">{a.counts.onSite} en sitio ahora</ITBadget>
               {seeAll(canTimeClockView ? "/hr/time-clock" : "/mi-jornada")}
             </div>
           </div>
@@ -98,12 +102,17 @@ export default function ClientOverview() {
           ) : (
             <div className="relative mt-4">
               <div className="flex items-end justify-between gap-2">
-                <span className="text-[34px] font-black leading-none">{a.counts.onSite}<span className="text-[18px] font-bold text-slate-500"> / {scheduled} en sitio</span></span>
+                <span className="text-[34px] font-black leading-none">{arrived}<span className="text-[18px] font-bold text-slate-500"> de {scheduled} llegaron</span></span>
                 <span className="text-[11.5px] text-slate-500">{scheduled === 0 ? "Sin checadas hoy" : "Jornada en curso"}</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200/70">
-                <div className="dash-bar h-full rounded-full bg-emerald-400" style={{ width: `${scheduled ? Math.round((a.counts.onSite / scheduled) * 100) : 0}%` }} />
+                <div className="dash-bar h-full rounded-full bg-emerald-400" style={{ width: `${scheduled ? Math.min(100, Math.round((arrived / scheduled) * 100)) : 0}%` }} />
               </div>
+              {finished > 0 && (
+                <ITText className="mt-2 block !text-[12px] !text-slate-500">
+                  {finished} ya terminaron su turno · {a.counts.onSite} siguen en sitio
+                </ITText>
+              )}
               <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
                 {[
                   { label: t("client.attendance.present"), value: a.counts.PRESENT, color: "text-emerald-600" },
