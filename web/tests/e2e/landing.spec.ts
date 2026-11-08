@@ -29,11 +29,15 @@ test.describe("Landing pública", () => {
     await expect(page.getByText(/Todo lo que RH opera cada semana/i)).toBeVisible();
     await expect(page.getByText("CheckLab Agent").first()).toBeAttached();
 
-    // Planes del catálogo con sus límites.
-    await expect(page.getByText("Hasta 500 personas")).toBeAttached();
-    await expect(page.getByText("Hasta 750 personas")).toBeAttached();
-    await expect(page.getByText("Hasta 1,000 personas")).toBeAttached();
-    await expect(page.getByText(/Precios de referencia/i)).toBeAttached();
+    // Planes por persona y tabla comparativa.
+    await expect(page.getByText("1–10 personas")).toBeAttached();
+    await expect(page.getByText("11–49 personas")).toBeAttached();
+    await expect(page.getByText("50+ personas")).toBeAttached();
+    await expect(page.getByText("$69").first()).toBeAttached();
+    await expect(page.getByText("$59").first()).toBeAttached();
+    await expect(page.getByText("$49").first()).toBeAttached();
+    await expect(page.getByText("Qué incluye cada plan")).toBeAttached();
+    await expect(page.getByText(/Precio por persona activa al mes, más IVA/i)).toBeAttached();
 
     // Sin toggle de tema: la landing es clara como la app.
     await expect(page.getByRole("button", { name: /Cambiar a tema/i })).toHaveCount(0);

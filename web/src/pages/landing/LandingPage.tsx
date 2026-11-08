@@ -144,29 +144,53 @@ const STEPS = [
 
 const PLANS = [
   {
+    id: "basico",
     name: "Básico",
-    price: "500",
-    people: "Hasta 500 personas",
-    clocks: "1 reloj",
-    features: ["Checada con reloj o web", "Asistencia y expedientes", "Portal Mi jornada", "Reportes y export"],
+    range: "1–10 personas",
+    price: "69",
+    example: "10 personas = $690 + IVA",
+    tagline: "Para empezar a ordenar la asistencia sin comprar reloj.",
+    features: ["Checada web con ubicación", "Horarios de 7 días", "Asistencia y retardos", "Portal Mi jornada", "Reportes y export"],
     highlight: false,
   },
   {
+    id: "profesional",
     name: "Profesional",
-    price: "750",
-    people: "Hasta 750 personas",
-    clocks: "2 relojes",
-    features: ["Todo lo del Básico", "Horarios y horas extra LFT", "Pre-nómina con cierre", "Agente local incluido"],
+    range: "11–49 personas",
+    price: "59",
+    example: "20 personas = $1,180 + IVA",
+    tagline: "El paquete completo de RH, horas extra y pre-nómina.",
+    features: ["Todo lo del Básico", "Reloj físico integrado", "Horas extra LFT dobles/triples", "Pre-nómina y cierres", "Expedientes y documentos", "Teletrabajo NOM-037"],
     highlight: true,
   },
   {
-    name: "Empresarial",
-    price: "1,000",
-    people: "Hasta 1,000 personas",
-    clocks: "3 relojes",
-    features: ["Todo lo del Profesional", "Varias sucursales", "Roles y permisos a medida", "Soporte prioritario"],
+    id: "empresa",
+    name: "Empresa",
+    range: "50+ personas",
+    price: "49",
+    example: "50 personas = $2,450 + IVA",
+    tagline: "Para operaciones con varias sucursales y equipos de RH.",
+    features: ["Todo lo del Profesional", "Multi-sucursal y relojes", "Roles y auditoría avanzada", "API e integraciones", "Onboarding y soporte prioritario"],
     highlight: false,
   },
+];
+
+/** Filas de la tabla comparativa. `true` = incluido; texto = límite/nota. */
+const COMPARISON: Array<{ label: string; values: [boolean | string, boolean | string, boolean | string] }> = [
+  { label: "Checada web con GPS y mapa", values: [true, true, true] },
+  { label: "Checada con reloj físico", values: [false, true, true] },
+  { label: "Horarios, descansos y turnos nocturnos", values: [true, true, true] },
+  { label: "Asistencia, retardos y faltas", values: [true, true, true] },
+  { label: "Portal Mi jornada", values: [true, true, true] },
+  { label: "Horas extra LFT (dobles/triples/excedente)", values: [true, true, true] },
+  { label: "Pre-nómina, costo y cierre semanal", values: [false, true, true] },
+  { label: "Expedientes y documentos", values: [false, true, true] },
+  { label: "Vacaciones, permisos y convenios", values: [false, true, true] },
+  { label: "Teletrabajo y checklists NOM-037", values: [false, true, true] },
+  { label: "Roles, permisos y auditoría", values: ["1 admin", "Hasta 3 admin", "Ilimitados"] },
+  { label: "Relojes y sucursales", values: ["—", "Hasta 3", "Sin límite"] },
+  { label: "API e integraciones", values: [false, false, true] },
+  { label: "Soporte", values: ["Correo", "Prioritario", "Dedicado + onboarding"] },
 ];
 
 const FAQ = [
@@ -191,8 +215,8 @@ const FAQ = [
     a: "El CheckLab Agent (app de escritorio) se conecta al reloj por tu red local, lee las checadas y las envía al sistema. No necesitas abrir puertos ni contratar VPN, y si se cae el internet las checadas esperan en una cola local sin duplicarse.",
   },
   {
-    q: "¿Puedo cambiar de plan o dar de baja a alguien?",
-    a: "Sí. Los planes se miden por personas activas y relojes. Dar de baja libera lugar, y bajar de plan no borra información: solo limita nuevas altas por encima del límite.",
+    q: "¿Cómo se cobran los planes?",
+    a: "Por persona activa al mes, más IVA: $69 en el plan Básico (1–10 personas), $59 en Profesional (11–49) y $49 en Empresa (50 o más). Si tienes entre 11 y 19 personas se factura como Profesional. Dar de baja a alguien libera su lugar en el siguiente corte.",
   },
 ];
 
@@ -343,7 +367,8 @@ export default function LandingPage() {
 
       <main className="relative z-10">
         {/* ── Hero ─────────────────────────────────────────────── */}
-        <section id="top" className="cl-wrap grid gap-14 pb-16 pt-12 sm:pt-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-12 lg:pb-24 lg:pt-20">
+        <section id="top" className="cl-wrap relative grid gap-14 pb-16 pt-12 sm:pt-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-12 lg:pb-24 lg:pt-20">
+          <div className="cl-hero-glow" aria-hidden="true" />
           <div data-reveal>
             <span className="cl-chip">
               <span className="cl-pulse" /> Reloj checador o checada web con ubicación
@@ -406,6 +431,17 @@ export default function LandingPage() {
                 <p className="cl-faint text-[13px]">{fact.sub}</p>
               </div>
             ))}
+          </div>
+          <div className="cl-ticker" aria-hidden="true">
+            <div className="cl-ticker-track">
+              {[0, 1].map((copy) => (
+                <div key={copy} className="flex shrink-0 items-center gap-8 pr-8">
+                  {["Checada web con GPS", "Reloj físico o sin reloj", "Horas extra LFT", "NOM-037 teletrabajo", "Pre-nómina con cierre", "Registro inmutable", "Multi-sucursal"].map((item) => (
+                    <span key={`${copy}-${item}`}>{item}</span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -637,44 +673,104 @@ export default function LandingPage() {
         {/* ── Planes ───────────────────────────────────────────── */}
         <section id="planes" className="scroll-mt-20 border-y" style={{ borderColor: "var(--line)", background: "var(--surface-2)" }}>
           <div className="cl-wrap py-24 lg:py-28">
-            <SectionHead eyebrow="Planes" title="Precio simple, por tamaño de empresa" text="Elige por personas activas y relojes. Cambia de plan cuando quieras sin perder información." />
+            <SectionHead
+              eyebrow="Precios"
+              title="Paga por persona. Sin reloj obligatorio."
+              text="Los tres planes incluyen checada web con ubicación. El precio baja conforme crece tu equipo y todos se facturan por persona activa al mes, más IVA."
+            />
+
             <div className="mt-14 grid gap-4 lg:grid-cols-3">
               {PLANS.map((plan) => (
                 <article
-                  key={plan.name}
+                  key={plan.id}
                   data-reveal
-                  className="cl-card flex flex-col p-7"
-                  style={plan.highlight ? { borderColor: "var(--mint)", boxShadow: "0 0 0 1px var(--mint), var(--shadow)" } : undefined}
+                  className={`cl-card cl-plan-card flex flex-col p-7 ${plan.highlight ? "cl-plan-card--featured" : ""}`}
                 >
-                  <div className="flex items-center justify-between">
-                    <h3 className="cl-h3">{plan.name}</h3>
+                  {plan.highlight && (
+                    <span className="cl-plan-shine" aria-hidden="true" />
+                  )}
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="cl-h3">{plan.name}</h3>
+                      <span className="cl-chip mt-2 inline-flex">
+                        <LuUsers size={13} /> {plan.range}
+                      </span>
+                    </div>
                     {plan.highlight && <span className="cl-tag cl-tag-mint">Más elegido</span>}
                   </div>
-                  <p className="mt-5 flex items-baseline gap-1.5">
-                    <span className="cl-faint text-[14px] font-semibold">desde</span>
-                    <span className="text-[40px] font-black leading-none tracking-tight">${plan.price}</span>
-                    <span className="cl-muted text-[14px] font-semibold">MXN/mes</span>
+
+                  <p className="mt-6 flex items-baseline gap-1.5">
+                    <span className="cl-plan-price text-[44px] font-black leading-none tracking-tight">${plan.price}</span>
+                    <span className="cl-muted text-[13px] font-semibold">MXN / persona / mes</span>
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="cl-chip">
-                      <LuUsers size={13} /> {plan.people}
-                    </span>
-                    <span className="cl-chip">
-                      <LuFingerprint size={13} /> {plan.clocks}
-                    </span>
-                  </div>
+                  <p className="cl-faint mt-1 text-[12.5px] font-semibold">+ IVA · {plan.example}</p>
+                  <p className="cl-muted mt-4 text-[14px] leading-relaxed">{plan.tagline}</p>
+
                   <ul className="mt-6 space-y-2.5">
                     {plan.features.map((feature) => (
                       <Check key={feature}>{feature}</Check>
                     ))}
                   </ul>
                   <a {...DEMO_LINK} className={`cl-btn mt-8 w-full ${plan.highlight ? "cl-btn-primary" : "cl-btn-ghost"}`}>
-                    Solicitar demo
+                    Solicitar demo <LuArrowRight size={16} />
                   </a>
                 </article>
               ))}
             </div>
-            <p className="cl-muted mt-6 text-center text-[13px]">Precios de referencia; los definitivos se confirman en la demo.</p>
+
+            <div data-reveal className="mt-10 overflow-hidden rounded-[24px] border" style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
+              <div className="flex flex-col gap-2 border-b px-6 py-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="cl-eyebrow">Comparativa</p>
+                  <h3 className="cl-h3 mt-1">Qué incluye cada plan</h3>
+                </div>
+                <p className="cl-muted text-[12.5px]">Precio por persona activa · + IVA</p>
+              </div>
+              <div className="cl-compare-wrap">
+                <table className="cl-compare">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="cl-compare-feature">Función</th>
+                      {PLANS.map((plan) => (
+                        <th key={plan.id} scope="col" className={plan.highlight ? "cl-compare-highlight" : ""}>
+                          <span className="block text-[14px] font-extrabold">{plan.name}</span>
+                          <span className="cl-muted block text-[11.5px] font-semibold">${plan.price}/persona</span>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {COMPARISON.map((row) => (
+                      <tr key={row.label}>
+                        <th scope="row">{row.label}</th>
+                        {row.values.map((value, index) => (
+                          <td key={index} className={PLANS[index].highlight ? "cl-compare-highlight" : ""}>
+                            {typeof value === "boolean" ? (
+                              value ? (
+                                <LuCheck size={17} className="cl-mint mx-auto" strokeWidth={3} aria-label="Incluido" />
+                              ) : (
+                                <LuX size={16} className="cl-compare-no mx-auto" aria-label="No incluido" />
+                              )
+                            ) : (
+                              <span className="cl-compare-note">{value}</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
+              <p className="cl-muted text-[13px]">
+                Precio por persona activa al mes, más IVA. Sin costo de instalación. Si tienes entre 11 y 19 personas, se factura como Profesional.
+              </p>
+              <a {...DEMO_LINK} className="cl-btn cl-btn-primary shrink-0">
+                Cotizar mi equipo <LuArrowRight size={16} />
+              </a>
+            </div>
           </div>
         </section>
 
