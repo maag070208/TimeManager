@@ -199,3 +199,49 @@
 @media (prefers-reduced-motion: reduce) {
   .login-card, .login-brand, .login-brand .login-ring { animation: none !important; }
 }
+
+/* Pase de diseño: más aire, controles rectangulares y foco mint. */
+.login-brand {
+  padding: 44px 40px !important;
+}
+.login-card {
+  max-width: 1040px !important;
+}
+.login-form-panel {
+  padding: 44px 48px !important;
+}
+.login-form-panel input {
+  min-height: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  box-shadow: inset 0 0 0 1px #e5eaf1 !important;
+  padding: 0 38px 0 14px !important;
+  font-size: 14px !important;
+}
+.login-form-panel input:focus,
+.login-form-panel input:focus-visible {
+  background: #ffffff !important;
+  box-shadow: inset 0 0 0 1px #34d399, 0 0 0 3px rgb(52 211 153 / 0.16) !important;
+  outline: none !important;
+}
+.login-form-panel label {
+  font-size: 12.5px !important;
+  color: #334155;
+}
+.login-submit {
+  border-radius: 12px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+}
+.login-form-panel form {
+  gap: 18px;
+}
+.login-form-panel .rounded-2xl {
+  border-color: #eef1f5 !important;
+  border-radius: 14px !important;
+}
+@media (max-width: 639px) {
+  .login-brand { padding: 26px 22px !important; }
+  .login-form-panel { padding: 30px 22px 34px !important; }
+}
