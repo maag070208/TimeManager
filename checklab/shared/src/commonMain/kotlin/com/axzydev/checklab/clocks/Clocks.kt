@@ -104,18 +104,33 @@ class ClocksApi(private val client: HttpClient) {
     suspend fun runRoster(): JsonObject = apiCall { client.post("time-clock/roster/run") { setBody(JsonObject(emptyMap())) } }
 }
 
+/** Códigos de `time-clock/summary` (`clock-summary.ts` y `time-clock-summary.service.ts`). */
 private val ALERT_TEXT = mapOf(
     "UNLINKED" to "Personas en el reloj sin vincular a alguien del sistema",
-    "OFFLINE" to "Reloj sin conexión",
+    "NO_RESPONSE" to "Reloj sin respuesta",
+    "CREDENTIALS" to "El reloj rechazó el usuario o la contraseña",
+    "SYNC_ERROR" to "La última sincronización falló",
     "PENDING_REMOVALS" to "Bajas del reloj por confirmar",
-    "REAPPEARED" to "Personas que volvieron a aparecer",
-    "SUSPICIOUS" to "Corrida del padrón sospechosa",
+    "REAPPEARED" to "Personas que volvieron a aparecer en el reloj",
+    "SUSPICIOUS_ROSTER" to "Corrida del padrón sospechosa",
 )
 
-private fun connectionLabel(c: String) = when (c) {
-    "ONLINE", "OK" -> "En línea" to Brand.MintInk
-    "NO_RESPONSE", "OFFLINE", "ERROR" -> "Sin conexión" to Brand.Rose
-    else -> "Sin datos" to Brand.Muted
+internal fun alertText(code: String): String = ALERT_TEXT[code] ?: code
+
+/** `ConnectionState` del API: ONLINE · NO_RESPONSE · PAUSED_CREDENTIALS · NOT_READ. */
+internal enum class ClockLink(val label: String) { Online("En línea"), Down("Sin conexión"), Credentials("Credenciales rechazadas"), Unknown("Sin datos") }
+
+internal fun clockLink(connection: String): ClockLink = when (connection) {
+    "ONLINE" -> ClockLink.Online
+    "NO_RESPONSE" -> ClockLink.Down
+    "PAUSED_CREDENTIALS" -> ClockLink.Credentials
+    else -> ClockLink.Unknown
+}
+
+private fun ClockLink.color() = when (this) {
+    ClockLink.Online -> Brand.MintInk
+    ClockLink.Down, ClockLink.Credentials -> Brand.Rose
+    ClockLink.Unknown -> Brand.Muted
 }
 
 data class ClocksData(val summary: ClockSummary, val roster: Roster)
@@ -139,11 +154,13 @@ fun ColumnScope.ClocksContent(me: Me, vm: ClocksViewModel = koinViewModel()) {
             if (s.alerts.isNotEmpty()) {
                 BentoCard(Modifier.fillMaxWidth(), tint = Brand.AmberSoft) {
                     Eyebrow("Alertas", color = Brand.AmberInk)
-                    s.alerts.forEach { a -> ListRow(ALERT_TEXT[a.code] ?: a.code, status = "${a.count}", statusColor = Brand.AmberInk, statusTint = Brand.Surface) }
+                    s.alerts.forEach { a -> ListRow(alertText(a.code), status = "${a.count}", statusColor = Brand.AmberInk, statusTint = Brand.Surface) }
                 }
             }
             s.clocks.forEach { c ->
-                val (label, color) = connectionLabel(c.connection)
+                val link = clockLink(c.connection)
+                val label = link.label
+                val color = link.color()
                 BentoCard(Modifier.fillMaxWidth()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(10.dp).clip(CircleShape).background(color))
@@ -216,7 +233,7 @@ class AttendanceViewModel(private val api: AttendanceApi) : ListViewModel<Attend
     }
 }
 
-private fun dayCell(status: String): Triple<String, androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> = when (status) {
+internal fun dayCell(status: String): Triple<String, androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> = when (status) {
     "WORKED" -> Triple("✓", Brand.MintInk, Brand.MintSoft)
     "OVERTIME" -> Triple("+", Brand.AmberInk, Brand.AmberSoft)
     "ABSENCE" -> Triple("F", Brand.Rose, Brand.RoseSoft)

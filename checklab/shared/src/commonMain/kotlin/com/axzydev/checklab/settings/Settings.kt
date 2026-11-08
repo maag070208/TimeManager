@@ -128,6 +128,30 @@ class SettingsApi(private val client: HttpClient) {
 
 private val WEEK_DAYS = listOf("Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
 
+/**
+ * Cuerpo de `PUT /nom/config`. Las claves son las de `NomSettingsUpdateDto` (zod `.strict()`):
+ * una clave de más hace que el API rechace todo el guardado. Un número vacío cuenta como 0.
+ */
+internal fun configUpdate(
+    entryTolerance: String,
+    exitTolerance: String,
+    mealBreak: String,
+    minOvertime: String,
+    remotePunch: Boolean,
+    remoteCounts: Boolean,
+    blockWithoutAgreement: Boolean,
+    unionForCollective: Boolean,
+): Map<String, JsonPrimitive> = mapOf(
+    "defaultEntryToleranceMin" to JsonPrimitive(entryTolerance.toIntOrNull() ?: 0),
+    "defaultExitToleranceMin" to JsonPrimitive(exitTolerance.toIntOrNull() ?: 0),
+    "defaultMealBreakMin" to JsonPrimitive(mealBreak.toIntOrNull() ?: 0),
+    "defaultMinOvertimeMin" to JsonPrimitive(minOvertime.toIntOrNull() ?: 0),
+    "remotePunchEnabled" to JsonPrimitive(remotePunch),
+    "remoteCountsForWorkday" to JsonPrimitive(remoteCounts),
+    "blockRemoteWithoutAgreement" to JsonPrimitive(blockWithoutAgreement),
+    "requireUnionForCollective" to JsonPrimitive(unionForCollective),
+)
+
 class ConfigViewModel(private val api: SettingsApi) : ListViewModel<NomConfig>() {
     override suspend fun fetch() = api.config()
     fun save(body: Map<String, JsonPrimitive>) = act("Configuración guardada.") { api.saveConfig(body) }
@@ -182,18 +206,7 @@ fun ColumnScope.ConfigContent(me: Me, vm: ConfigViewModel = koinViewModel()) {
         }
         if (canEdit) {
             PrimaryButton("Guardar cambios", {
-                vm.save(
-                    mapOf(
-                        "defaultEntryToleranceMin" to JsonPrimitive(entry.toIntOrNull() ?: 0),
-                        "defaultExitToleranceMin" to JsonPrimitive(exit.toIntOrNull() ?: 0),
-                        "defaultMealBreakMin" to JsonPrimitive(meal.toIntOrNull() ?: 0),
-                        "defaultMinOvertimeMin" to JsonPrimitive(minOt.toIntOrNull() ?: 0),
-                        "remotePunchEnabled" to JsonPrimitive(remote),
-                        "remoteCountsForWorkday" to JsonPrimitive(remoteCounts),
-                        "blockRemoteWithoutAgreement" to JsonPrimitive(block),
-                        "requireUnionForCollective" to JsonPrimitive(union),
-                    ),
-                )
+                vm.save(configUpdate(entry, exit, meal, minOt, remote, remoteCounts, block, union))
             }, busy = state.busy)
         }
     }
@@ -438,7 +451,7 @@ private val AUDIT_LABELS = mapOf(
     "TELEWORK_CONSENT_ACCEPTED" to "Consentimiento de teletrabajo",
 )
 
-private fun auditLabel(a: String) = AUDIT_LABELS[a] ?: a.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+internal fun auditLabel(a: String) = AUDIT_LABELS[a] ?: a.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
 
 class AuditViewModel(private val api: SettingsApi) : ListViewModel<Page<AuditEntry>>() {
     var page = 1
