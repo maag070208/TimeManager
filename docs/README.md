@@ -19,6 +19,8 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 | [../checklab/docs/PLAN_PARIDAD_WEB_APP.md](../checklab/docs/PLAN_PARIDAD_WEB_APP.md) | Plan de paridad Web → app Kotlin Multiplatform (Android/iOS) por fases; la Fase 0 vive en `checklab/` |
 | [USER_MATRIX.md](USER_MATRIX.md) | Matriz de usuarios demo/E2E, credenciales, roles, permisos efectivos y casos de acceso por cuenta |
 | [QA_MATRIX.md](QA_MATRIX.md) | Matriz QA integral: 49 pantallas, 39 tabs, 71 modales, acciones críticas, cobertura actual y orden de implementación de pruebas |
+| [QA_BOTS_MATRIX.md](QA_BOTS_MATRIX.md) | Matriz maestra de bots API/WEB/APP, roles, modos, recorridos cruzados y estados de ejecución |
+| [QA_MEJORAS.md](QA_MEJORAS.md) | Hallazgos, mejoras, brechas conocidas y registro de ejecuciones de la campaña QA |
 | [modules/](modules/README.md) | Ficha por módulo del sistema: qué hace, endpoints, modelos, permisos, frontend y notas multi-tenant |
 
 ## Convenciones

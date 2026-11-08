@@ -21,7 +21,8 @@
     "tenancy-check": "ts-node -r tsconfig-paths/register scripts/tenancy-check.ts",
     "workers": "ts-node -r tsconfig-paths/register src/workers/index.ts",
     "workers:prod": "node dist/src/workers/index.js",
-    "qa:bots": "ts-node -r tsconfig-paths/register qa/run.ts"
+    "qa:bots": "ts-node -r tsconfig-paths/register qa/run.ts",
+    "qa:bots:local": "node qa/run-local.mjs"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"

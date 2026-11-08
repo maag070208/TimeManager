@@ -169,8 +169,8 @@ const PLANS = [
     range: "50+ personas",
     price: "49",
     example: "50 personas = $2,450 + IVA",
-    tagline: "Para operaciones con varias sucursales y equipos de RH.",
-    features: ["Todo lo del Profesional", "Multi-sucursal y relojes", "Roles y auditoría avanzada", "API e integraciones", "Onboarding y soporte prioritario"],
+    tagline: "Para operaciones con varios relojes y equipos de RH.",
+    features: ["Todo lo del Profesional", "Varios relojes conectados", "Roles y auditoría avanzada", "API e integraciones", "Onboarding y soporte prioritario"],
     highlight: false,
   },
 ];
@@ -188,7 +188,7 @@ const COMPARISON: Array<{ label: string; values: [boolean | string, boolean | st
   { label: "Vacaciones, permisos y convenios", values: [false, true, true] },
   { label: "Teletrabajo y checklists NOM-037", values: [false, true, true] },
   { label: "Roles, permisos y auditoría", values: ["1 admin", "Hasta 3 admin", "Ilimitados"] },
-  { label: "Relojes y sucursales", values: ["—", "Hasta 3", "Sin límite"] },
+  { label: "Relojes conectados", values: ["—", "Hasta 3", "Sin límite"] },
   { label: "API e integraciones", values: [false, false, true] },
   { label: "Soporte", values: ["Correo", "Prioritario", "Dedicado + onboarding"] },
 ];
@@ -436,7 +436,7 @@ export default function LandingPage() {
             <div className="cl-ticker-track">
               {[0, 1].map((copy) => (
                 <div key={copy} className="flex shrink-0 items-center gap-8 pr-8">
-                  {["Checada web con GPS", "Reloj físico o sin reloj", "Horas extra LFT", "NOM-037 teletrabajo", "Pre-nómina con cierre", "Registro inmutable", "Multi-sucursal"].map((item) => (
+                  {["Checada web con GPS", "Reloj físico o sin reloj", "Horas extra LFT", "NOM-037 teletrabajo", "Pre-nómina con cierre", "Registro inmutable", "Multi-cliente"].map((item) => (
                     <span key={`${copy}-${item}`}>{item}</span>
                   ))}
                 </div>
@@ -598,7 +598,7 @@ export default function LandingPage() {
                 icon={LuLayers}
                 label="Control y multi-empresa"
                 title="Cada quien ve lo que le toca"
-                text="Roles y permisos por pantalla, bitácora que no se puede editar y una consola para operar varias empresas o sucursales."
+                text="Roles y permisos por pantalla, bitácora que no se puede editar y una consola para operar varias empresas clientes."
               />
               <ul className="mt-auto grid gap-2.5">
                 {[

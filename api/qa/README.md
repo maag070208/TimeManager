@@ -23,10 +23,14 @@ sin correos, Ably ni estación de huellas, sin rate limit).
 ## Correr
 
 ```bash
-pnpm --filter timemanager-api qa:bots                  # reparto nuevo + todos los flujos
-pnpm --filter timemanager-api qa:bots jornada permisos # solo esos flujos
+pnpm --filter timemanager-api qa:bots:local             # prepara tm_qa, levanta/cierra el API y corre todo
+pnpm --filter timemanager-api qa:bots:local jornada     # corrida autocontenida, sólo ese flujo
+pnpm --filter timemanager-api qa:bots                   # contra un API QA ya abierto: reparto nuevo + todos
+pnpm --filter timemanager-api qa:bots jornada permisos # sólo esos flujos
 QA_REUSE=1 pnpm --filter timemanager-api qa:bots jornada  # reusa el último reparto
 ```
+
+`qa:bots:local` usa `qa/.env.qa`, exige una base local `tm_qa*`, guarda el log del proceso en `qa/out/api.log` y apaga el API temporal al terminar, incluso cuando hay fallos. No reutiliza ni detiene un API que ya ocupe el puerto 4031.
 
 Salida en `qa/out/` (no se commitea): `cast.json` con las cuentas generadas y
 `report.md` / `report.json` con cada paso (✓/✗) y los hallazgos.
