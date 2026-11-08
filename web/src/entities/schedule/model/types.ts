@@ -123,6 +123,7 @@ export type WeeklyAttendanceDayStatus =
   | "INCOMPLETE"
   | "REST"
   | "REST_WORKED"
+  | "LEAVE"
   | "NO_INFO"
   | "FUTURE";
 

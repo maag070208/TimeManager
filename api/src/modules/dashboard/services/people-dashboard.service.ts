@@ -142,7 +142,8 @@ export class PeopleDashboardService {
     const scope = scopeOf(actor, "attendance.view");
     const ownOnly = scope === "OWN" || (scope === "AREA" && !actor.departmentId);
     const departmentId = scope === "ALL" ? undefined : actor.departmentId ?? undefined;
-    const report = await this.weeklyAttendance.report({ date, departmentId });
+    // «Hoy» se calcula al momento: una checada recién hecha debe verse ya, sin esperar la caché.
+    const report = await this.weeklyAttendance.report({ date, departmentId, refresh: true });
     const now = Date.now();
 
     const rows: TodayRow[] = report.rows

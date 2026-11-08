@@ -97,7 +97,7 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
     fun punch(type: PunchType, location: LocationProvider) {
         val q = queue ?: return
         val s = _state.value
-        if (s.busy) return
+        if (s.busy || type !in s.next) return
         _state.update { it.copy(busy = true, notice = null, error = null) }
         viewModelScope.launch {
             try {

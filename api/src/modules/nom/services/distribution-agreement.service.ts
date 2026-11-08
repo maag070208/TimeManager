@@ -57,6 +57,15 @@ export class DistributionAgreementService {
       throw new HttpError(400, "AGREEMENT_UNION_REQUIRED");
     }
     if (input.evidenceText.trim().length < 20) throw new HttpError(400, "AGREEMENT_EVIDENCE_TOO_SHORT");
+    if (input.userId && !(await this.db.user.findFirst({ where: { id: input.userId, tenantId }, select: { id: true } }))) {
+      throw new HttpError(404, "USER_NOT_FOUND");
+    }
+    if (
+      input.scheduleId &&
+      !(await this.db.schedule.findFirst({ where: { id: input.scheduleId, tenantId }, select: { id: true } }))
+    ) {
+      throw new HttpError(404, "SCHEDULE_NOT_FOUND");
+    }
     const from = new Date(`${input.effectiveFrom}T00:00:00.000Z`);
     const to = input.effectiveTo ? new Date(`${input.effectiveTo}T00:00:00.000Z`) : null;
     if (Number.isNaN(from.getTime()) || (to && to < from)) throw new HttpError(400, "AGREEMENT_INVALID_RANGE");
@@ -97,6 +106,18 @@ export class DistributionAgreementService {
   ) {
     const agreement = await this.db.workdayDistributionAgreement.findUnique({ where: { id } });
     if (!agreement) throw new HttpError(404, "AGREEMENT_NOT_FOUND");
+    // Solo acepta la persona del convenio individual, o quien tiene asignado el
+    // horario del colectivo; para cualquier otra el convenio no existe.
+    const own = agreement.userId
+      ? agreement.userId === actor.id
+      : Boolean(
+          agreement.scheduleId &&
+            (await this.db.scheduleAssignment.findFirst({
+              where: { scheduleId: agreement.scheduleId, userId: actor.id },
+              select: { id: true },
+            }))
+        );
+    if (!own) throw new HttpError(404, "AGREEMENT_NOT_FOUND");
     if (agreement.acceptedAt) throw new HttpError(409, "AGREEMENT_ALREADY_ACCEPTED");
     const updated = await this.db.workdayDistributionAgreement.update({
       where: { id },

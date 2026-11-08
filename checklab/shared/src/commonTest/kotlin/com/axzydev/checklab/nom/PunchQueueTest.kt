@@ -52,7 +52,14 @@ class NextPunchTest {
         assertEquals(listOf(PunchType.LUNCH_START, PunchType.EXIT), nextPunchTypes(listOf(PunchType.ENTRY)))
         assertEquals(listOf(PunchType.LUNCH_END), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.LUNCH_START)))
         assertEquals(listOf(PunchType.EXIT), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.LUNCH_START, PunchType.LUNCH_END)))
-        assertEquals(listOf(PunchType.ENTRY), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.EXIT)))
+        assertEquals(emptyList(), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.EXIT)))
+        assertEquals(emptyList(), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.LUNCH_START, PunchType.LUNCH_END, PunchType.EXIT)))
+    }
+
+    @Test
+    fun sinRedTampocoSePuedeChecarDespuesDeLaSalida() {
+        val queued = listOf(PunchType.ENTRY, PunchType.EXIT).map { PunchRequest(it) }
+        assertEquals(emptyList(), MyWorkdayState(pending = queued).next)
     }
 }
 

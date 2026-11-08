@@ -100,11 +100,14 @@ export class RemotePunchService {
       const existing = await this.db.remotePunch.findUnique({
         where: { clientEventId: input.clientEventId },
       });
+      // El id lo genera el teléfono: uno ajeno no devuelve la checada de otra persona.
+      if (existing && existing.userId !== userId) throw new HttpError(409, "CLIENT_EVENT_ID_TAKEN");
       if (existing) return { punch: this.toDto(existing), created: false };
     }
 
-    // Secuencia del día: entrada → (comida → regreso) → salida. Al cambiar de
-    // día la secuencia arranca de nuevo, aunque ayer no se haya marcado salida.
+    // Secuencia del día: entrada → (comida → regreso) → salida, una sola vez.
+    // Tras la salida el día queda cerrado. Al cambiar de día la secuencia
+    // arranca de nuevo, aunque ayer no se haya marcado salida.
     const last = await this.db.remotePunch.findFirst({
       where: { userId },
       orderBy: { occurredAt: "desc" },
@@ -112,12 +115,17 @@ export class RemotePunchService {
     const timezone = user.tenant?.timezone ?? "America/Mexico_City";
     const today = localDateKey(new Date(), timezone);
     const lastIsToday = last ? localDateKey(last.occurredAt, timezone) === today : false;
+    if (lastIsToday && last!.type === "EXIT") {
+      throw new HttpError(409, "WORKDAY_ALREADY_CLOSED");
+    }
+    if (!lastIsToday && input.type !== "ENTRY") {
+      throw new HttpError(409, "INVALID_PUNCH_SEQUENCE", { type: input.type, expected: ["ENTRY"] });
+    }
     if (lastIsToday) {
       const allowed: Record<string, string[]> = {
         ENTRY: ["LUNCH_START", "EXIT"],
         LUNCH_START: ["LUNCH_END"],
         LUNCH_END: ["EXIT"],
-        EXIT: ["ENTRY"],
       };
       const next = allowed[last!.type] ?? ["ENTRY"];
       if (!next.includes(input.type)) {
@@ -159,6 +167,7 @@ export class RemotePunchService {
         const existing = await this.db.remotePunch.findUnique({
           where: { clientEventId: input.clientEventId },
         });
+        if (existing && existing.userId !== userId) throw new HttpError(409, "CLIENT_EVENT_ID_TAKEN");
         if (existing) return { punch: this.toDto(existing), created: false };
       }
       throw error;

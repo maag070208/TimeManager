@@ -20,7 +20,8 @@
     "test:integration": "bash scripts/test-integration.sh",
     "tenancy-check": "ts-node -r tsconfig-paths/register scripts/tenancy-check.ts",
     "workers": "ts-node -r tsconfig-paths/register src/workers/index.ts",
-    "workers:prod": "node dist/src/workers/index.js"
+    "workers:prod": "node dist/src/workers/index.js",
+    "qa:bots": "ts-node -r tsconfig-paths/register qa/run.ts"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"

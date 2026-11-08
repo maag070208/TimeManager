@@ -96,7 +96,7 @@ export class EmployeeOverviewService {
       ]);
 
     const employeeNumber = clockLink?.employeeNumber ?? user.employeeNumber ?? null;
-    const [punches, punchesLast30Days] = employeeNumber
+    const [punches, clockPunchesLast30Days] = employeeNumber
       ? await Promise.all([
           this.db.timeClockPunch.findMany({
             where: { employeeNumber },
@@ -109,6 +109,11 @@ export class EmployeeOverviewService {
           }),
         ])
       : [[], 0];
+    // Las checadas de la app cuentan igual que las del reloj.
+    const remotePunchesLast30Days = await this.db.remotePunch.count({
+      where: { userId, occurredAt: { gte: since30 } },
+    });
+    const punchesLast30Days = clockPunchesLast30Days + remotePunchesLast30Days;
 
     const serials = [...new Set(punches.map((punch) => punch.clockSerial))];
     const clocks =

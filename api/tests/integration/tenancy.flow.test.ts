@@ -166,7 +166,7 @@ describe("aislamiento CRUD entre clientes", () => {
       token: adminA.token,
       body: { name: "HACKEADO" },
     });
-    expectError(update, 404, "RECORD_NOT_FOUND", "edición del usuario de B");
+    expectError(update, 404, "USER_NOT_FOUND", "edición del usuario de B");
 
     const remove = await api("DELETE", `/users/${staffB.id}`, { token: adminA.token });
     expectError(remove, 404, "USER_NOT_FOUND", "baja del usuario de B");

@@ -47,13 +47,15 @@
     "REST": "Day off",
     "REST_WORKED": "Day off worked",
     "NO_INFO": "No information",
-    "FUTURE": "Upcoming"
+    "FUTURE": "Upcoming",
+    "LEAVE": "Leave"
   },
   "statusShort": {
     "ABSENCE": "Absence",
     "REST": "Day off",
     "NO_INFO": "N/A",
-    "FUTURE": ""
+    "FUTURE": "",
+    "LEAVE": "LV"
   },
   "approval": {
     "APPROVED": "Approved",

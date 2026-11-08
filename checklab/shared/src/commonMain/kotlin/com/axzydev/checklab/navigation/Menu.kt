@@ -75,3 +75,18 @@ fun visibleMenu(me: Me): List<MenuSection> =
     MENU.map { s -> s.copy(items = s.items.filter { it.visibleFor(me) }) }.filter { it.items.isNotEmpty() }
 
 fun menuItem(id: String): MenuItem? = MENU.flatMap { it.items }.firstOrNull { it.id == id }
+
+/** Pestaña de la barra inferior: una sección del menú con etiqueta corta, o el botón que abre el drawer. */
+data class BottomTab(val id: String, val label: String, val icon: LucideIcon)
+
+const val MENU_TAB = "menu"
+
+private val BOTTOM_SECTIONS = listOf(HOME to "Inicio", MY_WORKDAY to "Mi jornada", "notifications" to "Avisos", "profile" to "Perfil")
+
+/** Pestañas para la sesión: las secciones base que el rol puede ver y, al final, "Menú" para el resto. */
+fun bottomTabs(me: Me): List<BottomTab> =
+    BOTTOM_SECTIONS.mapNotNull { (id, label) -> menuItem(id)?.takeIf { it.visibleFor(me) }?.let { BottomTab(id, label, it.icon) } } +
+        BottomTab(MENU_TAB, "Menú", Lucide.Menu)
+
+/** Pestaña marcada en la sección [current]: la suya, o "Menú" si se llegó desde el drawer. */
+fun selectedTab(current: String, tabs: List<BottomTab>): String = tabs.firstOrNull { it.id == current }?.id ?: MENU_TAB

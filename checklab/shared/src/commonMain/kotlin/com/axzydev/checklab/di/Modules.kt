@@ -44,6 +44,7 @@ fun appModules(apiUrl: String, platform: Module): List<Module> = listOf(
         single { NomApi(get()) }
         single { WorkerApi(get()) }
         single { ApprovalsApi(get()) }
+        single { com.axzydev.checklab.approvals.UnreadCounter(get()) }
         single { PeopleApi(get()) }
         single { SchedulesApi(get()) }
         single { PayrollApi(get()) }
@@ -55,7 +56,7 @@ fun appModules(apiUrl: String, platform: Module): List<Module> = listOf(
         viewModel { HomeViewModel(get()) }
         viewModel { MyWorkdayViewModel(get(), get()) }
         viewModel { WorkerPortalViewModel(get(), get<SessionRepository>()::today) }
-        viewModel { NotificationsViewModel(get()) }
+        viewModel { NotificationsViewModel(get(), get()) }
         viewModel { OvertimeApprovalViewModel(get(), get<SessionRepository>()::today) }
         viewModel { LeaveApprovalViewModel(get()) }
         viewModel { ProfileViewModel(get()) }

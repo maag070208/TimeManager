@@ -216,11 +216,16 @@ export const computeWorkday = (
   if (scheduledEnd) {
     const crosses = schedule.crossesMidnight || toMinutes(scheduledEnd) <= toMinutes(day.startTime);
     const exitMs = dayStartMs + (toMinutes(scheduledEnd) + (crosses ? 24 * 60 : 0)) * MS_PER_MINUTE;
-    const lastExit = sessions
-      .map((s) => (s.exitAt ? new Date(s.exitAt).getTime() : 0))
-      .reduce((a, b) => Math.max(a, b), 0);
-    if (lastExit > 0) {
-      const afterExit = Math.round((lastExit - exitMs) / MS_PER_MINUTE);
+    // Solo cuenta lo trabajado de verdad después de la salida programada: una
+    // sesión que empieza y termina después no "hereda" el hueco intermedio.
+    const workedAfterExit = sessions.reduce((sum, s) => {
+      if (!s.entryAt || !s.exitAt) return sum;
+      const from = Math.max(new Date(s.entryAt).getTime(), exitMs);
+      const to = new Date(s.exitAt).getTime();
+      return sum + Math.max(0, to - from);
+    }, 0);
+    if (workedAfterExit > 0) {
+      const afterExit = Math.round(workedAfterExit / MS_PER_MINUTE);
       const dayExtra = Math.max(0, afterExit - schedule.exitToleranceMin);
       if (dayExtra > 0 && dayExtra >= schedule.minOvertimeMin) extraMin = dayExtra;
     }

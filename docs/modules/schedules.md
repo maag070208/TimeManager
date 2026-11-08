@@ -29,8 +29,11 @@ El motor de cálculo del sistema: define horarios, los asigna a empleados y conv
 Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Horas extra; vive en `services/workday-rules.ts` y recibe el día local, las sesiones del reloj, el horario vigente y la zona del cliente.
 
 - **Retardo** (`lateMin`): primera entrada del día contra la entrada programada del primer tramo; solo cuenta si supera `entryToleranceMin`. Se expresa en minutos (359 = "5:59"); llegar antes nunca genera retardo negativo. Un día de descanso, un día sin `ScheduleDay` o una persona sin horario asignado **no inventa** retardo.
-- **Tiempo extra**: lo trabajado después de la salida programada del último tramo (o de la salida del turno + 24 h si cruza medianoche), menos `exitToleranceMin` y si alcanza `minOvertimeMin`. En descanso cuenta todo lo trabajado; sin horario no se calcula (se marca `withoutSchedule`).
+- **Tiempo extra**: solo lo trabajado de verdad después de la salida programada del último tramo (una sesión que empieza después no hereda el hueco intermedio) (o de la salida del turno + 24 h si cruza medianoche), menos `exitToleranceMin` y si alcanza `minOvertimeMin`. En descanso cuenta todo lo trabajado; sin horario no se calcula (se marca `withoutSchedule`).
 - **Faltante** (`missingMin`): lo programado menos lo trabajado, solo si hubo checada.
+- **Vacaciones y permisos**: un día con solicitud aprobada y sin checadas sale como `LEAVE` (no es falta ni suma faltante).
+- Las checadas web/app llegan en las sesiones del reporte del reloj (con sus ajustes); la asistencia semanal no las vuelve a sumar.
+- **Pre-nómina cerrada**: con la semana cerrada no cambian revisiones ni se asignan horarios con fecha dentro o antes de ella (`409 PAYROLL_WEEK_CLOSED`); cerrar exige departamentos del cliente y al menos uno. Las fechas de los DTO deben existir en el calendario.
 - **Asignación del día**: `scheduleOn` elige la asignación vigente; con vigencias encimadas gana la más reciente (ver "Qué hace"). El caso **DEMO-911** ("Retardo 5:59 h" con entrada 14:58 y turno Vespertino 15:00) era esto: se comparaba contra un Matutino 09:00 de una asignación vieja que nunca se cerró. Resuelto en F2-05; regresión en `workday-rules.test.ts` y `tests/integration/schedules-late.flow.test.ts`.
 
 ## Permisos

@@ -115,7 +115,7 @@ private fun shortTenant(name: String) = name.replace(Regex("^Cliente\\s+(E2E\\s+
 
 /** Panel navy con halo ámbar, anillos, titular, equipo en blobatars y funciones. */
 @Composable
-private fun BrandHero(companyName: String?, accent: Color) {
+private fun BrandHero(companyName: String?, accent: Color, compact: Boolean) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -183,56 +183,59 @@ private fun BrandHero(companyName: String?, accent: Color) {
                 lineHeight = 21.sp,
             )
 
-            Spacer(Modifier.height(20.dp))
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Brand.Paper.copy(alpha = 0.06f))
-                    .border(1.dp, Brand.Paper.copy(alpha = 0.09f), RoundedCornerShape(16.dp))
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.width((34 + 26 * (TEAM_SEEDS.size - 1)).dp).height(34.dp)) {
-                    TEAM_SEEDS.forEachIndexed { i, seed ->
-                        Box(
-                            Modifier
-                                .offset(x = (26 * i).dp)
-                                .size(34.dp)
-                                .clip(CircleShape)
-                                .background(Brand.Paper)
-                                .border(3.dp, Brand.Navy, CircleShape),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            BlobatarImage(seed, size = 30.dp)
+            // En pantallas bajas (o con letra grande) la hoja del formulario va primero.
+            if (!compact) {
+                Spacer(Modifier.height(20.dp))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Brand.Paper.copy(alpha = 0.06f))
+                        .border(1.dp, Brand.Paper.copy(alpha = 0.09f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.width((34 + 26 * (TEAM_SEEDS.size - 1)).dp).height(34.dp)) {
+                        TEAM_SEEDS.forEachIndexed { i, seed ->
+                            Box(
+                                Modifier
+                                    .offset(x = (26 * i).dp)
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .background(Brand.Paper)
+                                    .border(3.dp, Brand.Navy, CircleShape),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                BlobatarImage(seed, size = 30.dp)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Tu equipo en tiempo real", color = LoginColors.OnBrand, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Entradas y salidas al momento", color = LoginColors.OnBrandMuted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                FEATURES.chunked(2).forEach { row ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
+                        row.forEach { (icon, label) ->
+                            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(icon, Brand.Mint, size = 15.dp)
+                                Spacer(Modifier.width(8.dp))
+                                Text(label, color = LoginColors.OnBrand, fontSize = 12.5.sp, fontWeight = FontWeight.Medium)
+                            }
                         }
                     }
                 }
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Tu equipo en tiempo real", color = LoginColors.OnBrand, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Entradas y salidas al momento", color = LoginColors.OnBrandMuted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
 
-            Spacer(Modifier.height(16.dp))
-            FEATURES.chunked(2).forEach { row ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-                    row.forEach { (icon, label) ->
-                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(icon, Brand.Mint, size = 15.dp)
-                            Spacer(Modifier.width(8.dp))
-                            Text(label, color = LoginColors.OnBrand, fontSize = 12.5.sp, fontWeight = FontWeight.Medium)
-                        }
-                    }
+                Spacer(Modifier.height(14.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(Brand.Amber))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Registro en tiempo real", color = LoginColors.OnBrandMuted, fontSize = 12.5.sp, fontWeight = FontWeight.Medium)
                 }
-            }
-
-            Spacer(Modifier.height(14.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).clip(CircleShape).background(Brand.Amber))
-                Spacer(Modifier.width(8.dp))
-                Text("Registro en tiempo real", color = LoginColors.OnBrandMuted, fontSize = 12.5.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -253,13 +256,14 @@ fun LoginScaffold(companyName: String?, accent: Color = Brand.Mint, content: @Co
     }
     BoxWithConstraints(Modifier.fillMaxSize().background(Color.White)) {
         val minSheet = maxHeight * 0.5f
+        val compact = maxHeight < 900.dp || LocalDensity.current.fontScale > 1.1f
         Column(
             Modifier
                 .fillMaxSize()
                 .verticalScroll(scroll)
                 .imePadding(),
         ) {
-            BrandHero(companyName, accent)
+            BrandHero(companyName, accent, compact)
             Column(
                 Modifier
                     .offset(y = (-28).dp)

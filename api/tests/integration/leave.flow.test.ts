@@ -30,7 +30,7 @@ before(async () => {
   const db = (await import("@core/config/database")).prismaClient;
   await db.user.update({
     where: { id: staff.user.id },
-    data: { hireDate: new Date("2023-01-15T00:00:00.000Z") },
+    data: { hireDate: new Date("2024-01-15T00:00:00.000Z") },
   });
 
   const types = await api("GET", "/nom/leave/types", { token: admin.token });
@@ -47,7 +47,7 @@ after(async () => {
 
 describe("vacaciones y permisos", () => {
   test("el saldo devengado y la solicitud/aprobación de vacaciones", async () => {
-    const balance = await api("GET", "/nom/me/leave/balance?year=2026", { token: staff.token });
+    const balance = await api("GET", "/nom/me/leave/balance?year=2027", { token: staff.token });
     expectStatus(balance, 200, "saldo de vacaciones");
     assert.equal(balance.body?.entitlementDays, 16, "3 años de antigüedad → 16 días");
     assert.equal(balance.body?.availableDays, 16);
@@ -56,8 +56,8 @@ describe("vacaciones y permisos", () => {
       token: staff.token,
       body: {
         typeId: vacationTypeId,
-        startDate: "2026-06-01",
-        endDate: "2026-06-03",
+        startDate: "2027-06-01",
+        endDate: "2027-06-03",
         reason: "Vacaciones de verano",
       },
     });
@@ -65,18 +65,18 @@ describe("vacaciones y permisos", () => {
     assert.equal(request.body?.days, 3);
     assert.equal(request.body?.status, "PENDING");
 
-    const pending = await api("GET", "/nom/me/leave/balance?year=2026", { token: staff.token });
+    const pending = await api("GET", "/nom/me/leave/balance?year=2027", { token: staff.token });
     assert.equal(pending.body?.pendingDays, 3);
 
     const overlap = await api("POST", "/nom/me/leave/requests", {
       token: staff.token,
-      body: { typeId: vacationTypeId, startDate: "2026-06-02", endDate: "2026-06-04" },
+      body: { typeId: vacationTypeId, startDate: "2027-06-02", endDate: "2027-06-04" },
     });
     expectError(overlap, 409, "LEAVE_OVERLAP", "solicitud encimada");
 
     const tooMany = await api("POST", "/nom/me/leave/requests", {
       token: staff.token,
-      body: { typeId: vacationTypeId, startDate: "2026-07-01", endDate: "2026-07-31" },
+      body: { typeId: vacationTypeId, startDate: "2027-07-01", endDate: "2027-07-31" },
     });
     expectError(tooMany, 400, "INSUFFICIENT_VACATION_DAYS", "más días que el saldo");
 
@@ -89,7 +89,7 @@ describe("vacaciones y permisos", () => {
     expectStatus(approved, 200, "aprobación de vacaciones");
     assert.equal(approved.body?.status, "APPROVED");
 
-    const used = await api("GET", "/nom/me/leave/balance?year=2026", { token: staff.token });
+    const used = await api("GET", "/nom/me/leave/balance?year=2027", { token: staff.token });
     assert.equal(used.body?.usedDays, 3);
     assert.equal(used.body?.availableDays, 13);
   });
@@ -99,8 +99,8 @@ describe("vacaciones y permisos", () => {
       token: staff.token,
       body: {
         typeId: unpaidTypeId,
-        startDate: "2026-08-03",
-        endDate: "2026-08-04",
+        startDate: "2027-08-03",
+        endDate: "2027-08-04",
         reason: "Asunto personal",
       },
     });

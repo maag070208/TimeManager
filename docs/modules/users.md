@@ -20,7 +20,9 @@ CRUD de usuarios del sistema (que también son los empleados), importación masi
 
 ## Permisos
 
-`users.view`, `users.create`, `users.edit`, `users.delete`, `users.permissions`; `hr.records` también permite bajas de personal.
+`users.view`, `users.create`, `users.edit`, `users.delete`, `users.permissions`; `hr.records` también permite bajas de personal. `POST /users/query` exige `users.view`.
+
+Cuentas de administración (`ADMIN`, `SUPPORT`, `CLIENT_ADMIN`): solo otra cuenta de administración da ese rol, edita una cuenta así o le pone contraseña (`403 ADMIN_ACCOUNT_REQUIRES_ADMIN`); nadie cambia su propio rol (`403 CANNOT_CHANGE_OWN_ROLE`). El departamento debe ser del cliente de la persona. Reactivar va por `PATCH /users/:id/reactivate` (revisa el límite del plan); `PUT { active: true }` → `400 USE_REACTIVATE`. Las excepciones de permiso solo se otorgan o retiran a personas del propio cliente.
 
 ## Frontend
 

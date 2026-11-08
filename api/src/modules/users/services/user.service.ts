@@ -83,6 +83,34 @@ export const EMPLOYEE_PICKER_DEFAULT_LIMIT = 500;
 
 type UserRole = UserCreateInput["role"];
 
+/** Quien hace la acción, tal como llega en el token. */
+export type AccountActor = { id: string; role: string; roles?: string[] };
+
+const actsAsAdmin = (actor: AccountActor): boolean =>
+  isAdminRole(actor.role) || (actor.roles ?? []).some((role) => isAdminRole(role));
+
+/**
+ * Cuentas de administración: solo otra cuenta de administración da el rol,
+ * cambia roles de una cuenta así o le pone contraseña. Nadie cambia su propio rol.
+ */
+const assertAccountControl = (
+  actor: AccountActor | undefined,
+  target: { id: string; role: string; extraRoles?: { role: string }[] } | null,
+  assignedRoles: string[]
+): void => {
+  if (!actor || actsAsAdmin(actor)) {
+    if (actor && target && actor.id === target.id && assignedRoles.length > 0) {
+      throw new HttpError(403, "CANNOT_CHANGE_OWN_ROLE");
+    }
+    return;
+  }
+  if (target && actor.id === target.id && assignedRoles.length > 0) throw new HttpError(403, "CANNOT_CHANGE_OWN_ROLE");
+  const targetIsAdmin = !!target && (isAdminRole(target.role) || (target.extraRoles ?? []).some((r) => isAdminRole(r.role)));
+  if (targetIsAdmin || assignedRoles.some((role) => isAdminRole(role))) {
+    throw new HttpError(403, "ADMIN_ACCOUNT_REQUIRES_ADMIN");
+  }
+};
+
 /** Puerto de auditoría (DIP). Si no se inyecta, los logs no se escriben. */
 export type AuditLogger = AuditPort["createLog"];
 
@@ -245,7 +273,7 @@ export class UserService {
     return { available: !found || found.id === query.exceptId };
   }
 
-  async create(data: UserCreateInput, actorId?: string) {
+  async create(data: UserCreateInput, actorId?: string, by?: AccountActor) {
     const exists = await this.db.user.findFirst({ where: { username: data.username } });
     if (exists) {
       throw new HttpError(409, "USERNAME_TAKEN");
@@ -282,6 +310,8 @@ export class UserService {
     for (const key of [role, ...extraRoles]) {
       if (!isRoleAllowedFor(key, currentTenantId())) throw new HttpError(403, "ROLE_NOT_FOR_CLIENT", { role: key });
     }
+    assertAccountControl(by, null, [role, ...extraRoles]);
+    await this.assertDepartmentOf(currentTenantId(), data.departmentId);
     await assertCanAddPeople(currentTenantId());
 
     const created = await tenantTransaction(this.db, async (tx) => {
@@ -400,7 +430,17 @@ export class UserService {
     return created;
   }
 
-  async update(id: string, data: UserUpdateInput) {
+  /** El departamento debe ser del mismo cliente que la persona. */
+  private async assertDepartmentOf(tenantId: string | null | undefined, departmentId: string | null | undefined) {
+    if (!departmentId) return;
+    const department = await this.db.department.findFirst({
+      where: { id: departmentId, ...(tenantId ? { tenantId } : {}) },
+      select: { id: true },
+    });
+    if (!department) throw new HttpError(404, "DEPARTMENT_NOT_FOUND");
+  }
+
+  async update(id: string, data: UserUpdateInput, actor?: AccountActor) {
     if (data.role !== undefined && !isRole(data.role)) {
       throw new HttpError(400, "INVALID_ROLE", { role: data.role });
     }
@@ -411,6 +451,16 @@ export class UserService {
         }
       }
     }
+    const current = await this.db.user.findFirst({
+      where: { id },
+      select: { id: true, role: true, tenantId: true, active: true, extraRoles: { select: { role: true } } },
+    });
+    if (!current) throw new HttpError(404, "USER_NOT_FOUND");
+    const assigned = [...(data.role !== undefined ? [data.role] : []), ...(data.roles ?? [])];
+    assertAccountControl(actor, current, assigned);
+    // Reactivar va por su propia ruta: revisa el límite del plan y limpia la baja.
+    if (data.active === true && !current.active) throw new HttpError(400, "USE_REACTIVATE");
+    await this.assertDepartmentOf(current.tenantId, data.departmentId);
     if (data.role !== undefined || data.roles !== undefined) {
       // El cliente del usuario editado manda (no el de quien edita): plataforma
       // sin cliente elegido tampoco puede volver ADMIN a alguien de un cliente.
@@ -478,7 +528,13 @@ export class UserService {
     });
   }
 
-  async changePassword(id: string, newPassword: string) {
+  async changePassword(id: string, newPassword: string, actor?: AccountActor) {
+    const target = await this.db.user.findFirst({
+      where: { id },
+      select: { id: true, role: true, extraRoles: { select: { role: true } } },
+    });
+    if (!target) throw new HttpError(404, "USER_NOT_FOUND");
+    assertAccountControl(actor, target, []);
     // La contraseña que pone un administrador es provisional: la persona debe
     // cambiarla al entrar (mismo candado que la carga del cruce).
     return this.db.user.update({
@@ -700,6 +756,8 @@ export class UserService {
       if (user.active) {
         throw new HttpError(409, "USER_ALREADY_ACTIVE");
       }
+      // Volver a activar ocupa un lugar del plan, igual que un alta.
+      await assertCanAddPeople(currentTenantId());
 
       const previousState = {
         active: false,

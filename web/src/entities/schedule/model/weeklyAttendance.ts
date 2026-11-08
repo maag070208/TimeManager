@@ -22,6 +22,7 @@ export const WEEKLY_STATUS_COLORS: Record<WeeklyAttendanceDayStatus, { backgroun
   INCOMPLETE: { background: "#fecaca", text: "#7f1d1d" },
   REST: { background: "#e9edf2", text: "#475569" },
   REST_WORKED: { background: "#d8e6ef", text: "#0f3d5c" },
+  LEAVE: { background: "#e0e7ff", text: "#3730a3" },
   NO_INFO: { background: "#fef08a", text: "#713f12" },
   FUTURE: { background: "#f8fafc", text: "#94a3b8" },
 };
@@ -37,10 +38,10 @@ export const WEEKLY_APPROVAL_COLORS: Record<WeeklyAttendanceApproval, string> = 
 };
 
 /** Estados que se muestran como una sola celda con su nombre (sin horas). */
-export const WEEKLY_MERGED_STATUSES: WeeklyAttendanceDayStatus[] = ["ABSENCE", "REST", "NO_INFO", "FUTURE"];
+export const WEEKLY_MERGED_STATUSES: WeeklyAttendanceDayStatus[] = ["ABSENCE", "REST", "LEAVE", "NO_INFO", "FUTURE"];
 
 /** Orden de la simbología. */
-export const WEEKLY_LEGEND: WeeklyAttendanceDayStatus[] = ["NO_INFO", "OVERTIME", "ABSENCE", "INCOMPLETE", "REST", "REST_WORKED"];
+export const WEEKLY_LEGEND: WeeklyAttendanceDayStatus[] = ["NO_INFO", "OVERTIME", "ABSENCE", "INCOMPLETE", "REST", "REST_WORKED", "LEAVE"];
 
 /** Color de `ITBadget` por estado del día (tabla y simbología). */
 export type WeeklyBadgeColor = "success" | "warning" | "danger" | "gray" | "info";
@@ -52,6 +53,7 @@ export const WEEKLY_STATUS_BADGE: Record<WeeklyAttendanceDayStatus, WeeklyBadgeC
   INCOMPLETE: "danger",
   REST: "gray",
   REST_WORKED: "info",
+  LEAVE: "info",
   NO_INFO: "warning",
   FUTURE: "gray",
 };

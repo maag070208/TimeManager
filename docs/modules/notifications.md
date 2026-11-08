@@ -6,6 +6,10 @@ Notificaciones dentro de la app con contador de no leídas, marcado individual/m
 
 `GET /`, `GET /unread-count`, `GET /ably-token`, `POST /:id/read`, `POST /read-all`, `DELETE /:id`.
 
+## Destinatarios de administración y RH
+
+Los avisos de administración y RH (altas, bajas, solicitudes de vacaciones, alertas) llegan en campanita a todas las cuentas activas de `CLIENT_ADMIN` y `HUMAN_RESOURCES` del cliente; el correo, solo a quien tiene email.
+
 ## Modelos
 
 `Notification`.

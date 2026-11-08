@@ -29,7 +29,7 @@ Expediente completo del empleado: datos personales y fiscales, foto, documentos,
 
 ## Permisos
 
-`hr.view`, `hr.manage`, `hr.records` (bajas de personal, compartido con `users`).
+`hr.view`, `hr.manage`, `hr.records` (bajas de personal, compartido con `users`). Géneros y tipos de sangre son catálogos globales: escribirlos exige ser de plataforma además de `catalogs.manage`. El resumen del expediente cuenta también las checadas de la app.
 
 ## Foto y archivos privados (F1C-01)
 

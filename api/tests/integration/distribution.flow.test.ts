@@ -31,7 +31,14 @@ let today = "";
 
 before(async () => {
   await setupSuite();
-  today = localDateKey(new Date(), TZ);
+  // Último día hábil (lun–vie): el horario de prueba no trabaja en fin de semana.
+  const now = new Date();
+  for (;;) {
+    today = localDateKey(now, TZ);
+    const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();
+    if (weekday !== 0 && weekday !== 6) break;
+    now.setTime(now.getTime() - 24 * 60 * 60 * 1000);
+  }
 });
 
 after(async () => {

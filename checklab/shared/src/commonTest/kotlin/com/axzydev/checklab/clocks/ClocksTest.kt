@@ -93,9 +93,9 @@ class AttendanceTest {
 
     @Test
     fun cadaEstadoDelDiaTieneSuSimboloEnLaRejilla() {
-        val symbols = listOf("WORKED", "OVERTIME", "ABSENCE", "INCOMPLETE", "REST", "REST_WORKED", "FUTURE", "NO_INFO")
+        val symbols = listOf("WORKED", "OVERTIME", "ABSENCE", "INCOMPLETE", "REST", "REST_WORKED", "LEAVE", "FUTURE", "NO_INFO")
             .map { dayCell(it).first }
-        assertEquals(listOf("✓", "+", "F", "½", "D", "D+", "·", "?"), symbols)
+        assertEquals(listOf("✓", "+", "F", "½", "D", "D+", "V", "·", "?"), symbols)
     }
 }
 

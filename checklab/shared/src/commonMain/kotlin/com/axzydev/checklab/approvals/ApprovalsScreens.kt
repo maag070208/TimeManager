@@ -124,7 +124,10 @@ fun <T> ColumnScope.ListFrame(state: ListState<T>, content: @Composable ColumnSc
 
 // ── Notificaciones ────────────────────────────────────────────────────────
 
-class NotificationsViewModel(private val api: ApprovalsApi) : ListViewModel<List<Notification>>() {
+/** "1 notificación", "3 notificaciones": el plural pierde la tilde. */
+fun notificationsCount(n: Int): String = if (n == 1) "1 notificación" else "$n notificaciones"
+
+class NotificationsViewModel(private val api: ApprovalsApi, private val unread: UnreadCounter) : ListViewModel<List<Notification>>() {
     var unreadOnly = false
         private set
 
@@ -135,9 +138,9 @@ class NotificationsViewModel(private val api: ApprovalsApi) : ListViewModel<List
         load()
     }
 
-    fun read(id: String) = act(null) { api.markRead(id) }
-    fun readAll() = act("Todas quedaron leídas.") { api.markAllRead() }
-    fun delete(id: String) = act("Notificación borrada.") { api.deleteNotification(id) }
+    fun read(id: String) = act(null) { api.markRead(id); unread.refresh() }
+    fun readAll() = act("Todas quedaron leídas.") { api.markAllRead(); unread.refresh() }
+    fun delete(id: String) = act("Notificación borrada.") { api.deleteNotification(id); unread.refresh() }
 }
 
 @Composable
@@ -149,7 +152,7 @@ fun ColumnScope.NotificationsContent(vm: NotificationsViewModel = koinViewModel(
     ListFrame(state) { list ->
         BentoCard(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)) { Eyebrow("${list.size} notificación${if (list.size == 1) "" else "es"}") }
+                Box(Modifier.weight(1f)) { Eyebrow(notificationsCount(list.size)) }
                 if (list.any { !it.read }) LinkButton("Marcar todas como leídas", vm::readAll)
             }
             if (list.isEmpty()) Text("No tienes notificaciones.", color = Brand.Muted)
@@ -335,5 +338,21 @@ private fun LeaveRow(r: LeaveRequestRow, canDecide: Boolean, busy: Boolean, vm: 
             ButtonPair("Aprobar", { vm.decide(r.id, true, note) }, "Rechazar", { vm.decide(r.id, false, note) }, busy)
         }
         Spacer(Modifier.width(1.dp))
+    }
+}
+
+/**
+ * Avisos sin leer de la pestaña "Avisos". Uno por sesión (single en Koin) para que la barra
+ * y la pantalla de notificaciones compartan el número; si la consulta falla, queda el último valor.
+ */
+class UnreadCounter(private val api: ApprovalsApi) {
+    private val _count = MutableStateFlow(0)
+    val count: StateFlow<Int> = _count.asStateFlow()
+
+    suspend fun refresh() {
+        try {
+            _count.value = api.unreadCount()
+        } catch (_: ApiException) {
+        }
     }
 }

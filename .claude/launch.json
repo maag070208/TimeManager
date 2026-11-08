@@ -37,6 +37,15 @@
         "cd api && npx ts-node scripts/isapi-mock/server.ts"
       ],
       "port": 4801
+    },
+    {
+      "name": "api-qa",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd api && PORT=4031 TIME_CLOCK_USER=mock TIME_CLOCK_PASS=mock-pass-123 RATE_LIMIT_DISABLED=true RESEND_API_KEY= ABLY_API_KEY= NOTIFICATION_EMAILS= FINGERPRINT_STATION_URL= DATABASE_URL=postgresql://postgres:test@127.0.0.1:55433/tm_qa npx ts-node -r tsconfig-paths/register src/index.ts"
+      ],
+      "port": 4031
     }
   ]
 }

@@ -2,6 +2,9 @@ import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type { AuditLogger } from "@modules/users/services/user.service";
+import type { NotificationPort } from "@modules/notifications";
+import { localDateKey } from "@core/utils/timezone";
+import type { HolidayService } from "./holiday.service";
 
 const toUtcDate = (dayKey: string): Date => new Date(`${dayKey}T00:00:00.000Z`);
 const dateKeyOf = (date: Date): string => date.toISOString().slice(0, 10);
@@ -25,12 +28,12 @@ export const vacationEntitlementDays = (hireDate: Date, at: Date): number => {
   return 20 + 2 * Math.floor((years - 5) / 5);
 };
 
-/** Días hábiles (lunes a viernes) de un rango inclusivo; base simple de nómina. */
-const businessDays = (start: Date, end: Date): number => {
+/** Días hábiles (lunes a viernes, sin festivos) de un rango inclusivo; base simple de nómina. */
+export const businessDays = (start: Date, end: Date, holidays: Set<string> = new Set()): number => {
   let count = 0;
   for (let cursor = new Date(start); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
     const day = cursor.getUTCDay();
-    if (day !== 0 && day !== 6) count += 1;
+    if (day !== 0 && day !== 6 && !holidays.has(dateKeyOf(cursor))) count += 1;
   }
   return count;
 };
@@ -50,7 +53,9 @@ export const DEFAULT_LEAVE_TYPES = [
 export class LeaveService {
   constructor(
     private readonly db: PrismaClient = prismaClient,
-    private readonly audit?: AuditLogger
+    private readonly audit?: AuditLogger,
+    private readonly holidays?: Pick<HolidayService, "between">,
+    private readonly notifications?: NotificationPort
   ) {}
 
   private async ensureTypes(tenantId: string) {
@@ -160,8 +165,8 @@ export class LeaveService {
         tenantId,
         userId,
         type: { kind: "VACATION" },
-        startDate: { lte: toUtcDate(`${year}-12-31`) },
-        endDate: { gte: toUtcDate(`${year}-01-01`) },
+        // Cada solicitud cuenta una sola vez, en el año en que empieza.
+        startDate: { gte: toUtcDate(`${year}-01-01`), lte: toUtcDate(`${year}-12-31`) },
       },
       select: { days: true, status: true, startDate: true, endDate: true },
     });
@@ -173,6 +178,8 @@ export class LeaveService {
       usedDays: approved,
       pendingDays: pending,
       availableDays: Math.max(0, entitlement - approved),
+      /** Lo que aún se puede pedir: descuenta también lo pendiente de decidir. */
+      requestableDays: Math.max(0, entitlement - approved - pending),
       hireDate: user.hireDate ? dateKeyOf(user.hireDate) : null,
     };
   }
@@ -210,13 +217,19 @@ export class LeaveService {
     const start = toUtcDate(input.startDate);
     const end = toUtcDate(input.endDate);
     if (end < start) throw new HttpError(400, "INVALID_LEAVE_RANGE");
-    const days = businessDays(start, end);
+    const holidays = (await this.holidays?.between(tenantId, input.startDate, input.endDate)) ?? new Set<string>();
+    const days = businessDays(start, end, holidays);
     if (days <= 0) throw new HttpError(400, "INVALID_LEAVE_RANGE");
 
     const type = await this.db.leaveType.findFirst({
       where: { id: input.typeId, tenantId, active: true },
     });
     if (!type) throw new HttpError(404, "LEAVE_TYPE_NOT_FOUND");
+
+    // Solo una incapacidad se registra hacia atrás; lo demás se pide con anticipación.
+    const tenant = await this.db.tenant.findUnique({ where: { id: tenantId }, select: { timezone: true } });
+    const today = localDateKey(new Date(), tenant?.timezone ?? "America/Mexico_City");
+    if (type.kind !== "SICK_LEAVE" && input.startDate < today) throw new HttpError(400, "LEAVE_IN_PAST");
 
     const overlap = await this.db.leaveRequest.findFirst({
       where: {
@@ -230,16 +243,21 @@ export class LeaveService {
     if (overlap) throw new HttpError(409, "LEAVE_OVERLAP");
 
     if (type.kind === "VACATION") {
+      // Las vacaciones se ganan al cumplir el año (art. 76 LFT), no antes.
+      const user = await this.db.user.findFirst({ where: { id: userId, tenantId }, select: { hireDate: true } });
+      if (!user?.hireDate || completedYears(user.hireDate, start) < 1) {
+        throw new HttpError(400, "VACATION_NOT_YET_EARNED");
+      }
       const balance = await this.balance(tenantId, userId, Number(input.startDate.slice(0, 4)));
-      if (days > balance.availableDays) {
+      if (days > balance.requestableDays) {
         throw new HttpError(400, "INSUFFICIENT_VACATION_DAYS", {
           requested: days,
-          available: balance.availableDays,
+          available: balance.requestableDays,
         });
       }
     }
 
-    return this.db.leaveRequest.create({
+    const created = await this.db.leaveRequest.create({
       data: {
         tenantId,
         userId,
@@ -249,8 +267,15 @@ export class LeaveService {
         days,
         reason: input.reason?.trim() || null,
       },
-      include: { type: true },
+      include: { type: true, user: { select: { name: true } } },
     });
+    await this.notifications?.notifyAdminHr({
+      actorId: userId,
+      type: "LEAVE_REQUESTED",
+      title: `${created.user.name} pidió ${created.type.name.toLowerCase()}`,
+      detail: `${input.startDate} a ${input.endDate} · ${days} día${days === 1 ? "" : "s"}`,
+    });
+    return created;
   }
 
   async decide(
@@ -262,6 +287,19 @@ export class LeaveService {
     const request = await this.db.leaveRequest.findFirst({ where: { id, tenantId } });
     if (!request) throw new HttpError(404, "LEAVE_NOT_FOUND");
     if (request.status !== "PENDING") throw new HttpError(409, "LEAVE_ALREADY_DECIDED");
+    if (request.userId === actor.id) throw new HttpError(403, "LEAVE_SELF_DECISION");
+    if (input.approve) {
+      const type = await this.db.leaveType.findUnique({ where: { id: request.typeId }, select: { kind: true } });
+      if (type?.kind === "VACATION") {
+        const balance = await this.balance(tenantId, request.userId, request.startDate.getUTCFullYear());
+        if (request.days > balance.availableDays) {
+          throw new HttpError(409, "INSUFFICIENT_VACATION_DAYS", {
+            requested: request.days,
+            available: balance.availableDays,
+          });
+        }
+      }
+    }
     const updated = await this.db.leaveRequest.update({
       where: { id: request.id },
       data: {
@@ -280,6 +318,12 @@ export class LeaveService {
       userName: actor.name,
       previousState: { status: request.status },
       newState: { status: updated.status, days: updated.days },
+    });
+    await this.notifications?.createNotification({
+      userId: updated.userId,
+      type: input.approve ? "LEAVE_APPROVED" : "LEAVE_REJECTED",
+      title: `${input.approve ? "Aprobaron" : "Rechazaron"} tu solicitud de ${updated.type.name.toLowerCase()}`,
+      detail: [`${dateKeyOf(updated.startDate)} a ${dateKeyOf(updated.endDate)}`, updated.decisionNote].filter(Boolean).join(" · "),
     });
     return updated;
   }

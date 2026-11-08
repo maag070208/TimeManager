@@ -65,7 +65,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
   const record = new WorkRecordService(prismaClient, deps.audit);
   const overtimeRequests = new OvertimeRequestService(prismaClient, deps.audit);
   const teleworkCompliance = new TeleworkComplianceService(prismaClient, deps.audit);
-  const leave = new LeaveService(prismaClient, deps.audit);
+  const leave = new LeaveService(prismaClient, deps.audit, holidays, deps.notifications);
   const distribution = new DistributionAgreementService(prismaClient, deps.audit);
   const weeklyOvertime = new WeeklyOvertimeService(
     prismaClient,
@@ -73,7 +73,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
     deps.audit,
     holidays
   );
-  const exporter = new StpsExportService(prismaClient, deps.calculator, weeklyOvertime);
+  const exporter = new StpsExportService(prismaClient, deps.calculator, weeklyOvertime, deps.audit);
   const controller = new NomController(
     settings,
     adjustments,

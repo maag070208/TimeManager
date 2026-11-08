@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { authenticate, requiresPermission } from "@core/middlewares/auth.middleware";
+import { authenticate, requiresPermission, requiresPlatform } from "@core/middlewares/auth.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import { TableQuerySchema } from "@core/swagger/table.dto";
@@ -364,14 +364,15 @@ export const createPersonalRouter = (controller: PersonalController): Router => 
   router.post("/catalogs/document-types", requiresPermission("catalogs.manage"), asyncHandler(controller.createDocumentType));
   router.patch("/catalogs/document-types/:id", requiresPermission("catalogs.manage"), asyncHandler(controller.updateDocumentType));
   router.delete("/catalogs/document-types/:id", requiresPermission("catalogs.manage"), asyncHandler(controller.removeDocumentType));
+  // Géneros y tipos de sangre son globales (sin tenantId): solo plataforma los edita.
   router.get("/catalogs/genders", requiresPermission("hr.records"), asyncHandler(controller.listGenders));
-  router.post("/catalogs/genders", requiresPermission("catalogs.manage"), asyncHandler(controller.createGender));
-  router.patch("/catalogs/genders/:id", requiresPermission("catalogs.manage"), asyncHandler(controller.updateGender));
-  router.delete("/catalogs/genders/:id", requiresPermission("catalogs.manage"), asyncHandler(controller.removeGender));
+  router.post("/catalogs/genders", requiresPlatform, requiresPermission("catalogs.manage"), asyncHandler(controller.createGender));
+  router.patch("/catalogs/genders/:id", requiresPlatform, requiresPermission("catalogs.manage"), asyncHandler(controller.updateGender));
+  router.delete("/catalogs/genders/:id", requiresPlatform, requiresPermission("catalogs.manage"), asyncHandler(controller.removeGender));
   router.get("/catalogs/blood-types", requiresPermission("hr.records"), asyncHandler(controller.listBloodTypes));
-  router.post("/catalogs/blood-types", requiresPermission("catalogs.manage"), asyncHandler(controller.createBloodType));
-  router.patch("/catalogs/blood-types/:id", requiresPermission("catalogs.manage"), asyncHandler(controller.updateBloodType));
-  router.delete("/catalogs/blood-types/:id", requiresPermission("catalogs.manage"), asyncHandler(controller.removeBloodType));
+  router.post("/catalogs/blood-types", requiresPlatform, requiresPermission("catalogs.manage"), asyncHandler(controller.createBloodType));
+  router.patch("/catalogs/blood-types/:id", requiresPlatform, requiresPermission("catalogs.manage"), asyncHandler(controller.updateBloodType));
+  router.delete("/catalogs/blood-types/:id", requiresPlatform, requiresPermission("catalogs.manage"), asyncHandler(controller.removeBloodType));
 
   router.post("/query", requiresPermission("hr.records"), asyncHandler(controller.table));
   router.get("/stats", requiresPermission("hr.records"), asyncHandler(controller.stats));

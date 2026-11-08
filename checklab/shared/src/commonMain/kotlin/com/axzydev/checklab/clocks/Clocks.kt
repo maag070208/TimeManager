@@ -236,6 +236,7 @@ internal fun dayCell(status: String): Triple<String, androidx.compose.ui.graphic
     "ABSENCE" -> Triple("F", Brand.Rose, Brand.RoseSoft)
     "INCOMPLETE" -> Triple("½", Brand.AmberInk, Brand.AmberSoft)
     "REST", "REST_WORKED" -> Triple(if (status == "REST_WORKED") "D+" else "D", Brand.Muted, Brand.Paper)
+    "LEAVE" -> Triple("V", Brand.MintInk, Brand.Paper)
     "FUTURE" -> Triple("·", Brand.Muted, Brand.Surface)
     else -> Triple("?", Brand.Muted, Brand.Paper)
 }

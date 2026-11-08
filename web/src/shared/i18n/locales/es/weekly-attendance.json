@@ -47,13 +47,15 @@
     "REST": "Descanso",
     "REST_WORKED": "Descanso trabajado",
     "NO_INFO": "Sin información",
-    "FUTURE": "Por venir"
+    "FUTURE": "Por venir",
+    "LEAVE": "Vacaciones o permiso"
   },
   "statusShort": {
     "ABSENCE": "Falta",
     "REST": "Descanso",
     "NO_INFO": "S/I",
-    "FUTURE": ""
+    "FUTURE": "",
+    "LEAVE": "VAC"
   },
   "approval": {
     "APPROVED": "Aprobada",

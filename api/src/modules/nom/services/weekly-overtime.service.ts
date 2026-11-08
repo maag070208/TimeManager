@@ -103,13 +103,13 @@ export class WeeklyOvertimeService {
           shiftType: day.shiftType ?? "DIURNA",
           restDay: day.restDay,
           holidayWorked: holidayDates.has(day.date) && !day.restDay && day.workedMin > 0,
-          hasDistributionAgreement: agreementUsers.has(userId),
         }));
 
       const result = classifyWeeklyOvertime({
         days: input,
         ageAtWeekStart: ageAt(birthDate, weekStart),
         consecutiveWorkedDays: streakWithinWeek(personDays),
+        hasDistributionAgreement: agreementUsers.has(userId),
       });
 
       const data = {

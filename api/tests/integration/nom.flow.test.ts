@@ -632,6 +632,12 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     expectStatus(exit, 201, "marcaje remoto EXIT con GPS");
     assert.equal(exit.body?.punch?.latitude, 19.4326);
 
+    const secondEntry = await api("POST", "/nom/me/punch", {
+      token: session.token,
+      body: { type: "ENTRY" },
+    });
+    expectError(secondEntry, 409, "WORKDAY_ALREADY_CLOSED", "tras la salida el día queda cerrado");
+
     // El portal ve los marcajes remotos junto a reloj/accesos.
     const today = localDateKey(new Date(), "America/Mexico_City");
     const mine = await api("GET", `/nom/me/punches?from=${today}&to=${today}`, {

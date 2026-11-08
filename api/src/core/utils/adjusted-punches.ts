@@ -13,11 +13,12 @@ export interface ApprovedAdjustment {
  */
 export const loadApprovedAdjustments = async (
   db: PrismaClient,
-  punchIds: string[]
+  punchIds: string[],
+  targetType: "CLOCK" | "REMOTE" = "CLOCK"
 ): Promise<ApprovedAdjustment[]> => {
   if (punchIds.length === 0) return [];
   const rows = await db.punchAdjustment.findMany({
-    where: { targetType: "CLOCK", targetId: { in: punchIds }, status: "APPROVED" },
+    where: { targetType, targetId: { in: punchIds }, status: "APPROVED" },
     orderBy: [{ decidedAt: "asc" }, { createdAt: "asc" }],
     select: { targetId: true, newState: true, decidedAt: true, createdAt: true },
   });

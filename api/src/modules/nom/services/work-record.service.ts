@@ -88,6 +88,8 @@ export class WorkRecordService {
         acceptedAt,
         acceptedIp: actor.ip ?? null,
         acceptedHash,
+        // La firma patronal es de la versión firmada: un texto nuevo la pide otra vez.
+        ...(changed && { employerAcceptedAt: null, employerAcceptedIp: null, employerAcceptedHash: null, employerAcceptedById: null }),
       },
     });
 
@@ -126,6 +128,7 @@ export class WorkRecordService {
     const agreement = await this.db.workRecordAgreement.findUnique({ where: { id: agreementId } });
     if (!agreement) throw new HttpError(404, "AGREEMENT_NOT_FOUND");
     if (!agreement.acceptedAt) throw new HttpError(409, "AGREEMENT_NOT_ACCEPTED_BY_WORKER");
+    if (agreement.employerAcceptedAt) throw new HttpError(409, "AGREEMENT_ALREADY_SIGNED_BY_EMPLOYER");
     const employerAcceptedAt = new Date();
     const employerAcceptedHash = sha256({
       agreementId,
@@ -263,7 +266,7 @@ export class WorkRecordService {
         summary: summary as unknown as object,
         summaryHash,
         status,
-        acceptedAt: new Date(),
+        acceptedAt: status === "ACCEPTED" ? new Date() : null,
         workerIp: actor.ip ?? null,
         discrepancyNote: input.note ?? null,
       },
@@ -271,7 +274,7 @@ export class WorkRecordService {
         summary: summary as unknown as object,
         summaryHash,
         status,
-        acceptedAt: new Date(),
+        acceptedAt: status === "ACCEPTED" ? new Date() : null,
         workerIp: actor.ip ?? null,
         discrepancyNote: input.note ?? null,
       },

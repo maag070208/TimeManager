@@ -225,6 +225,17 @@ export class ScheduleService {
     const from = toUtcDate(data.from);
     const dayBefore = new Date(from.getTime() - 24 * 60 * MS_PER_MINUTE);
 
+    // Una semana de pre-nómina cerrada no cambia por una asignación hacia atrás.
+    const closed = await this.db.payrollWeekClosure.findFirst({
+      where: {
+        tenantId: requireTenantId(),
+        reopenedAt: null,
+        weekStart: { gt: new Date(from.getTime() - 7 * 24 * 60 * MS_PER_MINUTE) },
+      },
+      select: { weekStart: true },
+    });
+    if (closed) throw new HttpError(409, "PAYROLL_WEEK_CLOSED");
+
     const assigned = await tenantTransaction(this.db, async (tx) => {
       // Una persona solo puede tener un horario vigente. Se eliminan las
       // asignaciones abiertas que aún no entraban en vigor y se cierra la que

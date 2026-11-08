@@ -156,8 +156,24 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
             }
         }
 
-        val primary = state.next.first()
-        Row(
+        val primary = state.next.firstOrNull()
+        if (primary == null) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Brand.Paper)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Lucide.CalendarCheck, Brand.MintInk, size = 22.dp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Jornada completa", color = Brand.Ink, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Ya registraste tus checadas de hoy. Mañana podrás volver a checar.", color = Brand.Muted, fontSize = 13.sp)
+                }
+            }
+        } else Row(
             Modifier
                 .fillMaxWidth()
                 .heightIn(min = 72.dp)
@@ -177,7 +193,7 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
                 }
             }
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f).padding(end = 8.dp)) {
                 Text("SIGUIENTE PASO", color = Brand.Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Text(if (state.busy) "Registrando…" else primary.action, color = Brand.Ink, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold)
             }

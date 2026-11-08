@@ -129,9 +129,28 @@ export class PayrollReviewService {
     };
   }
 
+  /** Los departamentos deben ser del cliente; `null` es «Sin departamento». */
+  private async assertDepartments(ids: (string | null)[]) {
+    const real = [...new Set(ids.filter((id): id is string => id !== null))];
+    if (real.length === 0) return;
+    const found = await this.db.department.count({ where: { id: { in: real }, tenantId: requireTenantId() } });
+    if (found !== real.length) throw new HttpError(404, "DEPARTMENT_NOT_FOUND");
+  }
+
+  /** Con la semana cerrada no se cambia nada hasta reabrirla. */
+  private async assertOpen(week: Date) {
+    const closure = await this.db.payrollWeekClosure.findUnique({
+      where: { tenantId_weekStart: { tenantId: requireTenantId(), weekStart: week } },
+      select: { reopenedAt: true },
+    });
+    if (closure && closure.reopenedAt === null) throw new HttpError(409, "PAYROLL_WEEK_CLOSED");
+  }
+
   /** Marca o desmarca un departamento (revisión individual: `bulk = false`). */
   async setReviewed(actorId: string | undefined, input: PayrollReviewInput & { reviewed: boolean }) {
     const week = toUtcDate(input.weekStart);
+    await this.assertDepartments([input.departmentId ?? null]);
+    await this.assertOpen(week);
     const key = `${input.weekStart}|${input.departmentId ?? ""}`;
     const existing = await this.db.payrollDepartmentReview.findFirst({
       where: { weekStart: week, departmentId: input.departmentId },
@@ -166,6 +185,8 @@ export class PayrollReviewService {
   /** «Marcar todo como revisado»: crea las revisiones que falten (`bulk = true`). */
   async reviewAll(actorId: string | undefined, input: { weekStart: string; departmentIds: (string | null)[] }) {
     const week = toUtcDate(input.weekStart);
+    await this.assertDepartments(input.departmentIds);
+    await this.assertOpen(week);
     const existing = await this.db.payrollDepartmentReview.findMany({
       where: { weekStart: week },
       select: { departmentId: true },
@@ -198,6 +219,8 @@ export class PayrollReviewService {
   /** Cierra la semana: exige que todos los departamentos estén revisados. */
   async close(actorId: string | undefined, input: PayrollCloseInput) {
     const week = toUtcDate(input.weekStart);
+    if (input.departmentIds.length === 0) throw new HttpError(400, "PAYROLL_CLOSE_WITHOUT_DEPARTMENTS");
+    await this.assertDepartments(input.departmentIds);
     const reviews = await this.db.payrollDepartmentReview.findMany({
       where: { weekStart: week },
       include: { reviewedBy: personName, department: departmentName },

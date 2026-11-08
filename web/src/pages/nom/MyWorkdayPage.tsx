@@ -166,8 +166,9 @@ export default function MyWorkdayPage() {
     EXIT: "salida",
   };
   const statusTone = !lastType ? "gray" : lastType === "LUNCH_START" ? "warning" : lastType === "EXIT" ? "gray" : "success";
-  const primaryLabel =
-    primaryNext === "ENTRY" || primaryNext === "EXIT"
+  const primaryLabel = !primaryNext
+    ? ""
+    : primaryNext === "ENTRY" || primaryNext === "EXIT"
       ? tr("punch.register", { action: PUNCH_LABEL[primaryNext] })
       : PUNCH_LABEL[primaryNext];
   const PUNCH_ICON: Record<PunchType, ReactNode> = {
@@ -247,34 +248,48 @@ export default function MyWorkdayPage() {
                   </ITBadget>
                 </ITFlex>
 
-                <button
-                  type="button"
-                  disabled={fx.busy}
-                  onClick={() => void doPunch(primaryNext)}
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left text-slate-900 transition hover:brightness-[0.99] disabled:opacity-60"
-                  style={{ backgroundColor: "#eaf6ef", borderColor: "#d1fae5", color: "#0f172a" }}
-                >
-                  <span className="flex items-center gap-3">
+                {primaryNext ? (
+                  <>
+                    <button
+                      type="button"
+                      disabled={fx.busy}
+                      onClick={() => void doPunch(primaryNext!)}
+                      className="flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left text-slate-900 transition hover:brightness-[0.99] disabled:opacity-60"
+                      style={{ backgroundColor: "#eaf6ef", borderColor: "#d1fae5", color: "#0f172a" }}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                          {PUNCH_ICON[primaryNext!]}
+                        </span>
+                        <span className="flex flex-col">
+                          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                            {tr("punch.next")}
+                          </span>
+                          <span className="text-[18px] font-extrabold leading-tight text-slate-900">
+                            {primaryLabel}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="text-[20px] font-black tabular-nums text-slate-900">
+                        {fx.busy ? "…" : timeOf(new Date().toISOString())}
+                      </span>
+                    </button>
+
+                    <ITText className="!text-[12px] !text-slate-600">
+                      Presiona aquí para confirmar tu <ITText as="span" className="font-bold !text-slate-900">{PUNCH_CONFIRM[primaryNext!]}</ITText>.
+                    </ITText>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                      {PUNCH_ICON[primaryNext]}
+                      <LuCalendarCheck size={18} />
                     </span>
                     <span className="flex flex-col">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                        {tr("punch.next")}
-                      </span>
-                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">
-                        {primaryLabel}
-                      </span>
+                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">{tr("punch.dayClosed")}</span>
+                      <span className="text-[12.5px] text-slate-600">{tr("punch.dayClosedHint")}</span>
                     </span>
-                  </span>
-                  <span className="text-[20px] font-black tabular-nums text-slate-900">
-                    {fx.busy ? "…" : timeOf(new Date().toISOString())}
-                  </span>
-                </button>
-
-                <ITText className="!text-[12px] !text-slate-600">
-                  Presiona aquí para confirmar tu <ITText as="span" className="font-bold !text-slate-900">{PUNCH_CONFIRM[primaryNext]}</ITText>.
-                </ITText>
+                  </div>
+                )}
                 <ITFlex align="center" gap={1}>
                   <ITText muted className="!text-[11.5px]">
                     {tr("punch.channelHint")}

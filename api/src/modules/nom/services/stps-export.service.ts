@@ -11,6 +11,7 @@ import type {
 } from "../models/entity/nom.entity";
 import type { WorkdayCalculator } from "./workday-alerts.service";
 import type { WeeklyOvertimeService } from "./weekly-overtime.service";
+import type { AuditLogger } from "@modules/users/services/user.service";
 
 const SCHEMA_VERSION = "stps-registro-jornada-v2";
 
@@ -32,10 +33,24 @@ export class StpsExportService {
   constructor(
     private readonly db: PrismaClient = prismaClient,
     private readonly calculator: WorkdayCalculator,
-    private readonly weekly?: WeeklyOvertimeService
+    private readonly weekly?: WeeklyOvertimeService,
+    private readonly audit?: AuditLogger
   ) {}
 
+  /** Exporta y deja constancia en la bitácora: el archivo lleva marcajes y ubicación. */
   async export(tenantId: string, params: StpsExportParams): Promise<StpsExportResult> {
+    const result = await this.build(tenantId, params);
+    await this.audit?.({
+      action: "STPS_EXPORT_DOWNLOADED",
+      entityType: "StpsExport",
+      entityId: tenantId,
+      userId: params.actorId ?? undefined,
+      metadata: { period: params.period, date: params.date, format: params.format, filename: result.filename, sha256: result.sha256 },
+    });
+    return result;
+  }
+
+  private async build(tenantId: string, params: StpsExportParams): Promise<StpsExportResult> {
     if (!isReportPeriod(params.period)) {
       throw new HttpError(400, "INVALID_REPORT_PERIOD");
     }

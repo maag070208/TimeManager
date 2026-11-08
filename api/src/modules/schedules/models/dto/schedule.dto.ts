@@ -5,6 +5,15 @@ import { REPORT_PERIODS } from "@core/utils/timezone";
 /** Hora "de pared" HH:mm. */
 const HHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "TIME_FORMAT");
 
+/** Fecha `YYYY-MM-DD` que existe en el calendario (2026-13-40 no pasa). */
+const dateKey = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "DATE_FORMAT")
+  .refine((v) => {
+    const d = new Date(`${v}T00:00:00.000Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+  }, "DATE_FORMAT");
+
 export const ScheduleDaySchema = registry.register(
   "ScheduleDay",
   z.object({
@@ -80,7 +89,7 @@ export const AssignmentCreateDto = registry.register(
   z.object({
     scheduleId: z.string().min(1),
     userIds: z.array(z.string().min(1)).min(1),
-    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "DATE_FORMAT"),
+    from: dateKey,
   })
 );
 export type AssignmentCreateInput = z.infer<typeof AssignmentCreateDto>;
@@ -114,7 +123,7 @@ export const OvertimeQuerySchema = registry.register(
 export const WeeklyAttendanceQueryDto = registry.register(
   "WeeklyAttendanceQuery",
   z.object({
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "DATE_FORMAT"),
+    date: dateKey,
     departmentId: z.string().min(1).optional(),
     q: z.string().max(100).optional(),
     refresh: z.boolean().optional(),
@@ -123,7 +132,7 @@ export const WeeklyAttendanceQueryDto = registry.register(
 
 // Pre-nómina: revisión por departamento y cierre de la semana. La clave de la
 // semana es su primer día (`YYYY-MM-DD`); `departmentId` null = sin departamento.
-const WeekStart = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "DATE_FORMAT");
+const WeekStart = dateKey;
 
 export const PayrollWeekQueryDto = registry.register(
   "PayrollWeekQuery",
@@ -193,7 +202,7 @@ export const WeeklyAttendanceReportSchema = registry.register(
         days: z.array(
           z.object({
             date: z.string(),
-            status: z.enum(["WORKED", "OVERTIME", "ABSENCE", "INCOMPLETE", "REST", "REST_WORKED", "NO_INFO", "FUTURE"]),
+            status: z.enum(["WORKED", "OVERTIME", "ABSENCE", "INCOMPLETE", "REST", "REST_WORKED", "LEAVE", "NO_INFO", "FUTURE"]),
             entryAt: z.string().nullable(),
             exitAt: z.string().nullable(),
             sessions: z.array(

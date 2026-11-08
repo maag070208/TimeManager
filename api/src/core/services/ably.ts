@@ -2,12 +2,16 @@ import Ably from "ably";
 import { env } from "@core/config/env.config";
 import { currentTenantId } from "@core/tenancy/context";
 
-let ably: Ably.Realtime | null = null;
+let ably: Ably.Rest | null = null;
 
-export const getAbly = (): Ably.Realtime => {
-  if (!ably) {
-    ably = new Ably.Realtime({ key: env.ABLY_API_KEY });
-  }
+/**
+ * Cliente para publicar desde el servidor. Es REST: publicar no necesita una
+ * conexión abierta (una Realtime deja el proceso vivo). Sin app key no hay
+ * cliente y los avisos en tiempo real no se mandan; quedan en la campanita.
+ */
+const getAbly = (): Ably.Rest | null => {
+  if (!env.ABLY_API_KEY) return null;
+  if (!ably) ably = new Ably.Rest({ key: env.ABLY_API_KEY });
   return ably;
 };
 
@@ -30,6 +34,7 @@ export const broadcastToUser = async (
   tenantId: string | null = currentTenantId()
 ) => {
   const client = getAbly();
+  if (!client) return;
   const channels = tenantId
     ? [tenantChannel(tenantId, `user:${userId}`), userChannel(userId)]
     : [userChannel(userId)];
@@ -43,5 +48,6 @@ export const broadcastToTenant = async (
   event: Record<string, unknown>
 ) => {
   const client = getAbly();
+  if (!client) return;
   await client.channels.get(tenantChannel(tenantId, "broadcast")).publish(eventName, event);
 };

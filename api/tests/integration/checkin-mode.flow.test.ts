@@ -53,7 +53,7 @@ describe("modo de checada", () => {
     await api("PATCH", `/hr/${employee.id}/profile`, { token: hr.token, body: { checkinMode: "WEB" } });
     const config = await api("PUT", "/nom/config", {
       token: hr.token,
-      body: { remotePunchEnabled: true, blockRemoteWithoutAgreement: false },
+      body: { remotePunchEnabled: true, blockRemoteWithoutAgreement: true },
     });
     expectStatus(config, 200, "config de marcaje remoto");
     const web = await api("POST", "/nom/me/punch", {

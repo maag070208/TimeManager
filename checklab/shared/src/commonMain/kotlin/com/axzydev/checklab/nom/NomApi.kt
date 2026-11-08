@@ -70,15 +70,16 @@ class NomApi(private val client: HttpClient) {
 
 /**
  * Siguiente checada permitida, la misma regla que el API (`remote-punch.service`)
- * y la web: entrada → salida a comer o salida → regreso → salida. Recibe los
- * tipos de hoy en orden cronológico.
+ * y la web: entrada → salida a comer o salida → regreso → salida, una sola vez
+ * por día. Tras la salida ya no hay paso: la lista queda vacía. Recibe los tipos
+ * de hoy en orden cronológico.
  */
 fun nextPunchTypes(todayTypes: List<PunchType>): List<PunchType> = when (todayTypes.lastOrNull()) {
     null -> listOf(PunchType.ENTRY)
     PunchType.ENTRY -> listOf(PunchType.LUNCH_START, PunchType.EXIT)
     PunchType.LUNCH_START -> listOf(PunchType.LUNCH_END)
     PunchType.LUNCH_END -> listOf(PunchType.EXIT)
-    PunchType.EXIT -> listOf(PunchType.ENTRY)
+    PunchType.EXIT -> emptyList()
 }
 
 val PunchType.label: String

@@ -6,6 +6,7 @@ import { enqueueEmail } from "@core/services/email-queue";
 import { rosterAlertEmail, workdayLimitEmail } from "@core/services/email-templates";
 import { createNotificationTokenRequest } from "./ably-token.service";
 import { resolveTeleworkDeferral } from "./telework-deferral";
+import { currentTenantId } from "@core/tenancy";
 import type {
   CreateNotificationInput,
   NotifyWorkdayLimitInput,
@@ -96,30 +97,54 @@ export class NotificationService implements NotificationPort {
     return this.db.notification.deleteMany({ where: { id, userId } });
   }
 
-  /** El ticket se levantó a nombre del usuario (lo pidió por teléfono). */
   /**
-   * Devuelve los destinatarios con rol ADMIN o RECURSOS_HUMANOS, activos, con
-   * email. Excluye al actor para evitar auto-notificarse. Sin cache (R7): se
-   * resuelve en cada evento; el volumen es chico y simplifica el manejo de
-   * altas/bajas concurrentes.
+   * Destinatarios con rol de administración del cliente o RH, activos. Excluye
+   * al actor para evitar auto-notificarse. La campanita llega a todos; el correo
+   * solo a quien tiene email. Sin cache (R7): se resuelve en cada evento.
    */
   private async resolveAdminHrRecipients(
-    actorId: string
-  ): Promise<{ id: string; email: string; name: string }[]> {
-    const recipients = await this.db.user.findMany({
+    actorId: string,
+    subjectUserId?: string
+  ): Promise<{ id: string; email: string | null; name: string; tenantId: string | null }[]> {
+    // Siempre dentro de un cliente: el del contexto, o el de la persona del
+    // aviso cuando lo dispara plataforma. Sin cliente no hay destinatarios.
+    const tenantId =
+      currentTenantId() ??
+      (subjectUserId
+        ? (await this.db.user.findUnique({ where: { id: subjectUserId }, select: { tenantId: true } }))?.tenantId
+        : null);
+    if (!tenantId) return [];
+    return this.db.user.findMany({
       where: {
+        tenantId,
         role: { in: [...ADMIN_HR_ROLES] },
         active: true,
-        email: { not: null },
         NOT: { id: actorId },
       },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, tenantId: true },
     });
-    return recipients.filter((r): r is { id: string; email: string; name: string } => !!r.email);
+  }
+
+  /** Aviso en campanita a administración y RH del cliente (p. ej. una solicitud nueva). */
+  async notifyAdminHr(input: { actorId: string; type: string; title: string; detail?: string | null }): Promise<NotifyRecipientSummary> {
+    const recipients = await this.resolveAdminHrRecipients(input.actorId);
+    if (recipients.length === 0) return { count: 0, recipientIds: [] };
+    await this.createManyNotifications(
+      recipients.map((r) => ({ userId: r.id, tenantId: r.tenantId ?? undefined, type: input.type, title: input.title, detail: input.detail ?? undefined }))
+    );
+    for (const r of recipients) {
+      broadcastToUser(r.id, {
+        type: input.type,
+        title: input.title,
+        detail: input.detail ?? null,
+        createdAt: new Date().toISOString(),
+      }).catch(() => {});
+    }
+    return { count: recipients.length, recipientIds: recipients.map((r) => r.id) };
   }
 
   async notifyUserCreated(input: NotifyUserCreatedInput): Promise<NotifyRecipientSummary> {
-    const recipients = await this.resolveAdminHrRecipients(input.actorId);
+    const recipients = await this.resolveAdminHrRecipients(input.actorId, input.userId);
     if (recipients.length === 0) {
       return { count: 0, recipientIds: [] };
     }
@@ -135,6 +160,7 @@ export class NotificationService implements NotificationPort {
 
     const notifications: CreateNotificationInput[] = recipients.map((r) => ({
       userId: r.id,
+      tenantId: r.tenantId ?? undefined,
       type: "USER_CREATED",
       title: t("notifications.userCreated", { name: input.userName }, lng),
       detail: t("notifications.userCreatedDetail", { email: userEmail, actor: actorName }, lng),
@@ -157,7 +183,7 @@ export class NotificationService implements NotificationPort {
   async notifyUserDeactivated(
     input: NotifyUserDeactivatedInput
   ): Promise<NotifyRecipientSummary> {
-    const recipients = await this.resolveAdminHrRecipients(input.actorId);
+    const recipients = await this.resolveAdminHrRecipients(input.actorId, input.userId);
     if (recipients.length === 0) {
       return { count: 0, recipientIds: [] };
     }
@@ -171,6 +197,7 @@ export class NotificationService implements NotificationPort {
 
     const notifications: CreateNotificationInput[] = recipients.map((r) => ({
       userId: r.id,
+      tenantId: r.tenantId ?? undefined,
       type: "USER_DEACTIVATED",
       title: t("notifications.userDeactivated", { name: input.userName }, lng),
       detail: t("notifications.userDeactivatedDetail", { reason: input.reason, actor: actorName }, lng),
@@ -210,7 +237,7 @@ export class NotificationService implements NotificationPort {
     const detail = t("notifications.rosterAlertDetail", {}, lng);
 
     await this.createManyNotifications(
-      recipients.map((r) => ({ userId: r.id, type: "TIME_CLOCK_ROSTER", title, detail }))
+      recipients.map((r) => ({ userId: r.id, tenantId: r.tenantId ?? undefined, type: "TIME_CLOCK_ROSTER", title, detail }))
     );
     for (const r of recipients) {
       broadcastToUser(r.id, {
@@ -219,6 +246,7 @@ export class NotificationService implements NotificationPort {
         detail,
         createdAt: new Date().toISOString(),
       }).catch(() => {});
+      if (!r.email) continue;
       const { subject, html } = rosterAlertEmail({ language: lng, ...input });
       void enqueueEmail({
         to: r.email,
@@ -253,7 +281,7 @@ export class NotificationService implements NotificationPort {
     const detail = t("notifications.workdayLimitDetail", vars, lng);
 
     await this.createManyNotifications(
-      recipients.map((r) => ({ userId: r.id, type: "WORKDAY_LIMIT", title, detail }))
+      recipients.map((r) => ({ userId: r.id, tenantId: r.tenantId ?? undefined, type: "WORKDAY_LIMIT", title, detail }))
     );
     for (const r of recipients) {
       broadcastToUser(r.id, {
@@ -262,6 +290,7 @@ export class NotificationService implements NotificationPort {
         detail,
         createdAt: new Date().toISOString(),
       }).catch(() => {});
+      if (!r.email) continue;
       const { subject, html } = workdayLimitEmail({ language: lng, ...input });
       void enqueueEmail({
         to: r.email,
@@ -277,7 +306,7 @@ export class NotificationService implements NotificationPort {
   async notifyDocumentUploaded(
     input: NotifyDocumentUploadedInput
   ): Promise<NotifyRecipientSummary> {
-    const recipients = await this.resolveAdminHrRecipients(input.actorId);
+    const recipients = await this.resolveAdminHrRecipients(input.actorId, input.userId);
     if (recipients.length === 0) {
       return { count: 0, recipientIds: [] };
     }
@@ -291,6 +320,7 @@ export class NotificationService implements NotificationPort {
 
     const notifications: CreateNotificationInput[] = recipients.map((r) => ({
       userId: r.id,
+      tenantId: r.tenantId ?? undefined,
       type: "EMPLOYEE_DOC_UPLOADED",
       title: t("notifications.documentUploaded", { name: input.userName }, lng),
       detail: t(

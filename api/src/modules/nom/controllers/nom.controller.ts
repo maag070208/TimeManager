@@ -48,6 +48,13 @@ const actorOf = (req: Request): { id: string; name: string } => ({
 });
 
 /** Endpoints NOM: configuración, ajustes de checadas, alertas, retención y export. */
+/** La constancia se firma solo con `accept` ausente o `true`; cualquier otro valor no es firma. */
+const acceptFlag = (value: unknown): boolean => {
+  if (value === undefined || value === true) return true;
+  if (value === false) return false;
+  throw new HttpError(400, "INVALID_ACK_ACCEPT");
+};
+
 export class NomController {
   constructor(
     private readonly settings: NomSettingsService,
@@ -234,7 +241,8 @@ export class NomController {
   };
 
   validateTeleworkChecklist = async (req: Request, res: Response) => {
-    const result = req.body?.result === "NO_APTO" ? "NO_APTO" : "APTO";
+    const result = req.body?.result;
+    if (result !== "APTO" && result !== "NO_APTO") throw new HttpError(400, "INVALID_CHECKLIST_RESULT");
     res.json(
       await this.teleworkCompliance.validateChecklist(
         tenantIdOrThrow(),
@@ -463,7 +471,7 @@ export class NomController {
         {
           periodStart: String(req.body?.periodStart ?? ""),
           periodEnd: String(req.body?.periodEnd ?? ""),
-          accept: req.body?.accept !== false,
+          accept: acceptFlag(req.body?.accept),
           note: typeof req.body?.note === "string" ? req.body.note : null,
         },
         { ...actorOf(req), ip: req.ip ?? null }

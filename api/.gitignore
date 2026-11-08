@@ -6,3 +6,6 @@ build/
 .env
 .env.*
 !.env.example
+
+# Bots de QA: salida local con cuentas generadas
+qa/out/

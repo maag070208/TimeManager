@@ -274,7 +274,7 @@ export const createUserRouter = (controller: UserController): Router => {
     requiresAnyPermission(["schedules.view", "time_clock.view", "hr.records"]),
     asyncHandler(controller.listEmployees)
   );
-  router.post("/query", asyncHandler(controller.table));
+  router.post("/query", requiresPermission("users.view"), asyncHandler(controller.table));
   // Antes de "/:id": la plantilla es ruta fija, no un id de usuario.
   router.get(
     "/import/template",

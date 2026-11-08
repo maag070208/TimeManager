@@ -79,19 +79,19 @@ export class UserController {
 
   create = async (req: Request, res: Response) => {
     const input = UserCreateDto.parse(req.body);
-    const data = await this.users.create(input, req.user!.id);
+    const data = await this.users.create(input, req.user!.id, req.user!);
     res.status(201).json(data);
   };
 
   update = async (req: Request, res: Response) => {
     const input = UserUpdateDto.parse(req.body);
-    const data = await this.users.update(req.params.id, input);
+    const data = await this.users.update(req.params.id, input, req.user!);
     res.json(data);
   };
 
   changePassword = async (req: Request, res: Response) => {
     const { password } = UserPasswordDto.parse(req.body);
-    await this.users.changePassword(req.params.id, password);
+    await this.users.changePassword(req.params.id, password, req.user!);
     res.status(204).send();
   };
 

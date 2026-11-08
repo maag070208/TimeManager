@@ -31,6 +31,8 @@
     "entryShort": "Entry",
     "exitShort": "Exit",
     "register": "Register {{action}}",
+    "dayClosed": "Workday complete",
+    "dayClosedHint": "You already recorded today’s punches. You can punch again tomorrow.",
     "channelHint": "Check in from the web or your physical clock: all your punches show here."
   },
   "punches": {

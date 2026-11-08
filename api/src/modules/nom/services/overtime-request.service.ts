@@ -1,3 +1,4 @@
+import { localDateKey } from "@core/utils/timezone";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
@@ -44,6 +45,11 @@ export class OvertimeRequestService {
     if (days.length > 0 && input.plannedMin > 240 * days.length) {
       throw new HttpError(400, "INVALID_OVERTIME_REQUEST");
     }
+
+    // La autorización es previa: no se pide para días que ya pasaron.
+    const tenant = await this.db.tenant.findUnique({ where: { id: tenantId }, select: { timezone: true } });
+    const today = localDateKey(new Date(), tenant?.timezone ?? "America/Mexico_City");
+    if (days.some((day) => day < today)) throw new HttpError(400, "OVERTIME_DAY_IN_PAST");
 
     if (ageAt(user.birthDate, new Date()) != null && ageAt(user.birthDate, new Date())! < 18) {
       throw new HttpError(400, "MINOR_OVERTIME_FORBIDDEN");

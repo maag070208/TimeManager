@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient, type PunchAdjustmentStatus } from "@prisma/client";
+import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/adjusted-punches";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { localDayRange, localDateKey } from "@core/utils/timezone";
@@ -148,6 +149,30 @@ export class PunchAdjustmentsService {
     return this.toDto(row);
   }
 
+  private async auditTrail(entityType: string, punchId: string, adjustmentIds: string[]) {
+    const audit = await this.db.auditLog.findMany({
+      where: {
+        OR: [
+          { entityType, entityId: punchId },
+          { entityType: "PunchAdjustment", entityId: { in: adjustmentIds } },
+        ],
+      },
+      orderBy: { createdAt: "asc" },
+    });
+    return audit.map((entry) => ({
+      id: entry.id,
+      action: entry.action,
+      entityType: entry.entityType,
+      entityId: entry.entityId,
+      userId: entry.userId,
+      userName: entry.userName,
+      previousState: (entry.previousState as Record<string, unknown> | null) ?? null,
+      newState: (entry.newState as Record<string, unknown> | null) ?? null,
+      metadata: (entry.metadata as Record<string, unknown> | null) ?? null,
+      createdAt: entry.createdAt.toISOString(),
+    }));
+  }
+
   /** Historial visible de una checada: ajustes + pista de auditoría. */
   async history(punchId: string): Promise<PunchHistory> {
     const target = await this.loadTarget(punchId);
@@ -185,7 +210,7 @@ export class PunchAdjustmentsService {
           appliedAdjustmentIds,
         },
         adjustments: adjustments.map((a) => this.toDto(a)),
-        audit: [],
+        audit: await this.auditTrail("RemotePunch", punchId, adjustments.map((a) => a.id)),
       } as unknown as PunchHistory;
     }
     const punch = target.punch;
@@ -195,18 +220,6 @@ export class PunchAdjustmentsService {
       include: adjustmentInclude,
     });
 
-    const audit = await this.db.auditLog.findMany({
-      where: {
-        OR: [
-          { entityType: "TimeClockPunch", entityId: punchId },
-          {
-            entityType: "PunchAdjustment",
-            entityId: { in: adjustments.map((a) => a.id) },
-          },
-        ],
-      },
-      orderBy: { createdAt: "asc" },
-    });
 
     // Valor vigente: se aplican solo los ajustes aprobados, en orden de captura.
     const effective = {
@@ -243,18 +256,7 @@ export class PunchAdjustmentsService {
         appliedAdjustmentIds,
       },
       adjustments: adjustments.map((a) => this.toDto(a)),
-      audit: audit.map((entry) => ({
-        id: entry.id,
-        action: entry.action,
-        entityType: entry.entityType,
-        entityId: entry.entityId,
-        userId: entry.userId,
-        userName: entry.userName,
-        previousState: (entry.previousState as Record<string, unknown> | null) ?? null,
-        newState: (entry.newState as Record<string, unknown> | null) ?? null,
-        metadata: (entry.metadata as Record<string, unknown> | null) ?? null,
-        createdAt: entry.createdAt.toISOString(),
-      })),
+      audit: await this.auditTrail("TimeClockPunch", punchId, adjustments.map((a) => a.id)),
     };
   }
 
@@ -355,7 +357,7 @@ export class PunchAdjustmentsService {
     const to = localDayRange(toKey, timezone).end;
     const limit = params.limit ?? 200;
 
-    const [punches, events] = await Promise.all([
+    const [rawPunches, events] = await Promise.all([
       numbers.length
         ? this.db.timeClockPunch.findMany({
             where: { employeeNumber: { in: numbers }, occurredAt: { gte: from, lt: to } },
@@ -376,12 +378,20 @@ export class PunchAdjustmentsService {
         select: { id: true, occurredAt: true, method: true, type: true },
       }),
     ]);
-    const remotePunches = await this.db.remotePunch.findMany({
+    const rawRemote = await this.db.remotePunch.findMany({
       where: { userId, occurredAt: { gte: from, lt: to } },
       orderBy: { occurredAt: "desc" },
       take: limit,
       select: { id: true, occurredAt: true, type: true, workMode: true, latitude: true, longitude: true },
     });
+
+    // El trabajador ve la hora vigente: la original más las correcciones aprobadas.
+    const [clockFixes, remoteFixes] = await Promise.all([
+      loadApprovedAdjustments(this.db, rawPunches.map((p) => p.id), "CLOCK"),
+      loadApprovedAdjustments(this.db, rawRemote.map((p) => p.id), "REMOTE"),
+    ]);
+    const punches = applyApprovedAdjustments(rawPunches, clockFixes);
+    const remotePunches = applyApprovedAdjustments(rawRemote, remoteFixes);
 
     const merged: MyPunch[] = [
       ...punches.map((punch) => ({

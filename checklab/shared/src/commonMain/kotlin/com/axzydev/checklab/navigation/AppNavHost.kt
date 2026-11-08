@@ -105,6 +105,9 @@ fun AppNavHost(session: SessionRepository = koinInject(), nav: NavHostController
 @Composable
 private fun Shell(me: Me, current: String, nav: NavHostController, session: SessionRepository, content: @Composable ColumnScope.() -> Unit) {
     val item = menuItem(current)
+    val counter: com.axzydev.checklab.approvals.UnreadCounter = koinInject()
+    val unread by counter.count.collectAsState()
+    LaunchedEffect(current) { counter.refresh() }
     AppShell(
         me = me,
         current = current,
@@ -121,6 +124,7 @@ private fun Shell(me: Me, current: String, nav: NavHostController, session: Sess
         onSignOut = { session.signOut() },
         title = if (current == HOME) "Hola, ${me.firstName}" else item?.label.orEmpty(),
         subtitle = me.tenant?.name.orEmpty(),
+        unread = unread,
         content = content,
     )
 }

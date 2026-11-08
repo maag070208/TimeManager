@@ -79,11 +79,25 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 ## Marcaje remoto (F2-07)
 
 - `POST /nom/me/punch` con `{ type: "ENTRY"|"EXIT", workMode?, clientEventId?, latitude?, longitude?, gpsAccuracyMeters?, note? }`. La **hora es la del servidor** (`occurredAt`); `clientReportedAt` solo guarda lo que reportó el dispositivo (reintentos offline).
-- **Idempotencia**: el mismo `clientEventId` devuelve el marcaje ya creado (`200`, `created: false`) en vez de duplicarlo.
-- **Secuencia**: no se acepta un segundo ENTRY (o EXIT) consecutivo sobre el último marcaje remoto del trabajador (`409 INVALID_PUNCH_SEQUENCE`); se corrige reportando discrepancia a RH.
+- **Idempotencia**: el mismo `clientEventId` devuelve el marcaje ya creado (`200`, `created: false`) en vez de duplicarlo. Es por persona: un `clientEventId` que ya usó otra cuenta responde `409 CLIENT_EVENT_ID_TAKEN` y nunca devuelve la checada ajena.
+- **Secuencia**: entrada → (salida a comer → regreso) → salida, un solo ciclo por día en la zona del cliente. La primera checada del día siempre es entrada. Un paso fuera de orden responde `409 INVALID_PUNCH_SEQUENCE`; tras la salida el día queda cerrado (`409 WORKDAY_ALREADY_CLOSED`). Al día siguiente la secuencia arranca de nuevo. Los errores se corrigen reportando discrepancia a RH.
 - **Geolocalización**: opcional; si se envía, van latitud y longitud juntas (`400 INVALID_GEO_POINT`) y se guardan **solo en ese marcaje**. No hay rastreo continuo: el API no consulta la ubicación en ningún otro momento.
 - El registro es append-only por trigger; los marcajes remotos aparecen en `GET /nom/me/punches`, en el export STPS (sección “marcajes remotos”, sin coordenadas) y se archivan por retención.
 - Interruptor por cliente: `PUT /nom/config { remotePunchEnabled: false }` → `403 REMOTE_PUNCH_DISABLED`.
+
+## Reglas de QA (2026-11-08)
+
+Corregidas tras la corrida de los bots de QA (`api/qa/`):
+
+- **Config NOM**: el primer guardado aplica todos los campos (antes el alta ignoraba `blockRemoteWithoutAgreement`, `remoteCountsForWorkday` y `requireUnionForCollective`), y `weekStartDay` se guarda solo si toda la petición pasó la validación.
+- **Convenios de distribución**: la persona y el horario deben ser del cliente (`404`); solo acepta la persona del convenio individual o quien tiene asignado el horario del colectivo.
+- **Acuerdo de método**: una versión nueva (métodos o reglas distintos) borra la firma patronal de la anterior; firmar dos veces la misma versión → `409 AGREEMENT_ALREADY_SIGNED_BY_EMPLOYER`.
+- **Checklist de teletrabajo**: la validación solo acepta `APTO` o `NO_APTO` (`400 INVALID_CHECKLIST_RESULT`).
+- **Constancia semanal**: firma solo con `accept` ausente o `true`; otro valor → `400 INVALID_ACK_ACCEPT`. Una objeción no guarda `acceptedAt`.
+- **Export STPS**: cada descarga queda en bitácora (`STPS_EXPORT_DOWNLOADED`, periodo, formato y hash).
+- **Historial de una checada remota**: trae su pista de auditoría; `GET /nom/me/punches` muestra la hora vigente (con ajustes aprobados).
+- **Vacaciones y permisos**: los festivos del catálogo no cuentan como días; no se pide más de lo disponible menos lo pendiente, y al aprobar se revisa otra vez el saldo; las vacaciones se ganan al cumplir el primer año (`400 VACATION_NOT_YET_EARNED`); cada solicitud cuenta en el año en que empieza; nadie decide su propia solicitud (`403 LEAVE_SELF_DECISION`); solo la incapacidad se registra hacia atrás (`400 LEAVE_IN_PAST`). Pedir avisa a administración y RH; decidir avisa al trabajador.
+- **Tiempo extra**: la autorización previa no acepta días pasados (`400 OVERTIME_DAY_IN_PAST`); el ledger semanal respeta el convenio del art. 58.
 
 ## NOM-037 teletrabajo (F2-08)
 

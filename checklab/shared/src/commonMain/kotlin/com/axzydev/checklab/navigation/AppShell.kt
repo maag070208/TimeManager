@@ -68,8 +68,9 @@ fun Avatar(name: String, size: Int, ring: Color = Color.Transparent) {
 }
 
 /**
- * Marco de toda la app con sesión: barra superior con el menú y drawer con las
- * secciones visibles para el rol (el mismo catálogo que el menú de la web).
+ * Marco de toda la app con sesión: barra superior con el título, barra inferior con las
+ * pestañas base y drawer (desde la pestaña "Menú") con el resto de secciones visibles
+ * para el rol, el mismo catálogo que el menú de la web.
  */
 @Composable
 fun AppShell(
@@ -79,6 +80,7 @@ fun AppShell(
     onSignOut: () -> Unit,
     title: String,
     subtitle: String,
+    unread: Int = 0,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -135,7 +137,7 @@ fun AppShell(
                         Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = Brand.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                Box(Modifier.clip(CircleShape).clickable(role = Role.Button) { scope.launch { drawer.open() } }) {
+                Box(Modifier.clip(CircleShape).clickable(role = Role.Button, onClickLabel = "Abrir mi perfil") { if (current != "profile") onNavigate("profile") }) {
                     Avatar(me.name, 40)
                 }
             }
@@ -144,11 +146,76 @@ fun AppShell(
                     .fillMaxWidth()
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .navigationBarsPadding()
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Column(Modifier.widthIn(max = 720.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
+            }
+            val tabs = bottomTabs(me)
+            BottomBar(tabs, selectedTab(current, tabs), unread) { id ->
+                when {
+                    id == MENU_TAB -> scope.launch { drawer.open() }
+                    id != current -> onNavigate(id)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BottomBar(tabs: List<BottomTab>, selected: String, unread: Int, onSelect: (String) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .border(1.dp, Brand.Line)
+            .navigationBarsPadding()
+            .padding(horizontal = 6.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+    ) {
+        tabs.forEach { tab ->
+            val on = tab.id == selected
+            val badge = if (tab.id == "notifications" && unread > 0) unread else 0
+            Column(
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable(role = Role.Tab) { onSelect(tab.id) }
+                    .semantics { this.selected = on }
+                    .padding(vertical = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box {
+                    Box(
+                        Modifier
+                            .size(width = 52.dp, height = 30.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(if (on) Brand.MintSoft else Color.Transparent),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(tab.icon, if (on) Brand.MintInk else Brand.Muted, size = 21.dp, description = if (badge > 0) "${tab.label}: $badge sin leer" else null)
+                    }
+                    if (badge > 0) {
+                        Text(
+                            if (badge > 99) "99+" else "$badge",
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(Brand.Rose)
+                                .padding(horizontal = 5.dp),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+                Text(
+                    tab.label,
+                    color = if (on) Brand.MintInk else Brand.Muted,
+                    fontSize = 11.sp,
+                    fontWeight = if (on) FontWeight.Bold else FontWeight.Medium,
+                    maxLines = 1,
+                )
             }
         }
     }

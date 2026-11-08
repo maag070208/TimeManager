@@ -1,5 +1,7 @@
 export interface CreateNotificationInput {
   userId: string;
+  /** Cliente del destinatario; hace falta cuando el aviso nace fuera de un contexto de cliente. */
+  tenantId?: string;
   type: string;
   title: string;
   detail?: string;
@@ -63,4 +65,5 @@ export interface NotificationPort {
   notifyDocumentUploaded(input: NotifyDocumentUploadedInput): Promise<NotifyRecipientSummary>;
   notifyRosterAlert(input: NotifyRosterAlertInput): Promise<NotifyRecipientSummary>;
   notifyWorkdayLimit(input: NotifyWorkdayLimitInput): Promise<NotifyRecipientSummary>;
+  notifyAdminHr(input: { actorId: string; type: string; title: string; detail?: string | null }): Promise<NotifyRecipientSummary>;
 }

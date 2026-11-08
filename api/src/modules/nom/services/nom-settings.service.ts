@@ -219,10 +219,6 @@ export class NomSettingsService {
       if (!Number.isInteger(input.weekStartDay) || input.weekStartDay < 0 || input.weekStartDay > 6) {
         throw new HttpError(400, "INVALID_WEEK_START_DAY");
       }
-      await this.db.tenant.update({
-        where: { id: tenantId },
-        data: { weekStartDay: input.weekStartDay },
-      });
     }
 
     if (
@@ -258,54 +254,30 @@ export class NomSettingsService {
       });
     }
 
+    // Se guarda hasta que toda la petición pasó la validación.
+    if (input.weekStartDay != null) {
+      await this.db.tenant.update({ where: { id: tenantId }, data: { weekStartDay: input.weekStartDay } });
+    }
+    // Lo mismo en el alta que en la edición: en un cliente sin configuración
+    // el primer guardado también aplica todos los campos que llegan.
+    const changes = {
+      ...(input.workdayLimitMinutes !== undefined ? { workdayLimitMinutes: input.workdayLimitMinutes } : {}),
+      ...(input.weeklyLimitMinutes !== undefined ? { weeklyLimitMinutes: input.weeklyLimitMinutes } : {}),
+      ...(input.retentionMonths !== undefined ? { retentionMonths: input.retentionMonths } : {}),
+      ...(input.defaultEntryToleranceMin !== undefined ? { defaultEntryToleranceMin: input.defaultEntryToleranceMin } : {}),
+      ...(input.defaultExitToleranceMin !== undefined ? { defaultExitToleranceMin: input.defaultExitToleranceMin } : {}),
+      ...(input.defaultMealBreakMin !== undefined ? { defaultMealBreakMin: input.defaultMealBreakMin } : {}),
+      ...(input.defaultMinOvertimeMin !== undefined ? { defaultMinOvertimeMin: input.defaultMinOvertimeMin } : {}),
+      ...(input.remotePunchEnabled !== undefined ? { remotePunchEnabled: input.remotePunchEnabled } : {}),
+      ...(input.remoteCountsForWorkday !== undefined ? { remoteCountsForWorkday: input.remoteCountsForWorkday } : {}),
+      ...(input.blockRemoteWithoutAgreement !== undefined ? { blockRemoteWithoutAgreement: input.blockRemoteWithoutAgreement } : {}),
+      ...(input.requireUnionForCollective !== undefined ? { requireUnionForCollective: input.requireUnionForCollective } : {}),
+      updatedById: actor.id,
+    };
     await this.db.nomSettings.upsert({
       where: { tenantId },
-      create: {
-        tenantId,
-        workdayLimitMinutes: input.workdayLimitMinutes ?? null,
-        weeklyLimitMinutes: input.weeklyLimitMinutes ?? null,
-        retentionMonths: input.retentionMonths ?? null,
-        defaultEntryToleranceMin: input.defaultEntryToleranceMin ?? null,
-        defaultExitToleranceMin: input.defaultExitToleranceMin ?? null,
-        defaultMealBreakMin: input.defaultMealBreakMin ?? null,
-        defaultMinOvertimeMin: input.defaultMinOvertimeMin ?? null,
-        remotePunchEnabled: input.remotePunchEnabled ?? true,
-        updatedById: actor.id,
-      },
-      update: {
-        ...(input.workdayLimitMinutes !== undefined
-          ? { workdayLimitMinutes: input.workdayLimitMinutes }
-          : {}),
-        ...(input.weeklyLimitMinutes !== undefined
-          ? { weeklyLimitMinutes: input.weeklyLimitMinutes }
-          : {}),
-        ...(input.retentionMonths !== undefined ? { retentionMonths: input.retentionMonths } : {}),
-        ...(input.defaultEntryToleranceMin !== undefined
-          ? { defaultEntryToleranceMin: input.defaultEntryToleranceMin }
-          : {}),
-        ...(input.defaultExitToleranceMin !== undefined
-          ? { defaultExitToleranceMin: input.defaultExitToleranceMin }
-          : {}),
-        ...(input.defaultMealBreakMin !== undefined
-          ? { defaultMealBreakMin: input.defaultMealBreakMin }
-          : {}),
-        ...(input.defaultMinOvertimeMin !== undefined
-          ? { defaultMinOvertimeMin: input.defaultMinOvertimeMin }
-          : {}),
-        ...(input.remotePunchEnabled !== undefined
-          ? { remotePunchEnabled: input.remotePunchEnabled }
-          : {}),
-        ...(input.remoteCountsForWorkday !== undefined
-          ? { remoteCountsForWorkday: input.remoteCountsForWorkday }
-          : {}),
-        ...(input.blockRemoteWithoutAgreement !== undefined
-          ? { blockRemoteWithoutAgreement: input.blockRemoteWithoutAgreement }
-          : {}),
-        ...(input.requireUnionForCollective !== undefined
-          ? { requireUnionForCollective: input.requireUnionForCollective }
-          : {}),
-        updatedById: actor.id,
-      },
+      create: { tenantId, ...changes },
+      update: changes,
     });
 
     await this.audit?.({

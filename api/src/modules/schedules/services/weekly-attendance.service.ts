@@ -198,6 +198,19 @@ export class WeeklyAttendanceService {
     ]);
     const approvalByKey = new Map(approvals.map((a) => [`${a.userId}|${dateKeyOf(a.date)}`, a]));
 
+    // Vacaciones y permisos aprobados: el día no es falta.
+    const leaves = await this.db.leaveRequest.findMany({
+      where: {
+        userId: { in: userIds },
+        status: "APPROVED",
+        startDate: { lte: toUtcDate(days[6]) },
+        endDate: { gte: toUtcDate(days[0]) },
+      },
+      select: { userId: true, startDate: true, endDate: true },
+    });
+    const onLeave = (userId: string, dayKey: string) =>
+      leaves.some((l) => l.userId === userId && dateKeyOf(l.startDate) <= dayKey && dayKey <= dateKeyOf(l.endDate));
+
     const rows: WeeklyAttendanceRow[] = people.map((person) => {
       const clockNumbers = person.timeClockEmployees.map((t) => t.employeeNumber);
       // RJ-02: con checadas web/app la persona también tiene registro ese día.
@@ -209,15 +222,11 @@ export class WeeklyAttendanceService {
       const personDays = days.map((dayKey): WeeklyAttendanceDay => {
         const schedule = scheduleOn(assignments, person.id, dayKey);
         scheduleName = schedule?.name ?? scheduleName;
-        const daySessions = [
-          ...(sessionsByKey.get(`${person.id}|${dayKey}`) ?? []),
-          ...(remoteSessionsByKey.get(`${person.id}|${dayKey}`) ?? []).map((s) => ({
-            entryAt: s.entryAt,
-            exitAt: s.exitAt,
-            workedMinutes: s.workedMinutes,
-            incident: null,
-          })),
-        ].sort((a, b) => (a.entryAt ?? "").localeCompare(b.entryAt ?? ""));
+        // El reporte de sesiones ya trae las checadas web/app (con sus ajustes);
+        // aquí solo se ordenan, para no contarlas dos veces.
+        const daySessions = [...(sessionsByKey.get(`${person.id}|${dayKey}`) ?? [])].sort((a, b) =>
+          (a.entryAt ?? "").localeCompare(b.entryAt ?? "")
+        );
         const workday = computeWorkday(
           dayKey,
           daySessions,
@@ -233,6 +242,7 @@ export class WeeklyAttendanceService {
         else if (daySessions.length > 0) {
           status = incomplete ? "INCOMPLETE" : workday.restDay ? "REST_WORKED" : workday.extraMin > 0 ? "OVERTIME" : "WORKED";
         } else if (workday.restDay) status = "REST";
+        else if (onLeave(person.id, dayKey)) status = "LEAVE";
         // Hoy sin checadas todavía, o sin horario (no se sabe si le tocaba): sin información.
         else if (dayKey === today || workday.withoutSchedule) status = "NO_INFO";
         else status = "ABSENCE";
@@ -246,7 +256,7 @@ export class WeeklyAttendanceService {
           totals.workedMin += workday.workedMin;
           totals.scheduledMin += workday.scheduledMin;
           totals.extraMin += workday.extraMin;
-          totals.missingMin += workday.missingMin;
+          if (status !== "LEAVE") totals.missingMin += workday.missingMin;
         }
         totals.approvedExtraMin += approvedExtraMin;
         if (approval === "PENDING") totals.pendingExtraMin += workday.extraMin;

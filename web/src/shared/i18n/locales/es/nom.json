@@ -31,6 +31,8 @@
     "entryShort": "Entrada",
     "exitShort": "Salida",
     "register": "Registrar {{action}}",
+    "dayClosed": "Jornada completa",
+    "dayClosedHint": "Ya registraste tus checadas de hoy. Mañana podrás volver a checar.",
     "channelHint": "Checa desde la web o con tu reloj físico: todas tus checadas se ven aquí."
   },
   "punches": {

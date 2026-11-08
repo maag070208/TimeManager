@@ -131,6 +131,8 @@ export class UserPermissionsService {
     if (actor.id === userId) {
       throw new HttpError(400, "CANNOT_CHANGE_OWN_PERMISSIONS");
     }
+    // La persona debe ser del cliente de quien otorga: `user_permissions` no lleva tenantId.
+    await this.loadUser(userId);
     const definition = getCatalog().find((p) => p.key === permission);
     if (!isPermission(permission) || !definition) {
       throw new HttpError(400, "PERMISSION_DOES_NOT_EXIST", { permission });
@@ -178,6 +180,7 @@ export class UserPermissionsService {
   }
 
   async remove(userId: string, permission: string, actorId: string): Promise<UserPermissionView[]> {
+    await this.loadUser(userId);
     const existing = await this.db.userPermission.findUnique({
       where: { userId_permission: { userId, permission } },
     });
