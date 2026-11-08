@@ -37,15 +37,6 @@
         "cd api && npx ts-node scripts/isapi-mock/server.ts"
       ],
       "port": 4801
-    },
-    {
-      "name": "web-landing-prod",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": [
-        "-c",
-        "cd web && npx vite preview --outDir /private/tmp/claude-501/-Users-axzy--claude-spares-spare-m7rSJS/16b61609-dfaf-4f91-8eec-b78e1789fcce/scratchpad/dist --port 5029 --strictPort"
-      ],
-      "port": 5029
     }
   ]
 }

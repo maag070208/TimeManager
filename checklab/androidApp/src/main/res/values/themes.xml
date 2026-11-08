@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="checklab_navy">#1D2636</color>
+    <style name="Theme.CheckLab" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/checklab_navy</item>
+        <item name="android:statusBarColor">@color/checklab_navy</item>
+        <item name="android:navigationBarColor">@color/checklab_navy</item>
+    </style>
+</resources>

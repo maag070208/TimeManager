@@ -6,6 +6,9 @@ donde aporte valor. Este documento es el plan de ejecución; no se implementa to
 
 ## 0. Estado actual del proyecto `checklab/`
 
+> **Actualización 2026-11-07:** Fases 0–7 implementadas en la app y Fase 8 parcial; el detalle y lo
+> pendiente está en [`checklab/README.md`](../README.md). Lo que sigue abajo es el punto de partida.
+
 - Proyecto KMP generado por plantilla: `androidApp`, `iosApp`, `shared`.
 - Sólo existe una pantalla demo (`Greeting`, botón, imagen). **No hay** navegación, red, DI, tema,
   autenticación, modelos, almacenamiento ni pruebas de producto.
@@ -62,11 +65,21 @@ checklab/
 - **Notificaciones**: FCM + APNs; la bandeja sigue usando `/notifications`.
 - **Pruebas**: kotlin.test, Turbine, Compose UI Test, Maestro/Appium para flujos E2E y golden screenshots.
 
+### Decisión de producto (2026-11-07)
+
+**La app es el producto del cliente; la web queda para el equipo de CheckLab.** Todo lo que opera
+un cliente (personal, jefaturas, RH y administradores del cliente) se lleva a la app, en el orden de
+las fases de este plan. La consola de plataforma (clientes, planes, pagos, agentes, impersonación)
+se queda **solo en la web** y sale del alcance de la app. Consecuencias:
+
+- El login de la app es siempre por código de empresa; no hay acceso de plataforma en la app.
+- La Fase 7 lleva a la app la configuración, roles y auditoría **del cliente**; lo de plataforma no.
+- Mientras una fase no llega, la pantalla de la app avisa en qué fase llega (no manda a la web).
+
 ### Decisiones que hay que cerrar antes de Fase 1
 
-- [ ] ¿La app es para **personal** (checada/portal) o también para **RH/admin**? El plan asume paridad
-  total por fases, pero conviene decidir qué pantallas serán “tablet/administrativo” y cuáles móvil.
-- [ ] ¿Login por **código de empresa** (slug) o QR/dominio? Propuesta: código + recordar último tenant.
+- [x] ¿La app es para **personal** o también para **RH/admin**? → Para todo el cliente (ver arriba).
+- [x] ¿Login por **código de empresa** (slug) o QR/dominio? → Código + recordar el último.
 - [ ] ¿Push FCM/APNs desde el API o Ably? Propuesta: FCM/APNs para push y `/notifications` para bandeja.
 - [ ] ¿Mapas con una key por plataforma? La key web no sirve para Android/iOS restringidas por app.
 - [ ] ¿La app requiere offline de checada? Propuesta: sí, cola cifrada idempotente.
@@ -217,8 +230,7 @@ correctos.
 - Roles/permisos: lista, matriz, acceso por persona, excepciones, políticas, actividad.
 - Auditoría: filtros, detalle inmutable.
 - Notificaciones y preferencias.
-- Multi-cliente para ADMIN/SUPPORT: consola de clientes, planes, agentes, impersonación.
-- Plataforma: tenants, plan, pagos, módulos, actividad.
+- ~~Multi-cliente para ADMIN/SUPPORT y plataforma~~ → se quedan en la web (decisión de producto).
 
 **Criterio:** la app permite operar el tenant completo y auditar sin volver a la web.
 
@@ -236,8 +248,8 @@ correctos.
 
 | Módulo Web | Pantallas | Fase |
 |---|---|---|
-| Auth | Login tenant/plataforma, force-password, cliente inválido | 0 |
-| Inicio | Home cliente / plataforma | 0–7 |
+| Auth | Login por código de empresa, force-password, cliente inválido | 0 |
+| Inicio | Home del cliente | 0–7 |
 | Mi jornada | Checada, marcajes, discrepancia, teletrabajo, HE, registro, vacaciones | 1 |
 | Asistencia | Reporte semanal, entradas/salidas, roster, empleados del reloj, diferencias | 2, 6 |
 | Personal | Lista, alta, edición, historial, cuenta, expediente | 3 |
@@ -250,7 +262,7 @@ correctos.
 | Configuración | General, catálogos | 7 |
 | Roles | Roles, matriz, acceso, políticas, catálogo, actividad | 7 |
 | Auditoría | Bitácora y detalle | 7 |
-| Plataforma | Clientes, planes, pagos, agentes, impersonación | 7 |
+| Plataforma | Clientes, planes, pagos, agentes, impersonación | Solo web |
 | Notificaciones | Bandeja y filtros | 2 |
 | Landing | No aplica (web pública) | — |
 
@@ -328,7 +340,7 @@ No es un port de UI: es un producto móvil con offline, permisos, mapas, cámara
 
 ## 11. Decisiones abiertas
 
-- [ ] ¿App para todo el mundo o sólo personal + jefaturas en v1?
+- [x] ¿App para todo el mundo o sólo personal + jefaturas en v1? → Todo el cliente; plataforma solo web.
 - [ ] ¿Se permite checada sin GPS? ¿Obligatorio en clientes sin reloj?
 - [ ] ¿Mapas Google o alternativa sin key?
 - [ ] ¿Distribución pública o enterprise?

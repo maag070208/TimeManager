@@ -59,7 +59,7 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 - Correos: plantillas en `api/src/core/services/email-templates.ts`, siempre por la cola (`enqueueEmail`/`enqueueNotificationEmail`), nunca `sendEmail` desde un request. Detalle en `docs/modules/email.md`.
 - Relojes: la URL de cada reloj vive en la BD (alta desde la web); el `.env` solo trae `TIME_CLOCK_USER/PASS` y la estación de huellas. `CHECADOR_URL` ya no se usa.
 - Sensibilidad de datos: marcajes, geolocalización y biometría son datos personales sensibles — cifrado, acceso por rol, consentimiento (ver sección 5 de `docs/RH_MODULO_STANDALONE.md`).
-- Git: rama `main`, un solo repo (`maag070208/TimeManager`). CI propio en `.github/workflows/ci.yml` (quality, integración, imágenes y E2E manual); los workflows heredados del producto anterior ya se eliminaron.
+- Git: rama `main`, un solo repo (`maag070208/TimeManager`). CI propio en `.github/workflows/ci.yml` (quality, app Android e iOS de `checklab/`, integración, imágenes y E2E manual); los workflows heredados del producto anterior ya se eliminaron.
 
 ## Pendientes conocidos
 

@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":shared"))
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.koin.android)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
@@ -29,6 +30,10 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        // URL del API por build. Emulador: 10.0.2.2 es el localhost de la Mac.
+        // Teléfono físico: -Pchecklab.apiUrl=http://<ip-de-la-mac>:4021/api/v1
+        val apiUrl = (project.findProperty("checklab.apiUrl") as String?) ?: "http://10.0.2.2:4021/api/v1"
+        buildConfigField("String", "API_URL", "\"$apiUrl\"")
     }
     packaging {
         resources {
@@ -37,6 +42,9 @@ android {
     }
     buildTypes {
         release {
+            // Dominio de producción pendiente: sin -Pchecklab.releaseApiUrl la app avisa que no hay servidor.
+            val releaseApi = (project.findProperty("checklab.releaseApiUrl") as String?) ?: ""
+            buildConfigField("String", "API_URL", "\"$releaseApi\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -50,5 +58,6 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
