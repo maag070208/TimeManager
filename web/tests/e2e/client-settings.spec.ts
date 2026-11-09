@@ -11,34 +11,32 @@ test.describe("configuración del cliente admin", () => {
     );
     await gotoRoute(page, "/settings/general");
     await configLoaded;
-    await expect(page.getByText("Configuración del cliente")).toBeVisible();
-    await expect(page.getByText(/Política de asistencia/)).toBeVisible();
-    await expect(page.getByText("Límites y retención")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Configuración del sistema" })).toBeVisible();
+    await expect(page.getByText("Asistencia", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Límites y retención", { exact: true }).first()).toBeVisible();
 
-    // Cambiar a jueves y guardar.
-    await page.selectOption('select[name="weekStartDay"]', "4");
-    await expect(page.locator('select[name="weekStartDay"]')).toHaveValue("4");
-    await page.waitForTimeout(300);
-    const save = page.waitForResponse((response) =>
-      new URL(response.url()).pathname.endsWith("/nom/config")
+    const weekStart = page.locator('select[name="weekStartDay"]');
+    await page.getByText("Primer día de la semana", { exact: true }).locator("xpath=following::input[1]").click();
+    await page.getByText("Jueves", { exact: true }).last().click();
+    await expect(weekStart).toHaveValue("4");
+    const save = page.waitForResponse(
+      (response) => new URL(response.url()).pathname.endsWith("/nom/config") && response.request().method() === "PUT"
     );
-    await page.getByRole("button", { name: "Guardar" }).click();
+    await page.getByRole("button", { name: "Guardar configuración" }).click();
     const saveResponse = await save;
     expect(saveResponse.ok()).toBe(true);
     expect((await saveResponse.json()).weekStartDay).toBe(4);
     await expect(page.getByText("Configuración guardada.")).toBeVisible();
 
-    // Persistió: al recargar la configuración sigue en jueves.
     await page.reload();
-    await expect(page.locator('select[name="weekStartDay"]')).toHaveValue("4");
+    await expect(weekStart).toHaveValue("4");
 
-    // Regresar el seed a miércoles para no alterar otras pruebas.
-    await gotoRoute(page, "/settings/general");
-    await page.selectOption('select[name="weekStartDay"]', "3");
-    const reset = page.waitForResponse((response) =>
-      new URL(response.url()).pathname.endsWith("/nom/config")
+    await page.getByText("Primer día de la semana", { exact: true }).locator("xpath=following::input[1]").click();
+    await page.getByText("Miércoles", { exact: true }).last().click();
+    const reset = page.waitForResponse(
+      (response) => new URL(response.url()).pathname.endsWith("/nom/config") && response.request().method() === "PUT"
     );
-    await page.getByRole("button", { name: "Guardar" }).click();
+    await page.getByRole("button", { name: "Guardar configuración" }).click();
     expect((await reset).ok()).toBe(true);
   });
 });

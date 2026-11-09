@@ -130,7 +130,19 @@ try {
   api.stderr.pipe(log);
   await waitForApi(api);
   console.log(`API QA lista en ${API_URL}; base ${dbName}.`);
-  await run(process.execPath, ["--require", "ts-node/register/transpile-only", "--require", "tsconfig-paths/register", "qa/run.ts", ...process.argv.slice(2)], { env });
+  const args = process.argv.slice(2);
+  if (args.includes("--serve")) {
+    console.log("API QA disponible para WEB/APP; detén el proceso del arnés al terminar.");
+    await new Promise((resolve, reject) => {
+      const stop = () => resolve();
+      process.once("SIGTERM", stop);
+      process.once("SIGINT", stop);
+      api.once("error", reject);
+      api.once("exit", (code, signal) => reject(new Error(`El API QA terminó con ${code ?? signal}.`)));
+    });
+  } else {
+    await run(process.execPath, ["--require", "ts-node/register/transpile-only", "--require", "tsconfig-paths/register", "qa/run.ts", ...args], { env });
+  }
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;

@@ -1,0 +1,65 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- runFlow:
+    when:
+      visible: "Abrir menú"
+    commands:
+      - tapOn: "Abrir menú"
+      - scrollUntilVisible:
+          element: "Cerrar sesión"
+          direction: DOWN
+      - tapOn: "Cerrar sesión"
+- runFlow:
+    when:
+      visible: "Cerrar el menú de navegación"
+    commands:
+      - scrollUntilVisible:
+          element: "Cerrar sesión"
+          direction: DOWN
+      - tapOn: "Cerrar sesión"
+- extendedWaitUntil:
+    visible: "Código de tu empresa"
+    timeout: 15000
+- tapOn:
+    point: "50%,63%"
+- eraseText: 100
+- inputText: "qa-no-existe"
+- hideKeyboard
+- tapOn: "Continuar"
+- assertVisible: "No encontramos la empresa «qa-no-existe».*"
+- takeScreenshot: 01-empresa-inexistente
+- tapOn:
+    point: "50%,63%"
+- eraseText: 100
+- inputText: ${QA_SLUG}
+- hideKeyboard
+- tapOn: "Continuar"
+- assertVisible: "Usuario o número de empleado"
+- tapOn:
+    point: "50%,50%"
+- eraseText: 100
+- inputText: ${QA_ADMIN_USER}
+- hideKeyboard
+- tapOn:
+    point: "50%,62%"
+- eraseText: 100
+- inputText: "clave-incorrecta"
+- hideKeyboard
+- tapOn:
+    text: "Entrar a .*"
+- assertVisible: "Credenciales inválidas"
+- takeScreenshot: 02-credenciales-invalidas
+- tapOn:
+    point: "50%,62%"
+- eraseText: 100
+- inputText: ${QA_ADMIN_PASS}
+- hideKeyboard
+- tapOn:
+    text: "Entrar a .*"
+- extendedWaitUntil:
+    visible: "Hola, Alejandra"
+    timeout: 20000
+- assertVisible: ${QA_TENANT_NAME}
+- assertVisible: "Registrar entrada"
+- takeScreenshot: 03-admin-inicio

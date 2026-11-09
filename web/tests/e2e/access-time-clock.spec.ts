@@ -33,6 +33,7 @@ test.describe("checadas del reloj (RH)", () => {
     await openAcme(page, "/hr/time-clock", "Registros de los relojes Hikvision");
 
     await expect(page.getByText("Sincronización con los relojes").first()).toBeVisible();
+    await page.getByRole("button", { name: "Últimos 7 días" }).click();
     await expect(page.getByText("SERGIO STAFF").first()).toBeVisible({ timeout: 25_000 });
     await expectNoBeta(page);
 
@@ -90,7 +91,8 @@ test.describe("checadas del reloj (RH)", () => {
   test("[CLK-01] exporta las checadas a CSV", async ({ page }) => {
     await enter(page);
     await openAcme(page, "/hr/time-clock", "Registros de los relojes Hikvision");
-    await expect(page.getByText("SERGIO STAFF").first()).toBeVisible({ timeout: 25_000 });
+    await page.getByRole("button", { name: "Últimos 7 días" }).click();
+    await expect(page.getByRole("table").getByRole("row").nth(1)).toBeVisible({ timeout: 25_000 });
     const filename = await download(page, /^CSV$/);
     expect(filename.toLowerCase()).toContain(".csv");
   });

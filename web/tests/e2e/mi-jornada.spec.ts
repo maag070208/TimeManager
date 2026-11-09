@@ -185,7 +185,8 @@ test.describe("Mi jornada (portal del trabajador)", () => {
     const types = await apiOk<any[]>(page, "GET", "/nom/leave/types");
     test.skip(types.length === 0, "No hay tipos de permiso sembrados");
     const day = new Date();
-    day.setDate(day.getDate() + 3);
+    day.setDate(day.getDate() + 14);
+    while (day.getDay() === 0 || day.getDay() === 6) day.setDate(day.getDate() + 1);
     const iso = day.toISOString().slice(0, 10);
     const type = types.find((row) => row.key !== "VACACIONES") ?? types[0];
     // La UI formatea `new Date(iso)` con la zona del navegador (zona del cliente).

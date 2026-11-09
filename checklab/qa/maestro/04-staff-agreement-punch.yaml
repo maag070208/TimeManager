@@ -1,0 +1,45 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Hola, Lucía"
+    timeout: 20000
+- tapOn: "Mi jornada"
+- tapOn: "Registro y horas extra"
+- assertVisible: "Acuerdo del método de registro"
+- tapOn: "Firmar el acuerdo"
+- extendedWaitUntil:
+    visible: "Firmado el .*"
+    timeout: 20000
+- assertNotVisible: "Firmar el acuerdo"
+- takeScreenshot: 13-staff-acuerdo-firmado
+- tapOn: "Mi checada"
+- tapOn: "Campo"
+- tapOn:
+    point: "50%,78%"
+- inputText: "Entrada desde bot Maestro"
+- hideKeyboard
+- tapOn: "Registrar entrada"
+- runFlow:
+    when:
+      visible: "No permitir"
+    commands:
+      - tapOn: "No permitir"
+- runFlow:
+    when:
+      visible: "Denegar"
+    commands:
+      - tapOn: "Denegar"
+- extendedWaitUntil:
+    visible: "Entrada registrada a las .*"
+    timeout: 25000
+- assertVisible: "En jornada"
+- assertVisible: "sin ubicación (no diste permiso)"
+- takeScreenshot: 14-staff-entrada-sin-gps
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "En jornada"
+    timeout: 20000
+- assertVisible: "Salida a comer"
+- takeScreenshot: 15-staff-entrada-restaurada

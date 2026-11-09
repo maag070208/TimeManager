@@ -7,7 +7,8 @@ test.describe("Mi jornada — móvil", () => {
     await page.goto(`${ACME.base}/#/mi-jornada`);
 
     await expect(page.getByRole("heading", { name: /Mi jornada/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Registrar entrada/i })).toBeVisible();
+    const nextPunch = page.getByRole("button", { name: /Siguiente paso/i });
+    await expect(nextPunch).toBeVisible();
     await expect(page.getByText(/Mis marcajes/i).first()).toBeVisible();
 
     // Nada debe empujar el layout más allá del ancho del viewport.
@@ -17,7 +18,7 @@ test.describe("Mi jornada — móvil", () => {
     expect(overflow).toBeLessThanOrEqual(1);
 
     // Los botones principales ocupan bien el ancho en móvil (no quedan diminutos).
-    const box = await page.getByRole("button", { name: /Registrar entrada/i }).boundingBox();
+    const box = await nextPunch.boundingBox();
     const viewport = page.viewportSize();
     expect(box).not.toBeNull();
     expect(box!.width).toBeGreaterThan((viewport?.width ?? 400) * 0.8);

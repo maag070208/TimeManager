@@ -50,32 +50,32 @@ Todas las filas API incluyen, cuando el endpoint lo permite: contrato de entrada
 
 | ID | Módulo / flujo | Casos mínimos | Bot o suite | P | Estado |
 |---|---|---|---|---|---|
-| API-00 | Salud y readiness | `/health`, `/health/ready`, BD disponible/caída, formato y códigos | `infra.flow.test.ts` | P0 | PENDIENTE |
-| API-01 | Auth y sesión | Login por slug, credenciales inválidas, cliente inexistente/suspendido, usuario inactivo, `me`, refresh, logout, cambio forzado, rate limit | `auth.flow.test.ts`, `rate-limit.flow.test.ts`, bot `sesiones` | P0 | PENDIENTE |
-| API-02 | Tenants e impersonación | CRUD/alta guiada, slug reservado, suspensión/reactivación, selección por header, entrar/salir, módulos, timezone | `tenancy.flow.test.ts`, `tenants-impersonation.flow.test.ts`, `tenant-timezone.flow.test.ts` | P0 | PENDIENTE |
-| API-03 | Planes, límites y cobros | CRUD planes, duplicados, baja/reactivación, límites de personas/relojes, cargos/pagos | `plans.flow.test.ts`, `tenant-payments.flow.test.ts` | P1 | PENDIENTE |
-| API-04 | Usuarios y personal | Alta/edición/lista, disponibilidad, duplicados, roles extra, baja/reactivación/eliminación, cuenta e historial | `personal.flow.test.ts`, bot `personal-roles` | P0 | PENDIENTE |
-| API-05 | Importación y fotos | Plantilla, XLSX válido/inválido, filas omitidas, foto firmada, token ausente/ajeno/expirado | `users-import.flow.test.ts`, `photo.flow.test.ts` | P1 | PENDIENTE |
-| API-06 | Expedientes RH | Perfil/overview, documentos, obligatorios/faltantes, avisos, descuentos y alcance propio/ajeno | `hr-overview.flow.test.ts`, `hr-catalogs-records.flow.test.ts` | P0 | PENDIENTE |
-| API-07 | Actas y catálogos | CRUD actas/tipos de documento, validaciones, baja lógica/definitiva, permisos de catálogo | `hr-catalogs-records.flow.test.ts` | P1 | PENDIENTE |
-| API-08 | Departamentos y subáreas | CRUD, baja/reactivación, relaciones, duplicados, permisos y aislamiento | bots/integración de organización | P1 | PENDIENTE |
-| API-09 | RBAC/ABAC | Roles, matriz, alcances, excepciones, políticas, simulador, miembros, catálogo y actividad | `permissions-matrix.flow.test.ts`, `platform-guard.flow.test.ts`, bot `permisos` | P0 | PENDIENTE |
-| API-10 | Dashboard y reportes | KPIs por rol, datos vacíos, asistencia hoy, expedientes, HE y huecos de configuración | integración dashboard + E2E de contrato | P1 | PENDIENTE |
-| API-11 | Notificaciones y realtime | Lista/filtros/paginación, leída/todas, borrar, contador, token Ably, aislamiento | `ably.flow.test.ts`, `cursor.flow.test.ts`, `cursor-more.flow.test.ts` | P1 | PENDIENTE |
-| API-12 | Auditoría | Creación por mutaciones, filtros, detalle, anterior/nuevo, paginación, inmutabilidad y aislamiento | `audit-filters.flow.test.ts`, `cursor-more.flow.test.ts` | P0 | PENDIENTE |
-| API-13 | Configuración | Lectura/escritura por tabs, validación de límites, defaults, checada web y persistencia | `nom.flow.test.ts`, `platform-config.flow.test.ts` | P1 | PENDIENTE |
-| API-14 | Checadas NOM | ENTRY/LUNCH_OUT/LUNCH_IN/EXIT, secuencia, WEB/CLOCK/HYBRID, GPS, `clientEventId`, duplicados, discrepancias | `nom.flow.test.ts`, `checkin-mode.flow.test.ts`, bot `jornada` | P0 | PENDIENTE |
-| API-15 | Registro y conformidad | Métodos de registro, evidencia, ajustes, acuses, conformidad semanal, export STPS y retención | `work-record.flow.test.ts`, `workday-evidence.flow.test.ts`, `record-agreement.flow.test.ts`, `retention-adjustment.flow.test.ts` | P0 | PENDIENTE |
-| API-16 | Teletrabajo | Política/versionado, consentimiento, registros, checklists, comunicaciones, diferimientos y aislamiento | `telework-compliance.flow.test.ts`, bot `nom-cumplimiento` | P1 | PENDIENTE |
-| API-17 | Vacaciones y permisos | Saldos, solicitud/cancelación, solapes, aprobar/rechazar, goce, antigüedad y días de borde | `leave.flow.test.ts` | P0 | PENDIENTE |
-| API-18 | Convenios de jornada | Distribución art. 58, evidencia, vigencia, firmas y transición legal | `distribution.flow.test.ts`, `record-agreement.flow.test.ts` | P1 | PENDIENTE |
-| API-19 | Horarios | CRUD 7 días, descanso, nocturno, legalidad, activar/desactivar, asignación/reemplazo/vigencias, retardos | `schedule-legality.flow.test.ts`, `schedule-assignments.flow.test.ts`, `schedules-late.flow.test.ts`, bot `horarios` | P0 | PENDIENTE |
-| API-20 | Tiempo extra | Motor doble/triple/excedente, topes, aprobación/rechazo, confirmación semanal y snapshot | `overtime-request.flow.test.ts`, bot `horas-extra` | P0 | PENDIENTE |
-| API-21 | Nómina | Puestos/settings/asignación, cálculo, asistencia semanal, revisión, cierre, snapshot y reapertura | `payroll.flow.test.ts`, `payroll-positions.flow.test.ts` | P0 | PENDIENTE |
-| API-22 | Relojes y asistencia | CRUD reloj, credenciales write-only, conexión/sync/import, cursores, WEB/CLOCK/HYBRID, roster, vínculos, export | `clock-*.flow.test.ts`, `clock-summary-roster.flow.test.ts`, `clock-api-key.flow.test.ts`, `clock-credentials.flow.test.ts` | P0 | PENDIENTE |
-| API-23 | Agente local | Tokens, versión/estado, ingesta, jobs por acción, validación, reintentos, revocación y aislamiento | `agent.flow.test.ts` | P0 | PENDIENTE |
-| API-24 | Correo y cola | Plantillas, dry-run, encolado, logs, reintento/cancelación; nunca envío directo desde request | unit email + integración/mock | P1 | PENDIENTE |
-| API-25 | Seguridad transversal | CORS, Helmet, body inválido, inyección/payloads extremos, rate limit, tokens y RLS/tenant scope | `infra.flow.test.ts`, `tenancy-check`, unit security/RLS | P0 | PENDIENTE |
+| API-00 | Salud y readiness | `/health`, `/health/ready`, BD disponible/caída, formato y códigos | `infra.flow.test.ts` | P0 | PASÓ |
+| API-01 | Auth y sesión | Login por slug, credenciales inválidas, cliente inexistente/suspendido, usuario inactivo, `me`, refresh, logout, cambio forzado, rate limit | `auth.flow.test.ts`, `rate-limit.flow.test.ts`, bot `sesiones` | P0 | FALLÓ — BUG-001/002/003 |
+| API-02 | Tenants e impersonación | CRUD/alta guiada, slug reservado, suspensión/reactivación, selección por header, entrar/salir, módulos, timezone | `tenancy.flow.test.ts`, `tenants-impersonation.flow.test.ts`, `tenant-timezone.flow.test.ts` | P0 | PASÓ |
+| API-03 | Planes, límites y cobros | CRUD planes, duplicados, baja/reactivación, límites de personas/relojes, cargos/pagos | `plans.flow.test.ts`, `tenant-payments.flow.test.ts` | P1 | PASÓ |
+| API-04 | Usuarios y personal | Alta/edición/lista, disponibilidad, duplicados, roles extra, baja/reactivación/eliminación, cuenta e historial | `personal.flow.test.ts`, bot `personal-roles` | P0 | FALLÓ — BUG-001/002/003 |
+| API-05 | Importación y fotos | Plantilla, XLSX válido/inválido, filas omitidas, foto firmada, token ausente/ajeno/expirado | `users-import.flow.test.ts`, `photo.flow.test.ts` | P1 | PASÓ |
+| API-06 | Expedientes RH | Perfil/overview, documentos, obligatorios/faltantes, avisos, descuentos y alcance propio/ajeno | `hr-overview.flow.test.ts`, `hr-catalogs-records.flow.test.ts` | P0 | PASÓ |
+| API-07 | Actas y catálogos | CRUD actas/tipos de documento, validaciones, baja lógica/definitiva, permisos de catálogo | `hr-catalogs-records.flow.test.ts` | P1 | PASÓ |
+| API-08 | Departamentos y subáreas | CRUD, baja/reactivación, relaciones, duplicados, permisos y aislamiento | bots/integración de organización | P1 | PASÓ |
+| API-09 | RBAC/ABAC | Roles, matriz, alcances, excepciones, políticas, simulador, miembros, catálogo y actividad | `permissions-matrix.flow.test.ts`, `platform-guard.flow.test.ts`, bot `permisos` | P0 | FALLÓ — BUG-004 |
+| API-10 | Dashboard y reportes | KPIs por rol, datos vacíos, asistencia hoy, expedientes, HE y huecos de configuración | integración dashboard + E2E de contrato | P1 | PASÓ |
+| API-11 | Notificaciones y realtime | Lista/filtros/paginación, leída/todas, borrar, contador, token Ably, aislamiento | `ably.flow.test.ts`, `cursor.flow.test.ts`, `cursor-more.flow.test.ts` | P1 | PASÓ |
+| API-12 | Auditoría | Creación por mutaciones, filtros, detalle, anterior/nuevo, paginación, inmutabilidad y aislamiento | `audit-filters.flow.test.ts`, `cursor-more.flow.test.ts` | P0 | PASÓ |
+| API-13 | Configuración | Lectura/escritura por tabs, validación de límites, defaults, checada web y persistencia | `nom.flow.test.ts`, `platform-config.flow.test.ts` | P1 | PASÓ |
+| API-14 | Checadas NOM | ENTRY/LUNCH_OUT/LUNCH_IN/EXIT, secuencia, WEB/CLOCK/HYBRID, GPS, `clientEventId`, duplicados, discrepancias | `nom.flow.test.ts`, `checkin-mode.flow.test.ts`, bot `jornada` | P0 | PASÓ |
+| API-15 | Registro y conformidad | Métodos de registro, evidencia, ajustes, acuses, conformidad semanal, export STPS y retención | `work-record.flow.test.ts`, `workday-evidence.flow.test.ts`, `record-agreement.flow.test.ts`, `retention-adjustment.flow.test.ts` | P0 | FALLÓ — BUG-005 |
+| API-16 | Teletrabajo | Política/versionado, consentimiento, registros, checklists, comunicaciones, diferimientos y aislamiento | `telework-compliance.flow.test.ts`, bot `nom-cumplimiento` | P1 | PASÓ |
+| API-17 | Vacaciones y permisos | Saldos, solicitud/cancelación, solapes, aprobar/rechazar, goce, antigüedad y días de borde | `leave.flow.test.ts` | P0 | PASÓ |
+| API-18 | Convenios de jornada | Distribución art. 58, evidencia, vigencia, firmas y transición legal | `distribution.flow.test.ts`, `record-agreement.flow.test.ts` | P1 | PASÓ |
+| API-19 | Horarios | CRUD 7 días, descanso, nocturno, legalidad, activar/desactivar, asignación/reemplazo/vigencias, retardos | `schedule-legality.flow.test.ts`, `schedule-assignments.flow.test.ts`, `schedules-late.flow.test.ts`, bot `horarios` | P0 | FALLÓ — BUG-010/011/012/014 |
+| API-20 | Tiempo extra | Motor doble/triple/excedente, topes, aprobación/rechazo, confirmación semanal y snapshot | `overtime-request.flow.test.ts`, bot `horas-extra` | P0 | FALLÓ — BUG-006/007/008/009 |
+| API-21 | Nómina | Puestos/settings/asignación, cálculo, asistencia semanal, revisión, cierre, snapshot y reapertura | `payroll.flow.test.ts`, `payroll-positions.flow.test.ts` | P0 | FALLÓ — BUG-007/013 |
+| API-22 | Relojes y asistencia | CRUD reloj, credenciales write-only, conexión/sync/import, cursores, WEB/CLOCK/HYBRID, roster, vínculos, export | `clock-*.flow.test.ts`, `clock-summary-roster.flow.test.ts`, `clock-api-key.flow.test.ts`, `clock-credentials.flow.test.ts` | P0 | PASÓ |
+| API-23 | Agente local | Tokens, versión/estado, ingesta, jobs por acción, validación, reintentos, revocación y aislamiento | `agent.flow.test.ts` | P0 | PASÓ |
+| API-24 | Correo y cola | Plantillas, dry-run, encolado, logs, reintento/cancelación; nunca envío directo desde request | unit email + integración/mock | P1 | PASÓ |
+| API-25 | Seguridad transversal | CORS, Helmet, body inválido, inyección/payloads extremos, rate limit, tokens y RLS/tenant scope | `infra.flow.test.ts`, `tenancy-check`, unit security/RLS | P0 | PASÓ |
 
 ## 5. Matriz WEB
 
@@ -83,25 +83,25 @@ La ejecución web debe recorrer los **49 IDs de pantalla, 39 de tab, 71 de modal
 
 | ID | Flujo | Cobertura mínima | Suite/bot | P | Estado |
 |---|---|---|---|---|---|
-| WEB-00 | Build y arranque | TypeScript, lint, rutas públicas/privadas, health y consola sin errores inesperados | build + Playwright | P0 | PENDIENTE |
-| WEB-01 | Auth y shell | Login cliente/plataforma, errores, force-password, logout, refresh, slug/subdominio y guard de sesión | `auth`, `client-routes` | P0 | PENDIENTE |
-| WEB-02 | Landing | FAQ, CTA, tema persistido, menú móvil, reduced motion y ausencia de overflow | `landing`, `landing.mobile` | P2 | PENDIENTE |
-| WEB-03 | Inicio y plataforma | Consola, KPIs, inicio por rol, clientes, detalle/tabs, módulos, cobros, planes e impersonación | `home`, `tenants`, `platform-*`, `platform-plans` | P0 | PENDIENTE |
-| WEB-04 | Roles y permisos | CRUD, matriz, revisar/aplicar, excepciones, ABAC, catálogo, simulador, bitácora y guards | `roles`, `platform-roles` | P0 | PENDIENTE |
-| WEB-05 | Mi jornada | Secuencia de checadas, modos, marcajes, discrepancias, teletrabajo, registro/conformidad, HE y vacaciones | `mi-jornada`, `mi-jornada.mobile`, `nom-portal`, `nom-telework`, `workday-agreements`, `leave` | P0 | PENDIENTE |
-| WEB-06 | Personal y cuentas | Lista/filtros, alta/edición, importación, baja/reactivar/eliminar, historial, roles extra y permisos | `personal`, `personal.mobile`, `employee-detail` | P0 | PENDIENTE |
-| WEB-07 | Expedientes y actas | Tabs, documentos, foto, credencial/QR, avisos, actas/PDF y catálogos | `employee-records`, `document-catalog`, `disciplinary-reports` | P1 | PENDIENTE |
-| WEB-08 | Organización | Departamentos, detalle, subáreas, baja lógica/definitiva y permisos | `departments`, `subareas` | P1 | PENDIENTE |
-| WEB-09 | Horarios | Lista/filtros, alta/edición 7 días, legalidad, activar/desactivar, asignar/reemplazar/quitar | `schedules` | P0 | PENDIENTE |
-| WEB-10 | Tiempo extra | Filtros, doble/triple/excedente, aprobar/rechazar, export y confirmación semanal | `overtime-payroll` | P0 | PENDIENTE |
-| WEB-11 | Nómina | Semana, resumen/detalle, revisar/cerrar/reabrir, historial, puestos, asignación, settings y cálculo | `payroll-*`, `overtime-payroll` | P0 | PENDIENTE |
-| WEB-12 | Checadas y asistencia | Resumen, sync/import/reintento, entradas/salidas, periodos, inactivos y exportaciones | `access-time-clock`, `clock-roster` | P0 | PENDIENTE |
-| WEB-13 | Relojes y personas | CRUD/conexión, dashboard/tabs, roster, vínculos/diferencias, personas, tarjetas, inspect, cámara/lector mock | `time-clocks`, `clock-*` | P0 | PENDIENTE |
-| WEB-14 | Agente | Token visible una vez, crear/rotar/revocar, jobs, validaciones y estados | `agent-console` | P1 | PENDIENTE |
-| WEB-15 | Notificaciones | Filtros, contador, leer/todas, borrar, navegación y realtime mock | `notifications` | P1 | PENDIENTE |
-| WEB-16 | Configuración y auditoría | Tabs/settings, retención, catálogos, filtros/detalle de auditoría y aislamiento | `client-settings`, `platform-settings`, `platform-audit` | P1 | PENDIENTE |
-| WEB-17 | Roles en UI | ADMIN/SUPPORT/CLIENT_ADMIN/HR/STAFF/rol secundario; botones, rutas y datos permitidos/prohibidos | suites por rol + API real | P0 | PENDIENTE |
-| WEB-18 | Responsividad y accesibilidad | Desktop, Pixel 7, navegación por teclado, foco/modales, nombres accesibles, contraste y zoom/reflow | Playwright móvil + axe/smoke | P1 | PENDIENTE |
+| WEB-00 | Build y arranque | TypeScript, lint, rutas públicas/privadas, health y consola sin errores inesperados | build + Playwright | P0 | PASÓ |
+| WEB-01 | Auth y shell | Login cliente/plataforma, errores, force-password, logout, refresh, slug/subdominio y guard de sesión | `auth`, `client-routes` | P0 | PASÓ |
+| WEB-02 | Landing | FAQ, CTA, tema persistido, menú móvil, reduced motion y ausencia de overflow | `landing`, `landing.mobile` | P2 | PASÓ |
+| WEB-03 | Inicio y plataforma | Consola, KPIs, inicio por rol, clientes, detalle/tabs, módulos, cobros, planes e impersonación | `home`, `tenants`, `platform-*`, `platform-plans` | P0 | FALLÓ — BUG-015 |
+| WEB-04 | Roles y permisos | CRUD, matriz, revisar/aplicar, excepciones, ABAC, catálogo, simulador, bitácora y guards | `roles`, `platform-roles` | P0 | PASÓ |
+| WEB-05 | Mi jornada | Secuencia de checadas, modos, marcajes, discrepancias, teletrabajo, registro/conformidad, HE y vacaciones | `mi-jornada`, `mi-jornada.mobile`, `nom-portal`, `nom-telework`, `workday-agreements`, `leave` | P0 | PASÓ |
+| WEB-06 | Personal y cuentas | Lista/filtros, alta/edición, importación, baja/reactivar/eliminar, historial, roles extra y permisos | `personal`, `personal.mobile`, `employee-detail` | P0 | PASÓ |
+| WEB-07 | Expedientes y actas | Tabs, documentos, foto, credencial/QR, avisos, actas/PDF y catálogos | `employee-records`, `document-catalog`, `disciplinary-reports` | P1 | PASÓ |
+| WEB-08 | Organización | Departamentos, detalle, subáreas, baja lógica/definitiva y permisos | `departments`, `subareas` | P1 | PASÓ |
+| WEB-09 | Horarios | Lista/filtros, alta/edición 7 días, legalidad, activar/desactivar, asignar/reemplazar/quitar | `schedules` | P0 | PASÓ |
+| WEB-10 | Tiempo extra | Filtros, doble/triple/excedente, aprobar/rechazar, export y confirmación semanal | `overtime-payroll` | P0 | PASÓ |
+| WEB-11 | Nómina | Semana, resumen/detalle, revisar/cerrar/reabrir, historial, puestos, asignación, settings y cálculo | `payroll-*`, `overtime-payroll` | P0 | PASÓ |
+| WEB-12 | Checadas y asistencia | Resumen, sync/import/reintento, entradas/salidas, periodos, inactivos y exportaciones | `access-time-clock`, `clock-roster` | P0 | PASÓ |
+| WEB-13 | Relojes y personas | CRUD/conexión, dashboard/tabs, roster, vínculos/diferencias, personas, tarjetas, inspect, cámara/lector mock | `time-clocks`, `clock-*` | P0 | PASÓ |
+| WEB-14 | Agente | Token visible una vez, crear/rotar/revocar, jobs, validaciones y estados | `agent-console` | P1 | PASÓ |
+| WEB-15 | Notificaciones | Filtros, contador, leer/todas, borrar, navegación y realtime mock | `notifications` | P1 | PASÓ |
+| WEB-16 | Configuración y auditoría | Tabs/settings, retención, catálogos, filtros/detalle de auditoría y aislamiento | `client-settings`, `platform-settings`, `platform-audit` | P1 | FALLÓ — BUG-015 |
+| WEB-17 | Roles en UI | ADMIN/SUPPORT/CLIENT_ADMIN/HR/STAFF/rol secundario; botones, rutas y datos permitidos/prohibidos | suites por rol + API real | P0 | PASÓ |
+| WEB-18 | Responsividad y accesibilidad | Desktop, Pixel 7, navegación por teclado, foco/modales, nombres accesibles, contraste y zoom/reflow | Playwright móvil + axe/smoke | P1 | PENDIENTE — móvil parcial ejecutado |
 | WEB-19 | Idioma y errores | es/en donde exista, fechas/zona, vacío/carga/error, doble submit, red caída y recuperación | Playwright con interceptores controlados | P1 | PENDIENTE |
 | WEB-20 | Electron | Arranque, sesión, navegación, actualización de URL/API y cierre sin procesos huérfanos | smoke manual/automatizado desktop | P2 | MANUAL |
 

@@ -155,7 +155,7 @@ test.describe("consola de plataforma", () => {
 
   test("[AUTH-02] la landing pública es accesible sin sesión y enlaza al login", async ({ page }) => {
     await page.goto(`${PLATFORM.base}/#/landing`);
-    await expect(page.getByRole("heading", { level: 1, name: /El registro de jornada/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /Cada checada cuenta/i })).toBeVisible();
     await page.getByRole("link", { name: "Iniciar sesión" }).first().click();
     await expect(loginForm(page)).toBeVisible({ timeout: 20_000 });
   });

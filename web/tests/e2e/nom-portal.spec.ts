@@ -20,6 +20,7 @@ test.describe("NOM: portal del trabajador y teletrabajo", () => {
     await expect(page.getByText("Marca tu entrada y salida, consulta tus marcajes")).toBeVisible();
     await expect(page.getByText("Siguiente paso")).toBeVisible();
     await expect(page.getByText("Mis marcajes")).toBeVisible();
+    await page.getByRole("button", { name: "Teletrabajo", exact: true }).click();
     await expect(page.getByText("Mi teletrabajo")).toBeVisible();
     // El seed puede traer al trabajador registrado (con domicilio/checklist) o no.
     await expect(

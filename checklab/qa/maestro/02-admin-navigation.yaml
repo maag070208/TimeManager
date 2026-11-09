@@ -1,0 +1,132 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Hola, Alejandra"
+    timeout: 20000
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Personal"
+    direction: DOWN
+- tapOn: "Personal"
+- assertVisible: "Personal"
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 04-admin-personal
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Expedientes"
+    direction: DOWN
+- tapOn: "Expedientes"
+- assertVisible: "Expedientes"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Actas administrativas"
+    direction: DOWN
+- tapOn: "Actas administrativas"
+- assertVisible: "Actas administrativas"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Departamentos"
+    direction: DOWN
+- tapOn: "Departamentos"
+- assertVisible: "Departamentos"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Asistencias"
+    direction: DOWN
+- tapOn: "Asistencias"
+- assertVisible: "Asistencias"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Vacaciones y permisos"
+    direction: DOWN
+- tapOn: "Vacaciones y permisos"
+- assertVisible: "Vacaciones y permisos"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Convenios y acuerdos"
+    direction: DOWN
+- tapOn: "Convenios y acuerdos"
+- assertVisible: "Convenios y acuerdos"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: 'Teletrabajo \(NOM-037\)'
+    direction: DOWN
+- tapOn: 'Teletrabajo \(NOM-037\)'
+- assertVisible: 'Teletrabajo \(NOM-037\)'
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Horarios"
+    direction: DOWN
+- tapOn: "Horarios"
+- assertVisible: "Horarios"
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 05-admin-horarios
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Asignar horarios"
+    direction: DOWN
+- tapOn: "Asignar horarios"
+- assertVisible: "Asignar horarios"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Tiempo extra"
+    direction: DOWN
+- tapOn: "Tiempo extra"
+- assertVisible: "Tiempo extra"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Pre Nómina"
+    direction: DOWN
+- tapOn: "Pre Nómina"
+- assertVisible: "Pre Nómina"
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 06-admin-prenomina
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Puestos de nómina"
+    direction: DOWN
+- tapOn: "Puestos de nómina"
+- assertVisible: "Puestos de nómina"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Relojes"
+    direction: DOWN
+- tapOn: "Relojes"
+- assertVisible: "Relojes"
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 07-admin-relojes
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Configuración del sistema"
+    direction: DOWN
+- tapOn: "Configuración del sistema"
+- assertVisible: "Configuración del sistema"
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 08-admin-configuracion
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Auditoría"
+    direction: DOWN
+- assertNotVisible: "Roles y permisos"
+- tapOn: "Auditoría"
+- assertVisible: "Auditoría"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- tapOn: "Inicio"
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Hola, Alejandra"
+    timeout: 20000
+- takeScreenshot: 09-admin-sesion-restaurada

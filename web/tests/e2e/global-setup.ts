@@ -10,6 +10,13 @@ export default async function globalSetup(): Promise<void> {
   const databaseUrl =
     process.env.E2E_DATABASE_URL ?? "postgresql://postgres:test@127.0.0.1:55433/tm_e2e";
 
+  const env = { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: "e2e" } as NodeJS.ProcessEnv;
+  execFileSync("npx", ["prisma", "migrate", "deploy"], {
+    cwd: apiDir,
+    stdio: "inherit",
+    env,
+  });
+
   execFileSync(
     "npx",
     ["ts-node", "-r", "tsconfig-paths/register", "scripts/e2e-seed.ts"],

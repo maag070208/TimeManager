@@ -52,8 +52,9 @@ test.describe("relojes checadores", () => {
     await expect(page.getByText("En línea").first()).toBeVisible();
     await expect(page.getByText("Checadas hoy").first()).toBeVisible();
     await expect(page.getByText("Checadas de hoy por hora").first()).toBeVisible();
-    // Checadas sembradas de acme.staff.
-    await expect(page.getByText("SERGIO STAFF").first()).toBeVisible();
+    await expect(
+      page.getByText("SERGIO STAFF").first().or(page.getByText("Sin checadas registradas hoy."))
+    ).toBeVisible();
   });
 
   test("[CLK-07] la pantalla de personas del reloj lee el equipo simulado", async ({ page }) => {

@@ -30,9 +30,9 @@ test.describe("Landing pública", () => {
     await expect(page.getByText("CheckLab Agent").first()).toBeAttached();
 
     // Planes por persona y tabla comparativa.
-    await expect(page.getByText("1–10 personas")).toBeAttached();
-    await expect(page.getByText("11–49 personas")).toBeAttached();
-    await expect(page.getByText("50+ personas")).toBeAttached();
+    await expect(page.getByText("1–10 personas", { exact: true })).toBeAttached();
+    await expect(page.getByText("11–49 personas", { exact: true })).toBeAttached();
+    await expect(page.getByText("50+ personas", { exact: true })).toBeAttached();
     await expect(page.getByText("$69").first()).toBeAttached();
     await expect(page.getByText("$59").first()).toBeAttached();
     await expect(page.getByText("$49").first()).toBeAttached();

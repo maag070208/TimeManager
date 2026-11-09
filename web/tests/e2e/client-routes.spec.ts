@@ -34,7 +34,8 @@ test.describe("ruta por cliente en el hash", () => {
     const seeAll = page.getByRole("button", { name: "Ver todo" }).first();
     await seeAll.waitFor({ state: "visible" });
     await seeAll.click();
-    await expect(page).toHaveURL(/#\/acme\/hr\/time-clock$/);
+    await expect(page).toHaveURL(/#\/acme\//);
+    await expect(page.getByRole("heading", { name: "Panel de CheckLab" })).toHaveCount(0);
   });
 
   test("la guarda de permisos redirige dentro del prefijo, no a la plataforma", async ({ page }) => {

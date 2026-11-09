@@ -24,7 +24,10 @@ test.describe("inicio de plataforma", () => {
     // KPIs y alta de clientes disponibles para el ADMIN.
     await expect(page.getByText("Suspendidos", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Nuevo cliente" })).toBeVisible();
-    await expect(table.getByRole("button", { name: "Entrar" })).toHaveCount(2);
+    for (const name of [ACME.name, BETA.name]) {
+      const row = table.getByRole("row").filter({ has: page.getByText(name, { exact: true }) });
+      await expect(row.getByRole("button", { name: "Entrar" })).toHaveCount(1);
+    }
   });
 
   test("la plataforma sin cliente elegido no entra a pantallas de cliente", async ({ page }) => {

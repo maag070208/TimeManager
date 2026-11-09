@@ -1,0 +1,69 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Abrir menú"
+    timeout: 20000
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Cerrar sesión"
+    direction: DOWN
+- tapOn: "Cerrar sesión"
+- extendedWaitUntil:
+    visible: "Código de tu empresa"
+    timeout: 15000
+- tapOn:
+    point: "50%,63%"
+- eraseText: 100
+- inputText: ${QA_SLUG}
+- hideKeyboard
+- tapOn: "Continuar"
+- assertVisible: "Usuario o número de empleado"
+- tapOn:
+    point: "50%,50%"
+- eraseText: 100
+- inputText: ${QA_STAFF_USER}
+- hideKeyboard
+- tapOn:
+    point: "50%,62%"
+- eraseText: 100
+- inputText: ${QA_STAFF_PASS}
+- hideKeyboard
+- tapOn:
+    text: "Entrar a .*"
+- extendedWaitUntil:
+    visible: "Hola, Lucía"
+    timeout: 20000
+- assertVisible: ${QA_TENANT_NAME}
+- tapOn: "Abrir menú"
+- assertVisible: "Mi jornada"
+- assertNotVisible: "Personal"
+- assertNotVisible: "Expedientes"
+- assertNotVisible: "Pre Nómina"
+- takeScreenshot: 10-staff-menu
+- tapOn: "Cerrar el menú de navegación"
+- tapOn: "Mi jornada"
+- assertVisible: "Mi checada"
+- assertVisible: "Teletrabajo"
+- assertVisible: "Registro y horas extra"
+- tapOn: "Teletrabajo"
+- assertVisible: "No estás registrado en teletrabajo.*"
+- tapOn: "Registro y horas extra"
+- assertVisible: "Acuerdo del método de registro"
+- assertVisible: "Firmar el acuerdo"
+- takeScreenshot: 11-staff-acuerdo-pendiente
+- swipe:
+    start: "90%,16%"
+    end: "10%,16%"
+    duration: 500
+- assertVisible: "Vacaciones y permisos"
+- tapOn: "Vacaciones y permisos"
+- assertVisible: "Vacaciones 2026"
+- assertVisible: "Disponibles"
+- takeScreenshot: 12-staff-vacaciones
+- swipe:
+    start: "10%,16%"
+    end: "90%,16%"
+    duration: 500
+- tapOn: "Mi checada"
+- assertVisible: "Opciones de marcaje"
