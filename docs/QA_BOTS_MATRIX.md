@@ -111,31 +111,31 @@ La APP cubre el producto del cliente; clientes/planes/pagos/agentes/impersonaci�
 
 | ID | Sección / flujo | Casos mínimos | Bot o suite | P | Estado |
 |---|---|---|---|---|---|
-| APP-00 | Build común | Compilación Android/iOS, unit common, contratos y recursos de marca | Gradle/Xcode | P0 | PENDIENTE |
-| APP-01 | Splash, login y sesión | Código empresa, login OK/error, cliente inexistente/inactivo, force-password, restaurar sesión, refresh, logout y back | E2E + `SessionRepositoryTest` | P0 | PENDIENTE |
-| APP-02 | Navegación y permisos | Drawer/bottom tabs por rol, ruta directa denegada, volver/inicio, rol secundario y sesión expirada | E2E + `MenuTest` | P0 | PENDIENTE |
-| APP-03 | Inicio | Checada rápida, KPIs por permiso, vacío/error, refrescar y navegación a Mi jornada | E2E + home tests | P1 | PENDIENTE |
-| APP-04 | Mi checada | Secuencia completa, hora servidor, modos, nota, GPS, doble tap, estado tras recarga | E2E + `NomApiTest` | P0 | PENDIENTE |
-| APP-05 | Offline e idempotencia | Sin red, cola cifrada, `clientEventId`, reinicio app, reintento/backoff, reconciliación y 409 sin duplicar | `PunchQueueTest` + E2E red | P0 | PENDIENTE |
-| APP-06 | GPS y privacidad | Permitido/denegado/sin precisión/sin hardware, captura sólo al checar, ausencia de rastreo en background | E2E dispositivo/simulador | P0 | PENDIENTE |
-| APP-07 | Marcajes y discrepancias | Rangos/orígenes, vacío/error, motivo corto/válido, persistencia y aislamiento propio | E2E + `NomApiTest` | P1 | PENDIENTE |
-| APP-08 | Teletrabajo del personal | Política, aviso, consentimiento, checklist inicial/periódico, incompleto y re-aceptación | E2E worker portal | P1 | PENDIENTE |
-| APP-09 | Registro, HE y vacaciones | Método, conformidad, fuera de jornada, solicitudes HE, saldo, crear/cancelar permiso y errores | E2E worker portal | P0 | PENDIENTE |
-| APP-10 | Notificaciones | Contador, filtros, leer/todas, borrar, navegación, vacío y recuperación de red | E2E + `NotificationsTest` | P1 | PENDIENTE |
-| APP-11 | Mi perfil | Datos/foto, cambio contraseña, credencial QR v2, logout y limpieza de datos sensibles | E2E + `CredentialQrTest` | P1 | PENDIENTE |
-| APP-12 | Personal | Lista/búsqueda/filtros, alta/edición, ficha, baja/reactivación, validaciones y permisos | E2E + contratos `PeopleApi` | P0 | PENDIENTE |
-| APP-13 | Expedientes y actas | Actividad/documentos/datos, faltantes, lista/alta/detalle/eliminación de actas; subida documentos pendiente se reporta aparte | E2E + contratos | P1 | PENDIENTE |
-| APP-14 | Departamentos | Lista/detalle, alta/edición/baja, subáreas si están expuestas, validaciones y permisos | E2E people | P1 | PENDIENTE |
-| APP-15 | Aprobaciones | HE aprobar/rechazar/motivo/filtros; permisos aprobar/rechazar; RH vs admin; efecto visible al personal | E2E approvals | P0 | PENDIENTE |
-| APP-16 | Horarios y asignación | Lista, editor 7 días, legalidad, activar/desactivar, asignar/reemplazar/quitar y persistencia | E2E schedules + contratos | P0 | PENDIENTE |
-| APP-17 | Pre-nómina y puestos | Semana/departamento, revisar/cerrar/reabrir, historial, CRUD/asignación de puestos y validaciones | E2E payroll + `WriteBodiesTest` | P0 | PENDIENTE |
-| APP-18 | Relojes y asistencia | Conexión/estado/alertas/sync, checadas hoy, roster, rejilla semanal, errores offline y permisos | E2E + `ClocksTest` | P0 | PENDIENTE |
-| APP-19 | Configuración y convenios | `/nom/config`, tabs, persistencia, consulta/alta de convenios y validación de evidencia | E2E + `SettingsTest`, `AgreementValidationTest` | P1 | PENDIENTE |
-| APP-20 | Teletrabajo administrativo | Política, registros, checklists, comunicaciones, permisos de lectura/escritura | E2E settings | P1 | PENDIENTE |
-| APP-21 | Roles y auditoría | Consulta de roles, acceso denegado, bitácora/filtros/detalle inmutable; edición de permisos permanece en web | E2E settings | P1 | PENDIENTE |
-| APP-22 | Plataforma | No exponer login ni consola de plataforma en APP | guard E2E | P0 | PENDIENTE |
-| APP-23 | Android | APK debug, **dispositivo físico conectado**, emulador API 24 si está disponible, permisos, rotación, proceso reiniciado, back, teclado y tamaños de texto | Gradle + bot UI Android físico | P1 | PENDIENTE |
-| APP-24 | iOS | Build/tests simulador, permisos, rotación, reinicio, back/gestos, teclado y Dynamic Type | Xcode + bot UI iOS | P1 | PENDIENTE |
+| APP-00 | Build común | Compilación Android/iOS, unit common, contratos y recursos de marca | Gradle/Xcode | P0 | PASÓ — 85/85 Android y 85/85 iOS; ambos builds correctos |
+| APP-01 | Splash, login y sesión | Código empresa, login OK/error, cliente inexistente/inactivo, force-password, restaurar sesión, refresh, logout y back | E2E + `SessionRepositoryTest` | P0 | FALLÓ — BUG-016; Android login/sesión/logout correctos |
+| APP-02 | Navegación y permisos | Drawer/bottom tabs por rol, ruta directa denegada, volver/inicio, rol secundario y sesión expirada | E2E + `MenuTest` | P0 | PENDIENTE — Android admin/RH/staff y persistencia; rutas directas, rol secundario e iOS pendientes |
+| APP-03 | Inicio | Checada rápida, KPIs por permiso, vacío/error, refrescar y navegación a Mi jornada | E2E + home tests | P1 | PENDIENTE — inicio y accesos Android; vacío/error/refresco pendientes |
+| APP-04 | Mi checada | Secuencia completa, hora servidor, modos, nota, GPS, doble tap, estado tras recarga | E2E + `NomApiTest` | P0 | PENDIENTE — Android completó 4 marcajes, reinicio y API; GPS/doble tap/iOS pendientes |
+| APP-05 | Offline e idempotencia | Sin red, cola cifrada, `clientEventId`, reinicio app, reintento/backoff, reconciliación y 409 sin duplicar | `PunchQueueTest` + E2E red | P0 | BLOQUEADO — QAINF-010; no se logró ausencia real de red |
+| APP-06 | GPS y privacidad | Permitido/denegado/sin precisión/sin hardware, captura sólo al checar, ausencia de rastreo en background | E2E dispositivo/simulador | P0 | PENDIENTE — sin señal comprobado; resto en QAINF-009 |
+| APP-07 | Marcajes y discrepancias | Rangos/orígenes, vacío/error, motivo corto/válido, persistencia y aislamiento propio | E2E + `NomApiTest` | P1 | PENDIENTE — 4 marcajes UI/API verificados; discrepancias sin ejecutar |
+| APP-08 | Teletrabajo del personal | Política, aviso, consentimiento, checklist inicial/periódico, incompleto y re-aceptación | E2E worker portal | P1 | PENDIENTE — estado no registrado; consentimiento/checklist pendientes |
+| APP-09 | Registro, HE y vacaciones | Método, conformidad, fuera de jornada, solicitudes HE, saldo, crear/cancelar permiso y errores | E2E worker portal | P0 | PENDIENTE — acuerdo firmado y saldo; solicitudes/conformidad pendientes |
+| APP-10 | Notificaciones | Contador, filtros, leer/todas, borrar, navegación, vacío y recuperación de red | E2E + `NotificationsTest` | P1 | PENDIENTE — filtros y vacío Android; leer/borrar/recuperación pendientes |
+| APP-11 | Mi perfil | Datos/foto, cambio contraseña, credencial QR v2, logout y limpieza de datos sensibles | E2E + `CredentialQrTest` | P1 | PENDIENTE — QR/datos/validación; cambio real, foto y limpieza pendientes |
+| APP-12 | Personal | Lista/búsqueda/filtros, alta/edición, ficha, baja/reactivación, validaciones y permisos | E2E + contratos `PeopleApi` | P0 | PENDIENTE — listas y permisos; CRUD en QAINF-013 |
+| APP-13 | Expedientes y actas | Actividad/documentos/datos, faltantes, lista/alta/detalle/eliminación de actas; subida documentos pendiente se reporta aparte | E2E + contratos | P1 | PENDIENTE — navegación; mutaciones/documentos pendientes |
+| APP-14 | Departamentos | Lista/detalle, alta/edición/baja, subáreas si están expuestas, validaciones y permisos | E2E people | P1 | PENDIENTE — navegación; CRUD pendiente |
+| APP-15 | Aprobaciones | HE aprobar/rechazar/motivo/filtros; permisos aprobar/rechazar; RH vs admin; efecto visible al personal | E2E approvals | P0 | PENDIENTE — navegación RH/admin; decisiones pendientes |
+| APP-16 | Horarios y asignación | Lista, editor 7 días, legalidad, activar/desactivar, asignar/reemplazar/quitar y persistencia | E2E schedules + contratos | P0 | PENDIENTE — navegación; editor/asignación pendientes |
+| APP-17 | Pre-nómina y puestos | Semana/departamento, revisar/cerrar/reabrir, historial, CRUD/asignación de puestos y validaciones | E2E payroll + `WriteBodiesTest` | P0 | PENDIENTE — navegación; revisión/cierre/CRUD pendientes |
+| APP-18 | Relojes y asistencia | Conexión/estado/alertas/sync, checadas hoy, roster, rejilla semanal, errores offline y permisos | E2E + `ClocksTest` | P0 | PENDIENTE — navegación; hardware/sync pendientes |
+| APP-19 | Configuración y convenios | `/nom/config`, tabs, persistencia, consulta/alta de convenios y validación de evidencia | E2E + `SettingsTest`, `AgreementValidationTest` | P1 | PENDIENTE — navegación; persistencia/altas pendientes |
+| APP-20 | Teletrabajo administrativo | Política, registros, checklists, comunicaciones, permisos de lectura/escritura | E2E settings | P1 | PENDIENTE — navegación; políticas/checklists pendientes |
+| APP-21 | Roles y auditoría | Consulta de roles, acceso denegado, bitácora/filtros/detalle inmutable; edición de permisos permanece en web | E2E settings | P1 | PENDIENTE — guard de roles y navegación; detalle/inmutabilidad UI pendientes |
+| APP-22 | Plataforma | No exponer login ni consola de plataforma en APP | guard E2E | P0 | PENDIENTE — guard unitario común; E2E de plataforma pendiente |
+| APP-23 | Android | APK debug, **dispositivo físico conectado**, emulador API 24 si está disponible, permisos, rotación, proceso reiniciado, back, teclado y tamaños de texto | Gradle + bot UI Android físico | P1 | PENDIENTE — APK físico y flujos Maestro; rotación/back/texto grande pendientes |
+| APP-24 | iOS | Build/tests simulador, permisos, rotación, reinicio, back/gestos, teclado y Dynamic Type | Xcode + bot UI iOS | P1 | FALLÓ — BUG-016; build, 85 unitarias, instalación y preview correctos |
 | APP-25 | Tablet, landscape y accesibilidad | Reflow, drawer/tablas densas, contraste, TalkBack/VoiceOver, targets táctiles y textos grandes | E2E/manual visual | P1 | PENDIENTE |
 | APP-26 | Push y mapas nativos | FCM/APNs y mapa nativo están pendientes de producto; verificar fallback actual sin anunciar capacidad inexistente | manual cuando se implemente | P2 | MANUAL |
 
@@ -143,16 +143,16 @@ La APP cubre el producto del cliente; clientes/planes/pagos/agentes/impersonaci�
 
 | ID | Recorrido | Confirmación cruzada | P | Estado |
 |---|---|---|---|---|
-| E2E-01 | Admin web crea cliente/personal → app inicia sesión | Misma cuenta/rol/branding y datos del tenant | P0 | PENDIENTE |
-| E2E-02 | Personal checa en APP → RH consulta en WEB/API | Un solo marcaje, hora/zona/GPS/origen correctos | P0 | PENDIENTE |
-| E2E-03 | Checada offline APP → reintento → WEB | `clientEventId` evita duplicados tras reintentos | P0 | PENDIENTE |
+| E2E-01 | Admin web crea cliente/personal → app inicia sesión | Misma cuenta/rol/branding y datos del tenant | P0 | PENDIENTE — alta API + login APP; origen WEB pendiente |
+| E2E-02 | Personal checa en APP → RH consulta en WEB/API | Un solo marcaje, hora/zona/GPS/origen correctos | P0 | PENDIENTE — APP→API correcto, 4 tipos únicos `REMOTE`; WEB pendiente |
+| E2E-03 | Checada offline APP → reintento → WEB | `clientEventId` evita duplicados tras reintentos | P0 | BLOQUEADO — QAINF-010 |
 | E2E-04 | Personal solicita permiso APP → RH decide WEB/APP | Estado, saldo, notificación y auditoría coherentes | P0 | PENDIENTE |
 | E2E-05 | RH asigna horario WEB → APP/API calculan asistencia | Una vigencia, reemplazo y mismos resultados | P0 | PENDIENTE |
 | E2E-06 | HE generada por marcajes → aprobación APP/WEB → nómina | Dobles/triples y snapshot iguales en todos los clientes | P0 | PENDIENTE |
 | E2E-07 | RH cierra semana APP → historial WEB/API | Revisiones, quién/cuándo, snapshot y reapertura | P0 | PENDIENTE |
 | E2E-08 | Cambio de permiso WEB → token/sesión APP | Menú, ruta y API deniegan/permiten coherentemente | P0 | PENDIENTE |
 | E2E-09 | Baja de personal WEB → login/checada APP/API | Sesión bloqueada y efecto en reloj según configuración | P0 | PENDIENTE |
-| E2E-10 | Cliente A e intruso B en WEB/APP/API | Ninguna lectura, export, archivo o mutación cruza tenants | P0 | PENDIENTE |
+| E2E-10 | Cliente A e intruso B en WEB/APP/API | Ninguna lectura, export, archivo o mutación cruza tenants | P0 | PENDIENTE — lectura APP y bot API correctos; export/mutación cruzada E2E pendientes |
 
 ## 8. Orden y evidencia
 

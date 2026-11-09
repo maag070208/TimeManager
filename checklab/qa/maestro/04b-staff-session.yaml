@@ -1,0 +1,10 @@
+appId: com.axzydev.checklab
+---
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Hola, Lucía"
+    timeout: 20000
+- assertVisible: "En jornada"
+- assertVisible: "Salida a comer"
+- takeScreenshot: 15-staff-entrada-restaurada

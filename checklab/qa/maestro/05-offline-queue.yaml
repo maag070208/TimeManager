@@ -1,0 +1,20 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Hola, Lucía"
+    timeout: 20000
+- tapOn: "Salida a comer"
+- extendedWaitUntil:
+    visible: "Salida a comer guardada sin conexión.*"
+    timeout: 20000
+- assertVisible: "1 checada sin enviar.*"
+- assertVisible: "Se enviará sola"
+- takeScreenshot: 16-offline-en-cola
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Se enviará sola"
+    timeout: 20000
+- assertVisible: "1 checada sin enviar.*"
+- takeScreenshot: 17-offline-tras-reinicio

@@ -1,0 +1,16 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "En comida"
+    timeout: 30000
+- assertVisible: "Salida a comer"
+- assertVisible: "Registrada"
+- assertNotVisible: "1 checada sin enviar.*"
+- takeScreenshot: 18-online-reconciliada
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "En comida"
+    timeout: 20000
+- assertNotVisible: "1 checada sin enviar.*"

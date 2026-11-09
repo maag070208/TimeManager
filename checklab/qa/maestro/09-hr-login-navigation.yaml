@@ -1,0 +1,86 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- runFlow:
+    when:
+      visible: "Abrir menú"
+    commands:
+      - tapOn: "Abrir menú"
+      - scrollUntilVisible:
+          element: "Cerrar sesión"
+          direction: DOWN
+      - tapOn: "Cerrar sesión"
+- extendedWaitUntil:
+    visible: "Código de tu empresa"
+    timeout: 15000
+- tapOn:
+    point: "50%,63%"
+- eraseText: 100
+- inputText: ${QA_SLUG}
+- hideKeyboard
+- tapOn: "Continuar"
+- assertVisible: "Usuario o número de empleado"
+- tapOn:
+    point: "50%,50%"
+- eraseText: 100
+- inputText: ${QA_HR_USER}
+- hideKeyboard
+- tapOn:
+    point: "50%,62%"
+- eraseText: 100
+- inputText: ${QA_HR_PASS}
+- hideKeyboard
+- tapOn:
+    text: "Entrar a .*"
+- extendedWaitUntil:
+    visible: "Hola, Roberto"
+    timeout: 20000
+- assertVisible: ${QA_TENANT_NAME}
+- tapOn: "Abrir menú"
+- assertVisible: "Personal"
+- assertVisible: "Expedientes"
+- assertVisible: "Actas administrativas"
+- assertNotVisible: "Departamentos"
+- assertNotVisible: "Roles y permisos"
+- takeScreenshot: 24-hr-menu
+- tapOn: "Personal"
+- scrollUntilVisible:
+    element: "Lucía Herrera Campos"
+    direction: DOWN
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 25-hr-personal
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Asistencias"
+    direction: DOWN
+- tapOn: "Asistencias"
+- assertVisible: "Asistencias"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Vacaciones y permisos"
+    direction: DOWN
+- tapOn: "Vacaciones y permisos"
+- assertVisible: "Vacaciones y permisos"
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 26-hr-aprobaciones
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Tiempo extra"
+    direction: DOWN
+- tapOn: "Tiempo extra"
+- assertVisible: "Tiempo extra"
+- assertNotVisible: "No tienes acceso a esta sección."
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Pre Nómina"
+    direction: DOWN
+- tapOn: "Pre Nómina"
+- assertVisible: "Pre Nómina"
+- assertNotVisible: "No tienes acceso a esta sección."
+- takeScreenshot: 27-hr-prenomina
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Hola, Roberto"
+    timeout: 20000

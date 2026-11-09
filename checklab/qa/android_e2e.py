@@ -175,7 +175,7 @@ class AndroidBot:
         return self.check(f"Admin abre {label}", ok and not denied)
 
     def api_login(self, member):
-        body = json.dumps({"username": member["username"], "password": member["password"], "tenantSlug": self.cast["tenant"]["slug"]}).encode()
+        body = json.dumps({"username": member["username"], "password": member["password"], "tenant": self.cast["tenant"]["slug"]}).encode()
         request = urllib.request.Request(f"{self.api_url}/auth/login", data=body, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(request, timeout=15) as response:
             payload = json.load(response)

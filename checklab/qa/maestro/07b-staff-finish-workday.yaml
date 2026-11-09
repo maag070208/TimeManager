@@ -1,0 +1,18 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Jornada terminada"
+    timeout: 20000
+- assertVisible: "Jornada completa"
+- assertVisible: "22:47"
+- assertNotVisible: "Registrar entrada"
+- takeScreenshot: 19-staff-jornada-completa
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Jornada terminada"
+    timeout: 20000
+- assertVisible: "Jornada completa"
+- assertNotVisible: "Registrar entrada"
+- takeScreenshot: 20-staff-jornada-restaurada

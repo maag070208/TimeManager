@@ -8,12 +8,12 @@ Este documento reúne mejoras de producto y del sistema de pruebas encontradas p
 
 | Severidad | Abiertos | Resueltos verificados |
 |---|---:|---:|
-| BLOQUEANTE | 0 | 0 |
+| BLOQUEANTE | 1 | 0 |
 | ALTA | 0 | 0 |
 | MEDIA | 6 | 0 |
 | BAJA | 9 | 0 |
 
-El resumen contabiliza los 15 hallazgos de producto `BUG-001..015`; las propuestas `QAINF` y las brechas conocidas se gestionan por separado.
+El resumen contabiliza los 16 hallazgos de producto `BUG-001..016`; las propuestas `QAINF` y las brechas conocidas se gestionan por separado.
 
 ## Convención
 
@@ -43,9 +43,9 @@ El resumen contabiliza los 15 hallazgos de producto `BUG-001..015`; las propuest
 ### QAINF-003 — Añadir bots E2E de UI para Android e iOS
 
 - **Severidad:** ALTA
-- **Estado:** PROPUESTA
-- **Actual:** la APP tiene pruebas comunes con `MockEngine`, pero no se encontró una suite Maestro/Appium/Compose UI que recorra los flujos reales contra el stack local.
-- **Mejora:** automatizar login/sesión, checada online/offline, GPS, permisos, aprobaciones, personal, horarios, nómina, relojes y configuración en ambas plataformas; conservar capturas y logs por fallo.
+- **Estado:** EN CURSO
+- **Actual:** se añadieron flujos Maestro para Android físico en `checklab/qa/maestro/`, con reportes JUnit y capturas. Cubren autenticación, roles, navegación, acuerdo de registro, jornada, avisos, perfil y aislamiento. iOS quedó bloqueado por BUG-016 después de validar build, preview y entrada de datos.
+- **Mejora pendiente:** completar offline/GPS, mutaciones y aprobaciones; reanudar iOS tras corregir BUG-016. Mantener los fallos de herramienta separados de los fallos del producto.
 
 ### QAINF-004 — Consolidar resultados de API, WEB y APP
 
@@ -56,8 +56,9 @@ El resumen contabiliza los 15 hallazgos de producto `BUG-001..015`; las propuest
 ### QAINF-005 — Ampliar pruebas cruzadas WEB ↔ APP ↔ API
 
 - **Severidad:** ALTA
-- **Estado:** PROPUESTA
-- **Mejora:** verificar con el mismo dataset checada e idempotencia, permisos, vacaciones, horarios, tiempo extra, nómina, bajas y aislamiento entre clientes, según `E2E-01..E2E-10` de la matriz maestra.
+- **Estado:** EN CURSO
+- **Actual:** la checada Android se confirmó en el API con cuatro tipos únicos y origen `REMOTE`; el segundo cliente no mostró personas del primero en Android. Los cruces con origen o confirmación WEB y las mutaciones cruzadas siguen pendientes.
+- **Mejora:** completar checada e idempotencia, permisos, vacaciones, horarios, tiempo extra, nómina y bajas con el mismo dataset, según `E2E-01..E2E-10`.
 
 ### QAINF-006 — Aplicar migraciones y cargar el entorno correcto antes de sembrar
 
@@ -74,6 +75,61 @@ El resumen contabiliza los 15 hallazgos de producto `BUG-001..015`; las propuest
 - **Actual:** varias pruebas WEB dependían de textos o rutas cambiables, fechas que se traslapaban con el seed, orden de filas y contenido de pestañas no abiertas.
 - **Mejora aplicada:** se corrigieron selectores y datos de `client-routes`, `home`, `landing`, `client-settings`, `mi-jornada`, `nom-portal`, `access-time-clock`, `time-clocks` y `platform-console`; los casos afectados se repitieron con éxito.
 - **Mejora pendiente:** conservar esta disciplina en suites nuevas y evitar corregir aserciones sin comprobar primero si el cambio corresponde al contrato vigente.
+
+### QAINF-008 — Estabilizar campos Compose y tabs horizontales en Maestro
+
+- **Severidad:** MEDIA
+- **Estado:** RESUELTO
+- **Actual:** Maestro 2.5.1 no acepta el selector `class` y sus comandos de texto no enfocaban por sí solos los campos Compose del teléfono físico. Las cuatro pestañas de Mi jornada tampoco caben en el viewport.
+- **Mejora aplicada:** enfocar campos con puntos relativos, limpiar antes de escribir y usar gestos acotados a la franja de tabs. Los flujos de autenticación, navegación y portal del personal quedaron repetibles con esta técnica.
+
+### QAINF-009 — Separar GPS denegado, GPS sin señal y GPS disponible
+
+- **Severidad:** BAJA
+- **Estado:** PROPUESTA
+- **Superficie:** APP Android físico
+- **Evidencia:** Maestro firmó el acuerdo y registró la entrada. El API confirmó `latitude=null` y `longitude=null`; la app mostró `sin ubicación (no hubo señal)`, no el aviso de permiso denegado esperado inicialmente.
+- **Actual:** el camino sin señal queda verificado. La denegación explícita y la captura con coordenadas reales requieren preparar el estado de permisos/ubicación del teléfono sin alterar otros datos del usuario.
+- **Mejora:** crear tres corridas acotadas —permiso denegado, permiso concedido con ubicación simulada controlada y señal no disponible— y validar aviso, persistencia y ausencia de rastreo en background por separado. No tratar la ausencia de señal como si probara la denegación.
+
+### QAINF-010 — Preparar la prueba offline física sin broadcasts privilegiados
+
+- **Severidad:** MEDIA
+- **Estado:** PROPUESTA
+- **Superficie:** APP Android físico / arnés
+- **Evidencia:** Samsung SM-A175F rechazó `am broadcast -a android.intent.action.AIRPLANE_MODE` con `SecurityException: Permission Denial` para el usuario shell. La marcación intentada durante esa corrida se envió en línea; no se anunció como prueba offline exitosa.
+- **Mejora:** ejecutar el caso de cola/idempotencia en un emulador con control de red soportado o pausar Maestro para activar modo avión manualmente en el teléfono. Verificar que la red esté realmente ausente antes de checar, conservar el `clientEventId`, reiniciar y reconciliar. Restaurar conectividad en `finally`.
+
+### QAINF-011 — Estabilizar los botones posteriores de checada en Maestro
+
+- **Severidad:** BAJA
+- **Estado:** PROPUESTA
+- **Superficie:** APP Android / arnés
+- **Evidencia:** los flujos `07` y `07b` no activaron los botones de comida/regreso/salida mediante Maestro. La inspección nativa encontró los botones y sus pulsaciones completaron las tres acciones; la app mostró `Jornada completa` y el API confirmó `ENTRY`, `LUNCH_START`, `LUNCH_END` y `EXIT`, una vez cada uno.
+- **Actual:** el producto respondió al fallback nativo; no se contabiliza como bug. La primera versión de `07b` también exigía un aviso transitorio ya desaparecido; se sustituyó por estado persistente y hora visible.
+- **Mejora:** añadir identificadores de accesibilidad estables a las acciones de checada o separar cada paso en un flujo reanudable; conservar el fallback nativo y validar siempre el estado final en API.
+
+### QAINF-012 — Automatizar texto con guiones en iOS sin alterar el valor
+
+- **Severidad:** BAJA
+- **Estado:** PROPUESTA
+- **Superficie:** APP iOS / arnés
+- **Evidencia:** el preview aceptó toques y mostró el teclado completo. La entrada nativa convirtió `qa-mw8jymgw` en `qa'mw8jymgw`; el pegado controlado corrigió el valor y la lectura posterior confirmó el slug exacto. Usuario y contraseña se verificaron antes de enviar.
+- **Mejora:** encapsular pegado en el portapapeles del simulador, selección completa y verificación del valor como helper reutilizable. No enviar formularios cuando el valor difiera ni modificar la app para fabricar un pase.
+
+### QAINF-013 — Preparar las mutaciones APP complejas con datos desechables
+
+- **Severidad:** MEDIA
+- **Estado:** PROPUESTA
+- **Actual:** la navegación administrativa y de RH está recorrida, pero las mutaciones siguientes requieren preparación específica; no se marcaron como aprobadas sólo por abrir la pantalla.
+
+| Flujo pendiente | Complejidad | Preparación propuesta |
+|---|---|---|
+| Personal, departamentos, horarios y puestos | Formularios dependientes, listas desplazables y vigencias | Sembrar datos por API, ejecutar una alta/edición UI por recurso y releer por API; añadir selectores estables |
+| Vacaciones, HE y aprobaciones | Fechas nativas, estados pendientes y efecto cruzado al personal | Crear solicitudes pendientes por API, decidir/cancelar desde APP y verificar saldo, notificación y auditoría |
+| Pre-nómina | Semana alineada, snapshot, cierre y reapertura | Dataset aislado con asistencia conocida; revisar/cerrar/reabrir y comparar totales en API/WEB |
+| Expedientes, relojes y teletrabajo | Documentos, hardware, políticas y checklists | Separar mocks automáticos de validación física; conservar GAP-APP-003 como alcance conocido |
+| iOS funcional | Login bloqueado | Corregir primero BUG-016 y después reutilizar los recorridos Android adaptados a gestos/teclado iOS |
 
 ## Hallazgos de producto
 
@@ -212,6 +268,18 @@ El resumen contabiliza los 15 hallazgos de producto `BUG-001..015`; las propuest
 - **Impacto:** la persona usuaria no ve ni puede editar/dar de baja el registro que acaba de crear sin refrescar o cambiar de pestaña. Que ocurra en catálogos y planes apunta a un problema compartido de tablas o estado, no a un formulario aislado.
 - **Mejora:** sincronizar los datos de `ITDataTable` tras mutaciones y al terminar la carga inicial; añadir pruebas que exijan la fila nueva sin recargar ni remontar la pestaña en ambos catálogos.
 
+### BUG-016 — iOS inicia sesión pero no adjunta el token a `/auth/me`
+
+- **Severidad:** BLOQUEANTE
+- **Estado:** PROPUESTA
+- **Superficie:** APP iOS / autenticación
+- **Pasos:** en iPhone Air simulado, seleccionar el cliente QA, introducir usuario y contraseña válidos del personal y pulsar `Entrar`.
+- **Esperado:** tras `POST /auth/login`, la app envía `Authorization: Bearer …` a `GET /auth/me`, guarda la sesión y abre Inicio.
+- **Actual:** el login responde 200 y `/auth/me` responde inmediatamente 401; la UI permanece en el login con `No se proporcionó token`. El mismo dataset permite entrar en Android, por lo que no es una credencial inválida.
+- **Evidencia:** `api/qa/out/api.log`, líneas 432–434; captura `checklab/qa-evidence/ios/03-login-token-error.png`. El preview y el teclado sí funcionaron, por lo que el fallo no se atribuye al canal de entrada.
+- **Causa acotada, pendiente de confirmar:** `SessionRepository.login` guarda el token antes de llamar `/auth/me`; en iOS ese almacén es `KeychainSecureStore`. Su `put` ignora el estado de `SecItemAdd`, y las pruebas comunes usan dobles, por lo que una escritura/lectura fallida del llavero no queda cubierta.
+- **Mejora:** registrar y comprobar los estados de `SecItemAdd`/`SecItemCopyMatching`, verificar `get` inmediatamente después de `put` y añadir una prueba de integración iOS con almacén real: login → `/auth/me` con Bearer → reinicio → sesión restaurada. Repetir después todos los recorridos iOS bloqueados.
+
 ## Brechas de alcance conocidas
 
 Estas brechas proceden de la documentación vigente de la APP; se validarán durante la ejecución, pero no se contabilizan como regresiones nuevas.
@@ -245,3 +313,13 @@ Estas brechas proceden de la documentación vigente de la APP; se validarán dur
 | 2026-11-08 | WEB | Build y lint | Build correcto; lint sin errores, 40 warnings | Salida de build/lint |
 | 2026-11-08 | WEB | 40 specs Playwright ejecutados por tandas | Flujos verificados salvo dos fallos de actualización de tablas; repeticiones de pruebas corregidas no se cuentan como casos únicos | BUG-015; reportes y trazas de Playwright |
 | 2026-11-08 | WEB | Subáreas y permisos | 4/4 | `subareas.spec.ts` |
+| 2026-11-08 | APP Android | Unitarias comunes, 23 suites | 85/85 | `:shared:testAndroidHostTest` |
+| 2026-11-08 | APP iOS | Unitarias comunes, 23 suites | 85/85 | `:shared:iosSimulatorArm64Test`; dos warnings `!!` en `Schedules.kt:173` |
+| 2026-11-08 | APP Android | Build, instalación y ejecución física | APK debug instalado en Samsung SM-A175F; pantalla inicial correcta | `checklab/qa-evidence/android/` |
+| 2026-11-08 | APP Android | Maestro `01`, `02`, `03`, `04b`, `07b`, `08`, `09`, `10` | 8/8 flujos pasaron en su última corrida: auth, navegación admin/staff/RH, sesión, jornada persistente, avisos/perfil y aislamiento | `checklab/qa-evidence/maestro/` |
+| 2026-11-08 | APP Android ↔ API | Jornada completa de Lucía | Entrada, comida, regreso y salida; cuatro tipos únicos, origen `REMOTE`, sin coordenadas; persistencia tras reinicio | `checklab/qa/verify_workday.py`; `workday-api.json` |
+| 2026-11-08 | APP Android | Entrada con Maestro y GPS | Firma y entrada realizadas; la corrida exigió inicialmente un aviso distinto de `sin ubicación (no hubo señal)` | QAINF-009; no cuenta como GPS denegado |
+| 2026-11-08 | APP Android | Offline/reconciliación | Bloqueado: no se logró modo avión; no hubo cola ni reconciliación válida | QAINF-010 |
+| 2026-11-08 | APP Android | Botones posteriores de checada | Fallback nativo completó el producto; Maestro quedó pendiente de estabilización | QAINF-011 |
+| 2026-11-08 | APP iOS | Build, instalación, lanzamiento y preview | Correctos; toques y teclado completo verificados | `checklab/qa-evidence/ios/` |
+| 2026-11-08 | APP iOS | Login del personal | FALLÓ: login 200 seguido de `/auth/me` 401 sin token; bloquea los flujos internos | BUG-016 |

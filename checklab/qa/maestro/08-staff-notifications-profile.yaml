@@ -1,0 +1,39 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Hola, Lucía"
+    timeout: 20000
+- tapOn: "Avisos"
+- extendedWaitUntil:
+    visible: "Todas"
+    timeout: 15000
+- assertVisible: "Sin leer"
+- assertVisible: ".*notificaci.*"
+- tapOn: "Sin leer"
+- assertVisible: ".*notificaci.*"
+- runFlow:
+    when:
+      visible: "Marcar todas como leídas"
+    commands:
+      - tapOn: "Marcar todas como leídas"
+      - extendedWaitUntil:
+          visible: "Todas quedaron leídas."
+          timeout: 15000
+- tapOn: "Todas"
+- takeScreenshot: 21-staff-avisos
+- tapOn: "Perfil"
+- extendedWaitUntil:
+    visible: "Mi cuenta"
+    timeout: 15000
+- assertVisible: "Código QR de tu credencial"
+- assertVisible: "NÚMERO DE EMPLEADO"
+- assertVisible: "201"
+- assertVisible: "Personal"
+- takeScreenshot: 22-staff-perfil-qr
+- scrollUntilVisible:
+    element: "Guardar contraseña"
+    direction: DOWN
+- tapOn: "Guardar contraseña"
+- assertVisible: "Escribe tu contraseña actual."
+- takeScreenshot: 23-staff-password-validacion

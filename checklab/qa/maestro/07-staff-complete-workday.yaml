@@ -1,0 +1,31 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "En jornada"
+    timeout: 20000
+- tapOn: "Salida a comer"
+- extendedWaitUntil:
+    visible: "En comida"
+    timeout: 25000
+- assertVisible: "Salida a comer registrada a las .*"
+- tapOn: "Regreso de comer"
+- extendedWaitUntil:
+    visible: "Regreso de comer registrada a las .*"
+    timeout: 25000
+- assertVisible: "En jornada"
+- tapOn: "Registrar salida"
+- extendedWaitUntil:
+    visible: "Salida registrada a las .*"
+    timeout: 25000
+- assertVisible: "Jornada terminada"
+- assertVisible: "Jornada completa"
+- takeScreenshot: 19-staff-jornada-completa
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Jornada terminada"
+    timeout: 20000
+- assertVisible: "Jornada completa"
+- assertNotVisible: "Registrar entrada"
+- takeScreenshot: 20-staff-jornada-restaurada

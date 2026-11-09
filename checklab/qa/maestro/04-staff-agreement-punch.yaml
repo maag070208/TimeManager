@@ -34,7 +34,7 @@ appId: com.axzydev.checklab
     visible: "Entrada registrada a las .*"
     timeout: 25000
 - assertVisible: "En jornada"
-- assertVisible: "sin ubicación (no diste permiso)"
+- assertVisible: ".*sin ubicación.*"
 - takeScreenshot: 14-staff-entrada-sin-gps
 - stopApp
 - launchApp

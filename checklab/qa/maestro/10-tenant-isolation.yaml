@@ -1,0 +1,50 @@
+appId: com.axzydev.checklab
+---
+- launchApp
+- runFlow:
+    when:
+      visible: "Abrir menú"
+    commands:
+      - tapOn: "Abrir menú"
+      - scrollUntilVisible:
+          element: "Cerrar sesión"
+          direction: DOWN
+      - tapOn: "Cerrar sesión"
+- extendedWaitUntil:
+    visible: "Código de tu empresa"
+    timeout: 15000
+- tapOn:
+    point: "50%,63%"
+- eraseText: 100
+- inputText: ${QA_OTHER_SLUG}
+- hideKeyboard
+- tapOn: "Continuar"
+- assertVisible: "Usuario o número de empleado"
+- tapOn:
+    point: "50%,50%"
+- eraseText: 100
+- inputText: ${QA_OTHER_USER}
+- hideKeyboard
+- tapOn:
+    point: "50%,62%"
+- eraseText: 100
+- inputText: ${QA_OTHER_PASS}
+- hideKeyboard
+- tapOn:
+    text: "Entrar a .*"
+- extendedWaitUntil:
+    visible: "Hola, Tomás"
+    timeout: 20000
+- assertVisible: ${QA_OTHER_TENANT_NAME}
+- assertNotVisible: ${QA_TENANT_NAME}
+- tapOn: "Abrir menú"
+- scrollUntilVisible:
+    element: "Personal"
+    direction: DOWN
+- tapOn: "Personal"
+- scrollUntilVisible:
+    element: "Iván Ajeno Cruz"
+    direction: DOWN
+- assertVisible: "2 PERSONAS"
+- assertNotVisible: "Lucía Herrera Campos"
+- takeScreenshot: 28-intruso-personal-aislado
