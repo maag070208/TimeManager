@@ -31,6 +31,8 @@ data class MyWorkdayState(
     val workMode: WorkMode = WorkMode.PRESENCIAL,
     val note: String = "",
     val shareLocation: Boolean = true,
+    /** El cliente puede apagar la ubicación: entonces ni se pide ni se muestra. */
+    val geoEnabled: Boolean = true,
     val busy: Boolean = false,
     val notice: String? = null,
     val error: String? = null,
@@ -74,11 +76,13 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
                 val history = api.myPunches(from = from.toString(), to = todayKey.toString(), limit = 300)
                     .sortedByDescending { it.occurredAt }
                 val today = history.filter { dayOf(it.occurredAt) == todayKey.toString() }.sortedBy { it.occurredAt }
+                val geoEnabled = runCatching { api.punchSettings().remoteGeolocationEnabled }.getOrNull()
                 _state.update {
                     it.copy(
                         loading = false,
                         today = today,
                         history = history,
+                        geoEnabled = geoEnabled ?: it.geoEnabled,
                         pending = q.pending(),
                         error = rejected.firstOrNull()?.let { e -> "Una checada guardada sin red no se aceptó: ${e.message}" },
                     )
@@ -102,7 +106,7 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
         viewModelScope.launch {
             try {
                 var locationNote: String? = null
-                val fix = if (s.shareLocation) {
+                val fix = if (s.geoEnabled && s.shareLocation) {
                     when (val r = location.current()) {
                         is LocationResult.Found -> r.fix
                         LocationResult.Denied -> null.also { locationNote = "sin ubicación (no diste permiso)" }

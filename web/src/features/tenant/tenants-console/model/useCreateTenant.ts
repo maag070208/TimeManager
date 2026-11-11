@@ -12,6 +12,8 @@ interface Form {
   adminName: string;
   adminUsername: string;
   adminEmail: string;
+  passwordMode: "generate" | "custom";
+  adminPassword: string;
 }
 
 const EMPTY: Form = {
@@ -21,91 +23,135 @@ const EMPTY: Form = {
   planId: "",
   employeeLimit: "",
   adminName: "",
-  adminUsername: "admin",
+  adminUsername: "",
   adminEmail: "",
+  passwordMode: "generate",
+  adminPassword: "",
 };
 
-type Errors = Partial<Record<keyof Form, string>>;
+export type CreateTenantField = keyof Form;
+type Errors = Partial<Record<CreateTenantField, string>>;
 
-/** Alta guiada de cliente: tenant + su administrador; al terminar muestra la contraseña provisional una vez. */
-export const useCreateTenant = (onCreated: () => void) => {
+/** "María José Pérez" → "maria.perez": nombre y último apellido, sin acentos. */
+const usernameFrom = (name: string): string => {
+  const words = name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter(Boolean);
+  return words.length > 1 ? `${words[0]}.${words[words.length - 1]}` : words[0] ?? "";
+};
+
+const validate = (form: Form): Errors => {
+  const e: Errors = {};
+  if (form.name.trim().length < 2) e.name = "required";
+  if (!isValidSlug(form.slug)) e.slug = "slug";
+  if (form.employeeLimit && !(Number.parseInt(form.employeeLimit, 10) > 0)) e.employeeLimit = "number";
+  if (form.adminName.trim().length < 2) e.adminName = "required";
+  if (form.adminUsername.trim().length < 3) e.adminUsername = "username";
+  if (form.adminEmail && !/^\S+@\S+\.\S+$/.test(form.adminEmail.trim())) e.adminEmail = "email";
+  if (form.passwordMode === "custom" && (form.adminPassword.length < 8 || form.adminPassword.length > 128)) e.adminPassword = "password";
+  return e;
+};
+
+/**
+ * Alta de cliente: empresa y subdominio, plan y su administrador. El subdominio
+ * y el usuario se proponen solos a partir de los nombres hasta que se editan a
+ * mano. Al terminar deja los datos de acceso para mostrarlos una sola vez.
+ */
+export const useCreateTenant = () => {
   const [form, setForm] = useState<Form>(EMPTY);
   const [slugTouched, setSlugTouched] = useState(false);
+  const [usernameTouched, setUsernameTouched] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [saving, setSaving] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [created, setCreated] = useState<TenantCreated | null>(null);
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<Plan[] | null>(null);
 
   useEffect(() => {
     let alive = true;
     planApi
       .list()
-      .then((rows) => alive && setPlans(rows))
+      .then((rows) => alive && setPlans(rows.filter((plan) => plan.active)))
       .catch(() => alive && setPlans([]));
     return () => {
       alive = false;
     };
   }, []);
 
-  const set = (key: keyof Form, value: string) =>
+  const set = <K extends CreateTenantField>(key: K, value: Form[K]) => {
+    if (key === "adminUsername") setUsernameTouched(true);
     setForm((f) => {
       const next = { ...f, [key]: value };
-      if (key === "name" && !slugTouched) next.slug = slugify(value);
+      if (key === "name" && !slugTouched) next.slug = slugify(String(value));
+      if (key === "adminName" && !usernameTouched) next.adminUsername = usernameFrom(String(value));
       return next;
     });
+    setErrors((e) => {
+      if (!e[key] && !(key === "name" && e.slug) && !(key === "adminName" && e.adminUsername)) return e;
+      const next = { ...e };
+      delete next[key];
+      if (key === "name" && !slugTouched) delete next.slug;
+      if (key === "adminName" && !usernameTouched) delete next.adminUsername;
+      return next;
+    });
+  };
 
   const setSlug = (value: string) => {
     setSlugTouched(true);
-    setForm((f) => ({ ...f, slug: value.toLowerCase().replace(/[^a-z0-9-]/g, "") }));
+    set("slug", value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
   };
 
-  const validate = (): Errors => {
-    const e: Errors = {};
-    if (form.name.trim().length < 2) e.name = "required";
-    if (!isValidSlug(form.slug)) e.slug = "slug";
-    if (form.adminName.trim().length < 2) e.adminName = "required";
-    if (form.adminUsername.trim().length < 3) e.adminUsername = "username";
-    if (form.adminEmail && !/^\S+@\S+\.\S+$/.test(form.adminEmail.trim())) e.adminEmail = "email";
-    if (form.employeeLimit && !(Number.parseInt(form.employeeLimit, 10) > 0)) e.employeeLimit = "number";
-    return e;
+  const live = validate(form);
+  /** Secciones completas (sin errores y con lo obligatorio capturado), para las palomitas y el avance. */
+  const complete = {
+    company: !live.name && !live.slug,
+    plan: !live.employeeLimit,
+    admin: !live.adminName && !live.adminUsername && !live.adminEmail && !live.adminPassword,
   };
 
-  const submit = async () => {
-    const e = validate();
-    setErrors(e);
-    if (Object.keys(e).length) return;
+  /** Crea el cliente; si algo falta devuelve el primer campo con error para llevar el foco ahí. */
+  const submit = async (): Promise<CreateTenantField | null> => {
+    setErrors(live);
+    const first = (Object.keys(EMPTY) as CreateTenantField[]).find((key) => live[key]);
+    if (first) return first;
     setSaving(true);
     setApiError(null);
     try {
-      const result = await tenantApi.create({
-        name: form.name.trim(),
-        slug: form.slug,
-        timezone: form.timezone,
-        planId: form.planId || null,
-        employeeLimit: form.employeeLimit ? Number.parseInt(form.employeeLimit, 10) : null,
-        admin: {
-          name: form.adminName.trim(),
-          username: form.adminUsername.trim(),
-          email: form.adminEmail.trim() || null,
-        },
-      });
-      setCreated(result);
-      onCreated();
+      setCreated(
+        await tenantApi.create({
+          name: form.name.trim(),
+          slug: form.slug,
+          timezone: form.timezone,
+          planId: form.planId || null,
+          employeeLimit: form.employeeLimit ? Number.parseInt(form.employeeLimit, 10) : null,
+          admin: {
+            name: form.adminName.trim(),
+            username: form.adminUsername.trim(),
+            email: form.adminEmail.trim() || null,
+            ...(form.passwordMode === "custom" && { password: form.adminPassword }),
+          },
+        })
+      );
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : String(err));
     } finally {
       setSaving(false);
     }
+    return null;
   };
 
   const reset = () => {
     setForm(EMPTY);
     setSlugTouched(false);
+    setUsernameTouched(false);
     setErrors({});
     setApiError(null);
     setCreated(null);
   };
 
-  return { form, set, setSlug, errors, saving, apiError, created, plans, submit, reset };
+  return { form, set, setSlug, errors, complete, saving, apiError, setApiError, created, plans, submit, reset };
 };

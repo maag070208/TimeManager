@@ -51,6 +51,7 @@ const WorkdayAgreementsPage = lazy(() => import("@pages/nom/WorkdayAgreementsPag
 const PayrollSettingsPage = lazy(() => import("@pages/payroll/PayrollSettingsPage"));
 const AssignPayrollPositionPage = lazy(() => import("@pages/payroll/AssignPayrollPositionPage"));
 const TenantDetailPage = lazy(() => import("@pages/tenants/TenantDetailPage"));
+const TenantCreatePage = lazy(() => import("@pages/tenants/TenantCreatePage"));
 const TenantsListPage = lazy(() => import("@pages/tenants/TenantsListPage"));
 const PayrollHistoryPage = lazy(() => import("@pages/schedules/PayrollHistoryPage"));
 
@@ -313,6 +314,14 @@ export default function App() {
           element={
             <RequiresPermission permission="tenants.view">
               <TenantsListPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/tenants/new"
+          element={
+            <RequiresPermission permission="tenants.manage">
+              <TenantCreatePage />
             </RequiresPermission>
           }
         />

@@ -399,6 +399,7 @@ export class TeleworkService {
       registration: registration ? this.toRegistrationDto(registration) : null,
       policy: config.policy,
       remotePunchEnabled: config.remotePunchEnabled,
+      remoteGeolocationEnabled: config.remoteGeolocationEnabled,
       checklistTemplate: this.checklistTemplate(),
       lastChecklist: lastChecklist ? this.toChecklistDto(lastChecklist) : null,
       nextPeriodicDueAt: registration

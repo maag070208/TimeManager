@@ -24,6 +24,7 @@ class NomApiTest {
     private val api = MockApi { request ->
         when (request.route) {
             "nom/me/punch" -> ok("""{"created":true,"punch":{"id":"p1","type":"ENTRY","occurredAt":"2026-11-08T15:00:00.000Z"}}""")
+            "nom/me/telework" -> ok("""{"registration":null,"remotePunchEnabled":true,"remoteGeolocationEnabled":false}""")
             else -> ok("[]")
         }
     }
@@ -48,6 +49,11 @@ class NomApiTest {
         val body = api.last.bodyJson()
         assertEquals(JsonPrimitive(19.4954), body["latitude"])
         assertEquals(JsonPrimitive(5.0), body["gpsAccuracyMeters"])
+    }
+
+    @Test
+    fun leeSiElClienteApagoLaUbicacion() = runTest {
+        assertFalse(NomApi(api.client).punchSettings().remoteGeolocationEnabled)
     }
 
     @Test

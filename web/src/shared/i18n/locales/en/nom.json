@@ -45,7 +45,8 @@
     "noType": "Record",
     "report": "Report discrepancy",
     "clock": "Clock punch",
-    "access": "Access"
+    "access": "Access",
+    "reportShort": "Report"
   },
   "sourceClock": "Clock",
   "sourceAccess": "Access",
@@ -194,6 +195,20 @@
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
       "CANCELLED": "Cancelled"
+    }
+  },
+  "agreements": {
+    "methodTitle": "Before you start: how your workday is recorded",
+    "methodAccept": "Got it, I accept",
+    "scheduleTitle": "Your company proposes a workday agreement",
+    "scheduleHint": "If you accept, the longer days in this agreement count as regular hours, not overtime. If you disagree, do not accept it and talk to Human Resources.",
+    "scheduleAccept": "Accept agreement",
+    "from": "From {{from}}",
+    "range": "From {{from}} to {{to}}",
+    "methods": {
+      "CLOCK": "Time clock",
+      "REMOTE": "Web or app",
+      "ACCESS": "Access control"
     }
   }
 }

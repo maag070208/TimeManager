@@ -302,5 +302,22 @@
     "status": "Status",
     "statusActive": "Active",
     "statusInactive": "Inactive"
+  },
+  "access": {
+    "title": "{{name}}'s access",
+    "subtitle": "Username, password and role used to sign in.",
+    "username": "Username",
+    "newPassword": "New password",
+    "newPasswordHint": "Leave it empty to keep the current one. At least 12 characters.",
+    "role": "Role",
+    "extraRoles": "Can also act as",
+    "personHint": "Name, email and department are edited in their record.",
+    "status": "Account status",
+    "statusActive": "Active: can sign in.",
+    "statusInactive": "Deactivated: can't sign in.",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "delete": "Delete",
+    "button": "Access"
   }
 }

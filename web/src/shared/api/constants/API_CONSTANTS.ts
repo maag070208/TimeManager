@@ -1,4 +1,4 @@
-type RuntimeConfig = { API_URL?: string };
+type RuntimeConfig = { API_URL?: string; TENANT_BASE_DOMAIN?: string };
 
 declare global {
   interface Window {
@@ -12,6 +12,10 @@ const BASE_URL =
   window.__APP_CONFIG__?.API_URL ||
   ((import.meta as any).env?.VITE_API_URL as string | undefined) ||
   "/api/v1";
+
+/** Dominio base de los subdominios de cliente: runtime (config.js) o build. */
+export const TENANT_BASE_DOMAIN: string =
+  (window.__APP_CONFIG__?.TENANT_BASE_DOMAIN || import.meta.env.VITE_TENANT_BASE_DOMAIN || "").trim().toLowerCase();
 
 export const API_CONSTANTS = {
   BASE_URL,

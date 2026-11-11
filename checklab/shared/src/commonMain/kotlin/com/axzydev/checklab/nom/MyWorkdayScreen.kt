@@ -260,7 +260,7 @@ private fun CheckOptions(state: MyWorkdayState, viewModel: MyWorkdayViewModel) {
         }
     }
     Field(state.note, viewModel::onNote, "Nota (opcional)")
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    if (state.geoEnabled) Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(Lucide.MapPin, Brand.Muted, size = 16.dp)
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
@@ -283,7 +283,7 @@ fun ColumnScope.MyWorkdayContent(me: Me, viewModel: MyWorkdayViewModel = koinVie
     CheckPanel(me, viewModel)
     if (state.loading) return
 
-    state.lastLocated?.let { punch -> LastLocationCard(punch, viewModel) }
+    if (state.geoEnabled) state.lastLocated?.let { punch -> LastLocationCard(punch, viewModel) }
     History(state, viewModel)
 }
 

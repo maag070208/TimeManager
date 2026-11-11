@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITCheckbox, ITText, ITTextarea, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
-import { HelpTip } from "@shared/ui/help-tip";
 import { LuCalendarClock, LuFileCheck, LuSignature } from "react-icons/lu";
 import { nomApi } from "@entities/nom";
 import type { DistributionAgreement, RecordAgreementAdmin } from "@entities/nom";
@@ -11,6 +10,7 @@ import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 import { TicState } from "@shared/ui/tic";
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
+const dayOf = (iso: string) => new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium", timeZone: "UTC" });
 const dateOf = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—");
 
 const dateStrToLocal = (value: string): Date | undefined => {
@@ -181,7 +181,7 @@ export default function WorkdayAgreementsPage() {
                   name="agreementUnion"
                   label="Se acordó con el sindicato"
                   checked={form.withUnion}
-                  onChange={(event) => setForm((prev) => ({ ...prev, withUnion: event.target.checked }))}
+                  onChange={(checked) => setForm((prev) => ({ ...prev, withUnion: checked }))}
                 />
                 <ITButton
                   variant="filled"
@@ -207,7 +207,7 @@ export default function WorkdayAgreementsPage() {
                         {agreement.party === "UNION" ? " · con sindicato" : ""}
                       </ITText>
                       <ITText muted className="!text-[11.5px]">
-                        Del {dateOf(agreement.effectiveFrom)} {agreement.effectiveTo ? `al ${dateOf(agreement.effectiveTo)}` : "en adelante"}
+                        Del {dayOf(agreement.effectiveFrom)} {agreement.effectiveTo ? `al ${dayOf(agreement.effectiveTo)}` : "en adelante"}
                       </ITText>
                     </div>
                     <ITBadget color={agreement.acceptedAt ? "success" : "warning"} size="sm">

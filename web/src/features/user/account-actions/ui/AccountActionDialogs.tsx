@@ -1,8 +1,6 @@
-import { ITButton, ITDialog, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
-import { LuKeyRound } from "react-icons/lu";
+import { ITToast } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import DeactivateDialog from "./DeactivateDialog";
-import { DialogHeader } from "@shared/ui/dialog-header";
 import { TicConfirm } from "@shared/ui/tic-confirm";
 import type { AccountActions } from "../model/useAccountActions";
 
@@ -47,42 +45,6 @@ export default function AccountActionDialogs({ fx }: { fx: AccountActions }) {
         cancelLabel={t("common:actions.cancel")}
         variant="success"
       />
-      <ITDialog isOpen={!!fx.toPassword} onClose={fx.closePassword} className="max-w-md">
-        <DialogHeader
-          icon={<LuKeyRound size={20} />}
-          tone="success"
-          title={t("list.passwordHeading")}
-          subtitle={fx.toPassword ? `@${fx.toPassword.username}` : undefined}
-        />
-        <ITFlex direction="column" gap={3}>
-          <div
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && fx.newPassword.trim()) {
-                event.preventDefault();
-                void fx.changePassword();
-              }
-            }}
-          >
-            <ITInput
-              name="newPassword"
-              type="password"
-              label={t("list.passwordLabel")}
-              value={fx.newPassword}
-              onChange={(e) => fx.setNewPassword(e.target.value)}
-              placeholder={t("list.passwordPlaceholder")}
-              autoFocus
-            />
-          </div>
-          <ITFlex justify="end" gap={2} className="pt-2">
-            <ITButton variant="outlined" color="gray" className="!rounded-full" onClick={fx.closePassword}>
-              {t("common:actions.cancel")}
-            </ITButton>
-            <ITButton variant="rounded" color="primary" onClick={() => void fx.changePassword()} disabled={!fx.newPassword.trim()}>
-              <ITText className="font-bold text-[12px]">{t("list.passwordBtn")}</ITText>
-            </ITButton>
-          </ITFlex>
-        </ITFlex>
-      </ITDialog>
       {fx.toast && (
         <ITToast message={fx.toast.message} type={fx.toast.type} position="bottom-center" duration={2500} onClose={() => fx.setToast(null)} />
       )}

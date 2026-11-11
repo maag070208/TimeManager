@@ -87,8 +87,9 @@ Los roles viven en BD (tabla `roles`) y la UI se gobierna por permisos (`useCan`
 - Rutas: `/` (entrada), `/home` (inicio explícito)
 - `pages/home/HomePage` + `features/tenant/tenant-switcher` (`useClientContext`)
 - Sin cliente elegido (ADMIN/SUPPORT) = consola de plataforma: clientes, estado,
-  personas y relojes contra su límite, plan, alta guiada, **Entrar** y
-  suspender/reactivar (`pages/home/PlatformHomePage`, `features/tenant/tenants-console`).
+  personas y relojes contra su límite, plan y alta guiada
+  (`pages/home/PlatformHomePage`, `features/tenant/tenants-console`). Editar,
+  entrar, relojes, agente y suspender/reactivar viven en el detalle `/tenants/:id`.
 - Con cliente (o sesión de cliente) = inicio del cliente
   (`features/home/client-overview`): tableros de personal, expedientes,
   asistencia de hoy, tiempo extra y huecos de configuración.

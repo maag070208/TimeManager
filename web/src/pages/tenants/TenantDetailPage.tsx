@@ -13,12 +13,15 @@ import {
   ITTable,
   type Column,
 } from "@axzydev/axzy_ui_system";
-import { LuBuilding2, LuCheck, LuChevronRight, LuClock, LuCreditCard, LuExternalLink, LuPlus, LuSearch, LuWallet } from "react-icons/lu";
+import { LuBuilding2, LuCheck, LuChevronRight, LuClock, LuClock3, LuCreditCard, LuExternalLink, LuKeyRound, LuLogIn, LuPause, LuPencil, LuPlay, LuPlus, LuSearch, LuWallet } from "react-icons/lu";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { tenantApi } from "@entities/tenant";
+import { useCan } from "@entities/user";
 import type { Tenant, TenantPayment, TenantPaymentStatus, TenantPayments } from "@entities/tenant";
-import { PlanAssignDialog } from "@features/tenant/tenants-console";
-import { tenantUrl } from "@shared/api/tenant";
+import { AgentTokenDialog, PlanAssignDialog, TenantEditDialog, useTenantActions } from "@features/tenant/tenants-console";
+import { TicConfirm } from "@shared/ui/tic-confirm";
+import { getSelectedTenant, setSelectedTenant, tenantHost, tenantUrl } from "@shared/api/tenant";
 import { TENANT_MODULES, type TenantModuleDefinition } from "@shared/lib/tenant-modules";
 import { ITPage } from "@shared/ui/page";
 import { TabBar } from "@shared/ui/tab-bar";
@@ -64,6 +67,7 @@ const logColumns: Column<ActivityLog>[] = [
 export default function TenantDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation("home");
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [payments, setPayments] = useState<TenantPayments | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +77,13 @@ export default function TenantDetailPage() {
   const [search, setSearch] = useState("");
   const [planOpen, setPlanOpen] = useState(false);
   const [chargeOpen, setChargeOpen] = useState(false);
+  const canManage = useCan("tenants.manage");
+  const [editOpen, setEditOpen] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
+  const actions = useTenantActions((updated) => {
+    setTenant(updated);
+    setToast(updated.status === "ACTIVE" ? "Cliente reactivado." : "Cliente suspendido.");
+  });
   const [extraLogs, setExtraLogs] = useState<ActivityLog[]>([]);
   const [form, setForm] = useState({ concept: "Suscripción mensual", period: new Date().toISOString().slice(0, 7), amount: "", dueDate: new Date().toISOString().slice(0, 10) });
 
@@ -254,13 +265,34 @@ export default function TenantDetailPage() {
   return (
     <ITPage
       title={tenant?.name ?? "Detalle del cliente"}
-      description={tenant ? `${tenant.slug} · ${tenant.status === "ACTIVE" ? "Activo" : "Suspendido"}${tenant.createdAt ? ` · alta ${dateLabel(tenant.createdAt)}` : ""}` : "Cliente"}
+      description={tenant ? `${tenantHost(tenant.slug)} · ${tenant.status === "ACTIVE" ? "Activo" : "Suspendido"}${tenant.createdAt ? ` · alta ${dateLabel(tenant.createdAt)}` : ""}` : "Cliente"}
       icon={<LuBuilding2 size={20} />}
       backAction={() => navigate("/tenants")}
       actions={tenant ? (
-        <ITButton variant="filled" color="primary" className="tm-row-button" onClick={() => window.open(tenantUrl(tenant.slug), "_blank", "noopener")}>
-          <span className="inline-flex items-center gap-1"><LuExternalLink size={13} /> Entrar como cliente</span>
-        </ITButton>
+        <div className="flex flex-wrap gap-2">
+          {canManage && (
+            <ITButton variant="outlined" color="secondary" className="tm-row-button" onClick={() => setEditOpen(true)}>
+              <span className="inline-flex items-center gap-1.5"><LuPencil size={13} /> Editar</span>
+            </ITButton>
+          )}
+          <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Operar los relojes del cliente: alta, probar conexión y sincronizar" disabled={tenant.status !== "ACTIVE"} onClick={() => void actions.enter(tenant, "/#/time-clocks")}>
+            <span className="inline-flex items-center gap-1.5"><LuClock3 size={13} /> Relojes</span>
+          </ITButton>
+          <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Token del agente que conecta los relojes del cliente" onClick={() => setAgentOpen(true)}>
+            <span className="inline-flex items-center gap-1.5"><LuKeyRound size={13} /> Agente del reloj</span>
+          </ITButton>
+          <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Abrir el login del cliente en otra pestaña" onClick={() => window.open(tenantUrl(tenant.slug), "_blank", "noopener")}>
+            <span className="inline-flex items-center gap-1.5"><LuExternalLink size={13} /> Abrir sitio</span>
+          </ITButton>
+          {canManage && (
+            <ITButton variant="outlined" color={tenant.status === "ACTIVE" ? "warning" : "success"} className="tm-row-button" onClick={() => actions.setStatusTarget(tenant)}>
+              <span className="inline-flex items-center gap-1.5">{tenant.status === "ACTIVE" ? <><LuPause size={13} /> Suspender</> : <><LuPlay size={13} /> Reactivar</>}</span>
+            </ITButton>
+          )}
+          <ITButton variant="filled" color="primary" className="tm-row-button" title="Operar las pantallas del cliente como soporte (queda en auditoría)" disabled={tenant.status !== "ACTIVE"} onClick={() => void actions.enter(tenant)}>
+            <span className="inline-flex items-center gap-1.5"><LuLogIn size={13} /> Entrar como soporte</span>
+          </ITButton>
+        </div>
       ) : undefined}
     >
       {!tenant || !payments ? (
@@ -268,6 +300,7 @@ export default function TenantDetailPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
+          {actions.error && <ITAlert variant="error" dismissible onDismiss={() => actions.setError(null)}>{actions.error}</ITAlert>}
           <TabBar
             items={[
               { id: "summary", label: "Resumen" },
@@ -417,6 +450,29 @@ export default function TenantDetailPage() {
       )}
 
       <PlanAssignDialog isOpen={planOpen} tenant={tenant} onClose={() => setPlanOpen(false)} onSaved={load} />
+      <TenantEditDialog
+        isOpen={editOpen}
+        tenant={tenant}
+        onClose={() => setEditOpen(false)}
+        onSaved={(updated) => {
+          const slugChanged = updated.slug !== tenant?.slug;
+          setTenant(updated);
+          const selected = getSelectedTenant();
+          if (selected?.id === updated.id) setSelectedTenant({ ...selected, name: updated.name, slug: updated.slug });
+          setToast(slugChanged ? `Cliente guardado. Nueva entrada: ${tenantHost(updated.slug)}` : "Cliente guardado.");
+        }}
+      />
+      <AgentTokenDialog isOpen={agentOpen} tenant={tenant} onClose={() => setAgentOpen(false)} />
+      <TicConfirm
+        isOpen={!!actions.statusTarget}
+        onClose={() => actions.setStatusTarget(null)}
+        onConfirm={() => void actions.confirmStatus()}
+        loading={actions.savingStatus}
+        variant={actions.statusTarget?.status === "ACTIVE" ? "danger" : "success"}
+        title={actions.statusTarget ? t(actions.statusTarget.status === "ACTIVE" ? "platform.confirm.suspendTitle" : "platform.confirm.reactivateTitle", { name: actions.statusTarget.name }) : undefined}
+        message={actions.statusTarget ? t(actions.statusTarget.status === "ACTIVE" ? "platform.confirm.suspendMessage" : "platform.confirm.reactivateMessage", { host: tenantHost(actions.statusTarget.slug) }) : undefined}
+        confirmLabel={t(actions.statusTarget?.status === "ACTIVE" ? "platform.confirm.suspend" : "platform.confirm.reactivate")}
+      />
       <ITDialog isOpen={chargeOpen} onClose={() => setChargeOpen(false)} title="Registrar cargo">
         <div className="flex flex-col gap-3">
           <ITInput name="payConcept" label="Concepto" value={form.concept} onChange={(event) => setForm((prev) => ({ ...prev, concept: event.target.value }))} />

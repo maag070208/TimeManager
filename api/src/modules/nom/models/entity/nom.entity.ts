@@ -41,6 +41,8 @@ export interface NomConfig {
   remoteCountsForWorkday: boolean;
   blockRemoteWithoutAgreement: boolean;
   requireUnionForCollective: boolean;
+  /** Si está apagada, la checada web no pide ni guarda ubicación. */
+  remoteGeolocationEnabled: boolean;
   /** Textos NOM-037 y aviso de privacidad vigentes (F2-08). */
   policy: TeleworkPolicyTexts;
 }
@@ -59,6 +61,7 @@ export interface NomSettingsUpdateInput {
   remoteCountsForWorkday?: boolean;
   blockRemoteWithoutAgreement?: boolean;
   requireUnionForCollective?: boolean;
+  remoteGeolocationEnabled?: boolean;
 }
 
 /** Snapshot de la checada al momento de pedir el ajuste (valor anterior). */
@@ -367,6 +370,7 @@ export interface MyTelework {
   registration: TeleworkRegistrationDto | null;
   policy: TeleworkPolicyTexts;
   remotePunchEnabled: boolean;
+  remoteGeolocationEnabled: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklistDto | null;
   nextPeriodicDueAt: string | null;

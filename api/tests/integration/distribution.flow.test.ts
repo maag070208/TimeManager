@@ -152,6 +152,12 @@ describe("convenio art. 58 y jornada diaria", () => {
     });
     expectStatus(agreement, 201, "convenio de distribución");
     const workerSession = await login({ username: worker.username, tenant: tenant.slug });
+    const mine = await api("GET", "/nom/me/distribution-agreements", { token: workerSession.token });
+    expectStatus(mine, 200, "convenios del trabajador");
+    const pending = (mine.body as Array<{ id: string; acceptedAt: string | null }>).find(
+      (row) => row.id === agreement.body?.id
+    );
+    assert.equal(pending?.acceptedAt, null, "el trabajador ve su convenio pendiente");
     const accepted = await api("POST", `/nom/me/distribution-agreements/${agreement.body?.id}/accept`, {
       token: workerSession.token,
     });

@@ -96,6 +96,7 @@ export type TenantCreateInput = z.infer<typeof TenantCreateDto>;
 export const TenantUpdateDto = z
   .object({
     name: z.string().trim().min(2).max(120).optional(),
+    slug: SlugSchema.optional(),
     status: TenantStatusSchema.optional(),
     timezone: TimezoneSchema.optional(),
     planId: z.string().trim().min(1).nullish(),

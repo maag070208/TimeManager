@@ -67,6 +67,7 @@ data class NomConfig(
     val remoteCountsForWorkday: Boolean = false,
     val blockRemoteWithoutAgreement: Boolean = false,
     val requireUnionForCollective: Boolean = false,
+    val remoteGeolocationEnabled: Boolean = true,
 )
 
 @Serializable
@@ -141,6 +142,7 @@ internal fun configUpdate(
     remoteCounts: Boolean,
     blockWithoutAgreement: Boolean,
     unionForCollective: Boolean,
+    geolocation: Boolean,
 ): Map<String, JsonPrimitive> = mapOf(
     "defaultEntryToleranceMin" to JsonPrimitive(entryTolerance.toIntOrNull() ?: 0),
     "defaultExitToleranceMin" to JsonPrimitive(exitTolerance.toIntOrNull() ?: 0),
@@ -150,6 +152,7 @@ internal fun configUpdate(
     "remoteCountsForWorkday" to JsonPrimitive(remoteCounts),
     "blockRemoteWithoutAgreement" to JsonPrimitive(blockWithoutAgreement),
     "requireUnionForCollective" to JsonPrimitive(unionForCollective),
+    "remoteGeolocationEnabled" to JsonPrimitive(geolocation),
 )
 
 class ConfigViewModel(private val api: SettingsApi) : ListViewModel<NomConfig>() {
@@ -182,6 +185,7 @@ fun ColumnScope.ConfigContent(me: Me, vm: ConfigViewModel = koinViewModel()) {
         var remoteCounts by remember(cfg) { mutableStateOf(cfg.remoteCountsForWorkday) }
         var block by remember(cfg) { mutableStateOf(cfg.blockRemoteWithoutAgreement) }
         var union by remember(cfg) { mutableStateOf(cfg.requireUnionForCollective) }
+        var geo by remember(cfg) { mutableStateOf(cfg.remoteGeolocationEnabled) }
 
         BentoCard(Modifier.fillMaxWidth()) {
             Eyebrow("Jornada")
@@ -201,12 +205,13 @@ fun ColumnScope.ConfigContent(me: Me, vm: ConfigViewModel = koinViewModel()) {
             Eyebrow("Checada desde la app")
             Toggle("Permitir checar desde la app", "Para teletrabajo y personal en ruta.", remote, canEdit) { remote = it }
             Toggle("Cuenta para la jornada", "Las checadas de la app suman horas como las del reloj.", remoteCounts, canEdit) { remoteCounts = it }
-            Toggle("Exigir convenio de teletrabajo", "Sin convenio firmado no se puede checar a distancia.", block, canEdit) { block = it }
+            Toggle("Ubicación en la checada", "Apagada, no se pide ni se guarda la ubicación.", geo, canEdit) { geo = it }
+            Toggle("Exigir aceptar la forma de registro", "Sin aceptarla en Mi jornada no se puede checar desde la app.", block, canEdit) { block = it }
             Toggle("Convenios colectivos con sindicato", "Los convenios colectivos los firma el sindicato.", union, canEdit) { union = it }
         }
         if (canEdit) {
             PrimaryButton("Guardar cambios", {
-                vm.save(configUpdate(entry, exit, meal, minOt, remote, remoteCounts, block, union))
+                vm.save(configUpdate(entry, exit, meal, minOt, remote, remoteCounts, block, union, geo))
             }, busy = state.busy)
         }
     }

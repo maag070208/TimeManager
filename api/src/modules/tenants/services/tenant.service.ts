@@ -318,10 +318,12 @@ export class TenantService {
       if (!previous) throw new HttpError(404, "TENANT_NOT_FOUND");
 
       const plan = input.planId !== undefined ? await this.planOf(input.planId) : undefined;
-      const updated = await this.db.tenant.update({
+      const updated = await this.db.tenant
+        .update({
         where: { id },
         data: {
           name: input.name,
+          slug: input.slug,
           status: input.status,
           timezone: input.timezone,
           employeeLimit: input.employeeLimit,
@@ -332,7 +334,13 @@ export class TenantService {
           ...(plan !== undefined ? { planId: plan?.id ?? null } : {}),
         },
         include: { plan: true },
-      });
+        })
+        .catch((err: unknown) => {
+          if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+            throw new HttpError(409, "TENANT_SLUG_TAKEN", { slug: input.slug ?? "" });
+          }
+          throw err;
+        });
       forgetTenantBrand(id);
       await this.audit?.({
         action: previous.status !== updated.status
@@ -344,6 +352,7 @@ export class TenantService {
         userName: actor.username,
         previousState: {
           name: previous.name,
+          slug: previous.slug,
           status: previous.status,
           timezone: previous.timezone,
           planId: previous.planId,
@@ -354,6 +363,7 @@ export class TenantService {
         },
         newState: {
           name: updated.name,
+          slug: updated.slug,
           status: updated.status,
           timezone: updated.timezone,
           planId: updated.planId,

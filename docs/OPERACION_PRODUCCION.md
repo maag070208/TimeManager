@@ -260,3 +260,25 @@ El job manual del CI es `.github/workflows/load-test.yml` (`workflow_dispatch`):
 Postgres 16, migraciones, seed, API en 4020, smoke y, con `scenario=k6`, los tres
 escenarios k6. Nunca corre en push.
 
+
+## Subdominios de clientes
+
+Dar de alta un cliente en la consola (`/` → **Nuevo cliente**) no toca DNS ni el
+servidor: su entrada queda lista al instante. Hay dos modos y la web elige solo.
+
+**Sin dominio propio** (p. ej. una URL de Railway): cada cliente entra por su
+ruta, `https://<host-de-la-web>/#/<slug>/home`. No requiere configuración.
+
+**Con dominio propio** (`<slug>.tudominio.mx`), se configura **una sola vez**:
+
+1. DNS: registro comodín `*.tudominio.mx` hacia el servicio web (más
+   `app.tudominio.mx` para la plataforma).
+2. Hosting del web: agregar `*.tudominio.mx` como dominio del servicio, con
+   certificado comodín. `web/nginx.conf` ya responde a cualquier host.
+3. Contenedor web: `TENANT_BASE_DOMAIN=tudominio.mx` (runtime, sin recompilar).
+4. API: `WEB_ORIGIN=https://*.tudominio.mx,https://app.tudominio.mx`.
+
+Después de eso, cada alta nueva responde en `https://<slug>.tudominio.mx` sin
+pasos extra. `app.`, `admin.` y `www.` son de plataforma. El subdominio se
+puede cambiar desde la ficha del cliente (**Cambiar subdominio**): la dirección
+anterior deja de funcionar al instante.

@@ -29,7 +29,7 @@ Cuentas de administración (`ADMIN`, `SUPPORT`, `CLIENT_ADMIN`): solo otra cuent
 Una persona = una cuenta: **no hay pantalla de Usuarios**, todo vive en **Personal** (`/employees`).
 
 - Lista: `pages/employees/EmployeesListPage` + `features/user/employees-list`. Con `hr.records` lee el expediente (`/hr/query`); con solo `users.view` (SUPPORT) lee las cuentas (`/users/query`), sin datos sensibles. Misma tabla.
-- Por fila: ver, editar expediente y menú "⋯" (`features/user/account-actions`): cuenta (usuario, rol, correo), contraseña, baja con motivo, reactivar, eliminar (con forzado si hay historial).
+- Por fila: ver, editar expediente y **Acceso** (llave, con `users.edit`): diálogo `UserEditDialog` con usuario, nueva contraseña (vacía = conservar; se guarda con `PUT /users/:id/password`), rol y roles adicionales, más el estado de la cuenta: baja con motivo, reactivar y eliminar (con forzado si hay historial; `features/user/account-actions`). Nombre, correo y departamento se editan en el expediente.
 - Rutas: `/employees/new`, `/employees/import`, `/employees/:id/account` (diálogo de cuenta sobre la lista), `/employees/:id/history`. Las viejas `/users/*` redirigen.
 - `entities/user`, `features/user/user-form`, `user-history`, `import-users`, `user-permissions`.
 

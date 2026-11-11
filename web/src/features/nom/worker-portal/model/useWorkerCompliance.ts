@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { nomApi } from "@entities/nom";
 import type {
+  MyDistributionAgreement,
   OvertimeRequestRow,
   RecordAgreement,
   WorkRecordAcknowledgment,
@@ -28,6 +29,7 @@ export const useWorkerCompliance = () => {
   const [agreement, setAgreement] = useState<RecordAgreement | null>(null);
   const [proposal, setProposal] = useState<{ methods: string[]; text: string; roundingPolicy: string | null; correctionRules: string | null } | null>(null);
   const [acknowledgments, setAcknowledgments] = useState<WorkRecordAcknowledgment[]>([]);
+  const [scheduleAgreements, setScheduleAgreements] = useState<MyDistributionAgreement[]>([]);
   const [requests, setRequests] = useState<OvertimeRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -38,16 +40,18 @@ export const useWorkerCompliance = () => {
     setLoading(true);
     setError(null);
     try {
-      const [nextProposal, nextAgreement, nextAcknowledgments, nextRequests] = await Promise.all([
+      const [nextProposal, nextAgreement, nextAcknowledgments, nextRequests, nextScheduleAgreements] = await Promise.all([
         nomApi.recordProposal(),
         nomApi.myRecordAgreement(),
         nomApi.myRecordAcknowledgments(),
         nomApi.myOvertimeRequests(),
+        nomApi.myDistributionAgreements(),
       ]);
       setProposal(nextProposal);
       setAgreement(nextAgreement);
       setAcknowledgments(nextAcknowledgments);
       setRequests(nextRequests);
+      setScheduleAgreements(nextScheduleAgreements);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo cargar tu registro.");
     } finally {
@@ -82,6 +86,12 @@ export const useWorkerCompliance = () => {
       setNotice("Método de registro aceptado.");
     });
 
+  const acceptScheduleAgreement = (id: string) =>
+    run(`schedule-${id}`, async () => {
+      await nomApi.acceptDistributionAgreement(id);
+      setNotice("Acuerdo de jornada aceptado.");
+    });
+
   const acknowledge = (accept: boolean, note?: string) =>
     run(accept ? "ack" : "discrepancy", async () => {
       await nomApi.acknowledgeRecord({ ...currentWeek(), accept, note: note ?? null });
@@ -98,12 +108,14 @@ export const useWorkerCompliance = () => {
     proposal,
     acknowledgments,
     requests,
+    scheduleAgreements,
     loading,
     busy,
     error,
     notice,
     dismissNotice: () => setNotice(null),
     acceptAgreement,
+    acceptScheduleAgreement,
     acknowledge,
     decideRequest,
     refresh: load,

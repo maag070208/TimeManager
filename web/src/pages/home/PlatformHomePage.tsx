@@ -4,12 +4,9 @@ import { ITPage } from "@shared/ui/page";
 import { LuArrowUpRight, LuBadgeDollarSign, LuBuilding2, LuCalendarClock, LuChartColumn, LuLayoutDashboard, LuPlus, LuUsersRound, LuWallet } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { AgentTokenDialog, CreateTenantDialog, PlanAssignDialog, TenantsTable, useTenantsConsole } from "@features/tenant/tenants-console";
-import { tenantHost } from "@shared/api/tenant";
-import type { Tenant } from "@entities/tenant";
+import { TenantsTable, useTenantsConsole } from "@features/tenant/tenants-console";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { PanelCard } from "@shared/ui/panel-card";
-import { TicConfirm } from "@shared/ui/tic-confirm";
 import { TicState } from "@shared/ui/tic";
 
 const money = (value: number) =>
@@ -153,14 +150,9 @@ export default function PlatformHomePage() {
   const { t } = useTranslation("home");
   const navigate = useNavigate();
   const fx = useTenantsConsole();
-  const [creating, setCreating] = useState(false);
-  const [planTarget, setPlanTarget] = useState<Tenant | null>(null);
-  const [agentTarget, setAgentTarget] = useState<Tenant | null>(null);
-  const target = fx.statusTarget;
-  const suspending = target?.status === "ACTIVE";
 
   const newClient = fx.canManage ? (
-    <ITButton variant="filled" color="primary" className="tm-save-button" onClick={() => setCreating(true)}>
+    <ITButton variant="filled" color="primary" className="tm-save-button" onClick={() => navigate("/tenants/new")}>
       <span className="flex items-center gap-1.5 text-[12px] font-bold">
         <LuPlus aria-hidden size={14} />
         {t("platform.newClient")}
@@ -317,7 +309,7 @@ export default function PlatformHomePage() {
                           Asigna un plan con precio a los clientes activos para ver el próximo cobro estimado.
                         </span>
                         {fx.canManage && summary.active[0] && (
-                          <ITButton variant="outlined" color="primary" size="sm" className="tm-save-button" onClick={() => setPlanTarget(summary.active[0])}>
+                          <ITButton variant="outlined" color="primary" size="sm" className="tm-save-button" onClick={() => navigate(`/tenants/${summary.active[0].id}`)}>
                             Asignar plan
                           </ITButton>
                         )}
@@ -383,15 +375,7 @@ export default function PlatformHomePage() {
                   {fx.visible.length === 0 ? (
                     <TicState kind="noResults" size="sm" title={t("platform.noResults.title")} description={t("platform.noResults.description")} />
                   ) : (
-                    <TenantsTable
-                      rows={fx.visible}
-                      canManage={fx.canManage}
-                      onEnter={fx.enter}
-                      onToggleStatus={fx.setStatusTarget}
-                      onEditPlan={setPlanTarget}
-                      onManageAgent={setAgentTarget}
-                      onManageClocks={fx.manageClocks}
-                    />
+                    <TenantsTable rows={fx.visible} />
                   )}
                 </div>
               )}
@@ -399,32 +383,6 @@ export default function PlatformHomePage() {
           </>
         )}
       </div>
-
-      <CreateTenantDialog isOpen={creating} onClose={() => setCreating(false)} onCreated={fx.reload} />
-
-      <PlanAssignDialog
-        isOpen={!!planTarget}
-        tenant={planTarget}
-        onClose={() => setPlanTarget(null)}
-        onSaved={fx.reload}
-      />
-
-      <AgentTokenDialog
-        isOpen={!!agentTarget}
-        tenant={agentTarget}
-        onClose={() => setAgentTarget(null)}
-      />
-
-      <TicConfirm
-        isOpen={!!target}
-        onClose={() => fx.setStatusTarget(null)}
-        onConfirm={() => void fx.confirmStatus()}
-        loading={fx.savingStatus}
-        variant={suspending ? "danger" : "success"}
-        title={target ? t(suspending ? "platform.confirm.suspendTitle" : "platform.confirm.reactivateTitle", { name: target.name }) : undefined}
-        message={target ? t(suspending ? "platform.confirm.suspendMessage" : "platform.confirm.reactivateMessage", { host: tenantHost(target.slug) }) : undefined}
-        confirmLabel={t(suspending ? "platform.confirm.suspend" : "platform.confirm.reactivate")}
-      />
     </ITPage>
   );
 }

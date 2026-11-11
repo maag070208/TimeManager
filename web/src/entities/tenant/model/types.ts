@@ -57,7 +57,7 @@ export interface TenantCreated {
 }
 
 export type TenantUpdateInput = Partial<
-  Pick<Tenant, "name" | "status" | "timezone" | "planId" | "employeeLimit" | "disabledModules">
+  Pick<Tenant, "name" | "slug" | "status" | "timezone" | "planId" | "employeeLimit" | "disabledModules">
 >;
 
 export type TenantPaymentStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";

@@ -302,5 +302,22 @@
     "status": "Estatus",
     "statusActive": "Activo",
     "statusInactive": "Inactivo"
+  },
+  "access": {
+    "title": "Acceso de {{name}}",
+    "subtitle": "Usuario, contraseña y rol con los que entra al sistema.",
+    "username": "Usuario",
+    "newPassword": "Nueva contraseña",
+    "newPasswordHint": "Déjala vacía para conservar la actual. Mínimo 12 caracteres.",
+    "role": "Rol",
+    "extraRoles": "También puede actuar como",
+    "personHint": "Nombre, correo y departamento se editan en su expediente.",
+    "status": "Estado de la cuenta",
+    "statusActive": "Activa: puede entrar al sistema.",
+    "statusInactive": "Dada de baja: no puede entrar.",
+    "deactivate": "Dar de baja",
+    "reactivate": "Reactivar",
+    "delete": "Eliminar",
+    "button": "Acceso"
   }
 }

@@ -34,6 +34,9 @@ FROM nginx:1.27-alpine AS runtime
 # API_URL es la config de runtime (prioridad sobre el build). Ejemplo:
 #   docker run -e API_URL=https://api.timemanager.mx/api/v1 ...
 ENV API_URL=""
+# Dominio base de los subdominios de cliente (p. ej. timemanager.mx). Vacío =
+# sin dominio propio: cada cliente entra por su ruta, /#/<slug>/home.
+ENV TENANT_BASE_DOMAIN=""
 
 COPY --from=builder /repo/web/dist /usr/share/nginx/html
 COPY web/nginx.conf /etc/nginx/conf.d/default.conf

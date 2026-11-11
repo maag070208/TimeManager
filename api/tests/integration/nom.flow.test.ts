@@ -541,6 +541,28 @@ describe("Export formal y autoservicio de configuración", () => {
 });
 
 describe("F2-07 marcaje remoto (home office/campo)", () => {
+  test("con la ubicación apagada la checada web no guarda coordenadas", async () => {
+    const admin = await clientSession("CLIENT_ADMIN");
+    const worker = await clientSession("CLIENT_STAFF", { tenant: admin.tenant! });
+    const off = await api("PUT", "/nom/config", {
+      token: admin.token,
+      body: { remoteGeolocationEnabled: false, blockRemoteWithoutAgreement: false },
+    });
+    expectStatus(off, 200, "apagar ubicación");
+    assert.equal(off.body?.remoteGeolocationEnabled, false);
+
+    const mine = await api("GET", "/nom/me/telework", { token: worker.token });
+    assert.equal(mine.body?.remoteGeolocationEnabled, false, "el portal sabe que no debe pedirla");
+
+    const entry = await api("POST", "/nom/me/punch", {
+      token: worker.token,
+      body: { type: "ENTRY", clientEventId: randomUUID(), latitude: 19.4326, longitude: -99.1332, gpsAccuracyMeters: 10 },
+    });
+    expectStatus(entry, 201, "checada con ubicación apagada");
+    assert.equal(entry.body?.punch?.latitude, null, "no se guarda latitud");
+    assert.equal(entry.body?.punch?.longitude, null, "no se guarda longitud");
+  });
+
   test("marca sin reloj, es idempotente y guarda geolocalización solo en el marcaje", async () => {
     const tenant = await createTenant();
     const employee = await createUser({

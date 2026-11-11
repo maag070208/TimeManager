@@ -1,17 +1,18 @@
 import { resolveTenantRoute, type TenantRoute } from "@shared/lib/tenant-route";
+import { TENANT_BASE_DOMAIN } from "./constants/API_CONSTANTS";
 
 /** Subdominios de plataforma: sin cliente (ADMIN/SUPPORT). */
 const PLATFORM_LABELS = new Set(["app", "admin", "www"]);
 
 /**
  * Cliente (slug) según el host: `acme.localhost` en local y
- * `acme.<VITE_TENANT_BASE_DOMAIN>` en producción. Sin subdominio, con un
+ * `acme.<TENANT_BASE_DOMAIN>` en producción. Sin subdominio, con un
  * subdominio de plataforma o con una IP: `null` (login de plataforma).
  */
 export const tenantSlugFromHost = (hostname: string = window.location.hostname): string | null => {
   const host = hostname.toLowerCase();
   if (/^[\d.]+$/.test(host) || host.includes(":")) return null;
-  const base = import.meta.env.VITE_TENANT_BASE_DOMAIN?.toLowerCase();
+  const base = TENANT_BASE_DOMAIN;
   let rest: string | null = null;
   if (host.endsWith(".localhost")) rest = host.slice(0, -".localhost".length);
   else if (base && host.endsWith(`.${base}`)) rest = host.slice(0, -(base.length + 1));
@@ -65,15 +66,18 @@ export const setSelectedTenant = (tenant: SelectedTenant | null): void => {
  * subdominio; en local-first es el mismo host con su ruta en el hash.
  */
 export const tenantUrl = (slug: string): string => {
-  const base = import.meta.env.VITE_TENANT_BASE_DOMAIN;
-  if (base) return `https://${slug}.${base}`;
+  if (TENANT_BASE_DOMAIN) return `https://${slug}.${TENANT_BASE_DOMAIN}`;
   return `${window.location.origin}/#/${slug}/home`;
 };
 
-/** Subdominio legible (`acme.localhost:5006`), para mostrar sin protocolo. */
+/**
+ * Entrada legible del cliente, sin protocolo: su subdominio cuando hay dominio
+ * base (o en local, donde `*.localhost` siempre resuelve) y, sin dominio
+ * propio, la misma ruta por cliente a la que lleva `tenantUrl`.
+ */
 export const tenantHost = (slug: string): string => {
-  const base = import.meta.env.VITE_TENANT_BASE_DOMAIN;
-  if (base) return `${slug}.${base}`;
-  const { port } = window.location;
-  return `${slug}.localhost${port ? `:${port}` : ""}`;
+  if (TENANT_BASE_DOMAIN) return `${slug}.${TENANT_BASE_DOMAIN}`;
+  const { hostname, host, port } = window.location;
+  if (hostname === "localhost" || hostname.endsWith(".localhost")) return `${slug}.localhost${port ? `:${port}` : ""}`;
+  return `${host}/#/${slug}`;
 };

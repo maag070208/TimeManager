@@ -40,10 +40,8 @@ test.describe("Convenios y acuerdos (CLIENT_ADMIN)", () => {
     await loginClient(page, "admin");
     await openClientRoute(page, "/hr/jornada-acuerdos");
 
-    await expect(page.getByRole("heading", { level: 1, name: "Convenios y acuerdos" })).toBeVisible();
-    for (const label of ["Convenios", "Pendientes de aceptación", "Acuerdos de método", "Firma patronal pendiente"]) {
-      await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
-    }
+    await expect(page.getByRole("heading", { level: 1, name: "Acuerdos con el personal" })).toBeVisible();
+    await expect(page.getByText("Nuevo acuerdo de jornada")).toBeVisible();
 
     // Persona del convenio (selector con búsqueda).
     await page.locator('input[name="agreementUser"]').click();
@@ -52,17 +50,17 @@ test.describe("Convenios y acuerdos (CLIENT_ADMIN)", () => {
     // Evidencia corta: el alta queda deshabilitada.
     const evidence = page.locator('textarea[name="agreementEvidence"]');
     await evidence.fill("corto");
-    await expect(page.getByRole("button", { name: "Registrar convenio" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Guardar y pedir aceptación" })).toBeDisabled();
 
     // Evidencia suficiente: registra y aparece como pendiente de aceptación.
     await evidence.fill(`Evidencia E2E ${uniqueRef("CONV")} con fecha, firmantes y referencia del documento`);
-    await page.getByRole("button", { name: "Registrar convenio" }).click();
-    await expect(page.getByText(/Convenio registrado/)).toBeVisible({ timeout: 20_000 });
+    await page.getByRole("button", { name: "Guardar y pedir aceptación" }).click();
+    await expect(page.getByText(/ya puede aceptarlo desde Mi jornada/)).toBeVisible({ timeout: 20_000 });
     // La convención aparece en la lista de convenios registrados (no en el <option> del selector).
     const created = page
       .locator("div")
       .filter({ hasText: person.fullName })
-      .filter({ hasText: "Pendiente de aceptación" })
+      .filter({ hasText: "Esperando que la persona acepte" })
       .last();
     await expect(created).toBeVisible({ timeout: 20_000 });
   });
@@ -73,19 +71,22 @@ test.describe("Convenios y acuerdos (CLIENT_ADMIN)", () => {
     await openClientRoute(page, "/hr/jornada-acuerdos");
 
     // El acuerdo del trabajador aparece pendiente de la firma patronal.
-    await expect(page.getByText("Acuerdos de método de registro")).toBeVisible();
+    await page.getByRole("button", { name: /Forma de registro/ }).click();
     const recordRow = page
       .locator("div")
       .filter({ hasText: person.fullName })
-      .filter({ hasText: /Firma patronal pendiente|Firmado por patrón/ })
+      .filter({ has: page.getByRole("button", { name: "Firmar", exact: true }) })
       .last();
     await expect(recordRow).toBeVisible({ timeout: 20_000 });
-    await expect(recordRow.getByText("Firma patronal pendiente")).toBeVisible();
-    await expect(recordRow.getByRole("button", { name: "Firmar como patrón" })).toBeVisible();
 
-    await recordRow.getByRole("button", { name: "Firmar como patrón" }).click();
-    // El efecto visible: la fila pasa a "Firmado por patrón" (el botón desaparece).
-    await expect(page.getByText("Firmado por patrón").first()).toBeVisible({ timeout: 20_000 });
+    await recordRow.getByRole("button", { name: "Firmar", exact: true }).click();
+    // El efecto visible: la fila pasa a "Firmado por la empresa" (el botón desaparece).
+    const signedRow = page
+      .locator("div")
+      .filter({ hasText: person.fullName })
+      .filter({ hasText: "Firmado por la empresa" })
+      .last();
+    await expect(signedRow).toBeVisible({ timeout: 20_000 });
   });
 });
 

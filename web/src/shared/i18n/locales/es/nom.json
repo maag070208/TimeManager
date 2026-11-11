@@ -45,7 +45,8 @@
     "noType": "Registro",
     "report": "Reportar discrepancia",
     "clock": "Checada del reloj",
-    "access": "Acceso"
+    "access": "Acceso",
+    "reportShort": "Reportar"
   },
   "sourceClock": "Reloj",
   "sourceAccess": "Acceso",
@@ -128,9 +129,9 @@
   },
   "record": {
     "title": "Mi registro de jornada",
-    "hint": "Acuerda el método de registro y confirma tu resumen periódico: fortalece la prueba de tus horas.",
-    "accept": "Aceptar método de registro",
-    "accepted": "Método aceptado",
+    "hint": "Acepta cómo se registra tu jornada y confirma tu semana: así queda constancia de tus horas.",
+    "accept": "Aceptar forma de registro",
+    "accepted": "Aceptado",
     "version": "Versión",
     "ackTitle": "Conformidad de mi semana",
     "ackHint": "Revisa tu resumen y confírmalo o reporta una discrepancia.",
@@ -141,9 +142,9 @@
     "ackDiscrepancySent": "Discrepancia enviada",
     "lastAck": "Última conformidad",
     "noAck": "Aún no has confirmado ninguna semana.",
-    "textTitle": "Acuerdo de método de registro",
-    "employerSigned": "Firmado por el patrón",
-    "employerPending": "Falta firma del patrón"
+    "textTitle": "Cómo se registra tu jornada",
+    "employerSigned": "Firmado por la empresa",
+    "employerPending": "Falta la firma de la empresa"
   },
   "requests": {
     "title": "Solicitudes de horas extra",
@@ -194,6 +195,20 @@
       "APPROVED": "Aprobada",
       "REJECTED": "Rechazada",
       "CANCELLED": "Cancelada"
+    }
+  },
+  "agreements": {
+    "methodTitle": "Antes de empezar: así se registra tu jornada",
+    "methodAccept": "Entendido, acepto",
+    "scheduleTitle": "Tu empresa te propone un acuerdo de jornada",
+    "scheduleHint": "Si lo aceptas, los días más largos de este acuerdo cuentan como jornada normal y no como tiempo extra. Si no estás de acuerdo, no lo aceptes y habla con Recursos Humanos.",
+    "scheduleAccept": "Aceptar acuerdo",
+    "from": "Desde el {{from}}",
+    "range": "Del {{from}} al {{to}}",
+    "methods": {
+      "CLOCK": "Reloj",
+      "REMOTE": "Web o app",
+      "ACCESS": "Control de acceso"
     }
   }
 }

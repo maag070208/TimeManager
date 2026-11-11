@@ -76,6 +76,7 @@ export interface MeTelework {
   registration: TeleworkRegistration | null;
   policy: TeleworkPolicyTexts;
   remotePunchEnabled: boolean;
+  remoteGeolocationEnabled: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklist | null;
   nextPeriodicDueAt: string | null;

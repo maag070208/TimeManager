@@ -26,7 +26,7 @@ const clockSyncNotice = async (
 };
 
 /**
- * Acciones sobre la cuenta de una persona: contraseña, baja con motivo,
+ * Acciones sobre la cuenta de una persona: baja con motivo,
  * reactivación y borrado (con forzado si tiene historial).
  */
 export const useAccountActions = (onChanged: () => void) => {
@@ -46,8 +46,6 @@ export const useAccountActions = (onChanged: () => void) => {
   const [toDelete, setToDelete] = useState<AccountTarget | null>(null);
   const [toForceDelete, setToForceDelete] = useState<AccountTarget | null>(null);
   const [toReactivate, setToReactivate] = useState<AccountTarget | null>(null);
-  const [toPassword, setToPassword] = useState<AccountTarget | null>(null);
-  const [newPassword, setNewPassword] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "error" | "success" } | null>(null);
 
   const fail = (e: unknown, fallback: string) =>
@@ -97,30 +95,12 @@ export const useAccountActions = (onChanged: () => void) => {
     }
   };
 
-  const changePassword = async () => {
-    if (!toPassword || !newPassword.trim()) return;
-    try {
-      await usersApi.changePassword(toPassword.id, newPassword);
-      setToPassword(null);
-      setNewPassword("");
-      setToast({ message: t("list.toastPasswordChanged"), type: "success" });
-    } catch (e) {
-      fail(e, "list.errorPassword");
-    }
-  };
-
   return {
     can,
     toDeactivate, setToDeactivate, deactivate,
     toDelete, setToDelete,
     toForceDelete, setToForceDelete, remove,
     toReactivate, setToReactivate, reactivate,
-    toPassword, newPassword, setNewPassword, changePassword,
-    openPassword: (u: AccountTarget) => {
-      setNewPassword("");
-      setToPassword(u);
-    },
-    closePassword: () => setToPassword(null),
     toast, setToast,
   };
 };

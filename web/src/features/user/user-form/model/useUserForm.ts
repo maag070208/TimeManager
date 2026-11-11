@@ -174,6 +174,9 @@ export const useUserForm = (userId?: string) => {
       .catch(() => setDocumentTypes([]));
   }, []);
 
+  /** Cuenta tal como llegó del API (estado activo, nombre visible) para el encabezado y la baja. */
+  const [loadedUser, setLoadedUser] = useState<User | null>(null);
+
   useEffect(() => {
     departmentsApi
       .list(true)
@@ -185,6 +188,7 @@ export const useUserForm = (userId?: string) => {
       usersApi
         .get(id)
         .then((u: User) => {
+          setLoadedUser(u);
           const nameParts = splitStoredName(u.name);
           setForm({
             username: u.username,
@@ -415,6 +419,7 @@ export const useUserForm = (userId?: string) => {
           departmentId: form.departmentId || undefined,
           subareaId: form.subareaId || undefined,
         });
+        if (form.password) await usersApi.changePassword(id!, form.password);
       } else {
         const created = await usersApi.create({
           username: form.username,
@@ -509,6 +514,7 @@ export const useUserForm = (userId?: string) => {
     id,
     hasRecord,
     editsPerson,
+    loadedUser,
     departments,
     form,
     errors,

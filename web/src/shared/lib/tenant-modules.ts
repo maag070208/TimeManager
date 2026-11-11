@@ -16,7 +16,7 @@ export const TENANT_MODULES: readonly TenantModuleDefinition[] = [
   { id: "schedules", label: "Horarios y tiempo extra", description: "Horarios, asignación, tiempo extra e historial de pre-nómina.", paths: ["/schedules"], group: "Operación", requires: "Asistencia", initials: "HT", tone: "amber" },
   { id: "payroll", label: "Nómina", description: "Configuración de nómina, perfiles y cálculo.", paths: ["/payroll"], group: "Nómina y cumplimiento", requires: "Asistencia", initials: "NO", tone: "amber" },
   { id: "leave", label: "Vacaciones y permisos", description: "Solicitudes, aprobación y tipos de permiso.", paths: ["/hr/leave"], group: "Operación", initials: "VP", tone: "mint" },
-  { id: "agreements", label: "Convenios de jornada", description: "Convenios art. 58 y acuerdos de método de registro.", paths: ["/hr/jornada-acuerdos"], group: "Nómina y cumplimiento", initials: "CJ", tone: "mint" },
+  { id: "agreements", label: "Acuerdos con el personal", description: "Jornada acordada (art. 58) y forma de registro.", paths: ["/hr/jornada-acuerdos"], group: "Nómina y cumplimiento", initials: "CJ", tone: "mint" },
   { id: "telework", label: "Teletrabajo NOM-037", description: "Política, teletrabajadores, checklists y desconexión.", paths: ["/teletrabajo"], group: "Operación", initials: "TT", tone: "slate" },
   { id: "settings", label: "Configuración del cliente", description: "Semana, tolerancias, límites y checada web.", paths: ["/settings"], group: "Administración", initials: "CC", tone: "slate" },
   { id: "roles", label: "Roles y permisos", description: "Roles, matriz de permisos y políticas.", paths: ["/roles"], group: "Administración", initials: "RP", tone: "mint" },

@@ -65,6 +65,10 @@ export class RemotePunchService {
     }
     const config = await this.settings.resolve(user.tenantId);
     if (!config.remotePunchEnabled) throw new HttpError(403, "REMOTE_PUNCH_DISABLED");
+    // Ubicación apagada por el cliente: se descarta aunque el dispositivo la mande.
+    if (!config.remoteGeolocationEnabled) {
+      input = { ...input, latitude: undefined, longitude: undefined, gpsAccuracyMeters: undefined };
+    }
 
     // D-4: si el cliente lo exige, no hay checada web sin acuerdo de método
     // aceptado que incluya REMOTE (prueba de dos partes; la firma patronal se

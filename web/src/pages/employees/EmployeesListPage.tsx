@@ -5,7 +5,7 @@ import {
   ITText,
   ITStack } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
-import { LuFileSpreadsheet, LuPlus, LuUserCheck, LuUserMinus, LuUsersRound } from "react-icons/lu";
+import { LuFileSpreadsheet, LuKeyRound, LuPlus, LuUserCheck, LuUserMinus, LuUsersRound } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCan } from "@entities/user";
@@ -19,7 +19,7 @@ import { TicState } from "@shared/ui/tic";
 
 import { PanelCard } from "@shared/ui/panel-card";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
-import { AccountActionDialogs, AccountRowActions, useAccountActions } from "@features/user/account-actions";
+import { AccountActionDialogs, useAccountActions } from "@features/user/account-actions";
 import { UserEditDialog } from "@features/user/user-form";
 
 export default function EmployeesListPage() {
@@ -131,7 +131,15 @@ export default function EmployeesListPage() {
             onView={view}
             onEdit={(u) => navigate(`/employees/${u.id}/edit`)}
             onChanged={list.reload}
-            rowActions={(u) => <AccountRowActions fx={account} person={u} onAccount={canEditAccounts ? openAccount : undefined} />}
+            rowActions={
+              canEditAccounts
+                ? (u) => (
+                    <ITButton variant="outlined" color="secondary" className="tm-icon-button" aria-label={tt("users:access.button")} title={tt("users:access.button")} onClick={() => openAccount(u)}>
+                      <LuKeyRound size={15} />
+                    </ITButton>
+                  )
+                : undefined
+            }
           />
         )}
       </ITStack>
@@ -140,6 +148,9 @@ export default function EmployeesListPage() {
         userId={accountId ?? null}
         onClose={() => (accountId ? navigate(`/employees/${accountId}`, { replace: true }) : goBack("/employees"))}
         onSaved={list.reload}
+        onDeactivate={account.can.deactivate ? account.setToDeactivate : undefined}
+        onReactivate={account.can.deactivate ? account.setToReactivate : undefined}
+        onDelete={account.can.delete ? account.setToDelete : undefined}
       />
       <AccountActionDialogs fx={account} />
     </ITPage>

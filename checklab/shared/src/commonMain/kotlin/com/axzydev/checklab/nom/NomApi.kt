@@ -52,6 +52,10 @@ data class DiscrepancyRequest(val punchId: String, val reason: String)
 @Serializable
 data class IdResult(val id: String)
 
+/** Lo que la checada necesita de `GET /nom/me/telework`: si el cliente permite guardar ubicación. */
+@Serializable
+data class PunchSettings(val remoteGeolocationEnabled: Boolean = true)
+
 class NomApi(private val client: HttpClient) {
     suspend fun myPunches(from: String? = null, to: String? = null, limit: Int? = null): List<MyPunch> =
         apiCall {
@@ -63,6 +67,8 @@ class NomApi(private val client: HttpClient) {
         }
 
     suspend fun punch(request: PunchRequest): PunchResult = apiCall { client.post("nom/me/punch") { setBody(request) } }
+
+    suspend fun punchSettings(): PunchSettings = apiCall { client.get("nom/me/telework") }
 
     suspend fun reportDiscrepancy(punchId: String, reason: String): IdResult =
         apiCall { client.post("nom/me/discrepancies") { setBody(DiscrepancyRequest(punchId, reason)) } }

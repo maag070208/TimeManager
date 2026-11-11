@@ -40,6 +40,7 @@ export default function GeneralSettingsPage() {
     remoteCountsForWorkday: true,
     blockRemoteWithoutAgreement: true,
     requireUnionForCollective: true,
+    remoteGeolocationEnabled: true,
   });
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function GeneralSettingsPage() {
           remoteCountsForWorkday: next.remotePunchEnabled === false ? false : true,
           blockRemoteWithoutAgreement: next.blockRemoteWithoutAgreement ?? true,
           requireUnionForCollective: next.requireUnionForCollective ?? true,
+          remoteGeolocationEnabled: next.remoteGeolocationEnabled ?? true,
         });
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."))
@@ -102,6 +104,7 @@ export default function GeneralSettingsPage() {
         remoteCountsForWorkday: form.remotePunchEnabled,
         blockRemoteWithoutAgreement: form.blockRemoteWithoutAgreement,
         requireUnionForCollective: form.requireUnionForCollective,
+        remoteGeolocationEnabled: form.remoteGeolocationEnabled,
       });
       await dispatch(meThunk()).unwrap().catch(() => undefined);
       setToast("Configuración guardada.");
@@ -284,6 +287,12 @@ export default function GeneralSettingsPage() {
                     </ITText>
                   )}
                 </div>
+                <div>
+                  <ITSearchSelect name="remoteGeolocationEnabled" label="Ubicación en la checada web" value={form.remoteGeolocationEnabled ? "true" : "false"} onChange={(e) => set("remoteGeolocationEnabled", e.target.value === "true")} options={[{ value: "true", label: "Encendida: el trabajador puede compartirla" }, { value: "false", label: "Apagada: no se pide ni se guarda" }]} />
+                  <ITText as="span" className="mt-1 block !text-[11px] text-slate-500">
+                    Apagarla no borra las ubicaciones ya guardadas.
+                  </ITText>
+                </div>
                 <ITSearchSelect name="blockRemoteWithoutAgreement" label="Exigir acuerdo para checar web" value={form.blockRemoteWithoutAgreement ? "true" : "false"} onChange={(e) => set("blockRemoteWithoutAgreement", e.target.value === "true")} options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]} />
                 <ITSearchSelect name="requireUnionForCollective" label="Convenio colectivo exige sindicato" value={form.requireUnionForCollective ? "true" : "false"} onChange={(e) => set("requireUnionForCollective", e.target.value === "true")} options={[{ value: "true", label: "Sí" }, { value: "false", label: "No, permitir trabajador" }]} />
               </div>
@@ -322,7 +331,7 @@ export default function GeneralSettingsPage() {
                 <LuCalendarDays size={14} /> Horarios y tolerancias
               </Link>
               <Link to="/hr/jornada-acuerdos" className="flex items-center gap-2 hover:underline">
-                <LuSignature size={14} /> Convenios y acuerdos
+                <LuSignature size={14} /> Acuerdos con el personal
               </Link>
               <Link to="/payroll/settings" className="flex items-center gap-2 hover:underline">
                 <LuWallet size={14} /> Nómina y prestaciones

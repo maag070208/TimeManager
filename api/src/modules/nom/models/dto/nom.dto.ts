@@ -34,6 +34,7 @@ export const NomSettingsUpdateDto = z
     remoteCountsForWorkday: z.boolean().optional(),
     blockRemoteWithoutAgreement: z.boolean().optional(),
     requireUnionForCollective: z.boolean().optional(),
+    remoteGeolocationEnabled: z.boolean().optional(),
   })
   .strict();
 

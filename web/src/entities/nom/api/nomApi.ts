@@ -36,6 +36,7 @@ export interface NomConfigDto {
   remoteCountsForWorkday: boolean;
   blockRemoteWithoutAgreement: boolean;
   requireUnionForCollective: boolean;
+  remoteGeolocationEnabled: boolean;
   legal?: {
     year: number;
     weeklyLimitMinutes: number;
@@ -65,6 +66,7 @@ export const nomApi = {
     remoteCountsForWorkday?: boolean;
     blockRemoteWithoutAgreement?: boolean;
     requireUnionForCollective?: boolean;
+    remoteGeolocationEnabled?: boolean;
   }) =>
     api.put<NomConfigDto>(`${base}/config`, input),
   myPunches: (params: { from?: string; to?: string; limit?: number } = {}) => {

@@ -1733,6 +1733,8 @@ model NomSettings {
   blockRemoteWithoutAgreement Boolean   @default(true)
   /// D-1: en convenio colectivo exigir representación sindical (parte UNION).
   requireUnionForCollective   Boolean   @default(true)
+  /// ¿La checada web/app puede guardar la ubicación del trabajador?
+  remoteGeolocationEnabled    Boolean   @default(true)
   /// Política de teletrabajo editable por cliente (NOM-037 / F2-08).
   teleworkPolicy              String?
   /// Política de desconexión digital (NOM-037 / F2-08).

@@ -1,5 +1,5 @@
 import { ITSearchSelect } from "@shared/ui/it-search-select";
-import { useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ITBadget,
   ITButton,
@@ -45,6 +45,8 @@ const SOURCE_LABEL: Record<"CLOCK" | "ACCESS" | "REMOTE", string> = {
 const timeOf = (iso: string): string =>
   new Date(iso).toLocaleTimeString(dateLocale(), { hour: "2-digit", minute: "2-digit", hour12: false });
 
+const dayOf = (iso: string): string =>
+  new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium", timeZone: "UTC" });
 const dateOf = (iso: string): string =>
   new Date(iso).toLocaleDateString(dateLocale(), { day: "2-digit", month: "short", year: "numeric" });
 
@@ -97,16 +99,35 @@ export default function MyWorkdayPage() {
   const [leaveReason, setLeaveReason] = useState("");
   const [tab, setTab] = useState<"checada" | "telework" | "compliance" | "leave">("checada");
 
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 15_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
   const lastGeoPunch = useMemo(
     () => fx.punches.find((row) => row.latitude != null && row.longitude != null) ?? null,
     [fx.punches]
   );
+  const punchDays = useMemo(() => {
+    const days = new Map<string, MyPunch[]>();
+    for (const row of fx.punches) {
+      const key = sameDay(row.occurredAt)
+        ? t("punch.today")
+        : new Date(row.occurredAt).toLocaleDateString(dateLocale(), { weekday: "long", day: "numeric", month: "short" });
+      const list = days.get(key);
+      if (list) list.push(row);
+      else days.set(key, [row]);
+    }
+    return [...days.entries()];
+  }, [fx.punches, t]);
   const telework = fx.telework;
+  const geoEnabled = telework?.remoteGeolocationEnabled ?? true;
   const checklistItems = telework?.checklistTemplate.items ?? [];
 
   const doPunch = async (type: PunchType) => {
-    const ok = await fx.punch(type, { note: note.trim() || undefined, withGeolocation: withGeo, workMode });
+    const ok = await fx.punch(type, { note: note.trim() || undefined, withGeolocation: geoEnabled && withGeo, workMode });
     if (ok) setNote("");
   };
 
@@ -159,12 +180,6 @@ export default function MyWorkdayPage() {
     LUNCH_END: tr("punch.status.back"),
     EXIT: tr("punch.status.done"),
   };
-  const PUNCH_CONFIRM: Record<PunchType, string> = {
-    ENTRY: "entrada",
-    LUNCH_START: "salida a comer",
-    LUNCH_END: "regreso de comer",
-    EXIT: "salida",
-  };
   const statusTone = !lastType ? "gray" : lastType === "LUNCH_START" ? "warning" : lastType === "EXIT" ? "gray" : "success";
   const primaryLabel = !primaryNext
     ? ""
@@ -208,6 +223,51 @@ export default function MyWorkdayPage() {
         value={tab}
         onChange={setTab}
       />
+
+      {wc.error && tab !== "compliance" && (
+        <ITText className="mb-4 block rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700">{wc.error}</ITText>
+      )}
+      {!wc.loading && wc.proposal && !wc.agreement?.acceptedAt && (
+        <div className="mb-4">
+        <ITCard className="tm-hero-card tm-hero-card--amber" contentClassName="!p-4 sm:!p-5">
+          <ITFlex direction="column" gap={2}>
+            <ITText className="font-bold">{tr("agreements.methodTitle")}</ITText>
+            <ITText className="!text-[13px]">{wc.proposal.text}</ITText>
+            <ITFlex gap={1} wrap="wrap">
+              {wc.proposal.methods.map((method) => (
+                <ITBadget key={method} color="info" size="sm">{tr(`agreements.methods.${method}`)}</ITBadget>
+              ))}
+            </ITFlex>
+            <div>
+            <ITButton variant="filled" color="primary" disabled={wc.busy !== null} onClick={() => void wc.acceptAgreement()}>
+              {tr("agreements.methodAccept")}
+            </ITButton>
+            </div>
+          </ITFlex>
+        </ITCard>
+        </div>
+      )}
+      {wc.scheduleAgreements.filter((row) => !row.acceptedAt).map((row) => (
+        <div key={row.id} className="mb-4">
+        <ITCard className="tm-hero-card tm-hero-card--sky" contentClassName="!p-4 sm:!p-5">
+          <ITFlex direction="column" gap={2}>
+            <ITText className="font-bold">{tr("agreements.scheduleTitle")}</ITText>
+            <ITText className="!text-[13px]">{row.evidenceText}</ITText>
+            <ITText muted className="!text-[12px]">
+              {row.effectiveTo
+                ? tr("agreements.range", { from: dayOf(row.effectiveFrom), to: dayOf(row.effectiveTo) })
+                : tr("agreements.from", { from: dayOf(row.effectiveFrom) })}
+            </ITText>
+            <ITText muted className="!text-[12px]">{tr("agreements.scheduleHint")}</ITText>
+            <div>
+            <ITButton variant="filled" color="primary" disabled={wc.busy !== null} onClick={() => void wc.acceptScheduleAgreement(row.id)}>
+              {tr("agreements.scheduleAccept")}
+            </ITButton>
+            </div>
+          </ITFlex>
+        </ITCard>
+        </div>
+      ))}
 
       <div className={tab === "checada" ? "" : "hidden"}>
       <BentoKpiGrid
@@ -271,13 +331,10 @@ export default function MyWorkdayPage() {
                         </span>
                       </span>
                       <span className="text-[20px] font-black tabular-nums text-slate-900">
-                        {fx.busy ? "…" : timeOf(new Date().toISOString())}
+                        {fx.busy ? "…" : timeOf(now.toISOString())}
                       </span>
                     </button>
 
-                    <ITText className="!text-[12px] !text-slate-600">
-                      Presiona aquí para confirmar tu <ITText as="span" className="font-bold !text-slate-900">{PUNCH_CONFIRM[primaryNext!]}</ITText>.
-                    </ITText>
                   </>
                 ) : (
                   <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
@@ -294,7 +351,7 @@ export default function MyWorkdayPage() {
                   <ITText muted className="!text-[11.5px]">
                     {tr("punch.channelHint")}
                   </ITText>
-                  <HelpTip text="La checada web se marca con la hora del servidor y avanza entrada → comida → regreso → salida. La ubicación es opcional y solo se comparte si la activas." />
+                  <HelpTip text={`La checada web se marca con la hora del servidor y avanza entrada → comida → regreso → salida.${geoEnabled ? " La ubicación es opcional y solo se comparte si la activas." : ""}`} />
                 </ITFlex>
 
 
@@ -348,18 +405,22 @@ export default function MyWorkdayPage() {
                         onChange={(event) => setNote(event.target.value)}
                       />
                     </div>
-                    <label className="flex items-start gap-2 text-[12px] text-slate-700">
-                      <input type="checkbox" className="mt-0.5" checked={withGeo} onChange={(event) => setWithGeo(event.target.checked)} />
-                      <span className="flex items-center gap-1.5">
-                        <LuMapPin size={13} />
-                        {t("punch.shareLocation")}
-                      </span>
-                    </label>
-                    <ITText muted className="!text-[11px]">{t("punch.privacy")}</ITText>
+                    {geoEnabled && (
+                      <>
+                        <label className="flex items-start gap-2 text-[12px] text-slate-700">
+                          <input type="checkbox" className="mt-0.5" checked={withGeo} onChange={(event) => setWithGeo(event.target.checked)} />
+                          <span className="flex items-center gap-1.5">
+                            <LuMapPin size={13} />
+                            {t("punch.shareLocation")}
+                          </span>
+                        </label>
+                        <ITText muted className="!text-[11px]">{t("punch.privacy")}</ITText>
+                      </>
+                    )}
                   </div>
                 </details>
 
-                {lastGeoPunch?.latitude != null && lastGeoPunch?.longitude != null && (
+                {geoEnabled && lastGeoPunch?.latitude != null && lastGeoPunch?.longitude != null && (
                   <div className="rounded-2xl border border-slate-100 bg-white p-3">
                     <ITFlex align="center" gap={1} className="mb-2">
                       <LuMapPin size={13} className="text-rose-500" />
@@ -398,82 +459,81 @@ export default function MyWorkdayPage() {
                   <ITText muted>{t("punches.empty")}</ITText>
                 ) : (
                   <div className="flex max-h-[540px] flex-col gap-1.5 overflow-y-auto pr-1">
-                    {fx.punches.map((row) => (
-                      <div key={row.id} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50/80 px-3 py-2">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <ITText className="shrink-0 font-bold tabular-nums !text-[12px]">{timeOf(row.occurredAt)}</ITText>
-                          <div className="min-w-0">
-                            <ITText className="block truncate !text-[11.5px] font-semibold !text-slate-700">{dateOf(row.occurredAt)}</ITText>
-                            <ITText muted className="block !text-[10.5px]">{row.type ? tr(row.type === "ENTRY" ? "punches.entry" : "punches.exit") : t("punches.noType")}</ITText>
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          <ITBadget color={row.source === "REMOTE" ? "info" : "gray"} size="sm">
-                            {tr(SOURCE_LABEL[row.source])}
-                          </ITBadget>
-                          {row.latitude != null && row.longitude != null && (
-                            <ITButton
-                              variant="text"
-                              color="secondary"
-                              size="sm"
-                              className="!h-7 !min-h-7 !w-7 !border-0 !bg-slate-100 !p-0 !text-slate-500"
-                              title="Ver ubicación en el mapa"
-                              aria-label="Ver ubicación en el mapa"
-                              onClick={() => setMapPunch(row)}
-                            >
-                              <LuMapPin size={12} />
-                            </ITButton>
-                          )}
-                          {row.source !== "ACCESS" && (
-                            <ITButton
-                              variant="text"
-                              color="secondary"
-                              size="sm"
-                              className="!h-7 !min-h-7 !w-7 !border-0 !bg-slate-100 !p-0 !text-slate-500"
-                              title={`${t("punches.report")} · ${timeOf(row.occurredAt)}`}
-                              aria-label={`${t("punches.report")} · ${timeOf(row.occurredAt)}`}
-                              onClick={() => {
-                                setSelectedPunch(row.id);
-                                setReason("");
-                              }}
-                            >
-                              <LuFileText size={12} />
-                            </ITButton>
-                          )}
-                        </div>
-                      </div>
+                    {punchDays.map(([day, rows]) => (
+                      <Fragment key={day}>
+                        <ITText muted className="mt-1 !text-[11px] font-semibold uppercase tracking-[0.06em]">{day}</ITText>
+                        {rows.map((row) => (
+                          <Fragment key={row.id}>
+                            <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50/80 px-3 py-2">
+                              <div className="flex min-w-0 items-center gap-3">
+                                <ITText className="shrink-0 font-bold tabular-nums !text-[12.5px]">{timeOf(row.occurredAt)}</ITText>
+                                <ITText className="truncate !text-[12px] !text-slate-700">
+                                  {row.type ? PUNCH_LABEL[row.type] : t("punches.noType")}
+                                </ITText>
+                              </div>
+                              <div className="flex shrink-0 items-center gap-1.5">
+                                <ITBadget color={row.source === "REMOTE" ? "info" : "gray"} size="sm">
+                                  {tr(SOURCE_LABEL[row.source])}
+                                </ITBadget>
+                                {row.latitude != null && row.longitude != null && (
+                                  <ITButton
+                                    variant="text"
+                                    color="secondary"
+                                    size="sm"
+                                    className="!h-7 !min-h-7 !w-7 !border-0 !bg-slate-100 !p-0 !text-slate-500"
+                                    title="Ver ubicación en el mapa"
+                                    aria-label="Ver ubicación en el mapa"
+                                    onClick={() => setMapPunch(row)}
+                                  >
+                                    <LuMapPin size={12} />
+                                  </ITButton>
+                                )}
+                                {row.source !== "ACCESS" && (
+                                  <ITButton
+                                    variant="text"
+                                    color="secondary"
+                                    size="sm"
+                                    className="!h-7 !min-h-7 !border-0 !bg-slate-100 !px-2 !text-[11px] !text-slate-600"
+                                    aria-label={`${t("punches.report")} · ${timeOf(row.occurredAt)}`}
+                                    onClick={() => {
+                                      setSelectedPunch(selectedPunch === row.id ? null : row.id);
+                                      setReason("");
+                                    }}
+                                  >
+                                    {t("punches.reportShort")}
+                                  </ITButton>
+                                )}
+                              </div>
+                            </div>
+                            {selectedPunch === row.id && (
+                              <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3">
+                                <ITTextarea
+                                  name="reason"
+                                  label={t("discrepancy.reason")}
+                                  value={reason}
+                                  onChange={(value) => setReason(value)}
+                                  rows={2}
+                                />
+                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                  <ITButton
+                                    variant="filled"
+                                    color="primary"
+                                    className="w-full"
+                                    disabled={reason.trim().length < 5}
+                                    onClick={() => void submitDiscrepancy()}
+                                  >
+                                    {t("discrepancy.send")}
+                                  </ITButton>
+                                  <ITButton variant="outlined" color="secondary" className="w-full" onClick={() => setSelectedPunch(null)}>
+                                    {t("cancel")}
+                                  </ITButton>
+                                </div>
+                              </div>
+                            )}
+                          </Fragment>
+                        ))}
+                      </Fragment>
                     ))}
-                  </div>
-                )}
-
-                {selectedPunch && (
-                  <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
-                    <ITTextarea
-                      name="reason"
-                      label={t("discrepancy.reason")}
-                      value={reason}
-                      onChange={(value) => setReason(value)}
-                      rows={2}
-                    />
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      <ITButton
-                        variant="filled"
-                        color="primary"
-                        className="w-full"
-                        disabled={reason.trim().length < 5}
-                        onClick={() => void submitDiscrepancy()}
-                      >
-                        {t("discrepancy.send")}
-                      </ITButton>
-                      <ITButton
-                        variant="outlined"
-                        color="secondary"
-                        className="w-full"
-                        onClick={() => setSelectedPunch(null)}
-                      >
-                        {t("cancel")}
-                      </ITButton>
-                    </div>
                   </div>
                 )}
               </ITFlex>
@@ -663,7 +723,7 @@ export default function MyWorkdayPage() {
                     <ITText className="!text-[12px]">{wc.proposal.text}</ITText>
                     <ITFlex gap={1} wrap="wrap">
                       {wc.proposal.methods.map((method) => (
-                        <ITBadget key={method} color="info" size="sm">{method}</ITBadget>
+                        <ITBadget key={method} color="info" size="sm">{tr(`agreements.methods.${method}`)}</ITBadget>
                       ))}
                     </ITFlex>
                   </div>
@@ -674,7 +734,7 @@ export default function MyWorkdayPage() {
                     <ITBadget color="success" size="sm">{tr("record.accepted")}</ITBadget>
                     <ITText muted className="!text-[11px]">
                       {tr("record.version")} {wc.agreement.textVersion} · {dateOf(wc.agreement.acceptedAt)} ·{" "}
-                      {wc.agreement.methods.join(" + ")}
+                      {wc.agreement.methods.map((method) => tr(`agreements.methods.${method}`)).join(" · ")}
                     </ITText>
                     <ITBadget color={wc.agreement.employerAcceptedAt ? "success" : "warning"} size="sm">
                       {wc.agreement.employerAcceptedAt ? tr("record.employerSigned") : tr("record.employerPending")}

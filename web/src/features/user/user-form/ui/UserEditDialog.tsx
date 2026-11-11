@@ -1,186 +1,198 @@
-import { useEffect, useState } from "react";
-import { ITAlert, ITButton, ITCard, ITDialog, ITFlex, ITText } from "@axzydev/axzy_ui_system";
-import { LuUserCog, LuUserPen } from "react-icons/lu";
+import { useEffect } from "react";
+import { ITAlert, ITButton, ITCheckbox, ITDialog, ITInput, ITText } from "@axzydev/axzy_ui_system";
+import { LuKeyRound, LuTrash2, LuUndo2, LuUserX } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCan } from "@entities/user";
-import { usePrefersReducedMotion } from "@shared/lib/usePrefersReducedMotion";
 import { DialogHeader } from "@shared/ui/dialog-header";
-import { HelpTip } from "@shared/ui/help-tip";
-import { Tic, type TicAnim } from "@shared/ui/tic";
+import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useUserForm, UserFormFields } from "..";
 
 interface Props {
-  /** Usuario a editar; `null` cierra el diálogo. */
+  /** Cuenta a editar; `null` cierra el diálogo. */
   userId: string | null;
   onClose: () => void;
   /** Se llama tras guardar (la lista refresca). */
   onSaved?: () => void;
+  /** Baja de la cuenta; sin ella no se muestra el estado. */
+  onDeactivate?: (person: AccountPerson) => void;
+  onReactivate?: (person: AccountPerson) => void;
+  /** Borrado (solo cuentas dadas de baja). */
+  onDelete?: (person: AccountPerson) => void;
+}
+
+interface AccountPerson {
+  id: string;
+  username: string;
+  name: string;
+  active: boolean;
 }
 
 /**
- * Edición de una cuenta en un diálogo, sobre la lista de Usuarios.
- *
- * Edita lo que es de la CUENTA: acceso (usuario, contraseña, roles) y
- * organización (departamento y subárea). Los datos de la persona y los
- * laborales (nombre, correo, nº de empleado, puesto) viven en su expediente
- * (`/employees/:id/edit`) y aquí solo se capturan si la cuenta no tiene
- * expediente, que es su único lugar.
+ * Credenciales de acceso de una cuenta: usuario, nueva contraseña, rol y roles
+ * adicionales, más su estado (baja/reactivar). Los datos de la persona viven en
+ * su expediente; solo se capturan aquí si la cuenta no tiene expediente.
  */
-export default function UserEditDialog({ userId, onClose, onSaved }: Props) {
-  const { t: tt } = useTranslation(["users", "common"]);
+export default function UserEditDialog({ userId, onClose, onSaved, onDeactivate, onReactivate, onDelete }: Props) {
+  const { t } = useTranslation(["users", "common"]);
   const navigate = useNavigate();
-  const [saved, setSaved] = useState(false);
   const canSeeRecords = useCan("hr.records");
-  const reduced = usePrefersReducedMotion();
-  const userForm = useUserForm(userId ?? undefined);
-  const { editsPerson, hasRecord, loading } = userForm;
+  const fx = useUserForm(userId ?? undefined);
+  const { form, errors, loadedUser } = fx;
 
-  // Al cambiar de usuario se limpia el estado de la corrida anterior.
   useEffect(() => {
-    setSaved(false);
-    userForm.setError(null);
+    fx.setError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const handleSave = async () => {
-    const result = await userForm.handleSubmit();
+  const save = async () => {
+    const result = await fx.handleSubmit();
     if (!result.ok) return;
-    setSaved(true);
     onSaved?.();
+    onClose();
   };
 
-  // Tic reacciona al estado del guardado (nivel L3).
-  const hasErrors = Object.keys(userForm.errors).length > 0;
-  const anim: TicAnim = userForm.saving ? "work" : userForm.error || hasErrors ? "err" : saved ? "ok" : "help";
+  const target: AccountPerson | null = loadedUser && { id: loadedUser.id, username: loadedUser.username, name: loadedUser.name, active: loadedUser.active };
+  const runAndClose = (action: (person: AccountPerson) => void, person: AccountPerson) => {
+    onClose();
+    action(person);
+  };
 
   return (
-    <ITDialog
-      isOpen={!!userId}
-      onClose={onClose}
-      className="max-w-4xl"
-    >
-      <DialogHeader icon={<LuUserPen size={20} />} title={tt("form.titleEdit")} subtitle={tt("form.descriptionEdit")} />
-      <div
-        className="max-h-[60vh] overflow-y-auto pr-1"
-        onKeyDown={(event) => {
-          // Enter guarda, salvo en listas desplegables y áreas de texto.
-          const target = event.target as HTMLElement;
-          if (event.key !== "Enter" || target.tagName !== "INPUT" || target.getAttribute("role") === "combobox" || (target as HTMLInputElement).type === "checkbox") return;
+    <ITDialog isOpen={!!userId} onClose={onClose} className="max-w-xl">
+      <DialogHeader
+        icon={<LuKeyRound size={20} />}
+        title={t("access.title", { name: loadedUser?.name ?? "…" })}
+        subtitle={t("access.subtitle")}
+      />
+      <form
+        noValidate
+        className="flex flex-col gap-4"
+        onSubmit={(event) => {
           event.preventDefault();
-          if (!userForm.saving && !loading) void handleSave();
+          if (!fx.saving && !fx.loading) void save();
         }}
       >
-      <ITFlex direction="column" gap={5}>
-        {userForm.error && (
-          <ITAlert variant="error" dismissible onDismiss={() => userForm.setError(null)}>
-            {userForm.error}
+        {fx.error && (
+          <ITAlert variant="error" dismissible onDismiss={() => fx.setError(null)}>
+            {fx.error}
           </ITAlert>
         )}
-        {saved && <ITAlert variant="success">{tt("form.saved")}</ITAlert>}
 
-        {/* Con expediente, los datos de la persona se editan en Personal. */}
-        {hasRecord && (
-          <ITFlex align="center" justify="between" wrap="wrap" gap={2} className="rounded-xl bg-[var(--color-warning-soft)] px-3 py-2">
-            <ITFlex align="center" gap={2}>
-              <LuUserCog size={14} className="text-[color:color-mix(in_srgb,var(--color-warning)_70%,black)]" />
-              <ITText className="!text-[12.5px] text-slate-600">{tt("form.personElsewhere")}</ITText>
-            </ITFlex>
-            {canSeeRecords && userId && (
-              <ITButton
-                variant="outlined"
-                color="primary"
-                size="sm"
-                onClick={() => navigate(`/employees/${userId}/edit`)}
-              >
-                <ITText className="!text-[12px] font-bold">{tt("form.openRecord")}</ITText>
-              </ITButton>
-            )}
-          </ITFlex>
-        )}
-
-        {editsPerson && (
-          <ITCard className="tm-hero-card tm-hero-card--sky" contentClassName="!p-4">
-          <ITText as="h3" className="m-0 mb-3 !text-[14px] font-bold !text-slate-700">{tt("form.sectionPersonal")}</ITText>
+        {fx.editsPerson && (
           <UserFormFields
             step="personal"
             isEdit
             personFields
-            form={userForm.form}
-            errors={userForm.errors}
-            onFieldChange={userForm.handleField}
-            onBlur={userForm.handleBlur}
-            onDepartmentChange={userForm.handleDepartmentChange}
-            departments={userForm.departments}
-            selectedDept={userForm.selectedDept}
-            roleGuidance={userForm.roleGuidance}
-            roleOptions={userForm.ROLE_OPTIONS}
+            form={form}
+            errors={errors}
+            onFieldChange={fx.handleField}
+            onBlur={fx.handleBlur}
+            onDepartmentChange={fx.handleDepartmentChange}
+            departments={fx.departments}
+            selectedDept={fx.selectedDept}
+            roleGuidance={fx.roleGuidance}
+            roleOptions={fx.ROLE_OPTIONS}
           />
-          </ITCard>
         )}
-        <ITCard className="tm-hero-card tm-hero-card--mint" contentClassName="!p-4">
-        <ITFlex align="center" gap={2} className="mb-3">
-          <ITText as="h3" className="m-0 !text-[14px] font-bold !text-slate-700">{tt("form.sectionAccess")}</ITText>
-          <HelpTip text="El rol y los roles adicionales definen a qué pantallas entra la persona; el alcance fino se ajusta en Roles y permisos." />
-        </ITFlex>
-        <UserFormFields
-          step="access"
-          isEdit
-          form={userForm.form}
-          errors={userForm.errors}
-          onFieldChange={userForm.handleField}
-          onBlur={userForm.handleBlur}
-          onDepartmentChange={userForm.handleDepartmentChange}
-          departments={userForm.departments}
-          selectedDept={userForm.selectedDept}
-          roleGuidance={userForm.roleGuidance}
-          roleOptions={userForm.ROLE_OPTIONS}
-          extraRoleOptions={userForm.EXTRA_ROLE_OPTIONS}
-          onToggleExtraRole={userForm.toggleExtraRole}
-        />
-        </ITCard>
-        <ITCard className="tm-hero-card tm-hero-card--amber" contentClassName="!p-4">
-        <ITFlex align="center" gap={2} className="mb-3">
-          <ITText as="h3" className="m-0 !text-[14px] font-bold !text-slate-700">{tt("form.sectionOrganization")}</ITText>
-          <HelpTip text="Departamento y subárea se usan para filtros, reportes y aprobaciones de nómina." />
-        </ITFlex>
-        <UserFormFields
-          step="org"
-          isEdit
-          form={userForm.form}
-          errors={userForm.errors}
-          onFieldChange={userForm.handleField}
-          onBlur={userForm.handleBlur}
-          onDepartmentChange={userForm.handleDepartmentChange}
-          departments={userForm.departments}
-          selectedDept={userForm.selectedDept}
-          roleGuidance={userForm.roleGuidance}
-          roleOptions={userForm.ROLE_OPTIONS}
-        />
-        </ITCard>
-      </ITFlex>
-      </div>
 
-      {/* Pie fijo: no se mueve al hacer scroll en el cuerpo. */}
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <Tic anim={anim} size={44} animated={!reduced} label={tt("form.guideLabel")} />
-        <ITFlex gap={2}>
-          <ITButton variant="outlined" color="secondary" className="tm-save-button" onClick={onClose}>
-            <ITText className="!text-[12px] font-bold">{tt("common:actions.cancel")}</ITText>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ITInput
+            name="u_username"
+            label={t("access.username")}
+            value={form.username}
+            onChange={(event) => fx.handleField("username", event.target.value)}
+            onBlur={() => fx.handleBlur("username")}
+            error={errors.username}
+            touched={!!errors.username}
+            required
+          />
+          <ITSearchSelect
+            name="u_role"
+            label={t("access.role")}
+            options={fx.ROLE_OPTIONS}
+            value={form.role}
+            onChange={(event) => fx.handleField("role", event.target.value as never)}
+            required
+          />
+          <div className="sm:col-span-2">
+            <ITInput
+              name="u_password"
+              type="password"
+              label={t("access.newPassword")}
+              value={form.password}
+              onChange={(event) => fx.handleField("password", event.target.value)}
+              onBlur={() => fx.handleBlur("password")}
+              error={errors.password}
+              touched={!!errors.password}
+            />
+            <ITText className="mt-1 block text-xs text-slate-500">{t("access.newPasswordHint")}</ITText>
+          </div>
+          {fx.EXTRA_ROLE_OPTIONS.length > 0 && (
+            <div className="sm:col-span-2">
+              <ITText className="mb-1.5 block text-[13px] font-semibold text-slate-700 dark:text-slate-200">{t("access.extraRoles")}</ITText>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {fx.EXTRA_ROLE_OPTIONS.map((option) => (
+                  <ITCheckbox
+                    key={option.value}
+                    name={`extra_role_${option.value}`}
+                    checked={form.roles.includes(option.value)}
+                    onChange={(checked) => fx.toggleExtraRole(option.value, checked)}
+                    label={option.label}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {fx.hasRecord && (
+          <ITText className="block text-xs text-slate-500">
+            {t("access.personHint")}{" "}
+            {canSeeRecords && userId && (
+              <button type="button" className="font-semibold text-slate-700 underline underline-offset-2 dark:text-slate-200" onClick={() => navigate(`/employees/${userId}/edit`)}>
+                {t("form.openRecord")}
+              </button>
+            )}
+          </ITText>
+        )}
+
+        {target && onDeactivate && onReactivate && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2.5 dark:border-slate-700">
+            <div>
+              <ITText className="block text-[13px] font-semibold">{t("access.status")}</ITText>
+              <ITText className="block text-xs text-slate-500">{t(target.active ? "access.statusActive" : "access.statusInactive")}</ITText>
+            </div>
+            <div className="flex gap-2">
+              {target.active ? (
+                <ITButton type="button" variant="outlined" color="danger" size="sm" onClick={() => runAndClose(onDeactivate, target)}>
+                  <span className="inline-flex items-center gap-1.5"><LuUserX size={13} /> {t("access.deactivate")}</span>
+                </ITButton>
+              ) : (
+                <>
+                  <ITButton type="button" variant="outlined" color="success" size="sm" onClick={() => runAndClose(onReactivate, target)}>
+                    <span className="inline-flex items-center gap-1.5"><LuUndo2 size={13} /> {t("access.reactivate")}</span>
+                  </ITButton>
+                  {onDelete && (
+                    <ITButton type="button" variant="outlined" color="danger" size="sm" onClick={() => runAndClose(onDelete, target)}>
+                      <span className="inline-flex items-center gap-1.5"><LuTrash2 size={13} /> {t("access.delete")}</span>
+                    </ITButton>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <ITButton type="button" variant="outlined" color="secondary" onClick={onClose} disabled={fx.saving}>
+            {t("common:actions.cancel")}
           </ITButton>
-          <ITButton
-            variant="filled"
-            color="primary"
-            className="tm-save-button"
-            onClick={() => void handleSave()}
-            disabled={userForm.saving || loading}
-          >
-            <ITText className="!text-[12px] font-bold">
-              {userForm.saving ? tt("form.saving") : tt("form.save")}
-            </ITText>
+          <ITButton type="submit" variant="filled" color="primary" disabled={fx.saving || fx.loading}>
+            {fx.saving ? t("form.saving") : t("form.save")}
           </ITButton>
-        </ITFlex>
-      </div>
+        </div>
+      </form>
     </ITDialog>
   );
 }
