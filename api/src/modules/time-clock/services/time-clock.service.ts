@@ -23,6 +23,7 @@ import {
 } from "@core/utils/timezone";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import { credentialsOf, type TimeClockCredentials } from "./clock-credentials";
+import { assertClockUrlAllowed } from "./clock-url";
 import { IsapiAuthError, IsapiClient } from "./isapi.client";
 import type {
   TimeClockImportInput,
@@ -124,26 +125,6 @@ const assertMethod = (value: unknown): PunchMethod => {
     throw new HttpError(400, "INVALID_METHOD", { value: String(value) });
   }
   return method as PunchMethod;
-};
-
-/**
- * La dirección del reloj como la escriben (`192.168.1.132`, o la URL copiada
- * del navegador, con ruta y `#`) → `http(s)://host[:puerto]`. Sin esquema se
- * asume https.
- */
-const normalizeUrl = (value: string): string => {
-  const invalid = new HttpError(400, "INVALID_URL", { value });
-  const text = value.trim();
-  let url: URL;
-  try {
-    url = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(text) ? text : `https://${text}`);
-  } catch {
-    throw invalid;
-  }
-  if ((url.protocol !== "http:" && url.protocol !== "https:") || url.username || url.password) {
-    throw invalid;
-  }
-  return url.origin;
 };
 
 /** Hash SHA-256 de la API key del reloj (nunca se guarda en claro). */
@@ -328,7 +309,7 @@ export class TimeClockService {
    * Un reloj que ya estuvo dado de alta sigue desde su cursor.
    */
   async register(input: TimeClockInput, actorId?: string): Promise<TimeClockDeviceStatus> {
-    const url = normalizeUrl(input.url);
+    const url = await assertClockUrlAllowed(input.url);
     const own = ownCredentialsOf(input);
     const credentials = own ?? this.fallbackCredentials;
     if (!credentials) throw new HttpError(503, "TIME_CLOCK_NOT_CONFIGURED");

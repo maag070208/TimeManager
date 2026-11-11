@@ -61,6 +61,7 @@ export const createNomRouter = (controller: NomController): Router => {
   // Convenio de distribución de jornada (art. 58).
   router.get("/distribution-agreements", canRead, asyncHandler(controller.listDistributionAgreements));
   router.post("/distribution-agreements", canWrite, asyncHandler(controller.createDistributionAgreement));
+  router.get("/me/distribution-agreements", asyncHandler(controller.myDistributionAgreements));
   router.post("/me/distribution-agreements/:id/accept", asyncHandler(controller.acceptDistributionAgreement));
 
   // Vacaciones y permisos configurables por cliente.

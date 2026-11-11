@@ -6,7 +6,7 @@ CRUD de usuarios del sistema (que también son los empleados), importación masi
 
 - **Consulta**: tabla paginada (`POST /query`), lista, detalle, disponibilidad de username/email, selector de empleados (`GET /employees`, solo con alguno de `schedules.view`, `time_clock.view` o `hr.records`: son las pantallas que lo consumen).
 - **Ciclo de vida**: crear, editar, cambio de contraseña, desactivar/reactivar (baja lógica con `deactivatedAt`, autor, motivo y categoría del catálogo `RemovalCategory`), borrado.
-- **Importación**: alta masiva por archivo (`POST /import`).
+- **Importación**: alta masiva por archivo (`POST /import`, `GET /import/template`). Solo `.xlsx`: la lectura es con `exceljs` (`core/utils/xlsxParse.ts`), no con `xlsx` (retirado del runtime por CVE-2023-30533 y CVE-2024-22363).
 - **Historial**: `GET /:id/history` (timeline + audit-log).
 - **Permisos directos**: grant/revoke por usuario encima de los roles.
 

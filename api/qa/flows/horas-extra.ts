@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import type { Cast } from "../cast";
 import { addDays, Bot, localDate, type Report, type Res } from "../lib";
 
@@ -420,7 +420,7 @@ async function fabricarJornadas(cast: Cast, r: Report, x: Record<string, Extra>,
     const extra = x[key];
     for (const [i, step] of steps.entries()) {
       const type = i === steps.length - 1 ? "EXIT" : ["ENTRY", "LUNCH_START", "LUNCH_END"][i];
-      const punch = await extra.bot.post("/nom/me/punch", { type, workMode: "REMOTO" });
+      const punch = await extra.bot.post("/nom/me/punch", { type, workMode: "REMOTO", clientEventId: randomUUID() });
       if (!r.expect(`${extra.bot.label} marca ${type} remoto`, punch, 201)) {
         ok = false;
         break;

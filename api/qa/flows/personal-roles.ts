@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { Cast } from "../cast";
@@ -621,7 +621,7 @@ export default async function personalRoles(cast: Cast, r: Report): Promise<void
   r.expect("el admin crea una subárea en Almacén", sub, 201);
   const subId = sub.body?.id;
   await p2Bot.post("/nom/me/record-agreement/accept", { methods: ["CLOCK", "REMOTE"], roundingPolicy: "Minutos exactos", correctionRules: "Ajuste aprobado" });
-  const punch = await p2Bot.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO" });
+  const punch = await p2Bot.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO", clientEventId: randomUUID() });
   no500("POST /nom/me/punch", punch);
   r.check("Ramiro registra una entrada (para tener una checada real)", punch.status === 201 || punch.status === 200, short(punch));
   const punchId = punch.body?.punch?.id ?? punch.body?.id;

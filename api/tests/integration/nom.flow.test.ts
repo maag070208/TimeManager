@@ -590,31 +590,31 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     // Secuencia: no se puede repetir ENTRY sin cerrar la jornada.
     const duplicate = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "ENTRY" },
+      body: { type: "ENTRY", clientEventId: randomUUID() },
     });
     expectError(duplicate, 409, "INVALID_PUNCH_SEQUENCE", "secuencia de marcaje");
 
     // Comida: entrada → salida a comer → regreso de comer → salida.
     const lunchStart = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "LUNCH_START" },
+      body: { type: "LUNCH_START", clientEventId: randomUUID() },
     });
     expectStatus(lunchStart, 201, "salida a comer");
     const entryDuringLunch = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "ENTRY" },
+      body: { type: "ENTRY", clientEventId: randomUUID() },
     });
     expectError(entryDuringLunch, 409, "INVALID_PUNCH_SEQUENCE", "entrada durante comida");
     const lunchEnd = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "LUNCH_END" },
+      body: { type: "LUNCH_END", clientEventId: randomUUID() },
     });
     expectStatus(lunchEnd, 201, "regreso de comer");
 
     // Geolocalización: ambas coordenadas o ninguna (no hay rastreo continuo).
     const halfGeo = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "EXIT", latitude: 19.4326 },
+      body: { type: "EXIT", latitude: 19.4326, clientEventId: randomUUID() },
     });
     expectError(halfGeo, 400, "INVALID_GEO_POINT", "coordenada incompleta");
 
@@ -623,6 +623,7 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
       body: {
         type: "EXIT",
         workMode: "CAMPO",
+        clientEventId: randomUUID(),
         latitude: 19.4326,
         longitude: -99.1332,
         gpsAccuracyMeters: 15,
@@ -634,7 +635,7 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
 
     const secondEntry = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "ENTRY" },
+      body: { type: "ENTRY", clientEventId: randomUUID() },
     });
     expectError(secondEntry, 409, "WORKDAY_ALREADY_CLOSED", "tras la salida el día queda cerrado");
 
@@ -658,9 +659,98 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     expectStatus(off, 200, "marcaje remoto deshabilitado");
     const blocked = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "ENTRY" },
+      body: { type: "ENTRY", clientEventId: randomUUID() },
     });
     expectError(blocked, 403, "REMOTE_PUNCH_DISABLED", "marcaje remoto deshabilitado");
+  });
+
+  test("dos ENTRY concurrentes del mismo trabajador: una sola se registra", async () => {
+    const tenant = await createTenant();
+    const employee = await createUser({
+      tenantId: tenant.id,
+      role: "CLIENT_STAFF",
+      employeeNumber: unique("E"),
+    });
+    const session = await login({ username: employee.username, tenant: tenant.slug });
+    const agreement = await api("POST", "/nom/me/record-agreement/accept", {
+      token: session.token,
+      body: { methods: ["CLOCK", "REMOTE"], roundingPolicy: "Minutos exactos", correctionRules: "Ajuste aprobado" },
+    });
+    expectStatus(agreement, 200, "acuerdo de método con checada remota");
+
+    const [a, b] = await Promise.all([
+      api("POST", "/nom/me/punch", {
+        token: session.token,
+        body: { type: "ENTRY", clientEventId: randomUUID() },
+      }),
+      api("POST", "/nom/me/punch", {
+        token: session.token,
+        body: { type: "ENTRY", clientEventId: randomUUID() },
+      }),
+    ]);
+
+    // El lock por usuario serializa: la segunda ve el ENTRY de la primera.
+    assert.deepEqual(
+      [a.status, b.status].sort(),
+      [201, 409],
+      `esperaba una 201 y una 409 — ${a.text.slice(0, 200)} / ${b.text.slice(0, 200)}`
+    );
+    const rejected = a.status === 409 ? a : b;
+    assert.equal(rejected.body?.code, "INVALID_PUNCH_SEQUENCE");
+
+    const today = localDateKey(new Date(), "America/Mexico_City");
+    const mine = await api("GET", `/nom/me/punches?from=${today}&to=${today}`, {
+      token: session.token,
+    });
+    expectStatus(mine, 200, "marcajes propios");
+    const remoteRows = (mine.body as Array<{ source: string }>).filter(
+      (row) => row.source === "REMOTE"
+    );
+    assert.equal(remoteRows.length, 1, "la carrera dejó una sola ENTRY remota");
+  });
+
+  test("dos requests concurrentes con el mismo clientEventId: una crea y la otra es idempotente", async () => {
+    const tenant = await createTenant();
+    const employee = await createUser({
+      tenantId: tenant.id,
+      role: "CLIENT_STAFF",
+      employeeNumber: unique("E"),
+    });
+    const session = await login({ username: employee.username, tenant: tenant.slug });
+    const agreement = await api("POST", "/nom/me/record-agreement/accept", {
+      token: session.token,
+      body: { methods: ["CLOCK", "REMOTE"], roundingPolicy: "Minutos exactos", correctionRules: "Ajuste aprobado" },
+    });
+    expectStatus(agreement, 200, "acuerdo de método con checada remota");
+
+    const clientEventId = randomUUID();
+    const call = () =>
+      api("POST", "/nom/me/punch", {
+        token: session.token,
+        body: { type: "ENTRY", clientEventId },
+      });
+    const [a, b] = await Promise.all([call(), call()]);
+
+    assert.deepEqual(
+      [a.status, b.status].sort(),
+      [200, 201],
+      `esperaba una 201 y una 200 idempotente — ${a.text.slice(0, 200)} / ${b.text.slice(0, 200)}`
+    );
+    const created = a.status === 201 ? a : b;
+    const replayed = a.status === 200 ? a : b;
+    assert.equal(created.body?.created, true);
+    assert.equal(replayed.body?.created, false);
+    assert.equal(replayed.body?.punch?.id, created.body?.punch?.id);
+
+    const today = localDateKey(new Date(), "America/Mexico_City");
+    const mine = await api("GET", `/nom/me/punches?from=${today}&to=${today}`, {
+      token: session.token,
+    });
+    expectStatus(mine, 200, "marcajes propios");
+    const remoteRows = (mine.body as Array<{ source: string }>).filter(
+      (row) => row.source === "REMOTE"
+    );
+    assert.equal(remoteRows.length, 1, "el mismo clientEventId no duplicó la checada");
   });
 });
 

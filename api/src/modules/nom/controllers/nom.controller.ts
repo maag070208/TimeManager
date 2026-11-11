@@ -215,6 +215,10 @@ export class NomController {
     );
   };
 
+  myDistributionAgreements = async (req: Request, res: Response) => {
+    res.json(await this.distribution.mine(req.user!.id));
+  };
+
   acceptDistributionAgreement = async (req: Request, res: Response) => {
     res.json(
       await this.distribution.accept(req.params.id, actorOf(req), req.ip ?? null)

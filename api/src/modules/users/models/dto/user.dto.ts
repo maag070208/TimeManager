@@ -55,7 +55,7 @@ export const UserCreateDto = z
       .email("INVALID_EMAIL")
       .optional()
       .or(z.literal("").transform(() => undefined)),
-    password: z.string().min(6, "PASSWORD_MIN_LENGTH"),
+    password: z.string().min(12, "PASSWORD_MIN_LENGTH"),
     name: z.string().min(1),
     middleName: z.string().optional(),
     paternalSurname: z.string().optional(),
@@ -98,7 +98,7 @@ export const UserUpdateDto = z
 export type UserUpdateInput = z.infer<typeof UserUpdateDto>;
 
 export const UserPasswordDto = z
-  .object({ password: z.string().min(6, "PASSWORD_MIN_LENGTH") })
+  .object({ password: z.string().min(12, "PASSWORD_MIN_LENGTH") })
   .openapi("UserPasswordInput");
 
 /** Excepción de permiso por empleado (Fase 2). */

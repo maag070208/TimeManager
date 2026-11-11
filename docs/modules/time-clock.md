@@ -57,6 +57,16 @@ cada reloj puede tener una **API key para ingesta directa** de checadas:
 - Convive con la sync por pull: si el reloj sube por ingesta directa, no hace
   falta habilitar además la sync de ese equipo (el cursor no se modifica).
 
+## Dirección del equipo (SSRF)
+
+La URL del reloj y la de la estación de huellas las escribe el administrador del cliente y el API hace peticiones a ellas con credenciales, así que `core` valida el destino (`services/clock-url.ts`):
+
+- Normaliza a `http(s)://host[:puerto]`; rechaza otros esquemas y credenciales embebidas en la URL.
+- Bloquea **siempre** metadatos de nube (`169.254.169.254`, `100.100.100.200`, `fd00:ec2::254`), enlace local (`169.254/16`, `fe80::/10`), `0.0.0.0/8`, multicast y `localhost`.
+- Loopback, RFC1918 y CGNAT se **permiten** por defecto (on-prem). En la nube se apaga con `CLOCK_ALLOW_PRIVATE_NETWORK=false` (`.env`), y entonces también se rechazan.
+- Además del literal, se resuelve el nombre y se comprueba cada IP (`dns.lookup`) antes de conectar; si el DNS no responde se deja pasar y el error de conexión se reporta normal.
+- El cuerpo crudo de una respuesta inesperada del equipo ya no se refleja al cliente: queda en el log (`isapi.client.ts`).
+
 ## Estación de huellas (F1B-12)
 
 - `FingerprintStationConfig` guarda una fila por alcance: `tenantId = null` es la **estación central** de CheckLab y una fila con `tenantId` es el **override del cliente** (estación instalada en su sitio). La contraseña va cifrada (AES-256-GCM) y la API nunca la devuelve.
@@ -81,7 +91,7 @@ cada reloj puede tener una **API key para ingesta directa** de checadas:
 ## Notas multi-tenant
 
 - **Serial del reloj**: hoy es la llave natural; en SaaS cada reloj pertenece a un cliente → `tenantId` en `TimeClock` y unicidad por tenant.
-- **Las checadas son la tabla de mayor volumen**: candidata #1 a índices por `(tenantId, userId, fecha)` y a particionado por fecha.
+- **Las checadas son la tabla de mayor volumen**: índices por `(tenantId, occurredAt)`, `(tenantId, employeeNumber, occurredAt)` y particionado por fecha pendiente (ver [OPERACION_PRODUCCION](../OPERACION_PRODUCCION.md) §7).
 - **Inmutabilidad NOM (F2-01, implementado)**: `time_clock_punches` es append-only por trigger de BD: el punch no se edita ni se borra; las correcciones son `PunchAdjustment` ligados (motivo, valor anterior/nuevo, solicitante y aprobador), con historial auditable en `GET /nom/punches/:id/history`. Ver [nom](nom.md). El único DELETE permitido es la purga controlada del archivado por retención (F2-04).
 - Biometría y fotos son datos sensibles: cifrado en reposo, consentimiento y paths de storage prefijados por tenant.
 

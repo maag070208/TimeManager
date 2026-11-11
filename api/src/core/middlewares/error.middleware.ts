@@ -50,6 +50,11 @@ const bodyParserError = (err: unknown): { status: number } | null => {
   return status >= 400 && status <= 499 ? { status } : null;
 };
 
+/**
+ * Traduce errores conocidos de Prisma sin filtrar `err.meta` crudo: solo P2002
+ * conserva `target` (los nombres de campo los usa la UI); el resto de `meta`
+ * puede traer argumentos de query y datos del registro.
+ */
 const prismaErrorMapper = (
   err: Prisma.PrismaClientKnownRequestError
 ): { status: number; code: ErrorCode; details: unknown } => {
@@ -57,9 +62,9 @@ const prismaErrorMapper = (
     case "P2002":
       return { status: 409, code: "DUPLICATE_RECORD", details: { target: err.meta?.target } };
     case "P2025":
-      return { status: 404, code: "RECORD_NOT_FOUND", details: err.meta };
+      return { status: 404, code: "RECORD_NOT_FOUND", details: undefined };
     case "P2003":
-      return { status: 400, code: "INVALID_REFERENCE", details: err.meta };
+      return { status: 400, code: "INVALID_REFERENCE", details: undefined };
     default:
       return { status: 500, code: "DATABASE_ERROR", details: { code: err.code } };
   }
@@ -122,11 +127,14 @@ export const errorMiddleware = (
     return;
   }
 
-  logger.error(err.stack ?? err.message);
+  // El 500 no devuelve el mensaje interno: puede traer hosts, claves de S3,
+  // argumentos de Prisma o datos de la BD. El detalle queda solo en el log,
+  // con método y ruta (sin query, que puede llevar tokens de foto) y el
+  // request-id que agrega el logger desde el contexto de la petición.
+  logger.error(`${req.method} ${req.path} → ${err.stack ?? err.message}`);
   res.status(500).json({
     error: "InternalServerError",
     code: "INTERNAL_ERROR",
     message: t("errors.INTERNAL_ERROR", {}, lng),
-    details: err.message,
   });
 };

@@ -34,7 +34,13 @@ export default async function jornada(cast: Cast, r: Report): Promise<void> {
     if (id && res.body?.created !== false) recorded.set(bot.id, [...(recorded.get(bot.id) ?? []), id]);
   };
   const punch = async (bot: Bot, step: Step, label: string, status = 201, code?: string) => {
-    const res = await bot.post("/nom/me/punch", { type: step.type, ...(step.extra ?? {}) });
+    // `clientEventId` es obligatorio en el API; `step.extra` puede sobreescribirlo
+    // (p. ej. el envío offline de Lucía reutiliza su id).
+    const res = await bot.post("/nom/me/punch", {
+      type: step.type,
+      clientEventId: randomUUID(),
+      ...(step.extra ?? {}),
+    });
     r.expect(label, res, status, code);
     if (res.status === 201) remember(bot, res);
     return res;
@@ -264,15 +270,17 @@ export default async function jornada(cast: Cast, r: Report): Promise<void> {
   await punch(oscar, { type: "EXIT", extra: { workMode: "REMOTO" } }, "Óscar registra su salida");
 
   // Fernanda: remoto con GPS; se queda trabajando. DTO estricto.
-  const unknownKey = await fernanda.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO", deviceId: "pixel-7" });
+  const unknownKey = await fernanda.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO", clientEventId: randomUUID(), deviceId: "pixel-7" });
   r.expect("cuerpo con clave desconocida rechazado (DTO estricto)", unknownKey, 400, "VALIDATION_ERROR");
-  const badType = await fernanda.post("/nom/me/punch", { type: "BREAK" });
+  const badType = await fernanda.post("/nom/me/punch", { type: "BREAK", clientEventId: randomUUID() });
   r.expect("tipo de checada inexistente rechazado", badType, 400, "VALIDATION_ERROR");
-  const badMode2 = await fernanda.post("/nom/me/punch", { type: "ENTRY", workMode: "LUNA" });
+  const badMode2 = await fernanda.post("/nom/me/punch", { type: "ENTRY", workMode: "LUNA", clientEventId: randomUUID() });
   r.expect("modo de trabajo inexistente rechazado", badMode2, 400, "VALIDATION_ERROR");
   const badEvent = await fernanda.post("/nom/me/punch", { type: "ENTRY", clientEventId: "no-es-uuid" });
   r.expect("clientEventId que no es UUID rechazado", badEvent, 400, "VALIDATION_ERROR");
-  const badReported = await fernanda.post("/nom/me/punch", { type: "ENTRY", clientReportedAt: "ayer en la tarde" });
+  const missingEvent = await fernanda.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO" });
+  r.expect("checada remota sin clientEventId rechazada (ahora es obligatorio)", missingEvent, 400, "VALIDATION_ERROR");
+  const badReported = await fernanda.post("/nom/me/punch", { type: "ENTRY", clientEventId: randomUUID(), clientReportedAt: "ayer en la tarde" });
   r.expect("clientReportedAt que no es fecha rechazado", badReported, 400, "VALIDATION_ERROR");
   const fernandaEvent = randomUUID();
   await punch(
@@ -331,9 +339,9 @@ export default async function jornada(cast: Cast, r: Report): Promise<void> {
   if (paola) {
     const toWeb = await hr.patch(`/hr/${paola.id}/profile`, { checkinMode: "WEB" });
     r.expect("RH pasa a Paola a modo app/web", toWeb, 200);
-    const firstLunch = await paola.post("/nom/me/punch", { type: "LUNCH_START" });
+    const firstLunch = await paola.post("/nom/me/punch", { type: "LUNCH_START", clientEventId: randomUUID() });
     r.check("el primer paso del día no puede ser salida a comer", firstLunch.status === 409 && codeOf(firstLunch) === "INVALID_PUNCH_SEQUENCE", brief(firstLunch));
-    const firstExit = firstLunch.status === 201 ? null : await paola.post("/nom/me/punch", { type: "EXIT" });
+    const firstExit = firstLunch.status === 201 ? null : await paola.post("/nom/me/punch", { type: "EXIT", clientEventId: randomUUID() });
     if (firstExit) r.check("el primer paso del día no puede ser salida", firstExit.status === 409 && codeOf(firstExit) === "INVALID_PUNCH_SEQUENCE", brief(firstExit));
     if (firstLunch.status === 201 || firstExit?.status === 201) {
       r.finding(
@@ -341,7 +349,7 @@ export default async function jornada(cast: Cast, r: Report): Promise<void> {
         "El primer marcaje del día no exige ENTRY: se acepta salida o comida sin entrada",
         `Sin checadas previas hoy, POST /nom/me/punch {type:"${firstLunch.status === 201 ? "LUNCH_START" : "EXIT"}"} → 201. La regla de secuencia solo se aplica si ya hay una checada hoy (lastIsToday); con el primer paso cualquier tipo pasa. Un EXIT como primer marcaje además cierra el día y la persona ya no puede registrar su entrada (409 WORKDAY_ALREADY_CLOSED). Responsable: api/src/modules/nom/services/remote-punch.service.ts:119 (la regla solo corre "if (lastIsToday)"; sin checadas hoy no se exige ENTRY).`
       );
-      const after = await paola.post("/nom/me/punch", { type: "ENTRY" });
+      const after = await paola.post("/nom/me/punch", { type: "ENTRY", clientEventId: randomUUID() });
       r.check("tras ese primer paso erróneo Paola aún puede registrar su entrada", after.status === 201, `${brief(after)} — sin ENTRY su día queda sin entrada y solo se le permite ${firstLunch.status === 201 ? "LUNCH_END" : "nada (día cerrado)"}`);
     }
   }

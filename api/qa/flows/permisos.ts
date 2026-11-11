@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import type { Cast } from "../cast";
 import { Bot, addDays, localDate, type Report, type Res } from "../lib";
 
@@ -531,7 +531,7 @@ export default async function permisos(cast: Cast, r: Report): Promise<void> {
     correctionRules: "Ajuste aprobado por RH",
   });
   r.check("Paola acepta el acuerdo de método de registro con checada remota", agreement.status < 300, brief(agreement));
-  const entry = await paola.post("/nom/me/punch", { type: "ENTRY", workMode: "PRESENCIAL" });
+  const entry = await paola.post("/nom/me/punch", { type: "ENTRY", workMode: "PRESENCIAL", clientEventId: randomUUID() });
   r.check("Paola registra su entrada de hoy (queda vinculada)", entry.status === 201 || entry.status === 200, brief(entry));
 
   const report0 = await hr.post("/schedules/weekly-attendance", { date: today, refresh: true });

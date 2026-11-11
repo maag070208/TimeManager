@@ -201,7 +201,7 @@
       "jobTitle": "Puesto que desempeña, por ejemplo: Recepcionista.",
       "username": "Nombre con el que inicia sesión. Debe ser único; yo reviso que esté libre.",
       "role": "Rol principal: define lo que puede ver y hacer en el sistema. Los permisos se afinan después sin cambiar el rol.",
-      "password": "Contraseña inicial. Mínimo 6 caracteres; la persona la puede cambiar después.",
+      "password": "Contraseña inicial. Mínimo 12 caracteres; la persona la puede cambiar después.",
       "usernameFree": "Ese usuario está libre: puedes usarlo."
     },
     "guideLabel": "Tic, guía del formulario",

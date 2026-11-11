@@ -201,7 +201,7 @@
       "jobTitle": "Job title, for example: Receptionist.",
       "username": "Username used to sign in. It must be unique; I check it is free.",
       "role": "Main role: defines what they can see and do. Permissions can be fine-tuned later without changing the role.",
-      "password": "Initial password. At least 6 characters; the person can change it later.",
+      "password": "Initial password. At least 12 characters; the person can change it later.",
       "usernameFree": "That username is free: you can use it."
     },
     "guideLabel": "Tic, form guide",

@@ -25,7 +25,7 @@ export default function ForcePasswordChange() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
-    if (newPassword.length < 6) {
+    if (newPassword.length < 12) {
       setError(tt("forceChange.min"));
       return;
     }

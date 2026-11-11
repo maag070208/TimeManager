@@ -33,6 +33,29 @@ export class DistributionAgreementService {
     });
   }
 
+  /** Convenios que le tocan a la persona: los suyos y los de sus horarios. */
+  async mine(userId: string) {
+    const assignments = await this.db.scheduleAssignment.findMany({
+      where: { userId },
+      select: { scheduleId: true },
+    });
+    const scheduleIds = [...new Set(assignments.map((row) => row.scheduleId))];
+    return this.db.workdayDistributionAgreement.findMany({
+      where: { OR: [{ userId }, ...(scheduleIds.length ? [{ scheduleId: { in: scheduleIds } }] : [])] },
+      orderBy: { effectiveFrom: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        kind: true,
+        party: true,
+        effectiveFrom: true,
+        effectiveTo: true,
+        evidenceText: true,
+        acceptedAt: true,
+      },
+    });
+  }
+
   async create(
     tenantId: string,
     actor: { id: string; name?: string | null },

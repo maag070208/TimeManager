@@ -59,7 +59,11 @@ import type { Cast } from "../cast";
 import type { Report } from "../lib";
 
 export default async function miFlujo(cast: Cast, r: Report): Promise<void> {
-  const res = await cast.employees[0].post("/nom/me/punch", { type: "ENTRY" });
+  // `clientEventId` es obligatorio (idempotencia): un uuid nuevo por acción.
+  const res = await cast.employees[0].post("/nom/me/punch", {
+    type: "ENTRY",
+    clientEventId: crypto.randomUUID(),
+  });
   r.expect("Lucía registra su entrada", res, 201);
   r.check("la hora es del servidor", Boolean(res.body?.punch?.occurredAt));
   // Un error del producto (no del bot) se anota como hallazgo:

@@ -9,6 +9,7 @@ import type {
   RecordAgreementAdmin,
   RecordAgreementProposal,
   DistributionAgreement,
+  MyDistributionAgreement,
   WorkRecordAcknowledgment,
   MyPunch,
   OutOfHoursChannel,
@@ -84,6 +85,9 @@ export const nomApi = {
     effectiveTo?: string | null;
     evidenceText: string;
   }) => api.post<DistributionAgreement>(`${base}/distribution-agreements`, input),
+  myDistributionAgreements: () => api.get<MyDistributionAgreement[]>(`${base}/me/distribution-agreements`),
+  acceptDistributionAgreement: (id: string) =>
+    api.post<DistributionAgreement>(`${base}/me/distribution-agreements/${id}/accept`, {}),
   recordAgreements: () => api.get<RecordAgreementAdmin[]>(`${base}/record-agreements`),
   signRecordAgreement: (id: string) => api.post<RecordAgreement>(`${base}/record-agreements/${id}/employer-sign`, {}),
   archiveRetention: (dryRun: boolean) =>
@@ -135,7 +139,8 @@ export const nomApi = {
   punch: (input: {
     type: PunchType;
     workMode?: RemoteWorkMode;
-    clientEventId?: string;
+    /** Obligatorio: llave de idempotencia del reintento (uuid). */
+    clientEventId: string;
     latitude?: number;
     longitude?: number;
     gpsAccuracyMeters?: number;

@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import { Workbook } from "exceljs";
 import { t } from "@core/i18n";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
@@ -7,7 +7,7 @@ import { DEFAULT_ROLE_KEY } from "@core/permissions";
 import { currentTenantId } from "@core/tenancy";
 import { assertCanAddPeople } from "@core/plans";
 
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 12;
 
 /**
  * Encabezados del formato de carga (`GET /users/import/template`). Son los
@@ -37,14 +37,15 @@ export class UserImportService {
   /**
    * Plantilla .xlsx del formato de carga (encabezados + una fila de ejemplo
    * comentada no se incluye: solo encabezados, para que nadie la importe tal
-   * cual). Se genera en memoria con la dependencia `xlsx`.
+   * cual). Se genera en memoria con `exceljs`.
    */
-  template(): Buffer {
-    const sheet = XLSX.utils.aoa_to_sheet([[...USERS_IMPORT_COLUMNS]]);
-    sheet["!cols"] = [{ wch: 34 }, { wch: 26 }, { wch: 22 }];
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, sheet, "Usuarios");
-    return XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+  async template(): Promise<Buffer> {
+    const workbook = new Workbook();
+    const sheet = workbook.addWorksheet("Usuarios");
+    sheet.addRow([...USERS_IMPORT_COLUMNS]);
+    sheet.columns = [{ width: 34 }, { width: 26 }, { width: 22 }];
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
   }
 
   // Carga masiva de empleados desde Excel: cada fila crea un usuario con rol

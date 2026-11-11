@@ -20,6 +20,19 @@ declare global {
   }
 }
 
+/**
+ * Rutas que siguen abiertas con contraseña provisional: la sesión (`GET
+ * /auth/me`, que la web necesita para pintar el bloqueo) y el propio cambio.
+ * Se compara la ruta sin query sobre `originalUrl`.
+ */
+const passwordChangePendingRoute = (req: Request): boolean => {
+  const path = (req.originalUrl ?? "").split("?")[0].replace(/\/+$/, "");
+  return (
+    (req.method === "GET" && path.endsWith("/auth/me")) ||
+    (req.method === "POST" && path.endsWith("/auth/change-password"))
+  );
+};
+
 // Verifica la firma del token y, además, que el usuario que dice ser siga
 // existiendo y activo en la base de datos. Sin esto, un usuario borrado o
 // desactivado (por ejemplo tras un reset de seed) se queda con una sesión
@@ -57,6 +70,7 @@ export const authenticate = (
       select: {
         id: true,
         active: true,
+        mustChangePassword: true,
         role: true,
         tenantId: true,
         departmentId: true,
@@ -82,6 +96,12 @@ export const authenticate = (
     // Cliente suspendido: se corta en caliente, aunque el token siga vigente.
     if (user.tenant && user.tenant.status !== "ACTIVE") {
       next(new HttpError(403, "TENANT_SUSPENDED"));
+      return;
+    }
+    // Contraseña provisional: se exige cambiarla también en el servidor (antes
+    // solo lo hacía la web). Quedan abiertas la sesión y el propio cambio.
+    if (user.mustChangePassword && !passwordChangePendingRoute(req)) {
+      next(new HttpError(403, "PASSWORD_CHANGE_REQUIRED"));
       return;
     }
 

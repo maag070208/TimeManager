@@ -4,6 +4,7 @@
  */
 import { after, before, describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import {
   api,
   createTenant,
@@ -39,7 +40,7 @@ describe("modo de checada", () => {
 
     const blocked = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "ENTRY" },
+      body: { type: "ENTRY", clientEventId: randomUUID() },
     });
     expectError(blocked, 403, "REMOTE_PUNCH_NOT_ALLOWED", "marcaje web con modo CLOCK");
 
@@ -58,7 +59,7 @@ describe("modo de checada", () => {
     expectStatus(config, 200, "config de marcaje remoto");
     const web = await api("POST", "/nom/me/punch", {
       token: session.token,
-      body: { type: "ENTRY", workMode: "REMOTO" },
+      body: { type: "ENTRY", workMode: "REMOTO", clientEventId: randomUUID() },
     });
     // Con WEB ya no aplica el bloqueo por modo: el siguiente candado es el acuerdo.
     expectError(web, 403, "REMOTE_AGREEMENT_REQUIRED", "marcaje web con modo WEB");

@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "crypto";
 import { request as httpRequest, type IncomingHttpHeaders, type IncomingMessage } from "http";
 import { request as httpsRequest } from "https";
+import { logger } from "@core/utils/logger";
 import type {
   AcsEventBatch,
   AcsEventPage,
@@ -125,7 +126,11 @@ const describeIsapiError = (body: string): string => {
     // No es JSON: se intenta como XML.
   }
   const parts = [xmlTag(body, "statusString"), xmlTag(body, "subStatusCode")].filter(Boolean);
-  return parts.length > 0 ? parts.join(" · ") : body.slice(0, 200);
+  if (parts.length > 0) return parts.join(" · ");
+  // El cuerpo crudo es la respuesta de un host que eligió el administrador: se
+  // queda en el log y nunca viaja al cliente (podría describir la red interna).
+  logger.debug(`[isapi] respuesta inesperada del equipo: ${body.slice(0, 500)}`);
+  return "respuesta inesperada del equipo";
 };
 
 /**

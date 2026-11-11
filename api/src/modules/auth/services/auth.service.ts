@@ -14,6 +14,12 @@ import { HttpError } from "@core/middlewares/error.middleware";
 import { userToEntity, entityToAuthUserDto, userToAuthMeDto } from "../mappers/auth.mapper";
 import type { AuthMe, LoginResponse } from "../models/dto/auth.dto";
 
+/**
+ * Hash bcrypt de relleno (coste 10, como `hashPassword`): se compara contra él
+ * cuando el usuario no existe para que el login tarde lo mismo.
+ */
+const PLACEHOLDER_HASH = "$2a$10$.iy8LUxripqkqQUgMVApXOjoLpFiYNcBBpA1tqLRFbvyrfZY1TscC";
+
 export class AuthService {
   constructor(private readonly db: PrismaClient = prismaClient) {}
 
@@ -44,16 +50,20 @@ export class AuthService {
         include: { extraRoles: { select: { role: true } } },
       })
     );
-    if (!user) throw new HttpError(401, "INVALID_CREDENTIALS");
+    // La contraseña se valida ANTES de mirar el estado de la cuenta. Si se
+    // respondiera ACCOUNT_DEACTIVATED sin la contraseña correcta, un anónimo
+    // podría enumerar usuarios y leer el motivo de la baja (dato sensible).
+    // Con un usuario inexistente se compara igual contra un hash de relleno:
+    // así el tiempo de respuesta no delata qué nombres de usuario existen.
+    const hash = user?.password ?? PLACEHOLDER_HASH;
+    const ok = await comparePassword(password, hash);
+    if (!user || !ok) throw new HttpError(401, "INVALID_CREDENTIALS");
     if (!user.active) {
       // Cuenta dada de baja. Separamos este caso del "credenciales inválidas"
       // para que la UI muestre el motivo en vez de un error genérico.
       const reason = user.deactivationReason ?? null;
       throw new HttpError(403, "ACCOUNT_DEACTIVATED", {}, reason ? { reason } : undefined);
     }
-
-    const ok = await comparePassword(password, user.password);
-    if (!ok) throw new HttpError(401, "INVALID_CREDENTIALS");
 
     const entity = userToEntity(user);
     const payload: JwtPayload = {

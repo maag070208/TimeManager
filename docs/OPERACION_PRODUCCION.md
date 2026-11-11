@@ -134,10 +134,11 @@ con la conexión directa (no por PgBouncer).
 
 - `compression()` (gzip/br) para respuestas JSON grandes.
 - Rate limit en memoria: `/auth/login` (`RATE_LIMIT_LOGIN_MAX`, 20/15 min) y
-  `/query|/sync|/import|/ingest|/punches` (`RATE_LIMIT_QUERY_MAX`, 600/15 min)
+  `/query|/sync|/import|/ingest|/punches` más las subidas `POST /hr/:id/documents`
+  y `POST /hr/:id/photo` (`RATE_LIMIT_QUERY_MAX`, 600/15 min)
   **por cliente** (`RATE_LIMIT_PER_TENANT`, clave `tenant:<id>` del JWT) con
-  respaldo por IP para anónimos/plataforma. Sustituible por store Redis sin
-  cambiar el contrato.
+  respaldo por IP para anónimos/plataforma. Las descargas GET de fotos y
+  documentos no se limitan. Sustituible por store Redis sin cambiar el contrato.
 - `trust proxy` configurable (`TRUST_PROXY=1` para Railway) para IP real.
 - `BODY_LIMIT` (default `1mb`) en el JSON parser.
 - `SIGTERM`/`SIGINT`: cierra el server HTTP, detiene workers, suelta el lock de
@@ -175,6 +176,10 @@ Migración `20261108001000_high_volume_indexes`:
 - `time_clock_punches (tenantId, employeeNumber, occurredAt)`
 - `access_events (tenantId, employeeId, occurredAt)`
 - `email_logs (tenantId, status, nextAttemptAt)`
+
+Migración `20261210000000_time_clock_punch_tenant_occurred_index`: agrega
+`time_clock_punches (tenantId, occurredAt)` para los reportes/ingesta que filtran
+todo el cliente por rango de fechas (sin empleado).
 
 Particionado por mes y retención quedan para cuando una tabla pase de ~50M
 filas (ver ARQUITECTURA §2).

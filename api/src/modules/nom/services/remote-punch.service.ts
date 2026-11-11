@@ -1,9 +1,11 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { tenantTransaction } from "@core/tenancy";
 import { localDateKey } from "@core/utils/timezone";
 import type { AuditLogger } from "@modules/users/services/user.service";
 import type { RemotePunchDto, RemotePunchInput } from "../models/entity/nom.entity";
+import { assertPunchSequence } from "./punch-sequence";
 import type { NomSettingsService } from "./nom-settings.service";
 
 type Row = Prisma.RemotePunchGetPayload<Record<string, never>>;
@@ -14,8 +16,11 @@ type Row = Prisma.RemotePunchGetPayload<Record<string, never>>;
  *
  * - `occurredAt` es la hora del SERVIDOR (autoritativa); `clientReportedAt` se
  *   guarda solo como auditoría de reintentos offline.
- * - Idempotente por `clientEventId`: un reintento de red devuelve el marcaje ya
- *   creado (`created: false`) en lugar de duplicarlo.
+ * - Idempotente por `clientEventId` (obligatorio): un reintento de red devuelve
+ *   el marcaje ya creado (`created: false`) en lugar de duplicarlo.
+ * - La secuencia del día y el insert van en una transacción con un lock por
+ *   usuario (`pg_advisory_xact_lock`): dos checadas simultáneas de la misma
+ *   persona se serializan y no leen el mismo estado anterior.
  * - La geolocalización es OPCIONAL y se guarda únicamente en el registro del
  *   marcaje: **no hay rastreo continuo** (la ubicación no se consulta fuera de
  *   ese instante).
@@ -96,102 +101,108 @@ export class RemotePunchService {
     const hasLng = input.longitude !== undefined;
     if (hasLat !== hasLng) throw new HttpError(400, "INVALID_GEO_POINT");
 
-    if (input.clientEventId) {
-      const existing = await this.db.remotePunch.findUnique({
-        where: { clientEventId: input.clientEventId },
-      });
-      // El id lo genera el teléfono: uno ajeno no devuelve la checada de otra persona.
-      if (existing && existing.userId !== userId) throw new HttpError(409, "CLIENT_EVENT_ID_TAKEN");
-      if (existing) return { punch: this.toDto(existing), created: false };
-    }
-
-    // Secuencia del día: entrada → (comida → regreso) → salida, una sola vez.
-    // Tras la salida el día queda cerrado. Al cambiar de día la secuencia
-    // arranca de nuevo, aunque ayer no se haya marcado salida.
-    const last = await this.db.remotePunch.findFirst({
-      where: { userId },
-      orderBy: { occurredAt: "desc" },
-    });
-    const timezone = user.tenant?.timezone ?? "America/Mexico_City";
-    const today = localDateKey(new Date(), timezone);
-    const lastIsToday = last ? localDateKey(last.occurredAt, timezone) === today : false;
-    if (lastIsToday && last!.type === "EXIT") {
-      throw new HttpError(409, "WORKDAY_ALREADY_CLOSED");
-    }
-    if (!lastIsToday && input.type !== "ENTRY") {
-      throw new HttpError(409, "INVALID_PUNCH_SEQUENCE", { type: input.type, expected: ["ENTRY"] });
-    }
-    if (lastIsToday) {
-      const allowed: Record<string, string[]> = {
-        ENTRY: ["LUNCH_START", "EXIT"],
-        LUNCH_START: ["LUNCH_END"],
-        LUNCH_END: ["EXIT"],
-      };
-      const next = allowed[last!.type] ?? ["ENTRY"];
-      if (!next.includes(input.type)) {
-        throw new HttpError(409, "INVALID_PUNCH_SEQUENCE", {
-          type: input.type,
-          expected: next,
-        });
-      }
-    }
-
     const clientReportedAt = input.clientReportedAt ? new Date(input.clientReportedAt) : null;
     if (clientReportedAt && Number.isNaN(clientReportedAt.getTime())) {
       throw new HttpError(400, "INVALID_ADJUSTMENT_DATE");
     }
 
-    let row: Row;
-    try {
-      row = await this.db.remotePunch.create({
-        data: {
-          userId,
-          type: input.type,
-          workMode: input.workMode ?? "REMOTO",
-          occurredAt: new Date(),
-          clientReportedAt,
-          latitude: input.latitude ?? null,
-          longitude: input.longitude ?? null,
-          gpsAccuracyMeters: input.gpsAccuracyMeters ?? null,
+    const timezone = user.tenant?.timezone ?? "America/Mexico_City";
+    const { row, created } = await this.insertSerialized(userId, input, timezone, clientReportedAt);
+
+    if (created) {
+      await this.audit?.({
+        action: "REMOTE_PUNCH_RECORDED",
+        entityType: "RemotePunch",
+        entityId: row.id,
+        userId: actor.id,
+        userName: actor.name ?? undefined,
+        newState: {
+          type: row.type,
+          workMode: row.workMode,
+          occurredAt: row.occurredAt.toISOString(),
+          hasGeolocation: row.latitude !== null,
+        },
+        metadata: {
+          employeeId: userId,
+          clientEventId: input.clientEventId,
           note: input.note ?? null,
-          clientEventId: input.clientEventId ?? null,
         },
       });
+    }
+
+    return { punch: this.toDto(row), created };
+  }
+
+  /**
+   * Idempotencia + secuencia + inserción, serializadas por usuario.
+   *
+   * `pg_advisory_xact_lock` sobre el usuario hace que dos checadas simultáneas
+   * del mismo trabajador no lean el mismo estado anterior: la segunda espera al
+   * COMMIT de la primera y ve su fila. El lock se libera solo al cerrar la
+   * transacción (COMMIT o ROLLBACK), así que no hay fuga si algo falla.
+   */
+  private async insertSerialized(
+    userId: string,
+    input: RemotePunchInput,
+    timezone: string,
+    clientReportedAt: Date | null
+  ): Promise<{ row: Row; created: boolean }> {
+    try {
+      return await tenantTransaction(this.db, async (tx) => {
+        await tx.$executeRawUnsafe(
+          "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+          userId
+        );
+
+        // El id lo genera el cliente: uno ajeno no devuelve la checada de otra persona.
+        const existing = await tx.remotePunch.findUnique({
+          where: { clientEventId: input.clientEventId },
+        });
+        if (existing && existing.userId !== userId) throw new HttpError(409, "CLIENT_EVENT_ID_TAKEN");
+        if (existing) return { row: existing, created: false };
+
+        // Secuencia del día: entrada → (comida → regreso) → salida, una sola vez.
+        // Tras la salida el día queda cerrado. Al cambiar de día la secuencia
+        // arranca de nuevo, aunque ayer no se haya marcado salida.
+        const last = await tx.remotePunch.findFirst({
+          where: { userId },
+          orderBy: { occurredAt: "desc" },
+        });
+        const lastIsToday = last ? localDateKey(last.occurredAt, timezone) === localDateKey(new Date(), timezone) : false;
+        assertPunchSequence(input.type, last?.type ?? null, lastIsToday);
+
+        const row = await tx.remotePunch.create({
+          data: {
+            userId,
+            type: input.type,
+            workMode: input.workMode ?? "REMOTO",
+            occurredAt: new Date(),
+            clientReportedAt,
+            latitude: input.latitude ?? null,
+            longitude: input.longitude ?? null,
+            gpsAccuracyMeters: input.gpsAccuracyMeters ?? null,
+            note: input.note ?? null,
+            clientEventId: input.clientEventId,
+          },
+        });
+        return { row, created: true };
+      });
     } catch (error) {
-      // Carrera entre reintentos con el mismo clientEventId.
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002" &&
-        input.clientEventId
-      ) {
+      // El índice único de clientEventId es global: un id usado en otro cliente
+      // choca antes de que el lookup lo vea. Mismo desenlace que antes.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
         const existing = await this.db.remotePunch.findUnique({
           where: { clientEventId: input.clientEventId },
         });
         if (existing && existing.userId !== userId) throw new HttpError(409, "CLIENT_EVENT_ID_TAKEN");
-        if (existing) return { punch: this.toDto(existing), created: false };
+        if (existing) return { row: existing, created: false };
+        // El id ya existe pero la fila no es visible (otro cliente con RLS):
+        // el único `clientEventId` de la tabla es global, así que es un id ajeno.
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          throw new HttpError(409, "CLIENT_EVENT_ID_TAKEN");
+        }
       }
       throw error;
     }
-
-    await this.audit?.({
-      action: "REMOTE_PUNCH_RECORDED",
-      entityType: "RemotePunch",
-      entityId: row.id,
-      userId: actor.id,
-      userName: actor.name ?? undefined,
-      newState: {
-        type: row.type,
-        workMode: row.workMode,
-        occurredAt: row.occurredAt.toISOString(),
-        hasGeolocation: row.latitude !== null,
-      },
-      metadata: {
-        employeeId: userId,
-        clientEventId: input.clientEventId ?? null,
-        note: input.note ?? null,
-      },
-    });
-
-    return { punch: this.toDto(row), created: true };
   }
 }

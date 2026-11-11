@@ -38,6 +38,7 @@
     "compression": "^1.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.19.2",
     "express-rate-limit": "^8.7.3",
     "helmet": "^7.1.0",
@@ -50,7 +51,6 @@
     "resend": "^4.5.1",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.19.0",
-    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -72,6 +72,7 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
+    "xlsx": "^0.18.5",
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.70.0"
   }

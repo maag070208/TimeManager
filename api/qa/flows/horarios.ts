@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import type { Cast } from "../cast";
 import { Bot, addDays, localDate, type Report, type Res } from "../lib";
 
@@ -358,7 +358,7 @@ export default async function horarios(cast: Cast, r: Report): Promise<void> {
     r.check(`${bot.label} acepta el acuerdo de registro con checada web`, acc.status < 300, short(acc));
   }
   const punch = async (bot: Bot, type: string) => {
-    const res = await bot.post("/nom/me/punch", { type, workMode: "PRESENCIAL" });
+    const res = await bot.post("/nom/me/punch", { type, workMode: "PRESENCIAL", clientEventId: randomUUID() });
     r.expect(`${bot.label} checa ${type}`, res, 201);
     return res.body?.punch?.occurredAt as string | undefined;
   };

@@ -3,6 +3,7 @@ import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { logger } from "@core/utils/logger";
 import { decryptSecret, encryptSecret } from "@core/utils/crypto";
+import { blockedClockTarget, resolvedBlockedAddress } from "./clock-url";
 import type { FingerprintStation } from "./time-clock-people.service";
 
 /** Origen del equipo que se está usando para enrolar huellas. */
@@ -36,7 +37,12 @@ const envStation = (): FingerprintStation | null => {
   return url && user && pass ? { url, user, pass } : null;
 };
 
-const normalizeUrl = (value: string): string => {
+/**
+ * Normaliza la dirección de la estación (conserva la ruta: la estación puede
+ * exponerse bajo un prefijo) y rechaza destinos que conviertan al API en un
+ * proxy hacia la red interna o los metadatos de la nube.
+ */
+const normalizeUrl = async (value: string): Promise<string> => {
   let parsed: URL;
   try {
     parsed = new URL(value.trim());
@@ -46,7 +52,13 @@ const normalizeUrl = (value: string): string => {
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     throw new HttpError(400, "FINGERPRINT_STATION_INVALID_URL");
   }
-  return parsed.toString().replace(/\/$/, "");
+  const normalized = parsed.toString().replace(/\/$/, "");
+  const reason = blockedClockTarget(parsed.origin) ?? (await resolvedBlockedAddress(parsed.origin));
+  if (reason) {
+    logger.warn(`[fingerprint-station] dirección rechazada (${reason}): ${parsed.origin}`);
+    throw new HttpError(400, "FINGERPRINT_STATION_INVALID_URL");
+  }
+  return normalized;
 };
 
 /**
@@ -144,7 +156,7 @@ export class FingerprintStationService {
     }
 
     const existing = await this.rowFor(scopeTenantId);
-    const url = input.url !== undefined ? normalizeUrl(input.url) : existing?.url;
+    const url = input.url !== undefined ? await normalizeUrl(input.url) : existing?.url;
     const username = input.username?.trim() || existing?.username;
     const password = input.password?.trim() || (existing ? undefined : "");
     if (!url || !username) throw new HttpError(400, "FINGERPRINT_STATION_REQUIRED_FIELDS");

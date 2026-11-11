@@ -68,7 +68,7 @@ export interface UserFormValues {
 /** Límites de caracteres por campo (los mismos que aplica la validación). */
 const LIMITS = {
   username: { min: 3, max: 30 },
-  password: { min: 6, max: 72 },
+  password: { min: 12, max: 72 },
   name: { max: 100 },
   employeeNumber: { max: 30 },
   jobTitle: { max: 100 },

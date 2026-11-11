@@ -257,7 +257,8 @@ export type RemoteWorkMode = "PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO";
 export interface RemotePunchInput {
   type: RemotePunchDirection;
   workMode?: RemoteWorkMode;
-  clientEventId?: string;
+  /** Obligatorio (lo exige `RemotePunchDto`): llave de idempotencia del cliente. */
+  clientEventId: string;
   clientReportedAt?: string;
   latitude?: number;
   longitude?: number;

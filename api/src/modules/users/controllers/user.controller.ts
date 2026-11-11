@@ -132,7 +132,7 @@ export class UserController {
 
   /** Plantilla .xlsx del formato de carga (mismas columnas que `importUsers`). */
   importTemplate = async (_req: Request, res: Response) => {
-    const buffer = this.importService.template();
+    const buffer = await this.importService.template();
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -146,7 +146,7 @@ export class UserController {
     if (!req.file) throw new HttpError(400, "EXCEL_FILE_REQUIRED");
 
     // Encabezados del Excel del cliente (en español) o sus equivalentes en inglés.
-    const rawRows = parseFirstSheet(req.file.buffer);
+    const rawRows = await parseFirstSheet(req.file.buffer);
     const rows = rawRows.map((r) => ({
       name: pickColumn(r, ["NOMBRE DEL EMPLEADO", "NOMBRE", "EMPLOYEE NAME", "NAME"]),
       username: pickColumn(r, ["NOMBRE DE USUARIO", "USUARIO", "USERNAME"]),

@@ -93,7 +93,8 @@ export const RemotePunchDto = z
   .object({
     type: z.enum(["ENTRY", "EXIT", "LUNCH_START", "LUNCH_END"]),
     workMode: z.enum(["PRESENCIAL", "HIBRIDO", "REMOTO", "CAMPO"]).optional(),
-    clientEventId: z.string().uuid().optional(),
+    // Obligatorio: es la llave de idempotencia de la checada remota (F2-07).
+    clientEventId: z.string().uuid(),
     clientReportedAt: isoDate.optional(),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),

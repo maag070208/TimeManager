@@ -430,7 +430,7 @@ export default async function nomCumplimiento(cast: Cast, r: Report): Promise<vo
 
   r.expect(
     "con lugar NO_APTO Teresa no puede checar remoto",
-    await teresa.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO" }),
+    await teresa.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO", clientEventId: randomUUID() }),
     403,
     "TELEWORK_WORKPLACE_NOT_APPROVED"
   );
@@ -440,7 +440,7 @@ export default async function nomCumplimiento(cast: Cast, r: Report): Promise<vo
   r.check("el segundo checklist es PERIODIC", checklist2.body?.kind === "PERIODIC", checklist2.text);
   r.expect(
     "mientras la Comisión no valide el nuevo, sigue bloqueada",
-    await teresa.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO" }),
+    await teresa.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO", clientEventId: randomUUID() }),
     403,
     "TELEWORK_WORKPLACE_NOT_APPROVED"
   );
@@ -485,7 +485,7 @@ export default async function nomCumplimiento(cast: Cast, r: Report): Promise<vo
 
   // Checada remota de una persona del cliente intruso: no debe aparecer en el export de este cliente.
   r.expect("la persona del cliente intruso acepta su método de registro", await ajeno.post("/nom/me/record-agreement/accept", { methods: ["REMOTE"] }), 200);
-  r.expect("la persona del cliente intruso checa remoto", await ajeno.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO" }), 201);
+  r.expect("la persona del cliente intruso checa remoto", await ajeno.post("/nom/me/punch", { type: "ENTRY", workMode: "REMOTO", clientEventId: randomUUID() }), 201);
 
   // ── 4. Export STPS ─────────────────────────────────────────────────────
   r.expect("un empleado no descarga el export STPS", await lucia.get(`/nom/export/stps?period=MONTH&date=${today}`), 403);

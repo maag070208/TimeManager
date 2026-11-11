@@ -89,7 +89,8 @@ export interface Session {
 let server: Server | null = null;
 let baseUrl = "";
 
-export const DEFAULT_PASSWORD = "Prueba123!";
+// 15 caracteres: cumple el mínimo de 12 del API (altas y reseteos).
+export const DEFAULT_PASSWORD = "Prueba123!2027";
 
 let passwordHash: string | null = null;
 const defaultPasswordHash = async (): Promise<string> => {

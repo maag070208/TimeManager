@@ -4,6 +4,7 @@
  */
 import { after, before, describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import {
   api,
   clientSession,
@@ -88,7 +89,7 @@ describe("F4 NOM-037: brechas P0", () => {
 
     const blocked = await api("POST", "/nom/me/punch", {
       token: staff.token,
-      body: { type: "ENTRY", workMode: "REMOTO" },
+      body: { type: "ENTRY", workMode: "REMOTO", clientEventId: randomUUID() },
     });
     expectError(blocked, 403, "TELEWORK_WORKPLACE_NOT_APPROVED", "marcaje en lugar NO_APTO");
   });

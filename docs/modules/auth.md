@@ -1,6 +1,6 @@
 # auth — Autenticación y sesión
 
-Login por usuario/contraseña con JWT, refresh de token, sesión actual y cambio de contraseña. Soporta contraseña provisional (`mustChangePassword`) que obliga a cambiarla al primer ingreso.
+Login por usuario/contraseña con JWT, refresh de token, sesión actual y cambio de contraseña. Soporta contraseña provisional (`mustChangePassword`) que obliga a cambiarla al primer ingreso: el API la exige en el servidor (403 `PASSWORD_CHANGE_REQUIRED` en cualquier ruta salvo `GET /me` y `POST /change-password`), no solo la web. La contraseña nueva exige mínimo 12 caracteres (altas, reset del admin y cambio propio).
 
 ## Endpoints
 

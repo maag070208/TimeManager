@@ -181,6 +181,11 @@ export interface DistributionAgreement {
   acceptedBy?: { name: string } | null;
 }
 
+export type MyDistributionAgreement = Pick<
+  DistributionAgreement,
+  "id" | "kind" | "party" | "effectiveFrom" | "effectiveTo" | "evidenceText" | "acceptedAt"
+>;
+
 export interface RecordAgreementAdmin extends RecordAgreement {
   userId: string;
   user?: { name: string; employeeNumber: string | null } | null;

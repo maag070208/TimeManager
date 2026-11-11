@@ -88,7 +88,7 @@ export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export const ChangePasswordInputSchema = z
   .object({
     currentPassword: z.string().min(1),
-    newPassword: z.string().min(6, "PASSWORD_MIN_LENGTH"),
+    newPassword: z.string().min(12, "PASSWORD_MIN_LENGTH"),
   })
   .openapi("ChangePasswordInput");
 

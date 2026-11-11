@@ -83,6 +83,14 @@ export const env = {
   TIME_CLOCK_USER: process.env.TIME_CLOCK_USER ?? process.env.CHECADOR_USER ?? "",
   TIME_CLOCK_PASS: process.env.TIME_CLOCK_PASS ?? process.env.CHECADOR_PASS ?? "",
   TIME_CLOCK_SYNC_INTERVAL_MS: parseInt(process.env.TIME_CLOCK_SYNC_INTERVAL_MS ?? "300000", 10),
+  /**
+   * ¿Puede la dirección de un reloj o de la estación de huellas apuntar a la red
+   * privada (loopback, RFC1918, CGNAT)? `true` por defecto porque el despliegue
+   * principal es on-prem; en la nube se apaga para que el API no sea un proxy
+   * hacia la red interna. Los metadatos de nube y el enlace local se rechazan
+   * siempre (`services/clock-url.ts`).
+   */
+  CLOCK_ALLOW_PRIVATE_NETWORK: process.env.CLOCK_ALLOW_PRIVATE_NETWORK !== "false",
 
   // ── Infraestructura y escala (F1B-01/02/07, F1C-03, F4-03) ───────────────
 

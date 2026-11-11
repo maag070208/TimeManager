@@ -11,20 +11,28 @@ process.env.PORT ??= "0";
 process.env.JWT_SECRET ??= "unit-test-users-secret";
 
 test("la plantilla trae solo los encabezados del formato", async () => {
-  const XLSX = await import("xlsx");
+  const { Workbook } = await import("exceljs");
   const { UserImportService, USERS_IMPORT_COLUMNS } = await import("./user-import.service");
 
-  const buffer = new UserImportService().template();
+  const buffer = await new UserImportService().template();
   assert.ok(buffer.length > 0);
 
-  const workbook = XLSX.read(buffer, { type: "buffer" });
-  const sheetName = workbook.SheetNames[0];
-  assert.ok(sheetName, "tiene una hoja");
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, blankrows: false });
+  const workbook = new Workbook();
+  await workbook.xlsx.load(buffer as unknown as ArrayBuffer);
+  const sheet = workbook.getWorksheet(1);
+  assert.ok(sheet, "tiene una hoja");
+
+  const rows: unknown[][] = [];
+  sheet.eachRow({ includeEmpty: false }, (row) => {
+    const values: unknown[] = [];
+    for (let column = 1; column <= sheet.columnCount; column++) {
+      values.push(row.getCell(column).value ?? "");
+    }
+    rows.push(values);
+  });
 
   assert.equal(rows.length, 1, "solo el encabezado (nada que importar por accidente)");
-  assert.deepEqual((rows[0] as unknown[]).map(String), [...USERS_IMPORT_COLUMNS]);
+  assert.deepEqual(rows[0].map(String), [...USERS_IMPORT_COLUMNS]);
   assert.deepEqual([...USERS_IMPORT_COLUMNS], [
     "Nombre del empleado",
     "Nombre de usuario",

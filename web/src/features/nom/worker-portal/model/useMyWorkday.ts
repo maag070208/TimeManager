@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   nomApi,
   type MeTelework,
@@ -7,6 +7,7 @@ import {
   type RemoteWorkMode,
   type TeleworkChecklistKind,
 } from "@entities/nom";
+import { newId } from "@shared/lib/newId";
 
 const isoDay = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -34,6 +35,9 @@ export const useMyWorkday = () => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Id de idempotencia pendiente por tipo: se reutiliza mientras el servidor no
+  // confirme, para que un reintento tras un corte no duplique la checada.
+  const pendingEventIds = useRef<Partial<Record<PunchType, string>>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,27 +77,30 @@ export const useMyWorkday = () => {
 
   const punch = async (type: PunchType, options: PunchOptions = {}) =>
     run(async () => {
+      const clientEventId = pendingEventIds.current[type] ?? newId();
+      pendingEventIds.current[type] = clientEventId;
+      const base = { type, clientEventId, workMode: options.workMode, note: options.note };
       // La ubicación (si se comparte) se pide EN ESTE MOMENTO y viaja solo con
       // el marcaje: no hay rastreo continuo.
       if (!options.withGeolocation || !("geolocation" in navigator)) {
-        await nomApi.punch({ type, workMode: options.workMode, note: options.note });
-        return;
+        await nomApi.punch(base);
+      } else {
+        const position = await new Promise<GeolocationPosition | null>((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(pos),
+            () => resolve(null),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+          );
+        });
+        await nomApi.punch({
+          ...base,
+          latitude: position?.coords.latitude,
+          longitude: position?.coords.longitude,
+          gpsAccuracyMeters: position?.coords.accuracy,
+        });
       }
-      const position = await new Promise<GeolocationPosition | null>((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve(pos),
-          () => resolve(null),
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-        );
-      });
-      await nomApi.punch({
-        type,
-        workMode: options.workMode,
-        note: options.note,
-        latitude: position?.coords.latitude,
-        longitude: position?.coords.longitude,
-        gpsAccuracyMeters: position?.coords.accuracy,
-      });
+      // Confirmada: el siguiente marcaje del mismo tipo estrena id.
+      delete pendingEventIds.current[type];
     });
 
   const reportDiscrepancy = (punchId: string, reason: string) =>

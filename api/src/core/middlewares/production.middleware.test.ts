@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { signToken } from "@core/utils/security";
-import { tenantRateLimitKey } from "./production.middleware";
+import { isRateLimitedPath, tenantRateLimitKey } from "./production.middleware";
 
 const tokenFor = (tenantId: string | null): string =>
   signToken({ id: "usr-1", username: "usr", role: "CLIENT_ADMIN", tenantId });
@@ -33,4 +33,24 @@ test("token inválido cae a IP (authenticate responderá 401)", () => {
 
 test("cabecera sin Bearer también se interpreta como token", () => {
   assert.equal(tenantRateLimitKey(req(tokenFor("tenant-c"))), "tenant:tenant-c");
+});
+
+test("las rutas caras y la ingesta llevan tope", () => {
+  for (const path of ["/users/import", "/agent/punches", "/time-clock/sync", "/time-clock/ingest", "/hr/query"]) {
+    assert.equal(isRateLimitedPath(path, "POST"), true, path);
+  }
+});
+
+test("las subidas en memoria llevan tope, pero solo al escribir", () => {
+  assert.equal(isRateLimitedPath("/hr/usr-1/documents", "POST"), true);
+  assert.equal(isRateLimitedPath("/hr/usr-1/photo", "POST"), true);
+  assert.equal(isRateLimitedPath("/hr/usr-1/documents", "GET"), false);
+  assert.equal(isRateLimitedPath("/hr/usr-1/photo/raw", "GET"), false);
+  assert.equal(isRateLimitedPath("/hr/usr-1/documents/doc-1/download", "GET"), false);
+});
+
+test("las descargas y el resto de rutas no se topan", () => {
+  for (const path of ["/dashboard/people", "/hr/usr-1", "/auth/me"]) {
+    assert.equal(isRateLimitedPath(path, "GET"), false, path);
+  }
 });

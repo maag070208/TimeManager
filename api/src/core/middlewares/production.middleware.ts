@@ -52,16 +52,25 @@ export const queryRateLimiter = rateLimit({
 });
 
 /** Rutas caras/ingesta con tope además del de IP: /query, sync, import, ingest y push del agente. */
-export const isRateLimitedPath = (path: string): boolean =>
-  path.endsWith("/query") ||
-  path.endsWith("/sync") ||
-  path.endsWith("/import") ||
-  path.endsWith("/ingest") ||
-  path.endsWith("/punches");
+const RATE_LIMITED_SUFFIXES = ["/query", "/sync", "/import", "/ingest", "/punches"];
 
-/** Aplica el tope de consultas por IP solo a las rutas caras/ingesta. */
+/**
+ * Subidas con multer en memoria (`POST /hr/:id/documents`, `POST /hr/:id/photo`).
+ * Solo se limitan las escrituras: los GET de descarga (`/:id/documents/:docId/download`,
+ * `/photo/raw`) no pasan por aquí o no terminan en estos sufijos, para no
+ * devolver 429 al pintar fotos en una lista.
+ */
+const RATE_LIMITED_UPLOAD_SUFFIXES = ["/documents", "/photo"];
+
+/** `true` si la ruta lleva tope de rate limit (en subidas, solo escrituras). */
+export const isRateLimitedPath = (path: string, method: string): boolean => {
+  if (RATE_LIMITED_SUFFIXES.some((suffix) => path.endsWith(suffix))) return true;
+  return method === "POST" && RATE_LIMITED_UPLOAD_SUFFIXES.some((suffix) => path.endsWith(suffix));
+};
+
+/** Aplica el tope a las rutas caras/ingesta y a las subidas. */
 export const queryPathsRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
-  if (isRateLimitedPath(req.path)) {
+  if (isRateLimitedPath(req.path, req.method)) {
     queryRateLimiter(req, res, next);
     return;
   }
@@ -101,7 +110,7 @@ export const tenantQueryRateLimiter = rateLimit({
 });
 
 export const tenantQueryPathsRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
-  if (isRateLimitedPath(req.path)) {
+  if (isRateLimitedPath(req.path, req.method)) {
     tenantQueryRateLimiter(req, res, next);
     return;
   }

@@ -72,14 +72,15 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 
 ## Marcaje remoto (F2-07) — web y futura app
 
-- Secuencia del día: **ENTRY → LUNCH_START → LUNCH_END → EXIT** (también ENTRY → EXIT directo). El mismo API (`POST /nom/me/punch`) sirve a la web actual y a la app futura; el canal siempre es el mismo registro `remote_punches`, con hora del servidor e idempotencia por `clientEventId`.
+- Secuencia del día: **ENTRY → LUNCH_START → LUNCH_END → EXIT** (también ENTRY → EXIT directo). El mismo API (`POST /nom/me/punch`) sirve a la web actual y a la app futura; el canal siempre es el mismo registro `remote_punches`, con hora del servidor e idempotencia por `clientEventId` (obligatorio, uuid).
 - La secuencia se reinicia cada día del cliente (zona horaria del tenant), aunque el día anterior haya quedado abierto.
 - Mi jornada muestra el **siguiente paso** resaltado y los cuatro movimientos con su hora; las checadas del reloj físico y los accesos se siguen viendo en la misma línea de tiempo.
 
 ## Marcaje remoto (F2-07)
 
-- `POST /nom/me/punch` con `{ type: "ENTRY"|"EXIT", workMode?, clientEventId?, latitude?, longitude?, gpsAccuracyMeters?, note? }`. La **hora es la del servidor** (`occurredAt`); `clientReportedAt` solo guarda lo que reportó el dispositivo (reintentos offline).
-- **Idempotencia**: el mismo `clientEventId` devuelve el marcaje ya creado (`200`, `created: false`) en vez de duplicarlo. Es por persona: un `clientEventId` que ya usó otra cuenta responde `409 CLIENT_EVENT_ID_TAKEN` y nunca devuelve la checada ajena.
+- `POST /nom/me/punch` con `{ type: "ENTRY"|"EXIT", workMode?, clientEventId, latitude?, longitude?, gpsAccuracyMeters?, note? }`. `clientEventId` es **obligatorio** (uuid); sin él la petición responde `400 VALIDATION_ERROR`. La **hora es la del servidor** (`occurredAt`); `clientReportedAt` solo guarda lo que reportó el dispositivo (reintentos offline).
+- **Idempotencia**: el mismo `clientEventId` devuelve el marcaje ya creado (`200`, `created: false`) en vez de duplicarlo, aunque el reintento llegue después de cerrar el día. Es por persona: un `clientEventId` que ya usó otra cuenta responde `409 CLIENT_EVENT_ID_TAKEN` y nunca devuelve la checada ajena.
+- **Concurrencia**: la secuencia y el alta corren en una transacción con `pg_advisory_xact_lock` por usuario; dos checadas simultáneas de la misma persona se serializan (la segunda ve el estado ya insertado) y no pueden leer el mismo estado anterior. Con dos ENTRY en paralelo, una responde `201` y la otra `409 INVALID_PUNCH_SEQUENCE`; con el mismo `clientEventId`, una `201` y la otra `200 created:false`.
 - **Secuencia**: entrada → (salida a comer → regreso) → salida, un solo ciclo por día en la zona del cliente. La primera checada del día siempre es entrada. Un paso fuera de orden responde `409 INVALID_PUNCH_SEQUENCE`; tras la salida el día queda cerrado (`409 WORKDAY_ALREADY_CLOSED`). Al día siguiente la secuencia arranca de nuevo. Los errores se corrigen reportando discrepancia a RH.
 - **Geolocalización**: opcional; si se envía, van latitud y longitud juntas (`400 INVALID_GEO_POINT`) y se guardan **solo en ese marcaje**. No hay rastreo continuo: el API no consulta la ubicación en ningún otro momento.
 - El registro es append-only por trigger; los marcajes remotos aparecen en `GET /nom/me/punches`, en el export STPS (sección “marcajes remotos”, sin coordenadas) y se archivan por retención.
