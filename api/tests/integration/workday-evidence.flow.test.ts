@@ -138,9 +138,17 @@ describe("evidencia de jornada", () => {
 
   test("un ajuste aprobado corrige la jornada y el export lo refleja", async () => {
     const client = await getDb();
+    // Persona nueva: el flujo único mezcla TODAS las fuentes de una persona, así
+    // que reutilizar al trabajador de los casos anteriores metería sus marcajes
+    // web en esta jornada del reloj.
     const employeeNumber = `ADJ-${Date.now()}`;
+    const adjWorker = await createUser({
+      tenantId: tenant.id,
+      role: "CLIENT_STAFF",
+      employeeNumber,
+    });
     await client.timeClockEmployee.create({
-      data: { tenantId: tenant.id, employeeNumber, userId: workerId },
+      data: { tenantId: tenant.id, employeeNumber, userId: adjWorker.id },
     });
     const punch = await client.timeClockPunch.create({
       data: {
@@ -160,12 +168,12 @@ describe("evidencia de jornada", () => {
         targetType: "CLOCK",
         targetId: punch.id,
         punchId: punch.id,
-        requestedById: workerId,
+        requestedById: adjWorker.id,
         reason: "Entró a las 10:00, no a las 09:00",
         previousState: { occurredAt: at("09:00").toISOString() },
         newState: { occurredAt: at("10:00").toISOString() },
         status: "APPROVED",
-        decidedById: workerId,
+        decidedById: admin.user.id,
         decidedAt: new Date(),
       },
     });
@@ -189,7 +197,7 @@ describe("evidencia de jornada", () => {
     });
     expectStatus(report, 200, "reporte con ajuste");
     const row = (report.body?.rows as Array<{ id?: string; userId?: string; totals: { workedMin: number } }>).find(
-      (candidate) => candidate.id === workerId || candidate.userId === workerId
+      (candidate) => candidate.id === adjWorker.id || candidate.userId === adjWorker.id
     );
     assert.ok(row, "persona del ajuste en el reporte");
     // 10:00 → 18:00 = 8 h; sin el ajuste serían 9 h.

@@ -471,6 +471,7 @@ export const en: Messages = {
     WEEKLY_LEDGER_NOT_FOUND: "Weekly overtime ledger not found",
     INVALID_RETENTION_MONTHS: "Retention must be between {{min}} and {{max}} months (empty disables archiving)",
     REMOTE_PUNCH_DISABLED: "Remote punching is disabled for this client",
+    PUNCH_CHANNEL_DISABLED: "This punch channel is not enabled for this client",
     REMOTE_PUNCH_NOT_ALLOWED: "This person can only punch on a physical clock; change their check-in mode to allow the web",
     INVALID_PUNCH_SEQUENCE: "You can't punch {{type}} right now: check which punch comes next",
     WORKDAY_ALREADY_CLOSED: "You already punched out today; you can punch again tomorrow",

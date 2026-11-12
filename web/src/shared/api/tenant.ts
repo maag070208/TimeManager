@@ -1,4 +1,5 @@
 import { resolveTenantRoute, type TenantRoute } from "@shared/lib/tenant-route";
+import type { PunchChannel } from "@shared/lib/punch-channels";
 import { TENANT_BASE_DOMAIN } from "./constants/API_CONSTANTS";
 
 /** Subdominios de plataforma: sin cliente (ADMIN/SUPPORT). */
@@ -38,6 +39,8 @@ export interface SelectedTenant {
   id: string;
   name: string;
   slug: string;
+  /** Canales de checada del cliente elegido (los define la plataforma). */
+  punchChannels?: PunchChannel[];
 }
 
 const STORAGE_KEY = "tm_selected_tenant_v1";

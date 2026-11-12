@@ -26,6 +26,8 @@ export const TenantInfoSchema = z
     timezone: z.string(),
     weekStartDay: z.number().int().min(0).max(6),
     disabledModules: z.array(z.string()).default([]),
+    /** Canales de checada contratados (WEB/APP/CLOCK); la web y la app se adaptan. */
+    punchChannels: z.array(z.enum(["WEB", "APP", "CLOCK"])).default(["WEB", "APP"]),
   })
   .openapi("TenantInfo");
 

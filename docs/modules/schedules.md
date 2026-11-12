@@ -32,7 +32,7 @@ Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Hor
 - **Tiempo extra**: solo lo trabajado de verdad después de la salida programada del último tramo (una sesión que empieza después no hereda el hueco intermedio) (o de la salida del turno + 24 h si cruza medianoche), menos `exitToleranceMin` y si alcanza `minOvertimeMin`. En descanso cuenta todo lo trabajado; sin horario no se calcula (se marca `withoutSchedule`).
 - **Faltante** (`missingMin`): lo programado menos lo trabajado, solo si hubo checada.
 - **Vacaciones y permisos**: un día con solicitud aprobada y sin checadas sale como `LEAVE` (no es falta ni suma faltante).
-- Las checadas web/app llegan en las sesiones del reporte del reloj (con sus ajustes); la asistencia semanal no las vuelve a sumar.
+- Las checadas web/app llegan en las sesiones del reporte unificado del reloj (con sus ajustes y mezcladas por hora); la asistencia semanal no las vuelve a leer de `remote_punches` ni las vuelve a sumar. Las sesiones traen su `source` (`CLOCK`/`WEB`/`APP`/`MIXED`).
 - **Pre-nómina cerrada**: con la semana cerrada no cambian revisiones ni se asignan horarios con fecha dentro o antes de ella (`409 PAYROLL_WEEK_CLOSED`); cerrar exige departamentos del cliente y al menos uno. Las fechas de los DTO deben existir en el calendario.
 - **Asignación del día**: `scheduleOn` elige la asignación vigente; con vigencias encimadas gana la más reciente (ver "Qué hace"). El caso **DEMO-911** ("Retardo 5:59 h" con entrada 14:58 y turno Vespertino 15:00) era esto: se comparaba contra un Matutino 09:00 de una asignación vieja que nunca se cerró. Resuelto en F2-05; regresión en `workday-rules.test.ts` y `tests/integration/schedules-late.flow.test.ts`.
 
@@ -57,6 +57,13 @@ Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Hor
 - Reglas de jornada (tope 12 h diarias, 46 h en 2027, reducción a 40 h en 2030) deben ser **configurables por tenant** (cada cliente puede tener reglas distintas mientras la ley lo permita).
 - El cierre de nómina es la frontera de integración: en SaaS, exportar por cliente (API/webhook) en vez de acoplar a una nómina interna.
 - **Resuelto (F2-05)**: el retardo mal calculado de DEMO-911 venía de la resolución de la asignación (ganaba la vigencia más antigua) y ya usa la más reciente; el cálculo en sí (`computeWorkday`) siempre estuvo bien.
+
+## Canales de checada y asistencia semanal
+
+- `Tenant.punchChannels` (`WEB`, `APP`, `CLOCK`) define el mix del cliente. Con el helper cacheado `core/utils/tenant-punch-channels.ts` (60 s) la asistencia y los tableros saben si hay reloj.
+- **Con canal CLOCK**: `linked` conserva la regla del reloj (número vinculado o checadas del periodo); quien no tiene vínculo queda `NO_INFO`/`UNLINKED`.
+- **Sin canal CLOCK**: toda la plantilla está `linked` y no existen `NO_INFO`/`UNLINKED` por falta de reloj; los días se califican con las checadas web/app y el horario (falta real = `ABSENCE`). `GET /dashboard/setup-gaps` devuelve `unlinkedClockNumbers=0` y `personalWithoutClock=0` sin consultar las tablas del reloj, y `attendance-today` no marca `UNLINKED`.
+- Tiempo extra y pre-nómina salen del mismo reporte, así que un día con entrada web y salida del reloj cuenta como una sola jornada (`MIXED`).
 
 ## Semana laboral configurable por cliente
 

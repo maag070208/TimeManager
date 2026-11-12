@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ITAlert, ITButton, ITCheckbox, ITDialog, ITInput, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITButton, ITDialog, ITInput, ITText } from "@axzydev/axzy_ui_system";
 import { LuKeyRound, LuTrash2, LuUndo2, LuUserX } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -29,9 +29,9 @@ interface AccountPerson {
 }
 
 /**
- * Credenciales de acceso de una cuenta: usuario, nueva contraseña, rol y roles
- * adicionales, más su estado (baja/reactivar). Los datos de la persona viven en
- * su expediente; solo se capturan aquí si la cuenta no tiene expediente.
+ * Credenciales de acceso de una cuenta: usuario, nueva contraseña, rol y su
+ * estado (baja/reactivar). Los datos de la persona viven en su expediente;
+ * solo se capturan aquí si la cuenta no tiene expediente.
  */
 export default function UserEditDialog({ userId, onClose, onSaved, onDeactivate, onReactivate, onDelete }: Props) {
   const { t } = useTranslation(["users", "common"]);
@@ -128,22 +128,6 @@ export default function UserEditDialog({ userId, onClose, onSaved, onDeactivate,
             />
             <ITText className="mt-1 block text-xs text-slate-500">{t("access.newPasswordHint")}</ITText>
           </div>
-          {fx.EXTRA_ROLE_OPTIONS.length > 0 && (
-            <div className="sm:col-span-2">
-              <ITText className="mb-1.5 block text-[13px] font-semibold text-slate-700">{t("access.extraRoles")}</ITText>
-              <div className="flex flex-wrap gap-x-5 gap-y-2">
-                {fx.EXTRA_ROLE_OPTIONS.map((option) => (
-                  <ITCheckbox
-                    key={option.value}
-                    name={`extra_role_${option.value}`}
-                    checked={form.roles.includes(option.value)}
-                    onChange={(checked) => fx.toggleExtraRole(option.value, checked)}
-                    label={option.label}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {fx.hasRecord && (

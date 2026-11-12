@@ -155,7 +155,7 @@ export class TeleworkService {
 
   async listRegistrations(): Promise<TeleworkRegistrationDto[]> {
     const rows = await this.db.teleworkRegistration.findMany({
-      orderBy: [{ status: "asc" }, { startedAt: "desc" }],
+      orderBy: [{ startedAt: "desc" }, { id: "desc" }],
       include: {
         user: { select: { name: true, email: true, employeeNumber: true } },
         checklists: { select: { kind: true, completedAt: true }, orderBy: { completedAt: "desc" } },
@@ -376,11 +376,13 @@ export class TeleworkService {
   async me(userId: string): Promise<MyTelework> {
     const user = await this.db.user.findUnique({
       where: { id: userId },
-      select: { tenantId: true, checkinMode: true },
+      select: { tenantId: true, tenant: { select: { punchChannels: true } } },
     });
     if (!user?.tenantId) throw new HttpError(400, "TENANT_REQUIRED");
 
     const config = await this.settings.resolve(user.tenantId);
+    const channels = (user.tenant?.punchChannels ?? ["WEB", "APP"]) as Array<"WEB" | "APP" | "CLOCK">;
+    const remoteEnabled = config.remotePunchEnabled && (channels.includes("WEB") || channels.includes("APP"));
     const registration = await this.activeRegistrationOf(userId);
     const lastChecklist = registration?.checklists?.[0]
       ? await this.db.teleworkChecklist.findFirst({
@@ -399,7 +401,10 @@ export class TeleworkService {
       registration: registration ? this.toRegistrationDto(registration) : null,
       policy: config.policy,
       remotePunchEnabled: config.remotePunchEnabled,
-      canPunchRemote: config.remotePunchEnabled && user.checkinMode !== "CLOCK",
+      punchChannels: channels,
+      canPunchWeb: remoteEnabled && channels.includes("WEB"),
+      canPunchApp: remoteEnabled && channels.includes("APP"),
+      canPunchRemote: remoteEnabled,
       remoteGeolocationEnabled: config.remoteGeolocationEnabled,
       lunchPunchEnabled: config.lunchPunchEnabled,
       checklistTemplate: this.checklistTemplate(),

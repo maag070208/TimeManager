@@ -89,12 +89,8 @@ export default function UserFormPage() {
     selectedDept: userForm.selectedDept,
     roleGuidance: userForm.roleGuidance,
     roleOptions: userForm.ROLE_OPTIONS,
-    extraRoleOptions: userForm.EXTRA_ROLE_OPTIONS,
-    onToggleExtraRole: userForm.toggleExtraRole,
     requiredDocs: userForm.requiredDocs,
-    docsFiles: userForm.docsFiles,
     onPickDoc: userForm.setDocFile,
-    docsError: userForm.docsError,
     uniqueness: userForm.uniqueness,
   };
 
@@ -113,13 +109,13 @@ export default function UserFormPage() {
 
   const f = userForm.form;
   // Error del formulario: apaga la palomita de cada paso.
-  const hasErrors = Object.keys(userForm.errors).length > 0 || Boolean(userForm.docsError);
+  const hasErrors = Object.keys(userForm.errors).length > 0;
   const steps: AppStep[] = [
     {
       label: tt("form.sectionPersonal"),
       description: tt("form.sectionPersonalHint"),
       icon: <LuIdCard size={15} />,
-      complete: !!f.name.trim() && !!f.paternalSurname.trim() && !!f.email.trim() && !!f.employeeNumber.trim() && !hasErrors,
+      complete: !!f.name.trim() && !!f.paternalSurname.trim() && !!f.employeeNumber.trim() && !hasErrors,
       content: <UserFormFields step="personal" {...fieldsProps} />,
     },
     {
@@ -136,13 +132,13 @@ export default function UserFormPage() {
       complete: !!f.departmentId,
       content: <UserFormFields step="org" {...fieldsProps} />,
     },
-    ...(userForm.requiresDocs
+    ...(userForm.showDocs
       ? [
           {
             label: tt("form.stepDocs"),
             description: tt("form.docsHint", { docs: userForm.requiredDocs.map((d) => d.label).join(", ") }),
             icon: <LuFileUp size={15} />,
-            complete: userForm.requiredDocs.every((d) => userForm.docsFiles[d.key]) && !userForm.docsError,
+            complete: userForm.requiredDocs.every((d) => userForm.docsFiles[d.key]),
             content: <UserFormFields step="docs" {...fieldsProps} />,
           },
         ]
@@ -191,7 +187,7 @@ export default function UserFormPage() {
                     ? "El rol define a qué pantallas entra la persona; los permisos finos se ajustan en Roles."
                     : section.label === tt("form.sectionOrganization")
                       ? "Departamento y subárea se usan para filtros, reportes y aprobaciones."
-                      : "Los documentos obligatorios se configuran en Expedientes > Catálogo de documentos."
+                      : "La documentación es opcional; también puedes subirla después desde el expediente."
               }
               complete={section.complete}
             >

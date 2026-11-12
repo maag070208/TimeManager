@@ -5,8 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { AppDispatch, RootState } from "@app/store";
-import { logout, meThunk, setRolesCatalog } from "@entities/user";
-import { APP_SCREENS, isScreenVisible, permissionApi, type AppScreen } from "@entities/permission";
+import { logout, meThunk, setRolesCatalog, usePunchChannels } from "@entities/user";
+import { APP_SCREENS, isScreenVisible, isScreenVisibleForChannels, permissionApi, type AppScreen } from "@entities/permission";
 import { fetchUnreadCount, markNotificationRead, notificationRoute } from "@entities/notification";
 import { blobatarDataUri } from "@shared/lib/blobatar";
 import { API_CONSTANTS } from "@shared/api/constants/API_CONSTANTS";
@@ -35,6 +35,7 @@ export default function PrivateRoutes() {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { token, user } = useSelector((s: RootState) => s.auth);
+  const { channels: punchChannels } = usePunchChannels();
   const unreadCount = useSelector((s: RootState) => s.notifications.unreadCount);
   const [toast, setToast] = useState<string | null>(null);
   const { platformWithoutClient } = useClientContext();
@@ -183,6 +184,8 @@ export default function PrivateRoutes() {
 
   const canView = (screen: AppScreen): boolean =>
     isScreenVisible(permissions, screen, user?.role) &&
+    // Sin canal CLOCK, las pantallas del reloj no existen para el cliente.
+    isScreenVisibleForChannels(screen, punchChannels) &&
     // Mi jornada es personal: el personal de plataforma no tiene expediente.
     !(screen.id === "myWorkday" && !user?.tenant) &&
     (!platformWithoutClient || !screen.path || (PLATFORM_PATHS as readonly string[]).some((path) => screen.path === path || screen.path?.startsWith(`${path}/`)));

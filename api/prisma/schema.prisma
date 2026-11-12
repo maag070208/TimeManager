@@ -81,6 +81,9 @@ model Tenant {
   emailFrom       String?
   /// Módulos desactivados por la plataforma.
   disabledModules String[] @default([])
+  /// Canales de checada contratados por el cliente. Nunca está vacío: la
+  /// plataforma elige el mix (puede cambiar con el tiempo).
+  punchChannels   PunchChannel[] @default([WEB, APP])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -189,6 +192,21 @@ enum CheckinMode {
   WEB
   CLOCK
   HYBRID
+}
+
+/// Canales de checada que la plataforma contrata por cliente. WEB y APP usan
+/// el marcaje remoto (`remote_punches`); CLOCK usa el reloj físico.
+enum PunchChannel {
+  WEB
+  APP
+  CLOCK
+}
+
+/// Origen de un marcaje remoto (web o app móvil). Los del reloj viven en
+/// `time_clock_punches`.
+enum RemotePunchSource {
+  WEB
+  APP
 }
 
 model User {
@@ -1895,6 +1913,8 @@ model RemotePunch {
   userId            String
   user              User              @relation("RemotePunchUser", fields: [userId], references: [id], onDelete: Restrict)
   type              RemotePunchType
+  /// Canal por el que se capturó (web o app); el reloj no usa esta tabla.
+  source            RemotePunchSource @default(WEB)
   workMode          RemoteWorkMode    @default(REMOTO)
   /// Hora autoritativa (servidor). El reloj del dispositivo no manda.
   occurredAt        DateTime          @default(now())

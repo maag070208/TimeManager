@@ -1,4 +1,5 @@
 import { forgetTenantTimezone } from "@core/utils/tenant-timezone";
+import { forgetTenantPunchChannels } from "@core/utils/tenant-punch-channels";
 import { randomBytes } from "node:crypto";
 import { Prisma, type Plan, type PrismaClient, type Tenant } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
@@ -48,6 +49,7 @@ const toView = (t: TenantWithPlan, usage: TenantUsage): TenantView => ({
     : null,
   employeeLimit: t.employeeLimit,
   disabledModules: t.disabledModules,
+  punchChannels: t.punchChannels,
   brandColor: t.brandColor,
   logoDataUrl: t.logoDataUrl,
   emailFrom: t.emailFrom,
@@ -236,6 +238,7 @@ export class TenantService {
               timezone: input.timezone ?? DEFAULT_TIMEZONE,
               planId: plan?.id ?? null,
               employeeLimit: input.employeeLimit ?? null,
+              ...(input.punchChannels !== undefined && { punchChannels: input.punchChannels }),
             },
           });
           const admin = await tx.user.create({
@@ -332,6 +335,7 @@ export class TenantService {
           ...(input.logoDataUrl !== undefined ? { logoDataUrl: input.logoDataUrl } : {}),
           ...(input.emailFrom !== undefined ? { emailFrom: input.emailFrom } : {}),
           ...(input.disabledModules !== undefined && { disabledModules: input.disabledModules }),
+          ...(input.punchChannels !== undefined && { punchChannels: input.punchChannels }),
           ...(plan !== undefined ? { planId: plan?.id ?? null } : {}),
         },
         include: { plan: true },
@@ -361,6 +365,8 @@ export class TenantService {
           brandColor: previous.brandColor,
           logoDataUrl: previous.logoDataUrl,
           emailFrom: previous.emailFrom,
+          disabledModules: previous.disabledModules,
+          punchChannels: previous.punchChannels,
         },
         newState: {
           name: updated.name,
@@ -372,9 +378,13 @@ export class TenantService {
           brandColor: updated.brandColor,
           logoDataUrl: updated.logoDataUrl,
           emailFrom: updated.emailFrom,
+          disabledModules: updated.disabledModules,
+          punchChannels: updated.punchChannels,
         },
       });
       if (updated.timezone !== previous.timezone) forgetTenantTimezone(id);
+      // Los canales de checada se cachean 60 s: se reflejan al instante al cambiarlos.
+      forgetTenantPunchChannels(id);
       return toView(updated, await tenantUsage(id, this.db));
     }, true);
   }

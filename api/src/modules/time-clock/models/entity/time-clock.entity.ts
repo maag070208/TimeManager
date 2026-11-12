@@ -4,12 +4,23 @@ import type {
 } from "@modules/access/models/entity/access.entity";
 
 /**
+ * Canal que formó una sesión del reporte unificado: reloj físico, web, app, o
+ * `MIXED` cuando la entrada y la salida vienen de canales distintos (p. ej.
+ * entrada web + salida del reloj). Las checadas se mezclan en un solo timeline
+ * por persona y día.
+ */
+export type TimeClockSessionSource = "CLOCK" | "WEB" | "APP" | "MIXED";
+
+/**
  * Fila del reporte de entradas/salidas del reloj: el mismo contrato que el
  * reporte de acceso (la web reutiliza su pantalla) + si la persona ya está
- * vinculada a un usuario. Sin vincular, `employeeId` es `reloj:<número>` y el
- * nombre es el del reloj.
+ * vinculada a un usuario y el canal que formó la sesión. Sin vincular,
+ * `employeeId` es `reloj:<número>` y el nombre es el del reloj.
  */
-export type TimeClockReportSessionRow = AccessReportSessionRow & { linked: boolean };
+export type TimeClockReportSessionRow = AccessReportSessionRow & {
+  linked: boolean;
+  source: TimeClockSessionSource;
+};
 
 export interface TimeClockReportResult {
   rows: TimeClockReportSessionRow[];

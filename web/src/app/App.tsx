@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { tenantRouteFromLocation } from "@shared/api/tenant";
 import RequiresPermission from "./guards/RequirePermission";
+import RequiresPunchChannel from "./guards/RequiresPunchChannel";
 import TenantRouteGate from "./guards/TenantRouteGate";
 import TenantOnly from "./guards/TenantOnly";
 
@@ -230,12 +231,15 @@ export default function App() {
             </RequiresPermission>
           }
         />
-        {/* Reloj checador Hikvision (solo lectura; ver TIME_CLOCK.md). */}
+        {/* Reloj checador Hikvision (solo lectura; ver TIME_CLOCK.md). Sin canal
+            CLOCK estas pantallas no existen para el cliente. */}
         <Route
           path="/hr/time-clock"
           element={
             <RequiresPermission permission="time_clock.view">
-              <TimeClockPage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClockPage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />
@@ -251,7 +255,9 @@ export default function App() {
           path="/hr/time-clock/roster"
           element={
             <RequiresPermission permission="time_clock.view">
-              <TimeClockRosterPage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClockRosterPage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />
@@ -259,7 +265,9 @@ export default function App() {
           path="/hr/time-clock/employees"
           element={
             <RequiresPermission permission="time_clock.view">
-              <TimeClockEmployeesPage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClockEmployeesPage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />
@@ -268,7 +276,9 @@ export default function App() {
           path="/hr/time-clock/employees/differences"
           element={
             <RequiresPermission permission="time_clock.view">
-              <TimeClockDifferencesPage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClockDifferencesPage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />
@@ -277,7 +287,9 @@ export default function App() {
           path="/time-clocks/dashboard"
           element={
             <RequiresPermission permission="time_clocks.manage">
-              <TimeClockDashboardPage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClockDashboardPage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />
@@ -286,7 +298,9 @@ export default function App() {
           path="/time-clocks/people"
           element={
             <RequiresPermission permission="time_clocks.manage">
-              <TimeClockPeoplePage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClockPeoplePage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />
@@ -295,7 +309,9 @@ export default function App() {
           path="/time-clocks/inspect"
           element={
             <RequiresPermission permission="time_clocks.manage">
-              <TimeClockInspectPage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClockInspectPage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />
@@ -304,7 +320,9 @@ export default function App() {
           path="/time-clocks"
           element={
             <RequiresPermission permission="time_clocks.manage">
-              <TimeClocksPage />
+              <RequiresPunchChannel channel="CLOCK">
+                <TimeClocksPage />
+              </RequiresPunchChannel>
             </RequiresPermission>
           }
         />

@@ -61,9 +61,12 @@ export default function ClientOverview() {
 
   if (fx.loading) return <OverviewSkeleton />;
 
-  const onboardingSteps = fx.onboarding?.filter((step) => step.id !== "clock" || canTimeClockView) ?? null;
+  const onboardingSteps = fx.onboarding?.filter((step) => step.id !== "clock" || (fx.hasClock && canTimeClockView)) ?? null;
   const doneSteps = onboardingSteps?.filter((step) => step.done).length ?? 0;
   const pendingSteps = (onboardingSteps?.length ?? 0) - doneSteps;
+  // Con el flujo unificado, sin reloj el reporte de Asistencias sigue siendo la
+  // pantalla de checadas; el índice del checador deja de existir.
+  const attendanceTo = canTimeClockView ? (fx.hasClock ? "/hr/time-clock" : "/hr/time-clock/entries-exits") : "/mi-jornada";
   const seeAll = (to: string) => (
     <ITButton variant="text" color="primary" size="sm" onClick={() => navigate(to)}>
       {t("client.seeAll")} <LuArrowRight size={12} />
@@ -71,7 +74,7 @@ export default function ClientOverview() {
   );
 
   const quickActions = [
-    fx.can.attendance && { label: "Asistencia", to: canTimeClockView ? "/hr/time-clock" : "/mi-jornada", icon: <LuClock3 size={15} /> },
+    fx.can.attendance && { label: "Asistencia", to: attendanceTo, icon: <LuClock3 size={15} /> },
     fx.can.records && { label: "Personal", to: "/employees", icon: <LuUsersRound size={15} /> },
     fx.can.setup && { label: "Horarios", to: "/schedules", icon: <LuCalendarDays size={15} /> },
     fx.can.overtime && { label: "Tiempo extra", to: "/schedules/overtime/approval", icon: <LuCalendarClock size={15} /> },
@@ -87,7 +90,7 @@ export default function ClientOverview() {
       { id: "records", label: t("client.records.complete"), value: `${fx.records.summary.complete}/${fx.records.summary.employees}`, caption: `${fx.records.summary.missingRequired} sin documento`, icon: <LuFolderOpen size={14} />, tone: "info" as const },
     ] : []),
     ...(fx.setup ? [
-      { id: "setup", label: "Pendientes", value: fx.setup.unlinkedClockNumbers + fx.setup.personalWithoutClock + fx.setup.personalWithoutSchedule, caption: "relojes / horarios", icon: <LuSettings2 size={14} />, tone: "warning" as const },
+      { id: "setup", label: "Pendientes", value: (fx.hasClock ? fx.setup.unlinkedClockNumbers + fx.setup.personalWithoutClock : 0) + fx.setup.personalWithoutSchedule, caption: fx.hasClock ? "relojes / horarios" : "horarios", icon: <LuSettings2 size={14} />, tone: "warning" as const },
     ] : []),
   ];
 
@@ -109,7 +112,7 @@ export default function ClientOverview() {
             </div>
             <div className="flex items-center gap-2">
               <ITBadget color="success" size="sm">{a.counts.onSite} en sitio ahora</ITBadget>
-              {seeAll(canTimeClockView ? "/hr/time-clock" : "/mi-jornada")}
+              {seeAll(attendanceTo)}
             </div>
           </div>
 
@@ -220,7 +223,7 @@ export default function ClientOverview() {
 
       <div className="grid items-start gap-4 lg:grid-cols-12">
         {fx.can.attendance && fx.attendance && (fx.attendance.counts.PRESENT + fx.attendance.counts.LATE + fx.attendance.counts.NOT_ARRIVED) > 0 && (
-          <PanelCard className="lg:col-span-7" icon={<LuClock3 size={16} />} title={t("client.attendance.title")} actions={seeAll(canTimeClockView ? "/hr/time-clock" : "/mi-jornada")}>
+          <PanelCard className="lg:col-span-7" icon={<LuClock3 size={16} />} title={t("client.attendance.title")} actions={seeAll(attendanceTo)}>
             <Block value={fx.attendance}>
               {(a) => {
                 const late = a.rows.filter((r) => r.status === "LATE").sort((x, y) => y.lateMin - x.lateMin).slice(0, 5);
@@ -246,15 +249,19 @@ export default function ClientOverview() {
             <div className="flex flex-col gap-2">
               {[
                 { label: "Personas sin horario asignado", value: fx.setup.personalWithoutSchedule, to: "/schedules", icon: <LuCalendarDays size={14} /> },
-                { label: "Personas sin reloj vinculado", value: fx.setup.personalWithoutClock, to: "/hr/time-clock/employees", icon: <LuClock3 size={14} /> },
-                { label: "Números de reloj sin vincular", value: fx.setup.unlinkedClockNumbers, to: "/hr/time-clock/employees", icon: <LuSettings2 size={14} /> },
+                ...(fx.hasClock
+                  ? [
+                      { label: "Personas sin reloj vinculado", value: fx.setup.personalWithoutClock, to: "/hr/time-clock/employees", icon: <LuClock3 size={14} /> },
+                      { label: "Números de reloj sin vincular", value: fx.setup.unlinkedClockNumbers, to: "/hr/time-clock/employees", icon: <LuSettings2 size={14} /> },
+                    ]
+                  : []),
               ].filter((row) => row.value > 0).map((row) => (
                 <button key={row.label} type="button" onClick={() => navigate(row.to)} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2.5 text-left transition hover:bg-slate-100">
                   <span className="flex items-center gap-2 text-[12.5px] text-slate-700">{row.icon} {row.label}</span>
                   <span className="flex items-center gap-2"><strong className="text-[15px] text-slate-900">{row.value}</strong> <LuArrowRight size={13} className="text-slate-400" /></span>
                 </button>
               ))}
-              {fx.setup.personalWithoutSchedule + fx.setup.personalWithoutClock + fx.setup.unlinkedClockNumbers === 0 && (
+              {(fx.hasClock ? fx.setup.personalWithoutSchedule + fx.setup.personalWithoutClock + fx.setup.unlinkedClockNumbers : fx.setup.personalWithoutSchedule) === 0 && (
                 <ITText className="block rounded-xl bg-emerald-50/60 px-3 py-4 text-center !text-[12.5px] text-emerald-800">Configuración completa.</ITText>
               )}
             </div>

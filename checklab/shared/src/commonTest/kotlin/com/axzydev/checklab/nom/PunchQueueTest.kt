@@ -30,9 +30,11 @@ private object NoTokens : TokenProvider {
 private class Server {
     var online = true
     val received = mutableListOf<String>()
+    val sources = mutableListOf<String?>()
     val api = NomApi(
         createHttpClient("http://api.test/api/v1", NoTokens, MockEngine { request ->
             if (!online) throw IllegalStateException("sin red")
+            sources += request.headers["X-Punch-Source"]
             val body = request.bodyText()
             received += body
             if (body.contains("\"type\":\"LUNCH_END\"") && received.none { it.contains("LUNCH_START") }) {
@@ -73,6 +75,7 @@ class PunchQueueTest {
         val outcome = queue.punch(PunchRequest(PunchType.ENTRY, latitude = 19.49, longitude = -99.14, gpsAccuracyMeters = 12.0))
 
         assertIs<PunchOutcome.Sent>(outcome)
+        assertEquals("APP", server.sources.single(), "con red la checada también se identifica como APP")
         val body = server.received.single()
         assertTrue(Regex("\"clientEventId\":\"[0-9a-f-]{36}\"").containsMatchIn(body))
         assertTrue(body.contains("\"clientReportedAt\""))
@@ -95,6 +98,7 @@ class PunchQueueTest {
 
         server.online = true
         assertTrue(reopened.flush().isEmpty())
+        assertEquals(listOf<String?>("APP", "APP"), server.sources, "la cola sin red también manda X-Punch-Source: APP")
         assertEquals(listOf("ENTRY", "LUNCH_START"), server.received.map { Regex("\"type\":\"(\\w+)\"").find(it)!!.groupValues[1] })
         assertTrue(reopened.pending().isEmpty())
     }

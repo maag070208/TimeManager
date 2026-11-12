@@ -24,7 +24,7 @@ import {
   LuRefreshCw,
   LuX,
 } from "react-icons/lu";
-import type { MyPunch, PunchType } from "@entities/nom";
+import { isRemotePunchSource, type MyPunch, type PunchSource, type PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { dateLocale } from "@shared/i18n";
 import { HelpTip } from "@shared/ui/help-tip";
@@ -36,10 +36,12 @@ import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
 import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
 import { useMyLeave } from "@features/nom/worker-portal/model/useMyLeave";
 
-const SOURCE_LABEL: Record<"CLOCK" | "ACCESS" | "REMOTE", string> = {
+const SOURCE_LABEL: Record<PunchSource, string> = {
   CLOCK: "sourceClock",
   ACCESS: "sourceAccess",
   REMOTE: "sourceRemote",
+  WEB: "sourceWeb",
+  APP: "sourceApp",
 };
 
 const timeOf = (iso: string): string =>
@@ -120,7 +122,13 @@ export default function MyWorkdayPage() {
   const telework = fx.telework;
   const geoEnabled = telework?.remoteGeolocationEnabled ?? true;
   const lunchEnabled = telework?.lunchPunchEnabled ?? true;
-  const canPunch = telework?.canPunchRemote ?? true;
+  // La checada de ESTA pantalla es la web: se gatea por canal WEB, no por el
+  // agregado `canPunchRemote` (que también cuenta la app).
+  const canPunch = telework?.canPunchWeb ?? (telework?.canPunchRemote ?? true);
+  /** Sin canal CLOCK la empresa no tiene reloj checador: nunca se le menciona. */
+  const hasClock = telework?.punchChannels?.includes("CLOCK") ?? true;
+  /** Cliente con app pero sin checada web: la pantalla lo manda a la app. */
+  const appOnly = !hasClock && telework?.canPunchApp === true;
   const checklistItems = telework?.checklistTemplate.items ?? [];
   const checklistDue =
     !telework?.lastChecklist || (telework.nextPeriodicDueAt != null && new Date(telework.nextPeriodicDueAt) <= now);
@@ -157,7 +165,7 @@ export default function MyWorkdayPage() {
     EXIT: tr("punch.exitShort"),
   };
   const remoteToday = useMemo(
-    () => todayPunches.filter((row) => row.source === "REMOTE").reverse(),
+    () => todayPunches.filter((row) => isRemotePunchSource(row.source)).reverse(),
     [todayPunches]
   );
   const lastType = remoteToday.length > 0 ? remoteToday[remoteToday.length - 1].type : null;
@@ -177,7 +185,7 @@ export default function MyWorkdayPage() {
     return row ? timeOf(row.occurredAt) : null;
   };
   const statusLabel: Record<string, string> = {
-    none: todayPunches.length > 0 ? tr("punch.status.clockOnly") : tr("punch.status.none"),
+    none: todayPunches.length > 0 && hasClock ? tr("punch.status.clockOnly") : tr("punch.status.none"),
     ENTRY: tr("punch.status.working"),
     LUNCH_START: tr("punch.status.lunch"),
     LUNCH_END: tr("punch.status.back"),
@@ -319,8 +327,12 @@ export default function MyWorkdayPage() {
                       <LuClock size={18} />
                     </span>
                     <span className="flex flex-col">
-                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">{tr("punch.clockOnlyTitle")}</span>
-                      <span className="text-[12.5px] text-slate-600">{tr("punch.clockOnlyHint")}</span>
+                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">
+                        {tr(hasClock ? "punch.clockOnlyTitle" : appOnly ? "punch.appOnlyTitle" : "punch.remoteOffTitle")}
+                      </span>
+                      <span className="text-[12.5px] text-slate-600">
+                        {tr(hasClock ? "punch.clockOnlyHint" : appOnly ? "punch.appOnlyHint" : "punch.remoteOffHint")}
+                      </span>
                     </span>
                   </div>
                 ) : primaryNext ? (
@@ -371,7 +383,7 @@ export default function MyWorkdayPage() {
                 )}
                 {canPunch && (
                   <ITText muted className="!text-[11.5px]">
-                    {tr("punch.channelHint")}
+                    {tr(hasClock ? "punch.channelHint" : "punch.channelHintNoClock")}
                   </ITText>
                 )}
                 {canPunch && geoEnabled && (
@@ -418,7 +430,7 @@ export default function MyWorkdayPage() {
                                 </ITText>
                               </div>
                               <div className="flex shrink-0 items-center gap-1.5">
-                                <ITBadget color={row.source === "REMOTE" ? "info" : "gray"} size="sm">
+                                <ITBadget color={isRemotePunchSource(row.source) ? "info" : "gray"} size="sm">
                                   {tr(SOURCE_LABEL[row.source])}
                                 </ITBadget>
                                 {row.latitude != null && row.longitude != null && (

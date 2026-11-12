@@ -96,9 +96,38 @@ La URL del reloj y la de la estación de huellas las escribe el administrador de
 - Biometría y fotos son datos sensibles: cifrado en reposo, consentimiento y paths de storage prefijados por tenant.
 
 
-## Modo de checada por empleado (2026-11-06)
+## Canales de checada y flujo único (2026-12)
 
-`users.checkinMode` (`WEB`, `CLOCK`, `HYBRID`) limita las fuentes que cuentan en
-el reporte: `WEB` ignora checadas del reloj físico y `CLOCK` ignora checadas web
-(la API de marcaje web responde `REMOTE_PUNCH_NOT_ALLOWED`). `HYBRID` combina
-ambas. Se administra en el expediente → Laboral → Modo de checada.
+El mix lo contrata la plataforma en `Tenant.punchChannels` (`WEB`, `APP`, `CLOCK`);
+`GET /auth/me` (`tenant.punchChannels`) y `GET /nom/me/telework`
+(`punchChannels`, `canPunchWeb`, `canPunchApp`, `canPunchRemote`) lo exponen a la web
+y a la app. `CLOCK` habilita el reloj físico; `WEB`/`APP` habilitan
+`POST /nom/me/punch` (con `403 PUNCH_CHANNEL_DISABLED` si el canal no está
+contratado). Un cliente puede tener un solo canal o un mix.
+
+El reporte de entradas/salidas (`POST /time-clock/report`) ya **no elige reloj XOR
+web/app**: arma UN timeline por persona mezclado por hora.
+
+- Checada del reloj (sin tipo) = toggle: abre si no hay tramo abierto, cierra si lo
+  hay; si el tramo supera el tope de 13 h, el anterior queda sin salida y la checada
+  abre el siguiente.
+- Marcaje web/app (con tipo) = `ENTRY`/`LUNCH_END` abren y `LUNCH_START`/`EXIT`
+  cierran, así la comida no se cuenta como tiempo trabajado.
+- Las checadas repetidas a < 5 min solo se descartan cuando participa una checada del
+  reloj (no trae tipo y duplicaría el toggle); los marcajes web/app se respetan porque
+  ya vienen validados por secuencia e idempotencia.
+- La fila de sesión expone `source`: `CLOCK`, `WEB`, `APP` o `MIXED` (entrada y salida
+  por canales distintos).
+- `nom_settings.remoteCountsForWorkday = false` es el único opt-out: deja de leer
+  `remote_punches`. Ya no se emite la incidencia `REMOTE_CONFLICT` (el enum se
+  conserva por compatibilidad de contrato).
+
+`users.checkinMode` (`WEB`, `CLOCK`, `HYBRID`) queda como preferencia del expediente
+(se administra en el expediente → Laboral → Modo de checada) y **ya no bloquea** el
+marcaje remoto: mandan los canales del cliente y las políticas de `nom_settings`.
+
+La asistencia semanal, la pre-nómina, el tiempo extra y los tableros consumen ese
+mismo reporte, así que todas las fuentes cuentan igual. Con el helper
+`core/utils/tenant-punch-channels.ts` (caché de 60 s) los servicios saben si el
+cliente tiene canal `CLOCK`: sin él no hay avisos de "sin vínculo al reloj"
+(`personalWithoutClock`, `unlinkedClockNumbers` y el estado `UNLINKED` quedan fuera).

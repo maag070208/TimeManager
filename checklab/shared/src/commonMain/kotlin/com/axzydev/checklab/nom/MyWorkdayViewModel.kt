@@ -37,6 +37,8 @@ data class MyWorkdayState(
     val lunchEnabled: Boolean = true,
     /** Falso si la persona checa solo en el reloj o el cliente apagó la checada desde la app. */
     val canPunch: Boolean = true,
+    /** Canales de checada del cliente (`WEB`/`APP`/`CLOCK`); vacío si el API no los manda. */
+    val punchChannels: List<String> = emptyList(),
     val busy: Boolean = false,
     val notice: String? = null,
     val error: String? = null,
@@ -50,6 +52,40 @@ data class MyWorkdayState(
     fun timeOf(type: PunchType): MyPunch? = today.lastOrNull { it.source == "REMOTE" && it.type == type }
 
     val lastLocated: MyPunch? get() = history.firstOrNull { it.latitude != null && it.longitude != null }
+
+    /** Qué decir cuando la app no puede checar: dónde sí puede y que aquí solo consulta. */
+    val readOnlyNotice: PunchReadOnlyNotice get() = punchReadOnlyNotice(punchChannels)
+}
+
+/** Aviso de solo lectura del panel de checada (canal APP apagado por el cliente). */
+data class PunchReadOnlyNotice(val title: String, val detail: String)
+
+/**
+ * Si la app puede checar según los canales que ya trae la sesión (`/auth/me`),
+ * para no mostrar el botón mientras llega `/nom/me/telework`. `null` si la
+ * sesión no trae canales (API anterior): no se puede deducir.
+ */
+fun canPunchAppFromChannels(channels: List<String>): Boolean? =
+    if (channels.isEmpty()) null else "APP" in channels
+
+/**
+ * Aviso cuando la app no puede checar, según los canales del cliente: si hay
+ * reloj se le remite a él (como antes); si solo hay web, a la web; si el
+ * cliente apagó la checada remota, se le dice tal cual.
+ */
+fun punchReadOnlyNotice(channels: List<String>): PunchReadOnlyNotice = when {
+    channels.isEmpty() || "CLOCK" in channels -> PunchReadOnlyNotice(
+        title = "Checas en el reloj",
+        detail = "Tu empresa registra tu jornada con el reloj checador. Aquí ves tus marcajes y puedes reportar si algo no coincide.",
+    )
+    "WEB" in channels -> PunchReadOnlyNotice(
+        title = "Checas desde la web",
+        detail = "Tu empresa no permite checar desde la app móvil. Registra tu checada desde la web; aquí ves tus marcajes y puedes reportar si algo no coincide.",
+    )
+    else -> PunchReadOnlyNotice(
+        title = "Checada remota deshabilitada",
+        detail = "Tu empresa no permite checar desde la app en este momento. Aquí ves tus marcajes y puedes reportar si algo no coincide.",
+    )
 }
 
 /**
@@ -66,6 +102,13 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
     fun start(me: Me) {
         timezone = me.tenant?.timezone?.let { runCatching { TimeZone.of(it) }.getOrNull() } ?: timezone
         queue = PunchQueue(store, api, me.id)
+        // La sesión ya trae los canales del cliente: si no hay APP, se oculta la
+        // checada desde el inicio, sin esperar a `/nom/me/telework`.
+        val tenantChannels = me.tenant?.punchChannels.orEmpty()
+        val tenantCanPunch = canPunchAppFromChannels(tenantChannels)
+        if (tenantCanPunch != null) {
+            _state.update { it.copy(punchChannels = tenantChannels, canPunch = it.canPunch && tenantCanPunch) }
+        }
         refresh()
     }
 
@@ -88,7 +131,8 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
                         history = history,
                         geoEnabled = settings?.remoteGeolocationEnabled ?: it.geoEnabled,
                         lunchEnabled = settings?.lunchPunchEnabled ?: it.lunchEnabled,
-                        canPunch = settings?.canPunchRemote ?: it.canPunch,
+                        canPunch = settings?.canPunchFromApp ?: it.canPunch,
+                        punchChannels = settings?.punchChannels?.takeIf { channels -> channels.isNotEmpty() } ?: it.punchChannels,
                         pending = q.pending(),
                         error = rejected.firstOrNull()?.let { e -> "Una checada guardada sin red no se aceptó: ${e.message}" },
                     )
@@ -108,6 +152,11 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
         val q = queue ?: return
         val s = _state.value
         if (s.busy || type !in s.next) return
+        // El canal APP está apagado: ni se pide ubicación ni se encola nada.
+        if (!s.canPunch) {
+            _state.update { it.copy(error = "La checada desde la app no está habilitada para tu empresa.") }
+            return
+        }
         _state.update { it.copy(busy = true, notice = null, error = null) }
         viewModelScope.launch {
             try {

@@ -31,7 +31,12 @@
     "channelHint": "Check in from the web or your physical clock: all your punches show here.",
     "locationNotice": "Your location is saved only when you punch; there is no continuous tracking. Your company has this turned on.",
     "clockOnlyTitle": "You punch at the clock",
-    "clockOnlyHint": "Your company records your workday with the time clock. Here you can see your punches and report anything that's off."
+    "clockOnlyHint": "Your company records your workday with the time clock. Here you can see your punches and report anything that's off.",
+    "channelHintNoClock": "Punch from the web or the app: all your punches show here.",
+    "remoteOffTitle": "Remote punch off",
+    "remoteOffHint": "Your company turned off remote punches. Ask HR to enable it if you need to punch from here.",
+    "appOnlyTitle": "You punch in the app",
+    "appOnlyHint": "Your company records punches from the mobile app. Here you can see your punches and report anything that's off."
   },
   "punches": {
     "title": "My records",
@@ -214,5 +219,7 @@
       "REMOTE": "Web or app",
       "ACCESS": "Access control"
     }
-  }
+  },
+  "sourceWeb": "Web",
+  "sourceApp": "App"
 }

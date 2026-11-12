@@ -10,7 +10,7 @@ import type {
   Gender,
   BloodType,
 } from "@entities/hr";
-import { usersApi, useCan } from "@entities/user";
+import { useCan, useHasPunchChannel, usersApi } from "@entities/user";
 import { describeClockSync, timeClockApi } from "@entities/time-clock";
 
 /** Baja o alta en los relojes. Un fallo del reloj no revierte la baja o el alta de la persona en el sistema. */
@@ -33,6 +33,8 @@ export const useEmployeeDetail = (id: string | undefined) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const canWriteClock = useCan("time_clock.write");
+  /** Sin canal CLOCK no hay nada que sincronizar con los relojes. */
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
   /** Qué pasó en los relojes tras dar de baja o de alta a la persona. */
   const [clockNotice, setClockNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -126,7 +128,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
     setError(null);
     try {
       await usersApi.deactivate(id, { reason, notifyUser: true });
-      setClockNotice(canWriteClock ? await clockSync(() => timeClockApi.employeeClockBajaAll(id), "baja") : null);
+      setClockNotice(canWriteClock && hasClock ? await clockSync(() => timeClockApi.employeeClockBajaAll(id), "baja") : null);
       setProfile((p) =>
         p
           ? {
@@ -149,7 +151,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
     setError(null);
     try {
       await usersApi.reactivate(id);
-      setClockNotice(canWriteClock ? await clockSync(() => timeClockApi.employeeClockAltaAll(id), "alta") : null);
+      setClockNotice(canWriteClock && hasClock ? await clockSync(() => timeClockApi.employeeClockAltaAll(id), "alta") : null);
       setProfile((p) => (p ? { ...p, active: true } : p));
     } catch (e: any) {
       setError(e.message ?? i18n.t("employees:detail.reactivateError"));

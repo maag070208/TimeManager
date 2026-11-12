@@ -469,6 +469,7 @@ export const es = {
     WEEKLY_LEDGER_NOT_FOUND: "Ledger semanal de horas extra no encontrado",
     INVALID_RETENTION_MONTHS: "La retención debe estar entre {{min}} y {{max}} meses (vacío desactiva el archivado)",
     REMOTE_PUNCH_DISABLED: "El marcaje remoto está deshabilitado para este cliente",
+    PUNCH_CHANNEL_DISABLED: "El canal de checada no está habilitado para este cliente",
     REMOTE_PUNCH_NOT_ALLOWED: "Esta persona solo checa en reloj físico; cámbiale el modo de checada para permitir la web",
     INVALID_PUNCH_SEQUENCE: "No puedes registrar {{type}} en este momento: revisa cuál es tu siguiente checada",
     WORKDAY_ALREADY_CLOSED: "Ya registraste tu salida de hoy; mañana podrás volver a checar",

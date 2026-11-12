@@ -50,7 +50,7 @@ Esta matriz es la **fuente única para generar pruebas**. Cada fila debe termina
 
 | ID | Módulo | Pantalla | Ruta | Permiso | Modales | Acciones clave | Datos/endpoints | E2E propuesto | Unit/Integración | P |
 |---|---|---|---|---|---|---|---|---|---|---|
-| NOM-01 | NOM | Mi jornada | `/mi-jornada` | `TenantOnly` | — | Checada web ENTRY→LUNCH→EXIT; modo REMOTO/HÍBRIDO/PRESENCIAL/CAMPO; mis marcajes; reportar discrepancia; teletrabajo; conformidad semanal; vacaciones | `/nom/me/punches`, `/punch`, `/discrepancies`, `/telework`, `/overtime-requests`, `/record-agreement`, `/leave/*` | Secuencia de 4 checadas; CLOCK bloquea remoto; checklist incompleto; aceptar/rechazar conformidad; vacaciones | Integración: `nom.flow`; Unit: remote-punch/checkinMode/idempotencia | P0 |
+| NOM-01 | NOM | Mi jornada | `/mi-jornada` | `TenantOnly` | — | Checada web ENTRY→LUNCH→EXIT; modo REMOTO/HÍBRIDO/PRESENCIAL/CAMPO; mis marcajes; reportar discrepancia; teletrabajo; conformidad semanal; vacaciones | `/nom/me/punches`, `/punch`, `/discrepancies`, `/telework`, `/overtime-requests`, `/record-agreement`, `/leave/*` | Secuencia de 4 checadas; canales del cliente (WEB/APP/CLOCK); checklist incompleto; aceptar/rechazar conformidad; vacaciones | Integración: `nom.flow`; Unit: remote-punch/checkinMode/idempotencia | P0 |
 | NOM-02 | NOM | Administración de teletrabajo | `/teletrabajo` | `time_clock.view`/`write` | NOM-M01..M03 | KPIs; tabs Política/Teletrabajadores/Checklists/Comunicaciones; editar política; alta/baja; registrar comunicación | `/nom/telework/policy`, `/registrations`, `/checklists`, `/out-of-hours-contacts`, `/users/employees` | Guardar política sube versión; alta/baja; motivo ≥5; read-only sin permiso | Unit: versión de política/checklist; Integración: registro/consentimiento | P1 |
 
 ### 1.3 Personal, expediente y organización
@@ -130,8 +130,8 @@ Las rutas con tabs se prueban como **una pantalla por tab**: cada tab debe carga
 | EMP-04-T2 | EMP-04 | Documentos | Subir/ver/descargar/eliminar documentos, faltantes | — | Subir y eliminar; gating | Integración documentos | P1 |
 | EMP-04-T3 | EMP-04 | Reloj | Alta en reloj, huellas, estado del reloj | EMP-M08, M09 | Alta/huella con mock; sin permiso | — | P2 |
 | EMP-04-T4 | EMP-04 | Datos del empleado | Datos personales/laborales/contacto | — | Lectura completa | — | P2 |
-| NOM-01-S1 | NOM-01 | Checada web | Siguiente paso, hora servidor, modo, nota, geo | — | Secuencia 4 pasos; CLOCK bloquea | Integración punch remoto | P0 |
-| NOM-01-S2 | NOM-01 | Mis marcajes | Rango, origen CLOCK/ACCESS/REMOTE, discrepancia | — | Filtrar y reportar discrepancia | Integración | P1 |
+| NOM-01-S1 | NOM-01 | Checada web | Siguiente paso, hora servidor, modo, nota, geo | — | Secuencia 4 pasos; canal habilitado | Integración punch remoto | P0 |
+| NOM-01-S2 | NOM-01 | Mis marcajes | Rango, origen CLOCK/ACCESS/WEB/APP, discrepancia | — | Filtrar y reportar discrepancia | Integración | P1 |
 | NOM-01-S3 | NOM-01 | Teletrabajo | Política, aceptación, checklist inicial/periódico | — | Aceptar y checklist incompleto | Integración | P1 |
 | NOM-01-S4 | NOM-01 | Registro electrónico | Solicitudes fuera de jornada, métodos, conformidad | — | Aceptar/rechazar conformidad | Integración | P1 |
 | NOM-01-S5 | NOM-01 | Vacaciones y permisos | Saldo, solicitud, cancelación | — | Crear/cancelar; saldo insuficiente | Integración `leave.flow` | P1 |

@@ -172,7 +172,7 @@
       }
     },
     "stepDocs": "Documentation",
-    "docsHint": "Upload the documents required for onboarding: {{docs}}.",
+    "docsHint": "You can upload the onboarding documents: {{docs}}. You can also upload them later from the record.",
     "ine": "INE (photo)",
     "proof": "Proof of address",
     "pickFile": "Choose file",

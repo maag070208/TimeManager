@@ -18,7 +18,7 @@ import {
 } from "@features/hr/employee-detail";
 import { DeactivateDialog } from "@features/user/account-actions";
 import { EmployeeCredentialDialog } from "@widgets/employee-credential";
-import { useCan } from "@entities/user";
+import { useCan, useHasPunchChannel } from "@entities/user";
 import { EmployeeClockSection } from "@widgets/employee-clock";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
@@ -38,6 +38,8 @@ export default function EmployeeDetailPage() {
   const canManageClockDevices = useCan("time_clocks.manage");
   const canWriteClock = useCan("time_clock.write");
   const canManageClock = canManageClockDevices || canWriteClock;
+  // Sin canal CLOCK la ficha no muestra nada del reloj checador.
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
 
   const detail = useEmployeeDetail(id);
 
@@ -69,7 +71,7 @@ export default function EmployeeDetailPage() {
   const sections: TabBarItem<Section>[] = [
     { id: "activity", label: tt("detail.sections.activity"), icon: <LuActivity size={13} /> },
     { id: "documents", label: tt("detail.sections.documents"), icon: <LuFileText size={13} /> },
-    ...(canManageClock ? [{ id: "clock" as Section, label: tt("detail.sections.clock"), icon: <LuClock size={13} /> }] : []),
+    ...(canManageClock && hasClock ? [{ id: "clock" as Section, label: tt("detail.sections.clock"), icon: <LuClock size={13} /> }] : []),
     { id: "info", label: tt("detail.sections.info"), icon: <LuIdCard size={13} /> },
   ];
 
@@ -128,7 +130,7 @@ export default function EmployeeDetailPage() {
           {detail.error}
         </ITAlert>
       )}
-      {detail.clockNotice && (
+      {hasClock && detail.clockNotice && (
         <ITAlert variant="info" dismissible onDismiss={detail.dismissClockNotice}>
           {detail.clockNotice}
         </ITAlert>
@@ -162,7 +164,7 @@ export default function EmployeeDetailPage() {
             onRemove={detail.removeDocument}
           />
         )}
-        {section === "clock" && canManageClock && <EmployeeClockSection userName={profile.name} userId={profile.id} />}
+        {section === "clock" && canManageClock && hasClock && <EmployeeClockSection userName={profile.name} userId={profile.id} />}
         {section === "info" && <EmployeeInfoCards profile={profile} />}
         <div className="h-10 shrink-0" aria-hidden />
       </ITFlex>

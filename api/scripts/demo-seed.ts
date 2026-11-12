@@ -182,6 +182,8 @@ async function seedCompany(
           planId: plan?.id ?? null,
           brandColor: company.brandColor,
           createdAt: new Date(company.createdAt),
+          // Las empresas demo con relojes físicos conservan ese canal.
+          punchChannels: company.clocks.length > 0 ? ["WEB", "APP", "CLOCK"] : ["WEB", "APP"],
         },
       }),
     true

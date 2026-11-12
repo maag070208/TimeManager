@@ -7,7 +7,7 @@ Fecha: 2026-11-05. Estado: **borrador para revisión con abogado**. No sustituye
 | Decisión | Postura inicial implementada | Configuración |
 |---|---|---|
 | D-1 Representación sindical | Convenio **COLECTIVO** exige parte `UNION`; individual puede aceptar el trabajador | `nom_settings.requireUnionForCollective` (default `true`) |
-| D-2 Reloj vs remoto el mismo día | Gana el reloj; el remoto se marca como `REMOTE_CONFLICT` y no duplica minutos | fijo por diseño; flag `remoteCountsForWorkday` controla el remoto sin reloj |
+| D-2 Reloj vs remoto el mismo día | Un solo flujo: las checadas de reloj y web/app se mezclan cronológicamente (la persona puede usar canales distintos en la misma jornada) | `tenants.punchChannels` define los canales del cliente; flag `remoteCountsForWorkday` controla si el remoto suma jornada |
 | D-3 Firma del patrón | Usuario RH autorizado + hash SHA-256 + IP + fecha, ligado a la versión | pendiente validar si se exige documento/e.firma adjunto |
 | D-4 Checada web sin acuerdo | Bloqueada por defecto hasta aceptar un acuerdo con método `REMOTE` | `nom_settings.blockRemoteWithoutAgreement` (default `true`) |
 | D-5 Formato del export | Layout propio versionado `stps-registro-jornada-v2` hasta que publique la STPS | ver [STPS_ADAPTACION.md](STPS_ADAPTACION.md) |

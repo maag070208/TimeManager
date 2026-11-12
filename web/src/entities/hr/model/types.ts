@@ -199,5 +199,5 @@ export interface EmployeeOverview {
   };
   schedule: { id: string; name: string; validFrom: string } | null;
   documents: Array<{ id: string; name: string; type: string; uploadedAt: string }>;
-  punches: Array<{ id: string; occurredAt: string; method: string; clock: string | null }>;
+  punches: Array<{ id: string; occurredAt: string; method: string; clock: string | null; source?: "WEB" | "APP" | "CLOCK" }>;
 }

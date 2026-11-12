@@ -142,7 +142,8 @@ export default async function jornada(cast: Cast, r: Report): Promise<void> {
   const selfMode = await lucia.patch(`/hr/${lucia.id}/profile`, { checkinMode: "WEB" });
   r.check("un empleado no cambia su propio modo de checada", selfMode.status === 403, brief(selfMode));
 
-  // Persona extra del flujo: solo reloj, luego app para probar el primer paso fuera de orden.
+  // Persona extra del flujo: modo solo reloj (ya no bloquea el marcaje) y luego
+  // app para probar el primer paso del día fuera de orden.
   const paolaUser = `${cast.file.tenant.slug}.paola.vargas`;
   const paolaPass = `Qa-${randomBytes(6).toString("hex")}`;
   const paolaCreated = await admin.post("/users", {
@@ -161,7 +162,7 @@ export default async function jornada(cast: Cast, r: Report): Promise<void> {
   if (paola) {
     const clockOnly = await hr.patch(`/hr/${paola.id}/profile`, { checkinMode: "CLOCK" });
     r.expect("RH deja a Paola en modo solo reloj", clockOnly, 200);
-    await punch(paola, { type: "ENTRY" }, "Paola (solo reloj) no puede checar desde la app", 403, "REMOTE_PUNCH_NOT_ALLOWED");
+    await punch(paola, { type: "ENTRY" }, "en modo solo reloj Paola sigue sujeto al acuerdo de método", 403, "REMOTE_AGREEMENT_REQUIRED");
   }
 
   // ── 3. Acuerdo del método de registro ──
@@ -194,7 +195,16 @@ export default async function jornada(cast: Cast, r: Report): Promise<void> {
     Boolean(luciaAgreement.body?.acceptedAt) && JSON.stringify(luciaAgreement.body?.methods) === JSON.stringify(["CLOCK", "REMOTE"]),
     brief(luciaAgreement)
   );
-  if (paola) await punch(paola, { type: "ENTRY" }, "con acuerdo pero en modo solo reloj Paola sigue bloqueada", 403, "REMOTE_PUNCH_NOT_ALLOWED");
+  if (paola) {
+    // El modo preferido del empleado ya no apaga los canales del cliente: quien
+    // está en modo solo reloj puede marcar por web/app si el cliente los contrató.
+    const paolaTelework = await paola.get("/nom/me/telework");
+    r.check(
+      "en modo solo reloj Paola puede checar por web/app: mandan los canales del cliente, no el modo",
+      paolaTelework.body?.canPunchRemote === true && paolaTelework.body?.canPunchWeb === true,
+      brief(paolaTelework)
+    );
+  }
 
   // ── 4. El día de cada empleado ──
   // Lucía: presencial con GPS, comida completa, envío offline con reintento.

@@ -38,6 +38,25 @@
       "active": "Active",
       "suspended": "Suspended"
     },
+    "channels": {
+      "title": "Punch channels",
+      "description": "Where its staff can punch. The platform sets them per client: without the Clock channel, the client's UI shows nothing about the time clock.",
+      "createDescription": "Where its staff will be able to punch. It can be changed later from the client's detail page.",
+      "minHint": "Keep at least one channel on.",
+      "web": "Web",
+      "webHint": "Punch from the browser, no extra hardware.",
+      "app": "Mobile app",
+      "appHint": "CheckLab app on their phone (Android/iOS).",
+      "clock": "Time clock",
+      "clockHint": "Hikvision clocks installed on site.",
+      "on": "On",
+      "off": "Off",
+      "lastChannel": "Keep at least one punch channel on.",
+      "lastChannelHint": "You can't turn off the last active channel.",
+      "enabled": "{{channel}} channel on.",
+      "disabled": "{{channel}} channel off.",
+      "error": "Couldn't change the punch channel."
+    },
     "actions": {
       "enter": "Enter",
       "suspend": "Suspend",
@@ -112,7 +131,8 @@
         "admin": "Run by",
         "user": "Username",
         "password": "Password",
-        "note": "Creating the client also loads its base catalogs (roles, departments and document types)."
+        "note": "Creating the client also loads its base catalogs (roles, departments and document types).",
+        "channels": "Channels"
       },
       "errors": {
         "required": "Required",

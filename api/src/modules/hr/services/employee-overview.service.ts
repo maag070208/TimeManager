@@ -96,26 +96,30 @@ export class EmployeeOverviewService {
       ]);
 
     const employeeNumber = clockLink?.employeeNumber ?? user.employeeNumber ?? null;
-    const [punches, clockPunchesLast30Days] = employeeNumber
-      ? await Promise.all([
-          this.db.timeClockPunch.findMany({
+    // Checadas web/app y del reloj forman un solo flujo: las recientes también se mezclan.
+    const [clockPunches, clockPunchesLast30Days, remotePunches, remotePunchesLast30Days] = await Promise.all([
+      employeeNumber
+        ? this.db.timeClockPunch.findMany({
             where: { employeeNumber },
             select: { id: true, occurredAt: true, method: true, clockSerial: true },
             orderBy: { occurredAt: "desc" },
             take: 8,
-          }),
-          this.db.timeClockPunch.count({
-            where: { employeeNumber, occurredAt: { gte: since30 } },
-          }),
-        ])
-      : [[], 0];
-    // Las checadas de la app cuentan igual que las del reloj.
-    const remotePunchesLast30Days = await this.db.remotePunch.count({
-      where: { userId, occurredAt: { gte: since30 } },
-    });
+          })
+        : [],
+      employeeNumber
+        ? this.db.timeClockPunch.count({ where: { employeeNumber, occurredAt: { gte: since30 } } })
+        : 0,
+      this.db.remotePunch.findMany({
+        where: { userId },
+        select: { id: true, occurredAt: true, source: true },
+        orderBy: { occurredAt: "desc" },
+        take: 8,
+      }),
+      this.db.remotePunch.count({ where: { userId, occurredAt: { gte: since30 } } }),
+    ]);
     const punchesLast30Days = clockPunchesLast30Days + remotePunchesLast30Days;
 
-    const serials = [...new Set(punches.map((punch) => punch.clockSerial))];
+    const serials = [...new Set(clockPunches.map((punch) => punch.clockSerial))];
     const clocks =
       serials.length > 0
         ? await this.db.timeClock.findMany({
@@ -124,6 +128,26 @@ export class EmployeeOverviewService {
           })
         : [];
     const clockName = new Map(clocks.map((clock) => [clock.serialNumber, clock.name]));
+
+    // Timeline reciente mezclado: reloj + web/app, lo más nuevo primero.
+    const punches = [
+      ...clockPunches.map((punch) => ({
+        id: punch.id,
+        occurredAt: punch.occurredAt,
+        method: punch.method as string,
+        clock: clockName.get(punch.clockSerial) ?? null,
+        source: "CLOCK" as const,
+      })),
+      ...remotePunches.map((punch) => ({
+        id: punch.id,
+        occurredAt: punch.occurredAt,
+        method: "OTHER",
+        clock: null,
+        source: punch.source,
+      })),
+    ]
+      .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+      .slice(0, 8);
 
     const delivered = new Set(deliveredTypes.map((row) => row.documentTypeId));
 
@@ -159,7 +183,8 @@ export class EmployeeOverviewService {
         id: punch.id,
         occurredAt: punch.occurredAt.toISOString(),
         method: punch.method,
-        clock: clockName.get(punch.clockSerial) ?? null,
+        clock: punch.clock,
+        source: punch.source,
       })),
     };
   }

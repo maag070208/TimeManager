@@ -13,6 +13,7 @@ import { LinksSummary } from "@features/access/time-clock-employees";
 import { timeClockApi } from "@entities/time-clock";
 import { downloadTimeClockReportPdf } from "@widgets/reports";
 import { useGoBack } from "@shared/lib/useGoBack";
+import { useHasPunchChannel } from "@entities/user";
 
 /** El mismo reporte de entradas/salidas, alimentado por las checadas del reloj. */
 const TIME_CLOCK_SOURCE: AccessReportSource = {
@@ -26,6 +27,8 @@ export default function TimeClockReportPage() {
   const navigate = useNavigate();
   const goBack = useGoBack();
   const fx = useAccessReport({ download: downloadTimeClockReportPdf, source: TIME_CLOCK_SOURCE });
+  // Sin canal CLOCK no hay reloj que vincular: el aviso y su botón no aplican.
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
 
   return (
     <ITPage className="m-0! p-0! px-8! min-w-full! pb-12!"
@@ -38,11 +41,11 @@ export default function TimeClockReportPage() {
         { label: t("common:nav.hr"), onClick: () => navigate("/employees") },
         { label: t("report.title") },
       ]}
-      backAction={() => goBack("/hr/time-clock")}
+      backAction={() => goBack(hasClock ? "/hr/time-clock" : "/")}
       actions={<AccessReportExportActions fx={fx} />}
     >
       <ITFlex direction="column" gap={4}>
-        <LinksSummary onGoToLink={() => navigate("/hr/time-clock/employees")} />
+        {hasClock && <LinksSummary onGoToLink={() => navigate("/hr/time-clock/employees")} />}
         <AccessReportTab fx={fx} />
       </ITFlex>
     </ITPage>

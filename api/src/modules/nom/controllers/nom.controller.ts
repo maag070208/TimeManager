@@ -600,7 +600,9 @@ export class NomController {
 
   remotePunch = async (req: Request, res: Response) => {
     const input = RemotePunchDto.parse(req.body);
-    const result = await this.remotePunches.record(req.user!.id, input, actorOf(req));
+    // Origen explícito: la app manda X-Punch-Source: APP; la web, WEB (default).
+    const source = String(req.header("x-punch-source") ?? "WEB").toUpperCase() === "APP" ? "APP" : "WEB";
+    const result = await this.remotePunches.record(req.user!.id, input, actorOf(req), source);
     res.status(result.created ? 201 : 200).json(result);
   };
 

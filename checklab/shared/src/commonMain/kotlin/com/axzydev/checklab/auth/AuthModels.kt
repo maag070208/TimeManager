@@ -34,6 +34,8 @@ data class TenantInfo(
     val timezone: String,
     val weekStartDay: Int = 1,
     val disabledModules: List<String> = emptyList(),
+    /** Canales de checada contratados: `WEB`, `APP`, `CLOCK` (`/auth/me`). */
+    val punchChannels: List<String> = emptyList(),
     val brandColor: String? = null,
 )
 

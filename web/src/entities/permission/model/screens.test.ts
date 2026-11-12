@@ -8,6 +8,7 @@ import type { PermissionScope } from "@entities/user";
 import {
   APP_SCREENS,
   isScreenVisible,
+  isScreenVisibleForChannels,
   isScreenVisibleInGroup,
   referencedPermissions,
   screenActions,
@@ -99,4 +100,22 @@ test("[PLAT-06] screenRequirementKeys devuelve anyOf y allOf", () => {
     ["a.view", "a.edit"]
   );
   assert.deepEqual(screenRequirementKeys(screen({ id: "c" })), []);
+});
+
+test("[PLAT-06] las pantallas del reloj piden canal CLOCK y Asistencias no", () => {
+  const clock = screen({ id: "clock", path: "/hr/time-clock", punchChannel: "CLOCK" });
+  assert.equal(isScreenVisibleForChannels(clock, ["WEB", "APP"]), false);
+  assert.equal(isScreenVisibleForChannels(clock, ["WEB", "APP", "CLOCK"]), true);
+  // Una pantalla sin canal siempre pasa; una sesión sin datos se comporta web+app.
+  assert.equal(isScreenVisibleForChannels(screen({ id: "plain" }), ["WEB", "APP"]), true);
+  assert.equal(isScreenVisibleForChannels(clock, undefined), false);
+
+  // Catálogo real: el reloj se apaga sin CLOCK, el reporte de Asistencias se queda.
+  const leaves = screenLeaves();
+  const report = leaves.find((leaf) => leaf.screen.id === "accessTimeClockReport");
+  assert.ok(report, "falta el reporte de Asistencias");
+  assert.equal(report.screen.punchChannel, undefined);
+  const clockEmployees = leaves.find((leaf) => leaf.screen.id === "accessTimeClockEmployees");
+  assert.ok(clockEmployees, "falta Empleados del reloj");
+  assert.equal(clockEmployees.screen.punchChannel, "CLOCK");
 });

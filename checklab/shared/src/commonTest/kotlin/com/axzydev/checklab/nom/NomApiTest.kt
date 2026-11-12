@@ -24,9 +24,18 @@ class NomApiTest {
     private val api = MockApi { request ->
         when (request.route) {
             "nom/me/punch" -> ok("""{"created":true,"punch":{"id":"p1","type":"ENTRY","occurredAt":"2026-11-08T15:00:00.000Z"}}""")
-            "nom/me/telework" -> ok("""{"registration":null,"remotePunchEnabled":true,"canPunchRemote":false,"remoteGeolocationEnabled":false,"lunchPunchEnabled":false}""")
+            "nom/me/telework" -> ok(
+                """{"registration":null,"remotePunchEnabled":true,"punchChannels":["CLOCK"],"canPunchWeb":false,"canPunchApp":false,"canPunchRemote":false,"remoteGeolocationEnabled":false,"lunchPunchEnabled":false}""",
+            )
             else -> ok("[]")
         }
+    }
+
+    @Test
+    fun laChecadaSeIdentificaComoCanalApp() = runTest {
+        NomApi(api.client).punch(PunchRequest(PunchType.ENTRY))
+        assertEquals("nom/me/punch", api.last.route)
+        assertEquals("APP", api.last.headers["X-Punch-Source"], "el API decide el canal por este header")
     }
 
     @Test
@@ -56,7 +65,18 @@ class NomApiTest {
         val settings = NomApi(api.client).punchSettings()
         assertFalse(settings.remoteGeolocationEnabled)
         assertFalse(settings.canPunchRemote)
+        assertEquals<Boolean?>(false, settings.canPunchApp)
+        assertEquals(listOf("CLOCK"), settings.punchChannels)
+        assertFalse(settings.canPunchFromApp)
         assertFalse(settings.lunchPunchEnabled)
+    }
+
+    @Test
+    fun unaRespuestaViejaSinCanalesSigueUsandoCanPunchRemote() = runTest {
+        val old = MockApi { ok("""{"remotePunchEnabled":true,"canPunchRemote":true,"remoteGeolocationEnabled":true,"lunchPunchEnabled":true}""") }
+        val settings = NomApi(old.client).punchSettings()
+        assertTrue(settings.canPunchFromApp, "sin campos nuevos la app conserva el comportamiento anterior")
+        assertTrue(settings.punchChannels.isEmpty())
     }
 
     @Test
@@ -88,5 +108,41 @@ class PeopleApiTest {
     fun sinBusquedaNiEstadoNoMandaFiltros() = runTest {
         PeopleApi(api.client).people("", active = null)
         assertEquals(null, api.last.bodyJson()["filters"], "filters es opcional en el DTO de tabla")
+    }
+}
+
+/**
+ * Gating de la checada por canal: la app solo puede checar si el cliente
+ * contrató APP, no basta con que permita checar remoto (la web también lo es).
+ */
+class PunchChannelGatingTest {
+    @Test
+    fun elCanalAppDecideLaChecadaYNoSoloLaPoliticaRemota() {
+        assertTrue(PunchSettings(canPunchRemote = true, canPunchApp = true).canPunchFromApp)
+        assertFalse(PunchSettings(canPunchRemote = true, canPunchApp = false).canPunchFromApp)
+        assertFalse(PunchSettings(canPunchRemote = false, canPunchApp = false).canPunchFromApp)
+    }
+
+    @Test
+    fun sinCanPunchAppSeDeduceDeLosCanalesDelCliente() {
+        assertFalse(PunchSettings(canPunchRemote = true, punchChannels = listOf("WEB")).canPunchFromApp)
+        assertTrue(PunchSettings(canPunchRemote = true, punchChannels = listOf("WEB", "APP")).canPunchFromApp)
+        assertFalse(PunchSettings(canPunchRemote = false, punchChannels = listOf("APP")).canPunchFromApp)
+    }
+
+    @Test
+    fun laSesionAdelantaElGatingSiTraeLosCanales() {
+        assertEquals<Boolean?>(true, canPunchAppFromChannels(listOf("APP", "CLOCK")))
+        assertEquals<Boolean?>(false, canPunchAppFromChannels(listOf("WEB")))
+        assertEquals<Boolean?>(null, canPunchAppFromChannels(emptyList()))
+    }
+
+    @Test
+    fun elAvisoDeSoloLecturaDiceDondeSiSePuedeChecar() {
+        assertEquals("Checas en el reloj", punchReadOnlyNotice(listOf("CLOCK", "WEB")).title)
+        assertEquals("Checas en el reloj", punchReadOnlyNotice(emptyList()).title)
+        assertEquals("Checas desde la web", punchReadOnlyNotice(listOf("WEB")).title)
+        assertEquals("Checada remota deshabilitada", punchReadOnlyNotice(listOf("APP")).title)
+        assertEquals("Checas desde la web", MyWorkdayState(canPunch = false, punchChannels = listOf("WEB")).readOnlyNotice.title)
     }
 }

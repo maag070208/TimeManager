@@ -8,8 +8,8 @@ Alta, consulta y suspensión de clientes (tenants) del SaaS. Solo personal de pl
 |---|---|---|---|
 | `GET` | `/tenants` | `tenants.view` | Lista de clientes con `plan` (objeto resumido), `limits` (personal/relojes) y `usage` (`activeUsers` + `clocks`) |
 | `GET` | `/tenants/:id` | `tenants.view` | Un cliente con plan, límites efectivos y uso |
-| `POST` | `/tenants` | `tenants.manage` | Crea cliente + su `CLIENT_ADMIN` (`mustChangePassword`) + catálogos plantilla. Acepta `planId` (el admin debe caber en su límite de personal). Sin `admin.password` genera una provisional y la devuelve **una sola vez** en `temporaryPassword` |
-| `PATCH` | `/tenants/:id` | `tenants.manage` | Cambia `status` (ACTIVE/SUSPENDED), `name`, **`slug`** (subdominio; mismas reglas que el alta, repetido → 409 `TENANT_SLUG_TAKEN`; la dirección anterior deja de entrar de inmediato), `timezone`, **`planId`** (asignar/cambiar/quitar plan) y el override `employeeLimit` |
+| `POST` | `/tenants` | `tenants.manage` | Crea cliente + su `CLIENT_ADMIN` (`mustChangePassword`) + catálogos plantilla. Acepta `planId` (el admin debe caber en su límite de personal) y `punchChannels` (default `WEB`+`APP`). Sin `admin.password` genera una provisional y la devuelve **una sola vez** en `temporaryPassword` |
+| `PATCH` | `/tenants/:id` | `tenants.manage` | Cambia `status` (ACTIVE/SUSPENDED), `name`, **`slug`** (subdominio; mismas reglas que el alta, repetido → 409 `TENANT_SLUG_TAKEN`; la dirección anterior deja de entrar de inmediato), `timezone`, **`planId`** (asignar/cambiar/quitar plan), `disabledModules` y **`punchChannels`** (al menos uno), y el override `employeeLimit` |
 | `POST` | `/tenants/:id/impersonate` | `tenants.view` | **Entrar como cliente (F3-03)**: valida que el cliente exista y esté ACTIVE y registra `TENANT_IMPERSONATED`. No cambia la sesión: la operación sigue viajando como `X-Tenant-Id` |
 
 - Administrador del alta (`POST /tenants`): el `username` no puede ser genérico (`admin`, `administrador`, `root`, `usuario`, `test`, `soporte`…, `COMMON_ADMIN_USERNAMES`) y la contraseña, si se manda, lleva mínimo 12 caracteres; ambos → 400. La web propone el usuario a partir del nombre y una contraseña generada que se puede cambiar.
@@ -37,7 +37,7 @@ Alta, consulta y suspensión de clientes (tenants) del SaaS. Solo personal de pl
 - `entities/tenant` (tipos + `tenantApi`).
 - `features/tenant/tenant-switcher`: en la barra superior. Usuario de cliente: nombre de su empresa. Plataforma con `tenants.view`: selector de cliente; la elección se guarda en `localStorage` (`tm_selected_tenant_v1`), viaja como `X-Tenant-Id` (interceptor en `shared/api/client.ts`) y recarga la app al cambiar. Un `X-Tenant-Id` rechazado borra la elección.
 - Login: el slug sale del subdominio (`shared/api/tenant.ts`, `tenantSlugFromHost`): `acme.localhost:5006` en local, `acme.<TENANT_BASE_DOMAIN>` en producción. El dominio base se lee en runtime (`TENANT_BASE_DOMAIN` del contenedor web → `config.js`) y, si falta, de `VITE_TENANT_BASE_DOMAIN` en build; sin dominio base cada cliente entra por su ruta (`/#/<slug>/home`) y la consola muestra esa URL. Puesta en marcha: [OPERACION_PRODUCCION](../OPERACION_PRODUCCION.md#subdominios-de-clientes); `app.`/`admin.`/`www.` o sin subdominio = plataforma.
-- Consola de plataforma en `/` (sin cliente elegido): `pages/home/PlatformHomePage` + `features/tenant/tenants-console` (tabla `ITDataTable` con estado, plan y uso/límite de personas, relojes y módulos, y botón **Nuevo cliente** que abre `/tenants/new` (`pages/tenants/TenantCreatePage` + `CreateTenantForm`, con `tenants.manage`): formulario a página completa con tres secciones numeradas —empresa y dirección de entrada, plan en tarjetas, administrador (usuario propuesto a partir del nombre y contraseña inicial generada, ambos editables)— y resumen vivo; al crear muestra una sola vez entrada, usuario y contraseña con copiar, abrir su login, ver cliente y qué sigue. El flujo alta → login por subdominio → cambio obligatorio de contraseña está cubierto en `api/tests/integration/tenant-onboarding.flow.test.ts`; al hacer clic en una fila se abre el detalle). Las acciones por cliente viven en el detalle (`pages/tenants/TenantDetailPage`): **Editar** (nombre, zona horaria y subdominio, `TenantEditDialog`), **Relojes**, **Agente del reloj**, **Abrir sitio**, **Suspender/Reactivar** y **Entrar como soporte** (`useTenantActions`); Editar y Suspender solo con `tenants.manage`. "Entrar" llama primero a `POST /tenants/:id/impersonate` (auditoría) y solo entonces guarda la elección (`setSelectedTenant`) y recarga con `X-Tenant-Id`.
+- Consola de plataforma en `/` (sin cliente elegido): `pages/home/PlatformHomePage` + `features/tenant/tenants-console` (tabla `ITDataTable` con estado, plan y uso/límite de personas, relojes y módulos, y botón **Nuevo cliente** que abre `/tenants/new` (`pages/tenants/TenantCreatePage` + `CreateTenantForm`, con `tenants.manage`): formulario a página completa con cuatro secciones numeradas —empresa y dirección de entrada, plan en tarjetas, canales de checada, administrador (usuario propuesto a partir del nombre y contraseña inicial generada, ambos editables)— y resumen vivo; al crear muestra una sola vez entrada, usuario y contraseña con copiar, abrir su login, ver cliente y qué sigue. El flujo alta → login por subdominio → cambio obligatorio de contraseña está cubierto en `api/tests/integration/tenant-onboarding.flow.test.ts`; al hacer clic en una fila se abre el detalle). Las acciones por cliente viven en el detalle (`pages/tenants/TenantDetailPage`): **Editar** (nombre, zona horaria y subdominio, `TenantEditDialog`), **Relojes**, **Agente del reloj**, **Abrir sitio**, **Suspender/Reactivar** y **Entrar como soporte** (`useTenantActions`); Editar y Suspender solo con `tenants.manage`. "Entrar" llama primero a `POST /tenants/:id/impersonate` (auditoría) y solo entonces guarda la elección (`setSelectedTenant`) y recarga con `X-Tenant-Id`.
 - `useClientContext` (`features/tenant/tenant-switcher`): `isPlatform`, `client` y `platformWithoutClient`. Sin cliente elegido solo se abren `PLATFORM_PATHS` (`/`, `/notifications`, `/roles`, `/plans`).
 
 ## Notas multi-tenant
@@ -51,3 +51,37 @@ Alta, consulta y suspensión de clientes (tenants) del SaaS. Solo personal de pl
 detalle del cliente (`/tenants/:id`) permite activarlos/apagarlos; la web
 oculta el menú y bloquea la ruta directa con `isPathInDisabledModule`. El
 catálogo de módulos vive en `web/src/shared/lib/tenant-modules.ts`.
+
+## Canales de checada (2026-11-12)
+
+`Tenant.punchChannels` (`PunchChannel[]`: `WEB`, `APP`, `CLOCK`) guarda por
+dónde puede checar el personal de cada cliente. Los define la plataforma y
+nunca queda vacío (el DTO exige mínimo uno; el default del alta es
+`WEB`+`APP`). Es ortogonal a los módulos: no confundir "el cliente no tiene
+reloj" con "el cliente no tiene Asistencia".
+
+- **API**: `punchChannels` viaja en `/auth/me` (`user.tenant.punchChannels`),
+  en `GET /tenants`/`GET /tenants/:id` y se cambia con `PATCH /tenants/:id`
+  (auditado con valor anterior/nuevo). `GET /nom/me/telework` deriva
+  `punchChannels`, `canPunchWeb`, `canPunchApp` y `canPunchRemote` (cualquier
+  canal remoto); `POST /nom/me/punch` valida el canal con el header
+  `X-Punch-Source: WEB|APP` y responde 403 `PUNCH_CHANNEL_DISABLED` si ese
+  canal no está contratado.
+- **Web, consola de plataforma**: pestaña **Módulos** del detalle del cliente →
+  tarjeta **Canales de checada** con toggles WEB/APP/CLOCK que llaman
+  `tenantApi.update(id, { punchChannels })` (no deja apagar el último); el
+  alta de cliente (`CreateTenantForm` + `useCreateTenant`) trae los tres
+  checkboxes con `WEB`+`APP` marcados.
+- **Web, vista del cliente**: `shared/lib/punch-channels.ts`
+  (`punchChannelsOf`/`hasPunchChannel`) + `entities/user/usePunchChannels.ts`
+  resuelven el canal del cliente de la sesión (o del cliente elegido por
+  soporte, guardado en `SelectedTenant`). Sin canal `CLOCK` desaparecen de la
+  UI los pasos/avisos/pendientes "sin reloj", el tab de reloj del empleado, el
+  "Modo de checada", el número de reloj en pre-nómina y las rutas/menú del
+  checador (`RequiresPunchChannel` en `app/guards` + `punchChannel` en
+  `entities/permission/model/screens.ts`). El **reporte de Asistencias**
+  (`/hr/time-clock/entries-exits`) se queda: se alimenta del flujo unificado
+  de checadas web/app/reloj y solo pierde el aviso/CTA de vincular personas al
+  reloj.
+- **App móvil (checklab)**: manda `X-Punch-Source: APP` y gatea la checada por
+  `canPunchApp` del mismo `/nom/me/telework`.

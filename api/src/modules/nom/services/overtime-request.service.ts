@@ -92,7 +92,8 @@ export class OvertimeRequestService {
         tenantId,
         ...(valid ? { status } : {}),
       },
-      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      // Por defecto, la solicitud más reciente primero (la fecha manda sobre el estado).
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 500,
       include: {
         user: { select: { name: true, employeeNumber: true } },

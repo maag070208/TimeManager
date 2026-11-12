@@ -14,6 +14,7 @@ import { LuCamera, LuIdCard, LuMapPin, LuPhone, LuUserRound } from "react-icons/
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEmployeeDetail } from "@features/hr/employee-detail";
+import { useHasPunchChannel } from "@entities/user";
 import { resolvePhotoUrl, type PersonalProfile, type PersonalProfileUpdateInput } from "@entities/hr";
 import { departmentsApi, type Department } from "@entities/department";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
@@ -109,6 +110,9 @@ export default function EmployeeProfileEditPage() {
   const { t: tt } = useTranslation(["employees", "common"]);
 
   const detail = useEmployeeDetail(id);
+  // Sin canal CLOCK este cliente no tiene reloj checador: el modo de checada
+  // (solo reloj / híbrido) no aplica y no se ofrece en la ficha.
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
   const [form, setForm] = useState<FormState>(emptyForm());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -376,26 +380,28 @@ export default function EmployeeProfileEditPage() {
               {errors.jobTitle && <ITText as="span" role="alert" className="text-red-500 text-xs mt-1 block">{errors.jobTitle}</ITText>}
             </Cell>
           </Row>
-          <Row>
-            <Cell>
-              <ITSearchSelect
-                name="checkinMode"
-                label="Modo de checada"
-                value={form.checkinMode ?? "HYBRID"}
-                onChange={(value) => setForm((prev) => ({ ...prev, checkinMode: String(value) as FormState["checkinMode"] }))}
-                options={[
-                  { value: "WEB", label: "Solo checada web" },
-                  { value: "CLOCK", label: "Solo reloj físico" },
-                  { value: "HYBRID", label: "Híbrido: web y reloj" },
-                ]}
-              />
-            </Cell>
-            <Cell>
-              <ITText muted className="mt-6 block !text-[11.5px]">
-                Define por dónde puede marcar esta persona. La checada web se bloquea si eliges “Solo reloj físico”.
-              </ITText>
-            </Cell>
-          </Row>
+          {hasClock && (
+            <Row>
+              <Cell>
+                <ITSearchSelect
+                  name="checkinMode"
+                  label="Modo de checada"
+                  value={form.checkinMode ?? "HYBRID"}
+                  onChange={(value) => setForm((prev) => ({ ...prev, checkinMode: String(value) as FormState["checkinMode"] }))}
+                  options={[
+                    { value: "WEB", label: "Solo checada web" },
+                    { value: "CLOCK", label: "Solo reloj físico" },
+                    { value: "HYBRID", label: "Híbrido: web y reloj" },
+                  ]}
+                />
+              </Cell>
+              <Cell>
+                <ITText muted className="mt-6 block !text-[11.5px]">
+                  Define por dónde puede marcar esta persona. La checada web se bloquea si eliges “Solo reloj físico”.
+                </ITText>
+              </Cell>
+            </Row>
+          )}
           <Row>
             <Cell>
               <ITSearchSelect

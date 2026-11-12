@@ -20,6 +20,7 @@ import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { PanelCard } from "@shared/ui/panel-card";
 import { seriesColor } from "@shared/ui/charts";
 import { buildDepartmentRows, WEEKLY_LEGEND, WEEKLY_STATUS_BADGE, hoursDecimal, toDayKey } from "@entities/schedule";
+import { useHasPunchChannel } from "@entities/user";
 import type { UseWeeklyAttendance, WeeklyAttendanceMode } from "../model/useWeeklyAttendance";
 import { useDepartmentReviews } from "../model/useDepartmentReviews";
 import WeeklyAttendanceTable from "./WeeklyAttendanceTable";
@@ -50,6 +51,8 @@ const weekRangeLabel = ([start, end]: [Date, Date]): string =>
  */
 export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance }) {
   const t = dyn(fx.t);
+  /** Sin canal CLOCK no hay "sin vínculo al reloj": todas las personas cuentan igual. */
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
   const report = fx.report;
   const summary = report?.summary;
   const [noticesOpen, setNoticesOpen] = useState(false);
@@ -74,9 +77,9 @@ export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance 
 
   // Avisos de la semana: solo se muestran si hay algo que atender.
   const notices: string[] = [];
-  if (summary?.unlinked) notices.push(t("unlinkedHint", { count: summary.unlinked }));
+  if (hasClock && summary?.unlinked) notices.push(t("unlinkedHint", { count: summary.unlinked }));
   if (summary?.withoutSchedule) notices.push(t("withoutScheduleHint", { count: summary.withoutSchedule }));
-  const noticesCount = (summary?.unlinked ?? 0) + (summary?.withoutSchedule ?? 0);
+  const noticesCount = (hasClock ? summary?.unlinked ?? 0 : 0) + (summary?.withoutSchedule ?? 0);
 
   // Cifras de la semana (o del departamento filtrado: el API ya las recorta).
   const scopeName = fx.departmentId
@@ -148,7 +151,7 @@ export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance 
                 id: "people",
                 label: t("kpis.people"),
                 value: summary.people,
-                caption: t("short.linked", { linked: summary.people - summary.unlinked }),
+                caption: hasClock ? t("short.linked", { linked: summary.people - summary.unlinked }) : t("short.people", { total: summary.people }),
                 tone: "info",
                 icon: <LuUsers size={14} />,
               },

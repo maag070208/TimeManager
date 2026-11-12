@@ -8,7 +8,7 @@ import {
   type SetupGapsWidget,
 } from "@entities/dashboard";
 import { scheduleApi } from "@entities/schedule";
-import { useCan } from "@entities/user";
+import { useCan, useHasPunchChannel } from "@entities/user";
 
 /** Estado de un bloque del inicio: `undefined` = cargando, `null` = falló. */
 type Slot<T> = T | null | undefined;
@@ -40,6 +40,8 @@ export const useClientOverview = () => {
   const [overtime, setOvertime] = useState<Slot<OvertimeWeekWidget>>();
   const [setup, setSetup] = useState<Slot<SetupGapsWidget>>();
   const [scheduleCount, setScheduleCount] = useState<Slot<number>>();
+  /** Sin canal CLOCK la vista del cliente no muestra nada de reloj checador. */
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
 
   useEffect(() => {
     let active = true;
@@ -56,13 +58,16 @@ export const useClientOverview = () => {
   }, [can.attendance, can.records, can.overtime, can.setup, can.schedules]);
 
   // Primeros pasos: solo con los datos para decidirlos y alguien que pueda hacerlos.
+  // El alta del reloj checador solo aplica si el cliente tiene canal CLOCK.
   const onboarding =
     people && setup && scheduleCount != null && (can.createUsers || can.manageSchedules)
       ? [
           { id: "staff", done: people.active > 1, to: "/employees/new", hintCount: 0 },
           { id: "schedules", done: scheduleCount > 0, to: "/schedules/new", hintCount: 0 },
           { id: "assign", done: people.active > 1 && setup.personalWithoutSchedule === 0, to: "/schedules/assign", hintCount: setup.personalWithoutSchedule },
-          { id: "clock", done: people.active > 1 && setup.personalWithoutClock === 0, to: "/hr/time-clock/employees", hintCount: setup.personalWithoutClock },
+          ...(hasClock
+            ? [{ id: "clock", done: people.active > 1 && setup.personalWithoutClock === 0, to: "/hr/time-clock/employees", hintCount: setup.personalWithoutClock }]
+            : []),
         ]
       : null;
 
@@ -76,5 +81,5 @@ export const useClientOverview = () => {
     (can.setup && setup === undefined) ||
     (can.schedules && scheduleCount === undefined);
 
-  return { can, attendance, people, records, overtime, setup, onboarding, hasAny, loading };
+  return { can, hasClock, attendance, people, records, overtime, setup, onboarding, hasAny, loading };
 };

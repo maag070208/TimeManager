@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { planApi, type Plan } from "@entities/plan";
 import { tenantApi, type TenantCreated } from "@entities/tenant";
+import { DEFAULT_PUNCH_CHANNELS, type PunchChannel } from "@shared/lib/punch-channels";
 import { generatePassword, isCommonUsername, isValidSlug, MX_TIMEZONES, slugify } from "./slug";
 
 interface Form {
@@ -9,6 +10,7 @@ interface Form {
   timezone: string;
   planId: string;
   employeeLimit: string;
+  punchChannels: PunchChannel[];
   adminName: string;
   adminUsername: string;
   adminEmail: string;
@@ -21,6 +23,7 @@ const EMPTY: Form = {
   timezone: MX_TIMEZONES[0],
   planId: "",
   employeeLimit: "",
+  punchChannels: [...DEFAULT_PUNCH_CHANNELS],
   adminName: "",
   adminUsername: "",
   adminEmail: "",
@@ -105,6 +108,18 @@ export const useCreateTenant = () => {
     set("slug", value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
   };
 
+  /** Alterna un canal de checada; nunca deja la lista vacía (mínimo uno). */
+  const toggleChannel = (channel: PunchChannel) => {
+    setForm((f) => {
+      const has = f.punchChannels.includes(channel);
+      if (has && f.punchChannels.length === 1) return f;
+      return {
+        ...f,
+        punchChannels: has ? f.punchChannels.filter((item) => item !== channel) : [...f.punchChannels, channel],
+      };
+    });
+  };
+
   const live = validate(form);
   /** Secciones completas (sin errores y con lo obligatorio capturado), para las palomitas y el avance. */
   const complete = {
@@ -128,6 +143,7 @@ export const useCreateTenant = () => {
           timezone: form.timezone,
           planId: form.planId || null,
           employeeLimit: form.employeeLimit ? Number.parseInt(form.employeeLimit, 10) : null,
+          punchChannels: form.punchChannels,
           admin: {
             name: form.adminName.trim(),
             username: form.adminUsername.trim(),
@@ -153,5 +169,5 @@ export const useCreateTenant = () => {
     setCreated(null);
   };
 
-  return { form, set, setSlug, errors, complete, saving, apiError, setApiError, created, plans, submit, reset };
+  return { form, set, setSlug, toggleChannel, errors, complete, saving, apiError, setApiError, created, plans, submit, reset };
 };

@@ -162,10 +162,9 @@ export const useUserForm = (userId?: string) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Documentación obligatoria del alta (tipos marcados `required` en el catálogo).
+  // Documentación del alta (opcional): tipos marcados `required` en el catálogo.
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [docsFiles, setDocsFiles] = useState<Record<string, File | null>>({});
-  const [docsError, setDocsError] = useState<string | null>(null);
 
   useEffect(() => {
     personalApi
@@ -215,15 +214,14 @@ export const useUserForm = (userId?: string) => {
 
   const selectedDept = departments.find((d) => d.id === form.departmentId);
 
-  /** En el alta de un rol con expediente (personal) se exigen los documentos obligatorios. */
-  const requiresDocs = !isEdit && isStaffRole(form.role);
-  // Los obligatorios los marca RH en el catálogo de documentos (`required`).
+  // Los documentos que se ofrecen en el alta los marca RH en el catálogo (`required`).
   const requiredDocs = documentTypes
     .filter((d) => d.required && d.active)
     .map((d) => ({ key: d.id, label: d.name, typeId: d.id as string | null }));
   const setDocFile = (key: string, file: File | null) =>
     setDocsFiles((prev) => ({ ...prev, [key]: file }));
-  const missingDocs = requiredDocs.filter((d) => !docsFiles[d.key]);
+  /** La documentación del alta es opcional: solo se ofrece a roles con expediente. */
+  const showDocs = !isEdit && isStaffRole(form.role) && requiredDocs.length > 0;
   const guidance = ROLE_GUIDANCE[form.role] ?? ROLE_GUIDANCE.GENERIC;
   const roleGuidance = {
     title: dyn(tt)(guidance.title),
@@ -317,7 +315,6 @@ export const useUserForm = (userId?: string) => {
           return i18n.t("users:form.validation.nameMax", { max: LIMITS.name.max });
         return null;
       case "email":
-        if (!isEdit && !trimmed) return i18n.t("users:form.validation.emailRequired");
         if (!trimmed) return null;
         if (trimmed.length > 254) return i18n.t("users:form.validation.emailMax", { max: 254 });
         return validateEmail(trimmed);
@@ -342,16 +339,6 @@ export const useUserForm = (userId?: string) => {
 
   const handleDepartmentChange = (value: string) => {
     setForm((f) => ({ ...f, departmentId: value, subareaId: "" }));
-  };
-
-  /** Alterna un rol adicional (multi-rol). El principal no se repite aquí. */
-  const toggleExtraRole = (role: string, checked: boolean) => {
-    setForm((f) => ({
-      ...f,
-      roles: checked
-        ? [...new Set([...f.roles, role])]
-        : f.roles.filter((item) => item !== role),
-    }));
   };
 
   /**
@@ -385,15 +372,9 @@ export const useUserForm = (userId?: string) => {
    */
   const handleSubmit = async (): Promise<SubmitResult> => {
     const fieldErrors = Object.keys(validate()) as (keyof UserFormValues)[];
-    const docsMissing = requiresDocs && missingDocs.length > 0;
-    setDocsError(
-      docsMissing ? i18n.t("users:form.docsRequired", { docs: requiredDocs.map((d) => d.label).join(", ") }) : null,
-    );
-    const invalidSteps = [
-      ...fieldErrors.map(stepOfField),
-      ...(docsMissing ? [editsPerson ? 3 : 2] : []),
-    ];
-    if (invalidSteps.length > 0) return { ok: false, step: Math.min(...invalidSteps), field: fieldErrors[0] };
+    if (fieldErrors.length > 0) {
+      return { ok: false, step: Math.min(...fieldErrors.map(stepOfField)), field: fieldErrors[0] };
+    }
 
     const firstName = form.name.trim();
     setSaving(true);
@@ -436,16 +417,20 @@ export const useUserForm = (userId?: string) => {
           departmentId: form.departmentId || undefined,
           subareaId: form.subareaId || undefined,
         });
-        // Documentación obligatoria del alta.
-        if (requiresDocs) {
+        // Documentación del alta (opcional): se sube solo lo que se haya elegido.
+        if (showDocs) {
+          let uploaded = 0;
           for (const d of requiredDocs) {
             const file = docsFiles[d.key];
             if (file && d.typeId) {
               await personalApi.uploadDocument(created.id, d.typeId, file);
+              uploaded += 1;
             }
           }
           // Correo de alta con los documentos adjuntos (fire-and-forget).
-          void personalApi.notifyRegistration(created.id).catch(() => undefined);
+          if (uploaded > 0) {
+            void personalApi.notifyRegistration(created.id).catch(() => undefined);
+          }
         }
         // Alta en los relojes que aceptan escritura desde la web. Se espera el resultado
         // para mostrar UN solo toast: la pantalla guarda un único mensaje a la vez.
@@ -522,7 +507,6 @@ export const useUserForm = (userId?: string) => {
     handleField,
     handleBlur,
     handleDepartmentChange,
-    toggleExtraRole,
     selectedDept,
     roleGuidance,
     loading,
@@ -531,18 +515,14 @@ export const useUserForm = (userId?: string) => {
     setError,
     handleSubmit,
     canSubmit,
-    // Documentación del alta
-    requiresDocs,
+    // Documentación del alta (opcional)
+    showDocs,
     requiredDocs,
     docsFiles,
     setDocFile,
-    docsError,
     tt,
     ROLE_OPTIONS: rolesCatalog
       .filter((role) => role.active)
-      .map((role) => ({ value: role.key, label: role.name })),
-    EXTRA_ROLE_OPTIONS: rolesCatalog
-      .filter((role) => role.active && role.key !== form.role)
       .map((role) => ({ value: role.key, label: role.name })),
   };
 };

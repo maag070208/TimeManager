@@ -601,7 +601,7 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     assert.equal(explicit.body?.punch?.workMode, "HIBRIDO", "una modalidad explícita se respeta");
   });
 
-  test("con la comida apagada solo hay entrada y salida, y quien checa en reloj no puede marcar por web", async () => {
+  test("con la comida apagada solo hay entrada y salida; el modo del empleado no bloquea el marcaje", async () => {
     const admin = await clientSession("CLIENT_ADMIN");
     const worker = await clientSession("CLIENT_STAFF", { tenant: admin.tenant! });
     const clockOnly = await createUser({ tenantId: admin.tenant!.id, role: "CLIENT_STAFF" });
@@ -611,8 +611,12 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     const before = await api("GET", "/nom/me/telework", { token: worker.token });
     assert.equal(before.body?.lunchPunchEnabled, true, "la comida viene encendida");
     assert.equal(before.body?.canPunchRemote, true);
+    // El modo preferido del empleado ya no bloquea: mandan los canales del cliente
+    // (default WEB+APP) y las políticas del marcaje remoto.
+    assert.deepEqual(before.body?.punchChannels, ["WEB", "APP"], "el portal expone el mix del cliente");
     const clockState = await api("GET", "/nom/me/telework", { token: clockSession.token });
-    assert.equal(clockState.body?.canPunchRemote, false, "quien checa solo en reloj no puede marcar por web");
+    assert.equal(clockState.body?.canPunchRemote, true, "el modo CLOCK del empleado no apaga los canales del cliente");
+    assert.equal(clockState.body?.canPunchWeb, true);
 
     const off = await api("PUT", "/nom/config", {
       token: admin.token,

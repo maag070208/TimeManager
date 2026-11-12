@@ -2,6 +2,7 @@ import { ITButton, ITDialog, ITText } from "@axzydev/axzy_ui_system";
 import type { TFunction } from "i18next";
 import { LuCheck, LuUsers } from "react-icons/lu";
 import { hoursDecimal, workedTime, type WeeklyAttendanceRow } from "@entities/schedule";
+import { useHasPunchChannel } from "@entities/user";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { dyn } from "@shared/i18n/dyn";
 
@@ -35,6 +36,8 @@ const hairline = "1px solid #edf1f5";
  */
 export default function DepartmentDetailDialog({ department, rows, t: translate, reviewed, canReview, onToggleReview, onClose }: Props) {
   const t = dyn(translate);
+  /** Sin canal CLOCK no se muestra el número con el que la persona está en el reloj. */
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
 
   return (
     <ITDialog isOpen={department !== null} onClose={onClose}>
@@ -64,9 +67,11 @@ export default function DepartmentDetailDialog({ department, rows, t: translate,
                 >
                   <span role="cell" className={`${td} font-bold text-slate-700`}>
                     {row.name}
-                    <ITText as="span" muted className="ml-1.5 !text-[11px] font-semibold">
-                      {row.clockNumbers.join(", ") || row.employeeNumber || ""}
-                    </ITText>
+                    {hasClock && (
+                      <ITText as="span" muted className="ml-1.5 !text-[11px] font-semibold">
+                        {row.clockNumbers.join(", ") || row.employeeNumber || ""}
+                      </ITText>
+                    )}
                   </span>
                   <span role="cell" className={`${td} text-center font-semibold tabular-nums text-slate-600`}>
                     {hoursDecimal(row.totals.workedMin)}

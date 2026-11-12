@@ -25,6 +25,7 @@ import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/a
 import type {
   TimeClockReportResult,
   TimeClockReportSessionRow,
+  TimeClockSessionSource,
 } from "../models/entity/time-clock.entity";
 
 type SysConfigReader = (key: string) => Promise<string | null>;
@@ -56,39 +57,83 @@ const universeSelect = {
   employeeNumber: true,
   jobTitle: true,
   active: true,
-  checkinMode: true,
   department: { select: { id: true, name: true } },
 } as const;
 
 /** Persona del reporte: un usuario vinculado o un empleado del reloj sin vincular. */
 interface Person extends AccessReportPerson {
   linked: boolean;
-  checkinMode?: "WEB" | "CLOCK" | "HYBRID" | null;
   /** Números del reloj de la persona (un usuario puede tener más de uno). */
   clockNumbers: string[];
 }
 
-/** Quita las checadas repetidas: las que llegan antes de `DUPLICADO_MS` de la última que se quedó. */
-const withoutDuplicates = (instants: Date[]): Date[] => {
-  const unique: Date[] = [];
-  for (const t of instants) {
+/** Canal de una checada dentro del timeline mezclado. */
+type PunchKind = "CLOCK" | "WEB" | "APP";
+
+/**
+ * Evento del timeline único de la persona: las checadas del reloj no traen tipo
+ * (actúan como toggle) y las web/app sí (ENTRY/LUNCH_END abren, LUNCH_START/EXIT
+ * cierran).
+ */
+interface TimelineEvent {
+  at: Date;
+  kind: PunchKind;
+  /** `null` en las checadas del reloj, que no dicen si son entrada o salida. */
+  type: string | null;
+}
+
+/** Sesión ya armada con su origen, antes de atribuirla a una fila. */
+interface TimelineSession extends AccessReportSession {
+  source: TimeClockSessionSource;
+}
+
+const OPENING_TYPES = new Set(["ENTRY", "LUNCH_END"]);
+const CLOSING_TYPES = new Set(["LUNCH_START", "EXIT"]);
+
+/** `MIXED` cuando la sesión combina canales; si no, el único canal que la formó. */
+const sessionSourceOf = (kinds: Iterable<PunchKind>): TimeClockSessionSource => {
+  const unique = new Set(kinds);
+  if (unique.size === 0) return "CLOCK";
+  return unique.size === 1 ? ([...unique][0] as PunchKind) : "MIXED";
+};
+
+/**
+ * Quita los eventos repetidos del timeline mezclado: los que llegan a menos de
+ * `DUPLICATE_MS` del anterior son la misma checada (el reloj repite, o la
+ * persona checa en dos relojes / en el reloj y la web al llegar).
+ *
+ * Solo se descartan cuando participa una checada del RELOJ: no trae tipo, así
+ * que un duplicado suyo cerraría/abriría el tramo equivocado. Los marcajes
+ * web/app sí traen tipo y ya vienen validados por secuencia e idempotencia
+ * (`clientEventId`), así que se respetan aunque estén cerca: una entrada y una
+ * salida seguidas son una salida real, no un duplicado.
+ */
+const withoutDuplicates = (events: TimelineEvent[]): TimelineEvent[] => {
+  const unique: TimelineEvent[] = [];
+  for (const event of events) {
     const previous = unique[unique.length - 1];
-    if (previous && t.getTime() - previous.getTime() < DUPLICATE_MS) continue;
-    unique.push(t);
+    const closeTogether = previous && event.at.getTime() - previous.at.getTime() < DUPLICATE_MS;
+    if (closeTogether && (previous.kind === "CLOCK" || event.kind === "CLOCK")) continue;
+    unique.push(event);
   }
   return unique;
 };
 
 /**
- * Entradas/salidas a partir de las checadas de los relojes, con el MISMO
- * contrato que el reporte de acceso (`/access/report`): una fila por sesión y un
- * resumen por persona. La relación con los usuarios es por número de empleado
- * del reloj vía `checador_empleados`; quien checa sin estar vinculado sale
- * igual, con el nombre del reloj y `vinculado: false`.
+ * Entradas/salidas a partir de TODAS las checadas de la persona —reloj físico y
+ * marcajes web/app— con el MISMO contrato que el reporte de acceso
+ * (`/access/report`): una fila por sesión y un resumen por persona.
  *
  * Las checadas de todos los relojes de asistencia se juntan por persona: se
  * puede entrar por uno y salir por otro. Los relojes marcados sin asistencia
- * (puertas de oficina, que se checan varias veces por turno) no cuentan.
+ * (puertas de oficina, que se checan varias veces por turno) no cuentan. La
+ * relación con los usuarios es por número de empleado del reloj vía
+ * `checador_empleados`; quien checa sin estar vinculado sale igual, con el
+ * nombre del reloj y `linked: false`.
+ *
+ * Este reporte es la fuente única de asistencia: la asistencia semanal, la
+ * pre-nómina y las horas extra lo consumen en lugar de leer `remote_punches`
+ * por su cuenta.
  */
 export class TimeClockReportService {
   constructor(
@@ -135,15 +180,10 @@ export class TimeClockReportService {
     const remoteCountsForWorkday = nomSettings?.remoteCountsForWorkday ?? true;
     const people = this.filter(await this.universe(range, includeInactive, fromAttendance), filters);
 
-    const numbers = people.flatMap((p) => p.clockNumbers);
-    const webOnlyNumbers = new Set(people.filter((p) => p.checkinMode === "WEB").flatMap((p) => p.clockNumbers));
-    const clockNumbers = numbers.filter((number) => !webOnlyNumbers.has(number));
-    // Checadas del reloj y web/app de la misma gente: independientes, se piden juntas.
-    // RJ-02: las web/app solo cuentan si ese día no hay reloj.
-    const remoteUserIds = people
-      .filter((person) => person.checkinMode !== "CLOCK")
-      .map((person) => person.id)
-      .filter((id) => !id.startsWith("reloj:"));
+    const clockNumbers = [...new Set(people.flatMap((p) => p.clockNumbers))];
+    // Un solo flujo de checadas por persona: reloj y web/app se mezclan por hora.
+    // `remoteCountsForWorkday=false` es el único opt-out de leer `remote_punches`.
+    const remoteUserIds = people.map((person) => person.id).filter((id) => !id.startsWith("reloj:"));
     const [punches, remotePunches] = await Promise.all([
       clockNumbers.length === 0
         ? []
@@ -162,11 +202,13 @@ export class TimeClockReportService {
             orderBy: [{ occurredAt: "asc" }, { serialNo: "asc" }],
             select: { id: true, employeeNumber: true, occurredAt: true },
           }),
-      this.db.remotePunch.findMany({
-        where: { userId: { in: remoteUserIds }, occurredAt: { gte: range.start, lt: range.end } },
-        orderBy: { occurredAt: "asc" },
-        select: { id: true, userId: true, type: true, occurredAt: true },
-      }),
+      remoteCountsForWorkday && remoteUserIds.length > 0
+        ? this.db.remotePunch.findMany({
+            where: { userId: { in: remoteUserIds }, occurredAt: { gte: range.start, lt: range.end } },
+            orderBy: { occurredAt: "asc" },
+            select: { id: true, userId: true, type: true, source: true, occurredAt: true },
+          })
+        : [],
     ]);
 
     // RJ-03/RJ-04: valor VIGENTE de cada checada (original + ajustes aprobados), reloj y web/app juntos.
@@ -175,15 +217,17 @@ export class TimeClockReportService {
         this.db,
         punches.map((punch) => punch.id)
       ),
-      this.db.punchAdjustment.findMany({
-        where: {
-          targetType: "REMOTE",
-          targetId: { in: remotePunches.map((punch) => punch.id) },
-          status: "APPROVED",
-        },
-        orderBy: [{ decidedAt: "asc" }, { createdAt: "asc" }],
-        select: { targetId: true, newState: true },
-      }),
+      remotePunches.length === 0
+        ? []
+        : this.db.punchAdjustment.findMany({
+            where: {
+              targetType: "REMOTE",
+              targetId: { in: remotePunches.map((punch) => punch.id) },
+              status: "APPROVED",
+            },
+            orderBy: [{ decidedAt: "asc" }, { createdAt: "asc" }],
+            select: { targetId: true, newState: true },
+          }),
     ]);
 
     const effectivePunches = applyApprovedAdjustments(punches, adjustments);
@@ -203,13 +247,14 @@ export class TimeClockReportService {
       remoteStateById.set(adjustment.targetId, current);
     }
 
-    const remoteByUser = new Map<string, Array<{ type: string; occurredAt: Date }>>();
+    const remoteByUser = new Map<string, TimelineEvent[]>();
     for (const punch of remotePunches) {
       const list = remoteByUser.get(punch.userId) ?? [];
       const adjusted = remoteStateById.get(punch.id);
       list.push({
+        kind: punch.source,
         type: adjusted?.type ?? punch.type,
-        occurredAt: adjusted?.occurredAt ? new Date(adjusted.occurredAt) : punch.occurredAt,
+        at: adjusted?.occurredAt ? new Date(adjusted.occurredAt) : punch.occurredAt,
       });
       remoteByUser.set(punch.userId, list);
     }
@@ -217,22 +262,15 @@ export class TimeClockReportService {
     const rows: TimeClockReportSessionRow[] = [];
     const totals = { withRecords: 0, inSite: 0, minutes: 0, incidents: 0 };
     for (const person of people) {
-      const instants = person.clockNumbers
-        .flatMap((n) => byNumber.get(n) ?? [])
-        .sort((a, b) => a.getTime() - b.getTime());
-      const clockSessions = this.match(person.id, withoutDuplicates(instants), range).filter((s) =>
-        this.inWindow(s, range)
+      const clockEvents: TimelineEvent[] = person.clockNumbers
+        .flatMap((number) => byNumber.get(number) ?? [])
+        .map((at) => ({ at, kind: "CLOCK" as const, type: null }));
+      const events = withoutDuplicates(
+        [...clockEvents, ...(remoteByUser.get(person.id) ?? [])].sort(
+          (a, b) => a.at.getTime() - b.at.getTime()
+        )
       );
-      const personRemote = remoteByUser.get(person.id) ?? [];
-      const remoteSessions =
-        remoteCountsForWorkday && clockSessions.length === 0 && personRemote.length > 0
-          ? this.remoteSessions(person.id, personRemote, range)
-          : [];
-      if (clockSessions.length > 0 && personRemote.length > 0 && remoteCountsForWorkday) {
-        const first = clockSessions[0];
-        if (!first.incident) first.incident = "REMOTE_CONFLICT";
-      }
-      const sessions = clockSessions.length > 0 ? clockSessions : remoteSessions;
+      const sessions = this.timeline(person.id, events, range);
 
       sessions.forEach((s, i) => rows.push(this.row(person, s, i, range)));
       const incidents = new Set(sessions.map((s) => s.incident).filter((i): i is AccessIncidentCode => i !== null));
@@ -333,7 +371,6 @@ export class TimeClockReportService {
         jobTitle: user.jobTitle,
         department: user.department,
         active: user.active,
-        checkinMode: user.checkinMode,
         linked: true,
         clockNumbers: [],
       };
@@ -349,7 +386,6 @@ export class TimeClockReportService {
         jobTitle: user.jobTitle,
         department: user.department,
         active: user.active,
-        checkinMode: user.checkinMode,
         linked: true,
         clockNumbers: [],
       });
@@ -368,7 +404,6 @@ export class TimeClockReportService {
       jobTitle: null,
       department: null,
       active: true,
-      checkinMode: null,
       linked: false,
       clockNumbers: [n],
     }));
@@ -409,67 +444,80 @@ export class TimeClockReportService {
   }
 
   /**
-   * El reloj no dice si una checada es entrada o salida, y en las puertas de
-   * oficina la gente checa varias veces por turno. Por eso cada jornada toma la
-   * primera checada como entrada y la última antes del tope como salida; las de
-   * en medio no cuentan. La siguiente checada después del tope abre otra
-   * jornada. Una entrada sola de hace menos del tope es `OPEN_ENTRY` (en sitio);
-   * si ya pasó el tope, `ENTRY_WITHOUT_EXIT`. No hay `EXIT_WITHOUT_ENTRY`: sin
-   * tipo, la primera checada siempre es entrada.
+   * Arma las sesiones de una persona con UN solo timeline: checadas del reloj y
+   * marcajes web/app mezclados por hora.
+   *
+   * - La checada del reloj no trae tipo: funciona como toggle sobre el tramo
+   *   abierto (si no hay, abre; si lo hay, cierra). El reloj separa jornadas por
+   *   el tope de 13 h: un evento posterior al tope no cierra el tramo abierto,
+   *   lo deja sin salida y abre el siguiente.
+   * - Las web/app sí traen tipo: ENTRY/LUNCH_END abren y LUNCH_START/EXIT
+   *   cierran. Así la comida de la app no se cuenta como tiempo trabajado.
+   * - Un cierre sin tramo abierto (p. ej. la entrada quedó en un día anterior) es
+   *   `EXIT_WITHOUT_ENTRY`; un tramo que queda abierto es `OPEN_ENTRY` (en sitio)
+   *   o `ENTRY_WITHOUT_EXIT` si ya pasó el tope.
    */
-  /**
-   * Sesiones a partir de checadas web/app respetando la secuencia de comida:
-   * ENTRY/LUNCH_END abren un tramo; LUNCH_START/EXIT lo cierran. Así la comida
-   * no se cuenta como tiempo trabajado.
-   */
-  private remoteSessions(
-    id: string,
-    punches: Array<{ type: string; occurredAt: Date }>,
-    range: ReportRange
-  ): AccessReportSession[] {
-    const sessions: AccessReportSession[] = [];
-    let entry: Date | null = null;
-    for (const punch of punches) {
-      if (punch.type === "ENTRY" || punch.type === "LUNCH_END") {
-        if (entry) {
-          sessions.push(this.session(id, entry, null, "ENTRY_WITHOUT_EXIT", range.timezone));
+  private timeline(id: string, events: TimelineEvent[], range: ReportRange): TimelineSession[] {
+    const sessions: TimelineSession[] = [];
+    let open: { entryAt: Date; kinds: PunchKind[] } | null = null;
+
+    const dangling = (entryAt: Date, kinds: PunchKind[]): TimelineSession => {
+      const incident: AccessIncidentCode =
+        Date.now() < entryAt.getTime() + MAX_WORKDAY_MS ? "OPEN_ENTRY" : "ENTRY_WITHOUT_EXIT";
+      return {
+        ...this.session(id, entryAt, null, incident, range.timezone),
+        source: sessionSourceOf(kinds),
+      };
+    };
+
+    for (const event of events) {
+      if (event.type === null) {
+        // Checada del reloj: toggle sobre el tramo abierto.
+        if (open === null) {
+          open = { entryAt: event.at, kinds: [event.kind] };
+          continue;
         }
-        entry = punch.occurredAt;
-      } else if (punch.type === "LUNCH_START" || punch.type === "EXIT") {
-        if (entry) {
-          sessions.push(this.session(id, entry, punch.occurredAt, null, range.timezone));
-          entry = null;
+        if (event.at.getTime() - open.entryAt.getTime() > MAX_WORKDAY_MS) {
+          // Pasó el tope: el tramo anterior queda sin salida y esta checada abre otro.
+          sessions.push(dangling(open.entryAt, open.kinds));
+          open = { entryAt: event.at, kinds: [event.kind] };
+          continue;
+        }
+        open.kinds.push(event.kind);
+        sessions.push({
+          ...this.session(id, open.entryAt, event.at, null, range.timezone),
+          source: sessionSourceOf(open.kinds),
+        });
+        open = null;
+        continue;
+      }
+
+      if (OPENING_TYPES.has(event.type)) {
+        // Un nuevo inicio con un tramo abierto deja el anterior sin salida.
+        if (open !== null) sessions.push(dangling(open.entryAt, open.kinds));
+        open = { entryAt: event.at, kinds: [event.kind] };
+        continue;
+      }
+
+      if (CLOSING_TYPES.has(event.type)) {
+        if (open !== null) {
+          open.kinds.push(event.kind);
+          sessions.push({
+            ...this.session(id, open.entryAt, event.at, null, range.timezone),
+            source: sessionSourceOf(open.kinds),
+          });
+          open = null;
         } else {
-          sessions.push(this.session(id, null, punch.occurredAt, "EXIT_WITHOUT_ENTRY", range.timezone));
+          sessions.push({
+            ...this.session(id, null, event.at, "EXIT_WITHOUT_ENTRY", range.timezone),
+            source: sessionSourceOf([event.kind]),
+          });
         }
       }
     }
-    if (entry) {
-      const inSite = Date.now() < entry.getTime() + MAX_WORKDAY_MS;
-      sessions.push(this.session(id, entry, null, inSite ? "OPEN_ENTRY" : "ENTRY_WITHOUT_EXIT", range.timezone));
-    }
+
+    if (open !== null) sessions.push(dangling(open.entryAt, open.kinds));
     return sessions.filter((session) => this.inWindow(session, range));
-  }
-
-  private match(id: string, instants: Date[], range: ReportRange): AccessReportSession[] {
-    const sessions: AccessReportSession[] = [];
-    for (let i = 0; i < instants.length; ) {
-      const entry = instants[i];
-      const cap = entry.getTime() + MAX_WORKDAY_MS;
-      let last = i;
-      while (last + 1 < instants.length && instants[last + 1].getTime() <= cap) last += 1;
-
-      if (last > i) {
-        sessions.push(this.session(id, entry, instants[last], null, range.timezone));
-      } else {
-        const inSite = Date.now() < cap;
-        sessions.push(
-          this.session(id, entry, null, inSite ? "OPEN_ENTRY" : "ENTRY_WITHOUT_EXIT", range.timezone)
-        );
-      }
-      i = last + 1;
-    }
-    return sessions;
   }
 
   private session(
@@ -495,7 +543,7 @@ export class TimeClockReportService {
 
   private row(
     person: Person,
-    session: AccessReportSession,
+    session: TimelineSession,
     index: number,
     range: ReportRange
   ): TimeClockReportSessionRow {
@@ -516,6 +564,7 @@ export class TimeClockReportService {
       incident: session.incident,
       crossesMidnight: session.crossesMidnight,
       linked: person.linked,
+      source: session.source,
     };
   }
 

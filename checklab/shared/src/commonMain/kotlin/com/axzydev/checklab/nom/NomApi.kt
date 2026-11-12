@@ -3,6 +3,7 @@ package com.axzydev.checklab.nom
 import com.axzydev.checklab.core.network.apiCall
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -53,15 +54,31 @@ data class DiscrepancyRequest(val punchId: String, val reason: String)
 data class IdResult(val id: String)
 
 /**
- * Lo que la checada necesita de `GET /nom/me/telework`: si la persona puede checar desde la app
- * (el cliente lo permite y ella no checa solo en reloj), si se guarda ubicación y si hay comida.
+ * Lo que la checada necesita de `GET /nom/me/telework`: los canales de checada
+ * que contrató el cliente, si esta app puede checar (canal APP), si se guarda
+ * ubicación y si hay comida.
+ *
+ * `canPunchWeb`, `canPunchApp` y `punchChannels` son del contrato nuevo; en un
+ * API anterior llegan ausentes y se cae a `canPunchRemote` (comportamiento previo).
  */
 @Serializable
 data class PunchSettings(
     val canPunchRemote: Boolean = true,
+    val canPunchWeb: Boolean? = null,
+    val canPunchApp: Boolean? = null,
+    val punchChannels: List<String> = emptyList(),
     val remoteGeolocationEnabled: Boolean = true,
     val lunchPunchEnabled: Boolean = true,
-)
+) {
+    /**
+     * Si esta app puede registrar checadas: manda el canal APP, no `canPunchRemote`
+     * (que solo dice que hay algún canal remoto, la web incluida). Sin `canPunchApp`
+     * se deduce de los canales; sin canales (API anterior), de `canPunchRemote`.
+     */
+    val canPunchFromApp: Boolean
+        get() = canPunchApp
+            ?: if (punchChannels.isNotEmpty()) canPunchRemote && "APP" in punchChannels else canPunchRemote
+}
 
 class NomApi(private val client: HttpClient) {
     suspend fun myPunches(from: String? = null, to: String? = null, limit: Int? = null): List<MyPunch> =
@@ -73,7 +90,17 @@ class NomApi(private val client: HttpClient) {
             }
         }
 
-    suspend fun punch(request: PunchRequest): PunchResult = apiCall { client.post("nom/me/punch") { setBody(request) } }
+    /**
+     * La app siempre se identifica como canal APP (`X-Punch-Source`): el API la
+     * rechaza con 403 `PUNCH_CHANNEL_DISABLED` si el cliente no contrató APP.
+     * Va aquí, no en el ViewModel, para que la cola sin red también lo mande.
+     */
+    suspend fun punch(request: PunchRequest): PunchResult = apiCall {
+        client.post("nom/me/punch") {
+            header("X-Punch-Source", "APP")
+            setBody(request)
+        }
+    }
 
     suspend fun punchSettings(): PunchSettings = apiCall { client.get("nom/me/telework") }
 

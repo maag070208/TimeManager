@@ -158,6 +158,7 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
 
         val primary = state.next.firstOrNull()
         if (!state.canPunch) {
+            val readOnly = state.readOnlyNotice
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -169,12 +170,8 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
                 Icon(Lucide.Clock, Brand.Muted, size = 22.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Checas en el reloj", color = Brand.Ink, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(
-                        "Tu empresa registra tu jornada con el reloj checador. Aquí ves tus marcajes y puedes reportar si algo no coincide.",
-                        color = Brand.Muted,
-                        fontSize = 13.sp,
-                    )
+                    Text(readOnly.title, color = Brand.Ink, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(readOnly.detail, color = Brand.Muted, fontSize = 13.sp)
                 }
             }
         } else if (primary == null) {

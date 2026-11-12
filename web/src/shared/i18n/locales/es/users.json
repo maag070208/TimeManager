@@ -172,7 +172,7 @@
       }
     },
     "stepDocs": "Documentación",
-    "docsHint": "Sube los documentos obligatorios para el alta: {{docs}}.",
+    "docsHint": "Puedes subir la documentación del alta: {{docs}}. También puedes subirla después desde el expediente.",
     "ine": "INE (foto)",
     "proof": "Comprobante de domicilio",
     "pickFile": "Elegir archivo",

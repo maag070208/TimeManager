@@ -15,7 +15,7 @@
         "name": "The person's given name(s). Required.",
         "paternalSurname": "Paternal surname.",
         "maternalSurname": "Maternal surname, if any.",
-        "employeeNumber": "Employee number. It must match the clock's.",
+        "employeeNumber": "Employee number. It is unique and identifies the person in the system.",
         "jobTitle": "Job title.",
         "rfc": "RFC with homoclave: 13 characters.",
         "curp": "CURP: 18 characters.",
@@ -48,7 +48,7 @@
         "missing": "Missing documents",
         "missingHint": "required and not uploaded",
         "punches": "Punches (30 days)",
-        "punchesHint": "registered on the clock",
+        "punchesHint": "registered in the last 30 days",
         "disciplines": "Reports (12 months)",
         "disciplinesHint": "filed against them",
         "none": "All clear"
@@ -64,6 +64,11 @@
         "FINGERPRINT": "Fingerprint",
         "CARD": "Card",
         "OTHER": "Other"
+      },
+      "source": {
+        "WEB": "Web",
+        "APP": "App",
+        "CLOCK": "Clock"
       },
       "empty": {
         "documents": "No documents uploaded.",

@@ -182,6 +182,7 @@ export class AuthService {
             timezone: true,
             weekStartDay: true,
             disabledModules: true,
+            punchChannels: true,
             brandColor: true,
             logoDataUrl: true,
           },

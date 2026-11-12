@@ -1,4 +1,5 @@
 import { tenantCalendar } from "@core/utils/tenant-timezone";
+import { currentTenantPunchChannels } from "@core/utils/tenant-punch-channels";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { staffRoleKeys } from "@core/permissions";
@@ -63,8 +64,11 @@ const emptyTotals = (): WeeklyAttendanceTotals => ({
  * persona de un departamento, los 7 días con entrada, salida, horas trabajadas,
  * tiempo extra y faltas, más el total de la semana contra lo aprobado.
  *
- * - Fuente: checadas de los relojes de asistencia (mismo emparejamiento que
- *   entradas/salidas); solo cuentan las personas vinculadas al reloj.
+ * - Fuente: el reporte unificado de checadas (reloj + web/app mezclados por
+ *   hora, con sus ajustes); no se vuelve a leer `remote_punches` aquí.
+ * - `linked`: con canal CLOCK es la regla del reloj; sin canal CLOCK (cliente
+ *   solo web/app) toda la plantilla está vinculada y no hay `NO_INFO` por falta
+ *   de reloj.
  * - Tiempo extra: la regla de `computeWorkday`, la misma que aprueban los jefes.
  *   Se muestra SIEMPRE lo calculado, con su decisión (aprobado, rechazado o
  *   pendiente = no aprobado).
@@ -156,17 +160,9 @@ export class WeeklyAttendanceService {
     const userIds = people.map((p) => p.id);
 
     // Todo lo que sigue solo necesita los ids de la gente: un solo viaje en paralelo.
-    const [remotePunches, agreements, assignments, approvals, leaves] = await Promise.all([
-      // Checadas web/app (sin reloj): cuentan igual que las del reloj para
-      // asistencia, horas trabajadas y pre-nómina.
-      this.db.remotePunch.findMany({
-        where: {
-          userId: { in: userIds },
-          occurredAt: { gte: range.start, lt: range.end },
-        },
-        orderBy: { occurredAt: "asc" },
-        select: { id: true, userId: true, type: true, occurredAt: true },
-      }),
+    // Las checadas web/app ya vienen DENTRO del reporte unificado (`sessions`):
+    // no se vuelven a leer de `remote_punches` ni se emparejan aquí.
+    const [agreements, assignments, approvals, leaves, punchChannels] = await Promise.all([
       this.db.workdayDistributionAgreement.findMany({
         where: {
           userId: { in: userIds },
@@ -190,25 +186,10 @@ export class WeeklyAttendanceService {
         },
         select: { userId: true, startDate: true, endDate: true },
       }),
+      // Sin canal CLOCK nadie puede quedar "sin vínculo al reloj".
+      currentTenantPunchChannels(),
     ]);
-    const remoteSessionsByKey = new Map<string, Array<{ entryAt: string; exitAt: string | null; workedMinutes: number }>>();
-    const remoteOpenByUser = new Map<string, Date>();
-    for (const punch of remotePunches) {
-      const key = `${punch.userId}|${localDateKey(punch.occurredAt, timezone)}`;
-      const list = remoteSessionsByKey.get(key) ?? [];
-      const open = remoteOpenByUser.get(punch.userId);
-      if (punch.type === "ENTRY" || punch.type === "LUNCH_END") {
-        remoteOpenByUser.set(punch.userId, punch.occurredAt);
-      } else if (open) {
-        list.push({
-          entryAt: open.toISOString(),
-          exitAt: punch.occurredAt.toISOString(),
-          workedMinutes: Math.max(0, Math.round((punch.occurredAt.getTime() - open.getTime()) / 60_000)),
-        });
-        remoteOpenByUser.delete(punch.userId);
-      }
-      remoteSessionsByKey.set(key, list);
-    }
+    const hasClockChannel = punchChannels.includes("CLOCK");
 
     const agreementUsers = new Set(agreements.map((row) => row.userId).filter(Boolean) as string[]);
     const approvalByKey = new Map(approvals.map((a) => [`${a.userId}|${dateKeyOf(a.date)}`, a]));
@@ -217,9 +198,11 @@ export class WeeklyAttendanceService {
 
     const rows: WeeklyAttendanceRow[] = people.map((person) => {
       const clockNumbers = person.timeClockEmployees.map((t) => t.employeeNumber);
-      // RJ-02: con checadas web/app la persona también tiene registro ese día.
-      const remoteDays = days.filter((day) => remoteSessionsByKey.has(`${person.id}|${day}`));
-      const linked = clockNumbers.length > 0 || withSessions.includes(person.id) || remoteDays.length > 0;
+      // Sin canal CLOCK toda la plantilla está "vinculada": no existe el estado
+      // "sin vínculo al reloj". Con CLOCK se conserva la regla del reloj.
+      const linked = !hasClockChannel
+        ? true
+        : clockNumbers.length > 0 || withSessions.includes(person.id);
       const totals = emptyTotals();
       let scheduleName: string | null = null;
 

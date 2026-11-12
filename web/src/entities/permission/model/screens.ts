@@ -1,4 +1,5 @@
 import type { Permission, PermissionScope, UserRole } from "@entities/user";
+import { hasPunchChannel, type PunchChannel } from "@shared/lib/punch-channels";
 
 /**
  * Catálogo de pantallas de la app, en el mismo orden que el menú lateral.
@@ -73,6 +74,12 @@ export interface AppScreen {
    * pantalla usa permisos de otro recurso o no tiene requisito.
    */
   readonly actions?: readonly Permission[];
+  /**
+   * Canal de checada que debe tener el cliente para ver la pantalla (las del
+   * reloj checador piden CLOCK). No aplica a la matriz de roles: un rol puede
+   * tener el permiso aunque el cliente no tenga el canal.
+   */
+  readonly punchChannel?: PunchChannel;
   readonly children?: readonly AppScreen[];
 }
 
@@ -105,10 +112,16 @@ const ALL_SCREENS: readonly AppScreen[] = [
       {
         id: "clockAttendance",
         labelKey: "nav.clockAttendance",
+        punchChannel: "CLOCK",
         children: [
-          { id: "accessTimeClockReport", labelKey: "nav.accessTimeClockReport", path: "/hr/time-clock/entries-exits", requirement: { anyOf: ["time_clock.view"] }, actions: [] },
+          { id: "accessTimeClock", labelKey: "nav.accessTimeClock", path: "/hr/time-clock", match: "exact", requirement: { anyOf: ["time_clock.view"] }, punchChannel: "CLOCK" },
+          { id: "accessTimeClockEmployees", labelKey: "nav.accessTimeClockEmployees", path: "/hr/time-clock/employees", requirement: { anyOf: ["time_clock.view"] }, punchChannel: "CLOCK" },
         ],
       },
+      // El reporte de entradas y salidas ya no depende del reloj: come de las
+      // checadas web, app y reloj unificadas, así que vive fuera de la sección
+      // del checador y se queda aunque el cliente no tenga canal CLOCK.
+      { id: "accessTimeClockReport", labelKey: "nav.accessTimeClockReport", path: "/hr/time-clock/entries-exits", requirement: { anyOf: ["time_clock.view"] }, actions: [] },
       {
         id: "schedules",
         labelKey: "nav.schedules",
@@ -130,7 +143,7 @@ const ALL_SCREENS: readonly AppScreen[] = [
         id: "timeClock",
         labelKey: "nav.timeClock",
         children: [
-          { id: "clockDashboard", labelKey: "nav.clockDashboard", path: "/time-clocks/dashboard", match: "exact", requirement: { anyOf: ["time_clocks.manage"] } },
+          { id: "clockDashboard", labelKey: "nav.clockDashboard", path: "/time-clocks/dashboard", match: "exact", requirement: { anyOf: ["time_clocks.manage"] }, punchChannel: "CLOCK" },
         ],
       },
       { id: "generalSettings", labelKey: "nav.generalSettings", path: "/settings/general", requirement: { anyOf: ["time_clock.write"] } },
@@ -197,6 +210,17 @@ export const isScreenVisibleInGroup = (
   if (parent && !isScreenVisible(permissions, parent, role)) return false;
   return isScreenVisible(permissions, screen, role);
 };
+
+/**
+ * ¿El cliente de la sesión tiene el canal de checada que pide la pantalla? Las
+ * pantallas sin canal (casi todas) siempre pasan. El menú usa esto además de
+ * los permisos; la matriz de roles no, porque un rol puede tener el permiso
+ * aunque el cliente no haya contratado el canal.
+ */
+export const isScreenVisibleForChannels = (
+  screen: AppScreen,
+  channels: readonly string[] | null | undefined
+): boolean => !screen.punchChannel || hasPunchChannel(channels, screen.punchChannel);
 
 /** Una pantalla "hoja" (sin hijos) con su grupo, para resúmenes y chips. */
 export interface ScreenLeaf {

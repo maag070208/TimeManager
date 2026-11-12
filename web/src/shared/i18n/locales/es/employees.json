@@ -15,7 +15,7 @@
         "name": "Nombre(s) de la persona. Es obligatorio.",
         "paternalSurname": "Apellido paterno.",
         "maternalSurname": "Apellido materno, si lo tiene.",
-        "employeeNumber": "Número de empleado. Debe coincidir con el del reloj.",
+        "employeeNumber": "Número de empleado. Es único e identifica a la persona en el sistema.",
         "jobTitle": "Puesto que desempeña.",
         "rfc": "RFC con homoclave: 13 caracteres.",
         "curp": "CURP: 18 caracteres.",
@@ -48,7 +48,7 @@
         "missing": "Documentos faltantes",
         "missingHint": "obligatorios sin cargar",
         "punches": "Checadas (30 días)",
-        "punchesHint": "registradas en el reloj",
+        "punchesHint": "registradas en los últimos 30 días",
         "disciplines": "Actas (12 meses)",
         "disciplinesHint": "levantadas a su nombre",
         "none": "Todo en orden"
@@ -64,6 +64,11 @@
         "FINGERPRINT": "Huella",
         "CARD": "Tarjeta",
         "OTHER": "Otro"
+      },
+      "source": {
+        "WEB": "Web",
+        "APP": "App",
+        "CLOCK": "Reloj"
       },
       "empty": {
         "documents": "No tiene documentos cargados.",

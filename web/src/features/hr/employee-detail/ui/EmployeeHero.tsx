@@ -8,7 +8,7 @@ import {
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { resolvePhotoUrl, type PersonalProfile } from "@entities/hr";
-import { roleLabel } from "@entities/user";
+import { roleLabel, useHasPunchChannel } from "@entities/user";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 
@@ -47,6 +47,8 @@ interface Props {
  */
 export default function EmployeeHero({ profile, onPhotoUpload, documents }: Props) {
   const { t: tt } = useTranslation(["employees", "common"]);
+  /** El modo de checada solo tiene sentido si el cliente tiene reloj checador. */
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const months = monthsSince(profile.hireDate);
@@ -58,10 +60,12 @@ export default function EmployeeHero({ profile, onPhotoUpload, documents }: Prop
   const facts = [
     { label: tt("detail.fields.hireDate"), value: profile.hireDate ? formatDateOnly(profile.hireDate) : null },
     { label: tt("detail.fields.subarea"), value: profile.subarea?.name },
-    {
-      label: "Modo de checada",
-      value: profile.checkinMode === "WEB" ? "Solo web" : profile.checkinMode === "CLOCK" ? "Solo reloj físico" : "Híbrido",
-    },
+    ...(hasClock
+      ? [{
+          label: "Modo de checada",
+          value: profile.checkinMode === "WEB" ? "Solo web" : profile.checkinMode === "CLOCK" ? "Solo reloj físico" : "Híbrido",
+        }]
+      : []),
   ].filter((f) => f.value?.trim());
 
   return (

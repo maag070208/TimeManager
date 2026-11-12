@@ -141,6 +141,11 @@ Los roles viven en BD (tabla `roles`) y la UI se gobierna por permisos (`useCan`
   (`useAblyNotifications`). Endpoints: `/notifications/*`, `/notifications/ably-token`.
 
 ### 9. Reloj checador (Hikvision)
+- Solo existe para clientes con el canal `CLOCK` en `tenant.punchChannels`; sin
+  ese canal estas rutas se ocultan del menú y redirigen a `/` (gate
+  `RequiresPunchChannel`). El reporte de entradas/salidas ya no depende del
+  reloj: vive en `/hr/time-clock/entries-exits` y come del flujo unificado
+  web/app/reloj, así que se queda siempre visible.
 - Rutas: `/hr/time-clock`, `/hr/time-clock/entries-exits`,
   `/hr/time-clock/roster`, `/hr/time-clock/employees`,
   `/hr/time-clock/employees/differences`

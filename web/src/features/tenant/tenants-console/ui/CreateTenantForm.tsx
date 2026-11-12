@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from "react";
-import { ITAlert, ITButton, ITCard, ITInput, ITText } from "@axzydev/axzy_ui_system";
-import { LuBuilding2, LuCheck, LuCopy, LuExternalLink, LuGlobe, LuKeyRound, LuLayers, LuPlus, LuRefreshCw, LuUserRound } from "react-icons/lu";
+import { ITAlert, ITButton, ITCard, ITCheckbox, ITInput, ITText } from "@axzydev/axzy_ui_system";
+import { LuBuilding2, LuCheck, LuCopy, LuExternalLink, LuGlobe, LuKeyRound, LuLayers, LuPlus, LuRefreshCw, LuUserRound, LuSmartphone } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { dyn } from "@shared/i18n";
 import { tenantHost, tenantUrl } from "@shared/api/tenant";
+import { PUNCH_CHANNELS, PUNCH_CHANNEL_HINT_KEY, PUNCH_CHANNEL_LABEL_KEY } from "@shared/lib/punch-channels";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { FormSection } from "@shared/ui/form-section";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
@@ -20,6 +21,13 @@ interface Props {
 }
 
 const tzLabel = (tz: string) => tz.replace("America/", "").replace(/_/g, " ");
+
+/** Canales de checada que la plataforma puede contratar para un cliente. */
+const PUNCH_CHANNEL_OPTIONS = PUNCH_CHANNELS.map((id) => ({
+  id,
+  labelKey: PUNCH_CHANNEL_LABEL_KEY[id],
+  hintKey: PUNCH_CHANNEL_HINT_KEY[id],
+}));
 
 /** Opción tipo tarjeta de un grupo de selección única (plan). */
 const Choice = ({ selected, onSelect, title, children }: { selected: boolean; onSelect: () => void; title: ReactNode; children?: ReactNode }) => (
@@ -176,7 +184,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
 
   const plan = fx.plans?.find((item) => item.id === fx.form.planId);
   const host = fx.form.slug ? tenantHost(fx.form.slug) : "";
-  const sections = [fx.complete.company, fx.complete.plan, fx.complete.admin];
+  const sections = [fx.complete.company, fx.complete.plan, fx.form.punchChannels.length > 0, fx.complete.admin];
 
   const submit = async () => {
     const field = await fx.submit();
@@ -301,7 +309,28 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
             )}
           </FormSection>
 
-          <FormSection number={3} icon={<LuUserRound size={16} />} title={t("platform.create.admin.title")} description={t("platform.create.admin.description")} complete={fx.complete.admin}>
+          <FormSection number={3} icon={<LuSmartphone size={16} />} title={t("platform.channels.title")} description={t("platform.channels.createDescription")} complete={fx.form.punchChannels.length > 0}>
+            <div className="flex flex-col gap-3">
+              {PUNCH_CHANNEL_OPTIONS.map((channel) => (
+                <ITCheckbox
+                  key={channel.id}
+                  name={`punchChannel-${channel.id}`}
+                  checked={fx.form.punchChannels.includes(channel.id)}
+                  onChange={() => fx.toggleChannel(channel.id)}
+                  disabled={fx.form.punchChannels.length === 1 && fx.form.punchChannels.includes(channel.id)}
+                  label={
+                    <span className="flex flex-col">
+                      <span className="text-[13px] font-semibold text-slate-800">{t(channel.labelKey)}</span>
+                      <span className="text-[11.5px] text-slate-500">{t(channel.hintKey)}</span>
+                    </span>
+                  }
+                />
+              ))}
+              <ITText className="block !text-[12px] text-slate-500">{t("platform.channels.minHint")}</ITText>
+            </div>
+          </FormSection>
+
+          <FormSection number={4} icon={<LuUserRound size={16} />} title={t("platform.create.admin.title")} description={t("platform.create.admin.description")} complete={fx.complete.admin}>
             <div className="grid gap-4 md:grid-cols-2">
               <ITInput
                 name="adminName"
@@ -375,6 +404,10 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
             </div>
           </div>
           <LiveSummaryRow label={t("platform.create.summary.timezone")} value={tzLabel(fx.form.timezone)} />
+          <LiveSummaryRow
+            label={t("platform.create.summary.channels")}
+            value={fx.form.punchChannels.map((channel) => t(PUNCH_CHANNEL_LABEL_KEY[channel])).join(" · ")}
+          />
           <LiveSummaryRow
             label={t("platform.create.summary.plan")}
             value={`${plan?.name ?? t("platform.create.plan.none")}${fx.form.employeeLimit ? ` · ${t("platform.create.plan.people", { count: Number(fx.form.employeeLimit) })}` : ""}`}

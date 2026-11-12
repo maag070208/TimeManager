@@ -154,7 +154,16 @@ export interface PunchHistory {
 
 export interface MyPunch {
   id: string;
+  /**
+   * Grupo del registro (compatibilidad con Mi jornada): reloj físico, bitácora
+   * de acceso o marcaje remoto. Para el canal exacto está `channel`.
+   */
   source: "CLOCK" | "ACCESS" | "REMOTE";
+  /**
+   * Origen real de la checada: `CLOCK` (reloj físico), `WEB`/`APP` (marcaje
+   * remoto con su canal) o `null` en los eventos de la bitácora de acceso.
+   */
+  channel: "CLOCK" | "WEB" | "APP" | null;
   type: RemotePunchDirection | null;
   occurredAt: string;
   method: string;
@@ -275,6 +284,8 @@ export interface RemotePunchInput {
 export interface RemotePunchDto {
   id: string;
   type: RemotePunchDirection;
+  /** Canal de origen de la checada remota: web o app móvil. */
+  source: "WEB" | "APP";
   workMode: RemoteWorkMode;
   occurredAt: string;
   clientReportedAt: string | null;
@@ -373,7 +384,13 @@ export interface MyTelework {
   registration: TeleworkRegistrationDto | null;
   policy: TeleworkPolicyTexts;
   remotePunchEnabled: boolean;
-  /** ¿Esta persona puede checar por web/app? Falso si el cliente lo apagó o ella checa solo en reloj. */
+  /** Canales de checada contratados por el cliente (WEB/APP/CLOCK). */
+  punchChannels: Array<"WEB" | "APP" | "CLOCK">;
+  /** ¿La persona puede checar desde la web? (canal WEB + política del cliente). */
+  canPunchWeb: boolean;
+  /** ¿La persona puede checar desde la app? (canal APP + política del cliente). */
+  canPunchApp: boolean;
+  /** ¿Puede checar por algún canal remoto? (compatibilidad con la app anterior). */
   canPunchRemote: boolean;
   remoteGeolocationEnabled: boolean;
   lunchPunchEnabled: boolean;

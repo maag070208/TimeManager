@@ -149,7 +149,16 @@ const MAIN = async (): Promise<void> => {
     rich: boolean
   ): Promise<void> => {
     const tenant = await db.tenant.create({
-      data: { name: tenantName, slug, status: "ACTIVE", planId, timezone: TZ, weekStartDay: WEEK_START_DAY },
+      data: {
+        name: tenantName,
+        slug,
+        status: "ACTIVE",
+        planId,
+        timezone: TZ,
+        weekStartDay: WEEK_START_DAY,
+        // El seed de E2E cubre también el reloj físico (mock ISAPI).
+        punchChannels: ["WEB", "APP", "CLOCK"],
+      },
     });
     summary.tenants[slug] = tenant.id;
 

@@ -1,6 +1,16 @@
 /** Tipos del módulo NOM (registro de jornada LFT 2027 + NOM-037 teletrabajo). */
 
-export type PunchSource = "CLOCK" | "ACCESS" | "REMOTE";
+/**
+ * Origen de una checada propia: reloj (`CLOCK`), evento de acceso (`ACCESS`) o
+ * checada remota. El API nuevo distingue `WEB`/`APP`; `REMOTE` se conserva para
+ * sesiones y respuestas anteriores al flujo unificado.
+ */
+export type PunchSource = "CLOCK" | "ACCESS" | "REMOTE" | "WEB" | "APP";
+
+/** ¿La checada se registró desde la web, la app o el flujo remoto anterior? */
+export const isRemotePunchSource = (source: PunchSource): boolean =>
+  source === "REMOTE" || source === "WEB" || source === "APP";
+
 export type PunchType = "ENTRY" | "EXIT" | "LUNCH_START" | "LUNCH_END";
 export type RemoteWorkMode = "PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO";
 
@@ -20,6 +30,8 @@ export interface RemotePunchResult {
   punch: {
     id: string;
     type: PunchType;
+    /** Canal de origen de la checada remota: web o app móvil. */
+    source: "WEB" | "APP";
     workMode: RemoteWorkMode;
     occurredAt: string;
     clientReportedAt: string | null;
@@ -76,7 +88,13 @@ export interface MeTelework {
   registration: TeleworkRegistration | null;
   policy: TeleworkPolicyTexts;
   remotePunchEnabled: boolean;
-  /** ¿Esta persona puede checar por web? Falso si el cliente lo apagó o ella checa solo en reloj. */
+  /** Canales de checada contratados por el cliente (WEB/APP/CLOCK). */
+  punchChannels: Array<"WEB" | "APP" | "CLOCK">;
+  /** ¿Esta persona puede checar desde la web? */
+  canPunchWeb: boolean;
+  /** ¿Esta persona puede checar desde la app? */
+  canPunchApp: boolean;
+  /** ¿Puede checar por algún canal remoto? (compatibilidad). */
   canPunchRemote: boolean;
   remoteGeolocationEnabled: boolean;
   /** Apagada, la checada web solo registra entrada y salida. */

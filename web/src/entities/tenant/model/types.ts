@@ -12,6 +12,8 @@ export interface TenantInfo {
   weekStartDay?: number;
   /** Módulos apagados por la plataforma. */
   disabledModules?: string[];
+  /** Canales de checada contratados por la plataforma (WEB/APP/CLOCK). */
+  punchChannels?: Array<"WEB" | "APP" | "CLOCK">;
   /** Branding (F3-05). `null` = marca CheckLab. */
   brandColor?: string | null;
   /** Logo del cliente como data URL. */
@@ -44,6 +46,8 @@ export interface TenantCreateInput {
   timezone?: string;
   planId?: string | null;
   employeeLimit?: number | null;
+  /** Canales de checada del cliente (default del API: WEB+APP). */
+  punchChannels?: Array<"WEB" | "APP" | "CLOCK">;
   admin: { name: string; username: string; email?: string | null; password?: string };
 }
 
@@ -57,7 +61,7 @@ export interface TenantCreated {
 }
 
 export type TenantUpdateInput = Partial<
-  Pick<Tenant, "name" | "slug" | "status" | "timezone" | "planId" | "employeeLimit" | "disabledModules">
+  Pick<Tenant, "name" | "slug" | "status" | "timezone" | "planId" | "employeeLimit" | "disabledModules" | "punchChannels">
 >;
 
 export type TenantPaymentStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";

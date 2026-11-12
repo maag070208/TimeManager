@@ -131,8 +131,8 @@
   },
   "report": {
     "title": "Attendance",
-    "description": "Shifts built from the time clock punches and matched to each employee by their time clock number.",
-    "pdfTitle": "Entries and exits — Time clock",
+    "description": "Shifts built from each person's punches and matched to their employee record.",
+    "pdfTitle": "Entries and exits",
     "noEmployees": "The clock has no employees yet: punches cannot be matched to a person.",
     "unlinkedNotice": "{{count}} of {{total}} clock employees are not linked to a person: their clock-ins show the clock name and the “Not linked” mark.",
     "link": "Link"

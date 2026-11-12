@@ -35,6 +35,7 @@ export {
 export {
   APP_SCREENS,
   isScreenVisible,
+  isScreenVisibleForChannels,
   isScreenVisibleInGroup,
   referencedPermissions,
   screenHasPermission,

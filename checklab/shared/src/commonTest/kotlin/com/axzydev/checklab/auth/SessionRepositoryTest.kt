@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
 
 private const val ME_STAFF = """{"id":"u1","username":"karla.nunez","name":"Karla Núñez Ortega","role":"CLIENT_STAFF",
 "roles":["CLIENT_STAFF"],"mustChangePassword":false,"tenant":{"id":"t1","slug":"altamira","name":"Grupo Logístico Altamira",
-"timezone":"America/Mexico_City","weekStartDay":3,"disabledModules":[]},"permissions":{"attendance.view":"OWN"},"language":"es",
+"timezone":"America/Mexico_City","weekStartDay":3,"disabledModules":[],"punchChannels":["WEB","APP"]},"permissions":{"attendance.view":"OWN"},"language":"es",
 "extraField":"se ignora"}"""
 
 private const val ME_PROVISIONAL = """{"id":"u2","username":"nuevo","name":"Nuevo Usuario","role":"CLIENT_ADMIN",
@@ -65,6 +65,7 @@ class SessionRepositoryTest {
         assertIs<SessionState.SignedIn>(state)
         assertEquals("Karla", state.me.firstName)
         assertEquals(PermissionScope.OWN, state.me.scope("attendance.view"))
+        assertEquals(listOf("WEB", "APP"), state.me.tenant?.punchChannels)
         assertEquals("A1", h.store.get(SessionRepository.KEY_ACCESS))
         assertEquals("R1", h.store.get(SessionRepository.KEY_REFRESH))
         assertEquals("altamira", h.session.lastTenant)

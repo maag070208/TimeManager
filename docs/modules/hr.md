@@ -58,9 +58,18 @@ La foto y los documentos del expediente son datos personales sensibles: **nada s
 - Catálogos (`Gender`, `BloodType`, `DocumentType`): decidir si son globales del sistema o personalizables por cliente (ver SAAS_PLAN).
 
 
-## Modo de checada por empleado (2026-11-06)
+## Canales de checada por cliente (2026-11-12)
 
-`users.checkinMode` (`WEB`, `CLOCK`, `HYBRID`, default `HYBRID`) define por dónde
-puede marcar la persona. Se edita en el expediente → **Laboral → Modo de checada**.
-La checada web (`POST /nom/me/punch`) rechaza con `REMOTE_PUNCH_NOT_ALLOWED` a
-quien está en `CLOCK`; el reloj físico sigue disponible en todos los modos.
+El reloj físico dejó de ser obligatorio: cada cliente contrata canales de checada
+(`tenants.punchChannels`: `WEB`, `APP` y/o `CLOCK`, configurable desde la consola
+de plataforma). La web y la app se adaptan al mix y las checadas de todos los
+canales forman un solo flujo de asistencia; la persona puede marcar la entrada
+en web, la salida a comer en app y el regreso en reloj si su cliente tiene ese
+canal.
+
+`users.checkinMode` (`WEB`, `CLOCK`, `HYBRID`) queda como dato heredado: ya **no
+bloquea** la checada remota ni se edita en el expediente. `POST /nom/me/punch`
+valida el canal del origen (`X-Punch-Source: WEB|APP`) contra
+`tenants.punchChannels` y responde `403 PUNCH_CHANNEL_DISABLED` si no está
+contratado; la política del cliente (`remotePunchEnabled`) y el acuerdo de
+método (`blockRemoteWithoutAgreement`) siguen aplicando.

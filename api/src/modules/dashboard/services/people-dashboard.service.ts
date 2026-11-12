@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
+import { currentTenantPunchChannels } from "@core/utils/tenant-punch-channels";
 import { localDateKey, resolveTimezoneWithConfig } from "@core/utils/timezone";
 import { scopeOf, staffRoleKeys, type UserPermissions } from "@core/permissions";
 import type { EmployeeRecordsService } from "@modules/hr";
@@ -139,6 +140,7 @@ export class PeopleDashboardService {
    */
   async attendanceToday(actor: UserPermissions) {
     const { date, timezone } = await this.today();
+    const hasClockChannel = (await currentTenantPunchChannels()).includes("CLOCK");
     const scope = scopeOf(actor, "attendance.view");
     const ownOnly = scope === "OWN" || (scope === "AREA" && !actor.departmentId);
     const departmentId = scope === "ALL" ? undefined : actor.departmentId ?? undefined;
@@ -153,7 +155,9 @@ export class PeopleDashboardService {
         const sessions = day?.sessions ?? [];
         const last = sessions[sessions.length - 1];
         let status: TodayStatus;
-        if (!r.linked) status = "UNLINKED";
+        // Sin canal CLOCK no existe "sin vínculo al reloj": la persona checa por
+        // web/app y se evalúa con las mismas reglas.
+        if (hasClockChannel && !r.linked) status = "UNLINKED";
         else if (sessions.length > 0) status = (day?.lateMin ?? 0) > 0 ? "LATE" : "PRESENT";
         else if (day?.status === "REST") status = "REST";
         else if (!day?.scheduledStartAt) status = "NO_SCHEDULE";
@@ -214,17 +218,23 @@ export class PeopleDashboardService {
     const { date } = await this.today();
     const today = new Date(`${date}T00:00:00.000Z`);
     const since = new Date(today.getTime() - 30 * MS_PER_DAY);
-    const [clockNumbers, linked, withoutClock, withoutSchedule] = await Promise.all([
+    const hasClockChannel = (await currentTenantPunchChannels()).includes("CLOCK");
+    const withoutSchedule = await this.db.user.count({
+      where: {
+        role: { in: personalRoles() },
+        active: true,
+        scheduleAssignments: { none: { validFrom: { lte: today }, OR: [{ validTo: null }, { validTo: { gte: today } }] } },
+      },
+    });
+    // Sin canal CLOCK no hay reloj que configurar: no se consultan sus tablas y
+    // los avisos de "sin reloj" quedan en cero.
+    if (!hasClockChannel) {
+      return { unlinkedClockNumbers: 0, personalWithoutClock: 0, personalWithoutSchedule: withoutSchedule };
+    }
+    const [clockNumbers, linked, withoutClock] = await Promise.all([
       this.db.timeClockPunch.findMany({ where: { occurredAt: { gte: since } }, distinct: ["employeeNumber"], select: { employeeNumber: true } }),
       this.db.timeClockEmployee.findMany({ select: { employeeNumber: true } }),
       this.db.user.count({ where: { role: { in: personalRoles() }, active: true, timeClockEmployees: { none: {} } } }),
-      this.db.user.count({
-        where: {
-          role: { in: personalRoles() },
-          active: true,
-          scheduleAssignments: { none: { validFrom: { lte: today }, OR: [{ validTo: null }, { validTo: { gte: today } }] } },
-        },
-      }),
     ]);
     const linkedSet = new Set(linked.map((l) => l.employeeNumber));
     return {

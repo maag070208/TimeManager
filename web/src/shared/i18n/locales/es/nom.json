@@ -31,7 +31,12 @@
     "channelHint": "Checa desde la web o con tu reloj físico: todas tus checadas se ven aquí.",
     "locationNotice": "Tu ubicación se guarda solo en el momento de marcar; no hay rastreo continuo. Tu empresa lo tiene activado.",
     "clockOnlyTitle": "Checas en el reloj",
-    "clockOnlyHint": "Tu empresa registra tu jornada con el reloj checador. Aquí ves tus marcajes y puedes reportar si algo no coincide."
+    "clockOnlyHint": "Tu empresa registra tu jornada con el reloj checador. Aquí ves tus marcajes y puedes reportar si algo no coincide.",
+    "channelHintNoClock": "Checa desde la web o la app: todas tus checadas se ven aquí.",
+    "remoteOffTitle": "Checada remota apagada",
+    "remoteOffHint": "Tu empresa tiene apagada la checada remota. Pide a RH que la active si necesitas marcar desde aquí.",
+    "appOnlyTitle": "Checas desde la app",
+    "appOnlyHint": "Tu empresa registra la checada desde la app móvil. Aquí ves tus marcajes y puedes reportar si algo no coincide."
   },
   "punches": {
     "title": "Mis marcajes",
@@ -214,5 +219,7 @@
       "REMOTE": "Web o app",
       "ACCESS": "Control de acceso"
     }
-  }
+  },
+  "sourceWeb": "Web",
+  "sourceApp": "App"
 }

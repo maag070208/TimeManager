@@ -13,7 +13,7 @@ import {
   ITTable,
   type Column,
 } from "@axzydev/axzy_ui_system";
-import { LuBuilding2, LuCheck, LuChevronRight, LuClock, LuClock3, LuCreditCard, LuExternalLink, LuKeyRound, LuLogIn, LuPause, LuPencil, LuPlay, LuPlus, LuSearch, LuWallet } from "react-icons/lu";
+import { LuBuilding2, LuCheck, LuChevronRight, LuClock, LuClock3, LuCreditCard, LuExternalLink, LuGlobe, LuKeyRound, LuLogIn, LuPause, LuPencil, LuPlay, LuPlus, LuSearch, LuSmartphone, LuWallet } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { tenantApi } from "@entities/tenant";
@@ -22,6 +22,7 @@ import type { Tenant, TenantPayment, TenantPaymentStatus, TenantPayments } from 
 import { AgentTokenDialog, PlanAssignDialog, TenantEditDialog, useTenantActions } from "@features/tenant/tenants-console";
 import { TicConfirm } from "@shared/ui/tic-confirm";
 import { getSelectedTenant, setSelectedTenant, tenantHost, tenantUrl } from "@shared/api/tenant";
+import { PUNCH_CHANNELS as PUNCH_CHANNEL_IDS, PUNCH_CHANNEL_HINT_KEY, PUNCH_CHANNEL_LABEL_KEY, punchChannelsOf, type PunchChannel } from "@shared/lib/punch-channels";
 import { TENANT_MODULES, type TenantModuleDefinition } from "@shared/lib/tenant-modules";
 import { ITPage } from "@shared/ui/page";
 import { TabBar } from "@shared/ui/tab-bar";
@@ -52,6 +53,13 @@ const TONE: Record<TenantModuleDefinition["tone"], string> = {
   amber: "bg-amber-50 text-amber-700",
   lavender: "bg-violet-50 text-violet-700",
   slate: "bg-slate-100 text-slate-600",
+};
+
+/** Icono de cada canal de checada en la consola de plataforma. */
+const PUNCH_CHANNEL_ICON: Record<PunchChannel, React.ReactNode> = {
+  WEB: <LuGlobe size={13} />,
+  APP: <LuSmartphone size={13} />,
+  CLOCK: <LuClock3 size={13} />,
 };
 type Tab = "summary" | "modules" | "billing" | "activity";
 interface ActivityLog { id: string; date: string; event: string; detail: string; user: string; }
@@ -101,6 +109,9 @@ export default function TenantDetailPage() {
 
   const disabled = tenant?.disabledModules ?? [];
   const activeModules = TENANT_MODULES.filter((module) => !disabled.includes(module.id));
+  const enabledChannels = punchChannelsOf(tenant?.punchChannels);
+  /** Sin canal CLOCK no hay relojes que operar ni agente que sincronizar. */
+  const hasClockChannel = enabledChannels.includes("CLOCK");
   const planPrice = Number(tenant?.plan?.monthlyPrice ?? 0);
   const setup = [
     { id: "plan", label: "Asignar plan", done: Boolean(tenant?.plan), caption: tenant?.plan ? `${tenant.plan.name} · ${money(planPrice)}/mes` : "Define precio y ciclo de cobro", action: () => setPlanOpen(true) },
@@ -138,6 +149,32 @@ export default function TenantDetailPage() {
       setToast(next.includes(moduleId) ? "Módulo apagado para el cliente." : "Módulo activado.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo cambiar el módulo.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  /**
+   * Canales de checada del cliente. Nunca puede quedar vacío: apagar el último
+   * se rechaza (el API también lo valida) y la tarjeta lo explica.
+   */
+  const toggleChannel = async (channel: PunchChannel) => {
+    if (!tenant) return;
+    const current = punchChannelsOf(tenant.punchChannels);
+    if (current.includes(channel) && current.length === 1) {
+      setToast(t("platform.channels.lastChannel"));
+      return;
+    }
+    const next = current.includes(channel) ? current.filter((item) => item !== channel) : [...current, channel];
+    const label = t(PUNCH_CHANNEL_LABEL_KEY[channel]);
+    setBusy("channels");
+    try {
+      const updated = await tenantApi.update(id, { punchChannels: next });
+      setTenant(updated);
+      addLog(next.includes(channel) ? "Canal de checada activado" : "Canal de checada apagado", label);
+      setToast(t(next.includes(channel) ? "platform.channels.enabled" : "platform.channels.disabled", { channel: label }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t("platform.channels.error"));
     } finally {
       setBusy(null);
     }
@@ -275,12 +312,16 @@ export default function TenantDetailPage() {
               <span className="inline-flex items-center gap-1.5"><LuPencil size={13} /> Editar</span>
             </ITButton>
           )}
-          <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Operar los relojes del cliente: alta, probar conexión y sincronizar" disabled={tenant.status !== "ACTIVE"} onClick={() => void actions.enter(tenant, "/#/time-clocks")}>
-            <span className="inline-flex items-center gap-1.5"><LuClock3 size={13} /> Relojes</span>
-          </ITButton>
-          <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Token del agente que conecta los relojes del cliente" onClick={() => setAgentOpen(true)}>
-            <span className="inline-flex items-center gap-1.5"><LuKeyRound size={13} /> Agente del reloj</span>
-          </ITButton>
+          {hasClockChannel && (
+            <>
+              <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Operar los relojes del cliente: alta, probar conexión y sincronizar" disabled={tenant.status !== "ACTIVE"} onClick={() => void actions.enter(tenant, "/#/time-clocks")}>
+                <span className="inline-flex items-center gap-1.5"><LuClock3 size={13} /> Relojes</span>
+              </ITButton>
+              <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Token del agente que conecta los relojes del cliente" onClick={() => setAgentOpen(true)}>
+                <span className="inline-flex items-center gap-1.5"><LuKeyRound size={13} /> Agente del reloj</span>
+              </ITButton>
+            </>
+          )}
           <ITButton variant="outlined" color="secondary" className="tm-row-button" title="Abrir el login del cliente en otra pestaña" onClick={() => window.open(tenantUrl(tenant.slug), "_blank", "noopener")}>
             <span className="inline-flex items-center gap-1.5"><LuExternalLink size={13} /> Abrir sitio</span>
           </ITButton>
@@ -399,6 +440,37 @@ export default function TenantDetailPage() {
                 <Padre title="Módulos y pantallas" icon={<LuBuilding2 size={16} />} action={<div className="flex items-center gap-2"><div className="w-52"><ITInput name="moduleSearch" size="sm" placeholder="Buscar módulo" value={search} onChange={(event) => setSearch(event.target.value)} iconLeft={<LuSearch size={12} />} /></div><span className="text-[11px] text-slate-500">{activeModules.length}/{TENANT_MODULES.length}</span></div>}>
                   {moduleList(filteredModules)}
                 </Padre>
+                <div className="mt-4">
+                  <Padre title={t("platform.channels.title")} icon={<LuClock3 size={16} />}>
+                    <ITText muted className="mb-3 block !text-[12px]">{t("platform.channels.description")}</ITText>
+                    <div className="flex flex-col">
+                      {PUNCH_CHANNEL_IDS.map((channel) => {
+                        const active = enabledChannels.includes(channel);
+                        const lastEnabled = active && enabledChannels.length === 1;
+                        return (
+                          <div key={channel} className="flex items-center gap-3 border-t border-slate-100 py-2.5 first:border-t-0">
+                            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[11px] font-extrabold ${active ? "bg-sky-50 text-sky-700" : "bg-slate-100 text-slate-500"}`}>{PUNCH_CHANNEL_ICON[channel]}</span>
+                            <div className="min-w-0 flex-1">
+                              <ITText className="!text-[13px] font-semibold text-slate-800">{t(PUNCH_CHANNEL_LABEL_KEY[channel])}</ITText>
+                              <ITText muted className="mt-0.5 line-clamp-2 !text-[11.5px]">{t(PUNCH_CHANNEL_HINT_KEY[channel])}</ITText>
+                            </div>
+                            <ITText className="shrink-0 !text-[11px] font-semibold text-slate-500">{active ? t("platform.channels.on") : t("platform.channels.off")}</ITText>
+                            <ITSlideToggle
+                              size="sm"
+                              isOn={active}
+                              disabled={busy === "channels" || lastEnabled}
+                              onToggle={() => void toggleChannel(channel)}
+                              label={t(PUNCH_CHANNEL_LABEL_KEY[channel])}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {enabledChannels.length === 1 && (
+                      <div className="mt-2 rounded-lg bg-amber-50/70 px-3 py-1.5 text-[11.5px] text-amber-800">{t("platform.channels.lastChannelHint")}</div>
+                    )}
+                  </Padre>
+                </div>
               </div>
               <div className="lg:col-span-4">{sidePanel}</div>
             </div>
@@ -458,7 +530,7 @@ export default function TenantDetailPage() {
           const slugChanged = updated.slug !== tenant?.slug;
           setTenant(updated);
           const selected = getSelectedTenant();
-          if (selected?.id === updated.id) setSelectedTenant({ ...selected, name: updated.name, slug: updated.slug });
+          if (selected?.id === updated.id) setSelectedTenant({ ...selected, name: updated.name, slug: updated.slug, punchChannels: updated.punchChannels });
           setToast(slugChanged ? `Cliente guardado. Nueva entrada: ${tenantHost(updated.slug)}` : "Cliente guardado.");
         }}
       />

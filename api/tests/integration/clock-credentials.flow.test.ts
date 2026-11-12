@@ -213,7 +213,8 @@ describe("credenciales del reloj", () => {
 
     const finished = await waitFor("que termine el sync", async () => {
       const device = await readyDevice();
-      if (!device.lastRun || device.lastRun.finishedAt === previousFinishedAt) return null;
+      // `readyDevice` devuelve null mientras hay una corrida en curso: se reintenta.
+      if (!device || !device.lastRun || device.lastRun.finishedAt === previousFinishedAt) return null;
       return device.lastRun.ok === true ? device : null;
     });
     assert.equal(finished.hasCredentials, true);

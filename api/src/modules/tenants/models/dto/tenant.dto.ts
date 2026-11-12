@@ -69,6 +69,8 @@ export const TenantSchema = z
     limits: z.object({ people: z.number().int().nullable(), clocks: z.number().int().nullable() }),
     /** Branding (F3-05): color de acento, logo (data URL) y remitente propio. */
     disabledModules: z.array(z.string()).default([]),
+    /** Canales de checada contratados por el cliente (WEB/APP/CLOCK). */
+    punchChannels: z.array(z.enum(["WEB", "APP", "CLOCK"])).default(["WEB", "APP"]),
     brandColor: z.string().nullable(),
     logoDataUrl: z.string().nullable(),
     emailFrom: z.string().nullable(),
@@ -87,6 +89,8 @@ export const TenantCreateDto = z
     timezone: TimezoneSchema.optional(),
     planId: z.string().trim().min(1).nullish(),
     employeeLimit: z.number().int().positive().nullish(),
+    /** Canales de checada del cliente; default WEB+APP. */
+    punchChannels: z.array(z.enum(["WEB", "APP", "CLOCK"])).min(1).optional(),
     admin: z.object({
       name: z.string().trim().min(2).max(120),
       username: z
@@ -117,6 +121,8 @@ export const TenantUpdateDto = z
     logoDataUrl: TenantLogoSchema.nullish(),
     emailFrom: EmailFromSchema.nullish(),
     disabledModules: z.array(z.string()).optional(),
+    /** Canales de checada (WEB/APP/CLOCK). No puede quedar vacío. */
+    punchChannels: z.array(z.enum(["WEB", "APP", "CLOCK"])).min(1).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, "EMPTY_UPDATE")
   .openapi("TenantUpdate");

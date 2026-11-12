@@ -29,7 +29,8 @@ Cuentas de administración (`ADMIN`, `SUPPORT`, `CLIENT_ADMIN`): solo otra cuent
 Una persona = una cuenta: **no hay pantalla de Usuarios**, todo vive en **Personal** (`/employees`).
 
 - Lista: `pages/employees/EmployeesListPage` + `features/user/employees-list`. Con `hr.records` lee el expediente (`/hr/query`); con solo `users.view` (SUPPORT) lee las cuentas (`/users/query`), sin datos sensibles. Misma tabla.
-- Por fila: ver, editar expediente y **Acceso** (llave, con `users.edit`): diálogo `UserEditDialog` con usuario, nueva contraseña (vacía = conservar; se guarda con `PUT /users/:id/password`), rol y roles adicionales, más el estado de la cuenta: baja con motivo, reactivar y eliminar (con forzado si hay historial; `features/user/account-actions`). Nombre, correo y departamento se editan en el expediente.
+- Por fila: ver, editar expediente y **Acceso** (llave, con `users.edit`): diálogo `UserEditDialog` con usuario, nueva contraseña (vacía = conservar; se guarda con `PUT /users/:id/password`), rol, más el estado de la cuenta: baja con motivo, reactivar y eliminar (con forzado si hay historial; `features/user/account-actions`). Nombre, correo y departamento se editan en el expediente. Los roles adicionales no se capturan desde aquí: se administran en la consola de roles (agregar/quitar miembro de un rol).
+- Alta (`/employees/new`): el correo es opcional (se valida solo si se escribe; sin correo no se encolan los avisos que lo requieren) y la documentación del alta es opcional: la sección de documentos se ofrece a los roles con expediente, pero ya no bloquea el alta.
 - Rutas: `/employees/new`, `/employees/import`, `/employees/:id/account` (diálogo de cuenta sobre la lista), `/employees/:id/history`. Las viejas `/users/*` redirigen.
 - `entities/user`, `features/user/user-form`, `user-history`, `import-users`, `user-permissions`.
 

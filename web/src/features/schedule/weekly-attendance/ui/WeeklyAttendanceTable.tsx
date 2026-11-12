@@ -15,6 +15,7 @@ import {
   type WeeklyAttendanceReport,
   type WeeklyAttendanceRow,
 } from "@entities/schedule";
+import { useHasPunchChannel } from "@entities/user";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { dyn } from "@shared/i18n/dyn";
@@ -97,6 +98,8 @@ export default function WeeklyAttendanceTable({
   queryKey,
 }: Props) {
   const t = dyn(translate);
+  /** Sin canal CLOCK el reporte no habla del reloj: la persona se identifica por su nombre y área. */
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
   const { timezone } = report.range;
 
   const detailRows = useMemo(() => buildDetailRows(report), [report]);
@@ -133,9 +136,9 @@ export default function WeeklyAttendanceTable({
       render: (r) =>
         employeeCell(
           r.name,
-          `${subOf(r.clockNumbers.join(", ") || r.employeeNumber || "—", r.departmentName)}${
-            !r.linked ? ` · ${t("unlinked")}` : ""
-          }`
+          hasClock
+            ? `${subOf(r.clockNumbers.join(", ") || r.employeeNumber || "—", r.departmentName)}${!r.linked ? ` · ${t("unlinked")}` : ""}`
+            : r.departmentName ?? ""
         ),
     },
     {
@@ -220,7 +223,7 @@ export default function WeeklyAttendanceTable({
       type: "string",
       width: 240,
       sortable: false,
-      render: (r) => employeeCell(r.name, subOf(r.clock, r.departmentName)),
+      render: (r) => employeeCell(r.name, hasClock ? subOf(r.clock, r.departmentName) : r.departmentName ?? ""),
     },
     {
       key: "day",

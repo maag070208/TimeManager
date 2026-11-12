@@ -197,7 +197,8 @@ export class LeaveService {
     const valid = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"].includes(String(status));
     return this.db.leaveRequest.findMany({
       where: { tenantId, ...(valid ? { status: status as never } : {}) },
-      orderBy: [{ status: "asc" }, { startDate: "desc" }],
+      // Por defecto, la solicitud más reciente primero (la fecha manda sobre el estado).
+      orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
       take: 500,
       include: {
         type: true,

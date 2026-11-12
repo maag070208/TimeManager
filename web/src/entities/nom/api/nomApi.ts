@@ -149,7 +149,7 @@ export const nomApi = {
     longitude?: number;
     gpsAccuracyMeters?: number;
     note?: string;
-  }) => api.post<RemotePunchResult>(`${base}/me/punch`, input),
+  }) => api.post<RemotePunchResult>(`${base}/me/punch`, input, { headers: { "X-Punch-Source": "WEB" } }),
 
   reportDiscrepancy: (input: {
     punchId: string;

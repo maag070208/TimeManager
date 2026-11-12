@@ -38,6 +38,25 @@
       "active": "Activo",
       "suspended": "Suspendido"
     },
+    "channels": {
+      "title": "Canales de checada",
+      "description": "Por dónde puede checar su personal. La plataforma los define por cliente: sin canal Reloj, la vista del cliente no muestra nada del reloj checador.",
+      "createDescription": "Por dónde podrá checar su personal. Se puede cambiar después desde la ficha del cliente.",
+      "minHint": "Deja al menos un canal activo.",
+      "web": "Web",
+      "webHint": "Checada desde el navegador, sin equipo adicional.",
+      "app": "App móvil",
+      "appHint": "CheckLab app en su teléfono (Android/iOS).",
+      "clock": "Reloj checador",
+      "clockHint": "Relojes Hikvision instalados en el sitio.",
+      "on": "Activo",
+      "off": "Apagado",
+      "lastChannel": "Deja al menos un canal de checada activo.",
+      "lastChannelHint": "No puedes apagar el último canal activo.",
+      "enabled": "Canal {{channel}} activado.",
+      "disabled": "Canal {{channel}} apagado.",
+      "error": "No se pudo cambiar el canal de checada."
+    },
     "actions": {
       "enter": "Entrar",
       "suspend": "Suspender",
@@ -112,7 +131,8 @@
         "admin": "Administra",
         "user": "Usuario",
         "password": "Contraseña",
-        "note": "Al crear el cliente también se cargan sus catálogos base (roles, departamentos y tipos de documento)."
+        "note": "Al crear el cliente también se cargan sus catálogos base (roles, departamentos y tipos de documento).",
+        "channels": "Canales"
       },
       "errors": {
         "required": "Obligatorio",

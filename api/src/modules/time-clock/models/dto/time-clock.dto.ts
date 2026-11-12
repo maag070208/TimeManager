@@ -392,6 +392,9 @@ export const TimeClockReportSessionRowSchema = registry.register(
   "TimeClockReportSessionRow",
   AccessReportSessionRowSchema.extend({
     linked: z.boolean().describe("false = time clock number without a linked user"),
+    source: z
+      .enum(["CLOCK", "WEB", "APP", "MIXED"])
+      .describe("channel that formed the session (MIXED = entry and exit from different channels)"),
   })
 );
 

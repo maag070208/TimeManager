@@ -14,6 +14,7 @@
     "seed": "pnpm --filter timemanager-api seed",
     "demo:seed": "pnpm --filter timemanager-api demo:seed",
     "test:web": "pnpm --filter timemanager-web test:unit",
-    "qa:coverage": "node scripts/qa-coverage.mjs"
+    "qa:coverage": "node scripts/qa-coverage.mjs",
+    "bot:alta": "node scripts/bots/alta-empleados-turnos.mjs"
   }
 }

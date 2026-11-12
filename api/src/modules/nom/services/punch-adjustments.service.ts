@@ -382,7 +382,7 @@ export class PunchAdjustmentsService {
       where: { userId, occurredAt: { gte: from, lt: to } },
       orderBy: { occurredAt: "desc" },
       take: limit,
-      select: { id: true, occurredAt: true, type: true, workMode: true, latitude: true, longitude: true },
+      select: { id: true, occurredAt: true, type: true, source: true, workMode: true, latitude: true, longitude: true },
     });
 
     // El trabajador ve la hora vigente: la original más las correcciones aprobadas.
@@ -397,6 +397,7 @@ export class PunchAdjustmentsService {
       ...punches.map((punch) => ({
         id: punch.id,
         source: "CLOCK" as const,
+        channel: "CLOCK" as const,
         type: null,
         occurredAt: punch.occurredAt.toISOString(),
         method: punch.method,
@@ -405,6 +406,7 @@ export class PunchAdjustmentsService {
       ...events.map((event) => ({
         id: event.id,
         source: "ACCESS" as const,
+        channel: null,
         type: event.type,
         occurredAt: event.occurredAt.toISOString(),
         method: event.method,
@@ -413,6 +415,8 @@ export class PunchAdjustmentsService {
       ...remotePunches.map((punch) => ({
         id: punch.id,
         source: "REMOTE" as const,
+        // Canal real del marcaje remoto (web o app móvil).
+        channel: punch.source,
         type: punch.type,
         occurredAt: punch.occurredAt.toISOString(),
         method: punch.workMode,

@@ -2,9 +2,7 @@ import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { useState } from "react";
 import {
   FileTypeEnum,
-  ITAlert,
   ITButton,
-  ITCheckbox,
   ITDialog,
   ITDropfile,
   ITFlex,
@@ -57,14 +55,9 @@ interface Props {
   selectedDept: Department | undefined;
   roleGuidance: { title: string; summary: string; actions: string[] };
   roleOptions: Array<Record<string, string>>;
-  /** Roles adicionales disponibles (multi-rol), sin el principal. */
-  extraRoleOptions?: Array<{ value: string; label: string }>;
-  onToggleExtraRole?: (role: string, checked: boolean) => void;
-  // Documentación del alta
+  // Documentación del alta (opcional)
   requiredDocs?: Array<{ key: string; label: string; typeId: string | null }>;
-  docsFiles?: Record<string, File | null>;
   onPickDoc?: (key: string, file: File) => void;
-  docsError?: string | null;
 }
 
 export default function UserFormFields({
@@ -81,11 +74,8 @@ export default function UserFormFields({
   selectedDept,
   roleGuidance,
   roleOptions,
-  extraRoleOptions,
-  onToggleExtraRole,
   requiredDocs,
   onPickDoc,
-  docsError,
 }: Props) {
   const { t: tt } = useTranslation(["users", "common"]);
   const activeDepartments = departments.filter((d) => d.active);
@@ -111,7 +101,7 @@ export default function UserFormFields({
               <ITInput name="u_ama" label={tt("form.maternalSurname")} value={form.maternalSurname} onChange={(e) => onFieldChange("maternalSurname", e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="u_email" type="email" label={tt("form.email")} value={form.email} onChange={(e) => onFieldChange("email", e.target.value)} onBlur={blob("email")} placeholder={tt("form.emailPlaceholder")} required={!isEdit} error={fieldError("email")} />
+              <ITInput name="u_email" type="email" label={tt("form.email")} value={form.email} onChange={(e) => onFieldChange("email", e.target.value)} onBlur={blob("email")} placeholder={tt("form.emailPlaceholder")} error={fieldError("email")} />
               <UniqueHint state={uniqueness?.email} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
@@ -142,7 +132,7 @@ export default function UserFormFields({
                 </ITButton>
               </ITFlex>
             </ITGrid>
-            <ITGrid item xs={12} md={12}>
+            <ITGrid item xs={12}>
               <ITInput name="u_password" type="password" label={`${tt("form.password")} ${!isEdit ? "*" : ""}`} value={form.password} onChange={(e) => onFieldChange("password", e.target.value)} onBlur={blob("password")} required={!isEdit} placeholder={isEdit ? tt("form.passwordPlaceholder") : ""} error={fieldError("password")} />
               {isEdit && (
                 <ITFlex align="center" gap={2} className="mt-1">
@@ -150,27 +140,6 @@ export default function UserFormFields({
                   <ITText className="text-[12px] text-slate-500">{tt("form.passwordEditHint")}</ITText>
                 </ITFlex>
               )}
-            </ITGrid>
-            <ITGrid item xs={12}>
-              <ITFlex direction="column" gap={2}>
-                <ITText className="text-[13px] font-semibold text-slate-600">
-                  {tt("form.extraRoles")}
-                </ITText>
-                <ITText className="text-[12px] text-slate-500">
-                  {tt("form.extraRolesHint")}
-                </ITText>
-                <ITFlex align="center" gap={4} wrap="wrap">
-                  {(extraRoleOptions ?? []).map((opt) => (
-                    <ITCheckbox
-                      key={opt.value}
-                      name={`extra_role_${opt.value}`}
-                      checked={form.roles.includes(opt.value)}
-                      onChange={(checked) => onToggleExtraRole?.(opt.value, checked)}
-                      label={opt.label}
-                    />
-                  ))}
-                </ITFlex>
-              </ITFlex>
             </ITGrid>
           </ITGrid>
         </>
@@ -191,13 +160,6 @@ export default function UserFormFields({
 
       {step === "docs" && (
         <>
-          {docsError && (
-            <ITFlex className="mb-3">
-              <ITAlert variant="error" dismissible={false}>
-                {docsError}
-              </ITAlert>
-            </ITFlex>
-          )}
           <ITGrid container columns={12} spacing={4}>
             {(requiredDocs ?? []).map((doc) => (
               <ITGrid item xs={12} md={6} key={doc.key}>

@@ -6,7 +6,7 @@ import { LuBuilding2, LuCalendarDays, LuCircleHelp, LuSignature, LuSave, LuShiel
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@app/store";
-import { meThunk } from "@entities/user";
+import { meThunk, useHasPunchChannel } from "@entities/user";
 import { nomApi, type NomConfigDto } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
 import SettingsHelpDialog from "./SettingsHelpDialog";
@@ -18,6 +18,8 @@ const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "
 export default function GeneralSettingsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const tenant = useSelector((state: RootState) => state.auth.user?.tenant);
+  // Sin canal CLOCK el cliente no tiene relojes: la ayuda de checada web no los menciona.
+  const hasClock = useHasPunchChannel("CLOCK") ?? true;
   const [config, setConfig] = useState<NomConfigDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -259,7 +261,9 @@ export default function GeneralSettingsPage() {
                 <HelpTip text="Controla si se puede checar desde la web/app, si esas checadas suman jornada y si se exige aceptar el acuerdo de método." />
               </div>
               <ITText muted className="mt-3 block !text-[12px]">
-                Controla solo la checada desde navegador o app; los relojes físicos siguen funcionando igual.
+                {hasClock
+                  ? "Controla solo la checada desde navegador o app; los relojes físicos siguen funcionando igual."
+                  : "Controla la checada desde navegador o app: es el único canal remoto de este cliente."}
               </ITText>
               <div className="mt-4 grid gap-3" style={fieldSet}>
                 <ITSearchSelect

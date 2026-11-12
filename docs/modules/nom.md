@@ -72,8 +72,9 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 
 ## Marcaje remoto (F2-07) — web y futura app
 
-- Secuencia del día: **ENTRY → LUNCH_START → LUNCH_END → EXIT** (también ENTRY → EXIT directo). El mismo API (`POST /nom/me/punch`) sirve a la web actual y a la app futura; el canal siempre es el mismo registro `remote_punches`, con hora del servidor e idempotencia por `clientEventId` (obligatorio, uuid).
-- La secuencia se reinicia cada día del cliente (zona horaria del tenant), aunque el día anterior haya quedado abierto.
+- Secuencia del día: **ENTRY → LUNCH_START → LUNCH_END → EXIT** (también ENTRY → EXIT directo). El mismo API (`POST /nom/me/punch`) sirve a la web actual y a la app; el canal siempre es el mismo registro `remote_punches` (campo `source`: `WEB`/`APP`), con hora del servidor e idempotencia por `clientEventId` (obligatorio, uuid).
+- **Canal del cliente (`Tenant.punchChannels`)**: la web manda `WEB` (default) y la app `X-Punch-Source: APP`; si el cliente no contrató ese canal responde `403 PUNCH_CHANNEL_DISABLED`. El modo preferido del empleado (`User.checkinMode`) ya no bloquea el marcaje.
+- La secuencia se reinicia cada día del cliente (zona horaria del tenant), aunque el día anterior haya quedado abierto. **Con mix de canales no aplica**: si hoy la persona ya tiene checadas del reloj (sus números de `TimeClockEmployee`), el API no exige secuencia remota —el reloj no dice entrada/salida y bloquearla dejaría el día sin cerrar— y solo valida canal, geolocalización, acuerdo y teletrabajo.
 - Mi jornada (pestaña «Mi checada») muestra el **siguiente paso** resaltado, un botón directo de **Salida** cuando la comida es opcional (entrada → salida) y los cuatro movimientos con su hora; sin opciones por marcaje: la persona solo marca. Tras la salida muestra «jornada cerrada». Las checadas del reloj físico y los accesos aparecen en «Mis marcajes».
 
 ## Marcaje remoto (F2-07)
@@ -82,7 +83,8 @@ Permisos: lectura con `time_clock.view` (el export también con `payroll.view`),
 - **Modalidad (`workMode`)**: no se le pregunta a la persona. Si la petición no la trae, el API toma la del **registro de teletrabajo activo** (`REMOTO`/`HIBRIDO`/`CAMPO`, alta por RH) y, sin registro, asienta `REMOTO`; una modalidad explícita (app móvil anterior) se respeta. La `note` sigue aceptándose en el API pero la web ya no la captura: las correcciones van por discrepancia.
 - **Idempotencia**: el mismo `clientEventId` devuelve el marcaje ya creado (`200`, `created: false`) en vez de duplicarlo, aunque el reintento llegue después de cerrar el día. Es por persona: un `clientEventId` que ya usó otra cuenta responde `409 CLIENT_EVENT_ID_TAKEN` y nunca devuelve la checada ajena.
 - **Concurrencia**: la secuencia y el alta corren en una transacción con `pg_advisory_xact_lock` por usuario; dos checadas simultáneas de la misma persona se serializan (la segunda ve el estado ya insertado) y no pueden leer el mismo estado anterior. Con dos ENTRY en paralelo, una responde `201` y la otra `409 INVALID_PUNCH_SEQUENCE`; con el mismo `clientEventId`, una `201` y la otra `200 created:false`.
-- **Secuencia**: entrada → (salida a comer → regreso) → salida, un solo ciclo por día en la zona del cliente. La primera checada del día siempre es entrada. Un paso fuera de orden responde `409 INVALID_PUNCH_SEQUENCE`; tras la salida el día queda cerrado (`409 WORKDAY_ALREADY_CLOSED`). Al día siguiente la secuencia arranca de nuevo. Los errores se corrigen reportando discrepancia a RH.
+- **Secuencia**: entrada → (salida a comer → regreso) → salida, un solo ciclo por día en la zona del cliente. La primera checada del día siempre es entrada. Un paso fuera de orden responde `409 INVALID_PUNCH_SEQUENCE`; tras la salida el día queda cerrado (`409 WORKDAY_ALREADY_CLOSED`). Al día siguiente la secuencia arranca de nuevo. Los errores se corrigen reportando discrepancia a RH. Excepción de mix: si hoy ya hay checadas del reloj del trabajador, la secuencia remota no se aplica (sí la idempotencia y las validaciones).
+- **Origen en Mis marcajes**: cada fila trae `source` (grupo: `CLOCK`/`ACCESS`/`REMOTE`) y `channel` (origen real: `CLOCK`, `WEB`, `APP` o `null` en la bitácora de acceso), para que la web y la app muestren de dónde vino cada checada.
 - **Geolocalización**: opcional; si se envía, van latitud y longitud juntas (`400 INVALID_GEO_POINT`) y se guardan **solo en ese marcaje**. No hay rastreo continuo: el API no consulta la ubicación en ningún otro momento.
 - El registro es append-only por trigger; los marcajes remotos aparecen en `GET /nom/me/punches`, en el export STPS (sección “marcajes remotos”, sin coordenadas) y se archivan por retención.
 - Interruptor por cliente: `PUT /nom/config { remotePunchEnabled: false }` → `403 REMOTE_PUNCH_DISABLED`.
@@ -158,7 +160,7 @@ Corregidas tras la corrida de los bots de QA (`api/qa/`):
 - `work_record_agreements`: acuerdo del método de registro por trabajador (métodos CLOCK/REMOTE/ACCESS, política de redondeo y reglas de corrección), con versión del texto, fecha, IP y **hash SHA-256** de aceptación.
 - `work_record_acknowledgments`: conformidad periódica; el trabajador ve el resumen de sus ledgers semanales (ordinaria, doble, triple, ilegal) y lo acepta o abre una discrepancia con nota. El resumen y su hash quedan guardados.
 - **Comida configurable por cliente:** `nom_settings.lunchPunchEnabled` (default `true`, migración `20261212000000_lunch_punch_setting`), editable en Configuración del sistema → «Comida en la checada web» y en la app (`PUT /nom/config`). Apagada, la secuencia es entrada → salida: `LUNCH_START` responde `409 INVALID_PUNCH_SEQUENCE`, y quien ya había salido a comer puede regresar o salir. `GET /nom/me/telework` expone `lunchPunchEnabled` y la web y la app ocultan los pasos y tarjetas de comida.
-- **Quién puede checar por web:** `GET /nom/me/telework` expone `canPunchRemote` (`remotePunchEnabled` del cliente y `checkinMode` de la persona distinto de `CLOCK`). Si es falso, Mi jornada (web y app) muestra «Checas en el reloj» en lugar del botón; los marcajes y el reporte de discrepancia siguen disponibles.
+- **Quién puede checar por web/app:** `GET /nom/me/telework` expone `punchChannels` (mix del cliente), `canPunchWeb`, `canPunchApp` y `canPunchRemote` (algún canal remoto habilitado y `remotePunchEnabled`). Ya no depende de `checkinMode` de la persona. Si no hay canal remoto, Mi jornada (web y app) muestra «Checas en el reloj» en lugar del botón; los marcajes y el reporte de discrepancia siguen disponibles.
 - **Ubicación opcional por cliente:** `nom_settings.remoteGeolocationEnabled` (default `true`), editable en Configuración del sistema → «Ubicación en la checada web» (`PUT /nom/config`). Encendida, la web la toma sola al marcar (sin casilla por marcaje; el navegador pide su permiso y, si se niega, la checada se registra sin ubicación) y avisa que se guarda; apagada, el portal no la pide ni muestra el mapa (`GET /nom/me/telework` expone el valor) y el API descarta las coordenadas aunque el dispositivo las mande; las ya guardadas no se borran.
 - **Mis marcajes (Mi jornada):** lista agrupada por día con el tipo real de cada checada (entrada, salida a comer, regreso, salida) y «Reportar» abre el motivo junto a la fila.
 - **Pantalla de RH «Acuerdos con el personal»** (`/hr/jornada-acuerdos`), dos pestañas: **Jornada acordada** (convenio de distribución art. 58: persona, vigencia, texto de lo acordado y casilla «con sindicato») y **Forma de registro** (acuerdos de método aceptados por el personal; RH firma uno o todos los pendientes). El trabajador acepta ambos desde avisos al inicio de Mi jornada: `GET /nom/me/distribution-agreements` lista los convenios que le tocan (propios o de sus horarios) y `POST /nom/me/distribution-agreements/:id/accept` los acepta. Sin aceptación el motor no reconoce el convenio.
@@ -208,10 +210,16 @@ Corregidas tras la corrida de los bots de QA (`api/qa/`):
 - UI: tarjeta de vacaciones en **Mi jornada**, pantalla **RH → Vacaciones** para aprobar/rechazar y **Configuración → Catálogos** para administrar tipos de permiso (alta, edición y baja lógica).
 - Validaciones: rango, solape entre solicitudes, días hábiles y saldo suficiente para vacaciones.
 
+## Orden de los listados
+
+- Convención de tablas con fecha: el orden por defecto es **lo más reciente primero**; la fecha manda sobre el estado. Aplica a `GET /nom/leave/requests` (`startDate desc`), `GET /nom/overtime/requests` (`createdAt desc`) y `GET /nom/telework/registrations` (`startedAt desc`), que antes agrupaban por `status`.
+- Los catálogos sin fecha (tipos de permiso, consentimientos) y el catálogo de festivos por año (`GET /nom/holidays`, cronológico del año) conservan su orden.
+- Las trazas que son parte del cálculo o de la evidencia (historial de ajustes de una checada, expediente NOM-037 exportable) se quedan en ascendente: ahí el orden no es de presentación.
+
 ## Evidencia consistente (Fase 1 del plan de cierre de huecos)
 
 - **RJ-03:** `core/utils/adjusted-punches.ts` materializa la hora vigente de una checada aplicando sus ajustes APPROVED en orden. El reporte de reloj (y todo lo que depende de él: asistencia, prenómina, ledger, export) lee esa hora; la checada original sigue inmutable.
-- **RJ-02:** el reporte de reloj crea sesiones desde `remote_punches` (ENTRY/LUNCH_START/LUNCH_END/EXIT) cuando la persona no tiene checadas de reloj ese día. Si hay ambas fuentes, gana el reloj y la sesión se marca `REMOTE_CONFLICT`. Se controla por cliente con `nom_settings.remoteCountsForWorkday` (default true).
+- **RJ-02:** el reporte de reloj mezcla `time_clock_punches` y `remote_punches` en UNA línea de tiempo por persona y día: las checadas del reloj (sin tipo) hacen toggle entrada/salida con tope de 13 h y los marcajes web/app usan su tipo (ENTRY/LUNCH_END abren; LUNCH_START/EXIT cierran). Los eventos repetidos a < 5 min se descartan cuando participa el reloj. Cada sesión expone su `source` (`CLOCK`/`WEB`/`APP`/`MIXED`). `nom_settings.remoteCountsForWorkday = false` es el único opt-out (no se lee `remote_punches`). Ya no se emite `REMOTE_CONFLICT`.
 - **RJ-04:** `punch_adjustments` guarda `targetType` (CLOCK/REMOTE/ACCESS) y `targetId`; las discrepancias de Mi jornada aplican a marcajes remotos y el reporte usa la hora/tipo corregidos. La checada original permanece inmutable.
 - **RJ-06:** export `stps-registro-jornada-v2` con `primeraEntrada`, `ultimaSalida` y `origen` por día, sección de detalle de marcajes (reloj vigente, remoto y archivo), `minor` desde el ledger y SHA-256 calculado sobre el texto final entregado.
 
@@ -225,7 +233,9 @@ firma patronal de los acuerdos de método; el botón de archivado de retención 
 
 ## Checada multicanal (reloj, web, app)
 
-- **Reloj físico**: `time_clock_punches` (ISAPI), inmutable y sincronizado por el agente.
-- **Web**: `remote_punches` vía `POST /nom/me/punch` con secuencia entrada/comida/regreso/salida.
-- **App futura**: reutiliza el mismo endpoint y tipos de checada; no requiere backend nuevo, solo el cliente móvil y su autenticación.
-- Todas las fuentes se muestran juntas en Mi jornada y en el reporte de asistencia.
+- **Canales por cliente**: la plataforma contrata el mix en `Tenant.punchChannels` (`WEB`, `APP`, `CLOCK`); `/auth/me` y `GET /nom/me/telework` lo exponen. Un cliente puede tener solo reloj, solo web/app o mezcla, y el mix puede cambiar con el tiempo.
+- **Reloj físico**: `time_clock_punches` (ISAPI), inmutable y sincronizado por el agente; la checada no trae tipo.
+- **Web**: `remote_punches` vía `POST /nom/me/punch`, canal `WEB` (o `X-Punch-Source: APP` desde la app), con secuencia entrada/comida/regreso/salida.
+- **App**: reutiliza el mismo endpoint y tipos de checada; solo manda el header del canal y su `clientEventId`.
+- **Mezcla**: el reporte de reloj arma un solo timeline por persona y día (checadas del reloj como toggle, marcajes web/app por tipo, dedupe de duplicados a < 5 min cuando participa el reloj). La sesión lleva `source` `CLOCK`/`WEB`/`APP`/`MIXED`.
+- Todas las fuentes se muestran juntas en Mi jornada y en el reporte de asistencia; asistencia semanal, pre-nómina y horas extra leen ese mismo reporte (sin volver a leer `remote_punches`).

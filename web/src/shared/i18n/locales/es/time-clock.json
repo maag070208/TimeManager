@@ -131,8 +131,8 @@
   },
   "report": {
     "title": "Asistencias",
-    "description": "Jornadas armadas con las checadas del reloj y relacionadas con cada empleado por su número en el reloj.",
-    "pdfTitle": "Entradas y salidas — Reloj checador",
+    "description": "Jornadas armadas con las checadas de cada persona, relacionadas con su expediente.",
+    "pdfTitle": "Entradas y salidas",
     "noEmployees": "El reloj todavía no tiene empleados: las checadas no se pueden asociar a una persona.",
     "unlinkedNotice": "{{count}} de {{total}} empleados del reloj no están vinculados a una persona: sus checadas salen con el nombre del reloj y la marca «Sin vincular».",
     "link": "Vincular"
