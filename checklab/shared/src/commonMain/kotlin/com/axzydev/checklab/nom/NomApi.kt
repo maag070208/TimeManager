@@ -52,9 +52,16 @@ data class DiscrepancyRequest(val punchId: String, val reason: String)
 @Serializable
 data class IdResult(val id: String)
 
-/** Lo que la checada necesita de `GET /nom/me/telework`: si el cliente permite guardar ubicación. */
+/**
+ * Lo que la checada necesita de `GET /nom/me/telework`: si la persona puede checar desde la app
+ * (el cliente lo permite y ella no checa solo en reloj), si se guarda ubicación y si hay comida.
+ */
 @Serializable
-data class PunchSettings(val remoteGeolocationEnabled: Boolean = true)
+data class PunchSettings(
+    val canPunchRemote: Boolean = true,
+    val remoteGeolocationEnabled: Boolean = true,
+    val lunchPunchEnabled: Boolean = true,
+)
 
 class NomApi(private val client: HttpClient) {
     suspend fun myPunches(from: String? = null, to: String? = null, limit: Int? = null): List<MyPunch> =
@@ -78,12 +85,13 @@ class NomApi(private val client: HttpClient) {
  * Siguiente checada permitida, la misma regla que el API (`remote-punch.service`)
  * y la web: entrada → salida a comer o salida → regreso → salida, una sola vez
  * por día. Tras la salida ya no hay paso: la lista queda vacía. Recibe los tipos
- * de hoy en orden cronológico.
+ * de hoy en orden cronológico. Con la comida apagada por el cliente el día es
+ * entrada → salida (quien ya había salido a comer puede regresar o salir).
  */
-fun nextPunchTypes(todayTypes: List<PunchType>): List<PunchType> = when (todayTypes.lastOrNull()) {
+fun nextPunchTypes(todayTypes: List<PunchType>, lunchEnabled: Boolean = true): List<PunchType> = when (todayTypes.lastOrNull()) {
     null -> listOf(PunchType.ENTRY)
-    PunchType.ENTRY -> listOf(PunchType.LUNCH_START, PunchType.EXIT)
-    PunchType.LUNCH_START -> listOf(PunchType.LUNCH_END)
+    PunchType.ENTRY -> if (lunchEnabled) listOf(PunchType.LUNCH_START, PunchType.EXIT) else listOf(PunchType.EXIT)
+    PunchType.LUNCH_START -> if (lunchEnabled) listOf(PunchType.LUNCH_END) else listOf(PunchType.LUNCH_END, PunchType.EXIT)
     PunchType.LUNCH_END -> listOf(PunchType.EXIT)
     PunchType.EXIT -> emptyList()
 }

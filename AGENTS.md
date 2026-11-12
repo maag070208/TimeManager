@@ -16,7 +16,7 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 
 ## API (`api/`)
 
-- **Stack**: Express 4, Prisma 5 (`prisma/schema.prisma`, 37 modelos, baseline `20261104000000_baseline_rh`), zod, JWT, Winston, Swagger, Ably, AWS S3, xlsx.
+- **Stack**: Express 4, Prisma 5 con `relationJoins` (relaciones en una sola consulta con JOIN) (`prisma/schema.prisma`, 37 modelos, baseline `20261104000000_baseline_rh`), zod, JWT, Winston, Swagger, Ably, AWS S3, xlsx.
 - **Estructura**: `src/core` (config, db, middlewares, permissions, policies, services, utils) y `src/modules/<modulo>/{controllers,routes,services,models,index.ts}`. Router central: `src/modules/api.router.ts`.
 - **Alias TS**: `@src/*`, `@core/*`, `@modules/*` (baseUrl `./`; compilar con `tsc && tsc-alias`).
 - **Módulos (18)**: `time-clock`, `access`, `hr`, `schedules`, `overtime` (núcleo RH), `auth`, `users`, `departments`, `permissions`, `audit`, `notifications`, `dashboard`, `config`, `email` (soporte), `tenants` (clientes), `plans` (catálogo de planes), `agent` (agentes on-prem) y `nom` (registro de jornada, ajustes, teletrabajo y export STPS).

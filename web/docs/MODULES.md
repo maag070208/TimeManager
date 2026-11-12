@@ -91,7 +91,7 @@ Los roles viven en BD (tabla `roles`) y la UI se gobierna por permisos (`useCan`
   (`pages/home/PlatformHomePage`, `features/tenant/tenants-console`). Editar,
   entrar, relojes, agente y suspender/reactivar viven en el detalle `/tenants/:id`.
 - Con cliente (o sesión de cliente) = inicio del cliente
-  (`features/home/client-overview`): tableros de personal, expedientes,
+  (`features/home/client-overview`, con esqueleto de la página mientras cargan sus bloques): tableros de personal, expedientes,
   asistencia de hoy, tiempo extra y huecos de configuración.
 
 ### 3. Mi jornada y teletrabajo (autoservicio)

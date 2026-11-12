@@ -28,7 +28,7 @@ import type { MyPunch, PunchType } from "@entities/nom";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { dateLocale } from "@shared/i18n";
 import { HelpTip } from "@shared/ui/help-tip";
-import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { BentoKpiGrid, type BentoKpiItem } from "@shared/ui/bento-filter-cards";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 import { LocationMap } from "@shared/ui/location-map";
 import { DialogHeader } from "@shared/ui/dialog-header";
@@ -85,14 +85,13 @@ export default function MyWorkdayPage() {
   const fx = useMyWorkday();
   const wc = useWorkerCompliance();
   const leave = useMyLeave();
-  const [note, setNote] = useState("");
-  const [withGeo, setWithGeo] = useState(true);
   const [mapPunch, setMapPunch] = useState<MyPunch | null>(null);
-  const [workMode, setWorkMode] = useState<"PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO">("REMOTO");
   const [selectedPunch, setSelectedPunch] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [answers, setAnswers] = useState<Record<string, "YES" | "NO">>({});
   const [ackNote, setAckNote] = useState("");
+  const [reportingWeek, setReportingWeek] = useState(false);
+  const [refillChecklist, setRefillChecklist] = useState(false);
   const [leaveTypeId, setLeaveTypeId] = useState("");
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
@@ -106,10 +105,6 @@ export default function MyWorkdayPage() {
   }, []);
 
   const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
-  const lastGeoPunch = useMemo(
-    () => fx.punches.find((row) => row.latitude != null && row.longitude != null) ?? null,
-    [fx.punches]
-  );
   const punchDays = useMemo(() => {
     const days = new Map<string, MyPunch[]>();
     for (const row of fx.punches) {
@@ -124,12 +119,17 @@ export default function MyWorkdayPage() {
   }, [fx.punches, t]);
   const telework = fx.telework;
   const geoEnabled = telework?.remoteGeolocationEnabled ?? true;
+  const lunchEnabled = telework?.lunchPunchEnabled ?? true;
+  const canPunch = telework?.canPunchRemote ?? true;
   const checklistItems = telework?.checklistTemplate.items ?? [];
+  const checklistDue =
+    !telework?.lastChecklist || (telework.nextPeriodicDueAt != null && new Date(telework.nextPeriodicDueAt) <= now);
+  const pendingRequests = wc.requests.filter((request) => request.status === "PENDING").length;
+  const teleworkPending = telework?.registration ? (telework.consentCurrent ? 0 : 1) + (checklistDue ? 1 : 0) : 0;
 
-  const doPunch = async (type: PunchType) => {
-    const ok = await fx.punch(type, { note: note.trim() || undefined, withGeolocation: geoEnabled && withGeo, workMode });
-    if (ok) setNote("");
-  };
+  // La ubicación la decide la empresa (Configuración); la modalidad, el registro
+  // de teletrabajo de RH. La persona solo marca.
+  const doPunch = (type: PunchType) => fx.punch(type, { withGeolocation: geoEnabled });
 
   const submitDiscrepancy = async () => {
     if (!selectedPunch || reason.trim().length < 5) return;
@@ -143,7 +143,10 @@ export default function MyWorkdayPage() {
   const submitChecklist = async (kind: "INITIAL" | "PERIODIC") => {
     if (checklistItems.some((key) => !answers[key])) return;
     const ok = await fx.submitChecklist(kind, answers);
-    if (ok) setAnswers({});
+    if (ok) {
+      setAnswers({});
+      setRefillChecklist(false);
+    }
   };
 
   // Flujo de checada web: entrada → salida a comer → regreso → salida.
@@ -162,12 +165,12 @@ export default function MyWorkdayPage() {
     lastType === null
       ? ["ENTRY"]
       : lastType === "ENTRY"
-        ? ["LUNCH_START", "EXIT"]
+        ? lunchEnabled ? ["LUNCH_START", "EXIT"] : ["EXIT"]
         : lastType === "LUNCH_START"
-          ? ["LUNCH_END"]
+          ? lunchEnabled ? ["LUNCH_END"] : ["LUNCH_END", "EXIT"]
           : lastType === "LUNCH_END"
             ? ["EXIT"]
-            : ["ENTRY"];
+            : [];
   const primaryNext = nextTypes[0];
   const timeByType = (type: PunchType): string | null => {
     const row = [...remoteToday].reverse().find((punch) => punch.type === type);
@@ -216,8 +219,8 @@ export default function MyWorkdayPage() {
       <TabBar
         items={[
           { id: "checada", label: "Mi checada", icon: <LuCalendarCheck size={13} /> },
-          { id: "telework", label: "Teletrabajo", icon: <LuLaptop size={13} /> },
-          { id: "compliance", label: "Registro y horas extra", icon: <LuFileText size={13} /> },
+          ...(telework?.registration ? [{ id: "telework" as const, label: "Teletrabajo", icon: <LuLaptop size={13} />, count: teleworkPending || undefined }] : []),
+          { id: "compliance", label: "Registro y horas extra", icon: <LuFileText size={13} />, count: pendingRequests || undefined },
           { id: "leave", label: "Vacaciones y permisos", icon: <LuClock size={13} /> },
         ] as TabBarItem<"checada" | "telework" | "compliance" | "leave">[]}
         value={tab}
@@ -271,12 +274,14 @@ export default function MyWorkdayPage() {
 
       <div className={tab === "checada" ? "" : "hidden"}>
       <BentoKpiGrid
-        items={[
+        items={(
+          [
           { id: "entry", label: PUNCH_LABEL.ENTRY, value: timeByType("ENTRY") ?? "—", caption: timeByType("ENTRY") ? "Registrada" : "Pendiente", icon: <LuLogIn size={14} />, tone: "success" },
           { id: "lunch-start", label: PUNCH_LABEL.LUNCH_START, value: timeByType("LUNCH_START") ?? "—", caption: timeByType("LUNCH_START") ? "Registrada" : "Pendiente", icon: <LuUtensils size={14} />, tone: "warning" },
           { id: "lunch-end", label: PUNCH_LABEL.LUNCH_END, value: timeByType("LUNCH_END") ?? "—", caption: timeByType("LUNCH_END") ? "Registrada" : "Pendiente", icon: <LuCoffee size={14} />, tone: "info" },
           { id: "exit", label: PUNCH_LABEL.EXIT, value: timeByType("EXIT") ?? "—", caption: timeByType("EXIT") ? "Registrada" : "Pendiente", icon: <LuLogOut size={14} />, tone: "neutral" },
-        ]}
+          ] satisfies BentoKpiItem[]
+        ).filter((item) => lunchEnabled || (item.id !== "lunch-start" && item.id !== "lunch-end"))}
       />
       </div>
 
@@ -308,7 +313,17 @@ export default function MyWorkdayPage() {
                   </ITBadget>
                 </ITFlex>
 
-                {primaryNext ? (
+                {!canPunch ? (
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600">
+                      <LuClock size={18} />
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">{tr("punch.clockOnlyTitle")}</span>
+                      <span className="text-[12.5px] text-slate-600">{tr("punch.clockOnlyHint")}</span>
+                    </span>
+                  </div>
+                ) : primaryNext ? (
                   <>
                     <button
                       type="button"
@@ -334,7 +349,14 @@ export default function MyWorkdayPage() {
                         {fx.busy ? "…" : timeOf(now.toISOString())}
                       </span>
                     </button>
-
+                    {nextTypes.slice(1).map((type) => (
+                      <ITButton key={type} variant="outlined" color="secondary" className="w-full" disabled={fx.busy} onClick={() => void doPunch(type)}>
+                        <span className="inline-flex items-center justify-center gap-2">
+                          {PUNCH_ICON[type]}
+                          {type === "EXIT" ? tr("punch.register", { action: PUNCH_LABEL[type] }) : PUNCH_LABEL[type]}
+                        </span>
+                      </ITButton>
+                    ))}
                   </>
                 ) : (
                   <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
@@ -347,92 +369,16 @@ export default function MyWorkdayPage() {
                     </span>
                   </div>
                 )}
-                <ITFlex align="center" gap={1}>
+                {canPunch && (
                   <ITText muted className="!text-[11.5px]">
                     {tr("punch.channelHint")}
                   </ITText>
-                  <HelpTip text={`La checada web se marca con la hora del servidor y avanza entrada → comida → regreso → salida.${geoEnabled ? " La ubicación es opcional y solo se comparte si la activas." : ""}`} />
-                </ITFlex>
-
-
-                {todayPunches.length > 0 && (
-                  <ITFlex direction="column" gap={1.5}>
-                    <ITText muted className="!text-[11px] font-semibold uppercase tracking-[0.08em]">
-                      {tr("punch.timeline")}
-                    </ITText>
-                    {[...todayPunches].reverse().map((row) => (
-                      <div key={row.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-1.5">
-                        <ITFlex align="center" gap={2}>
-                          <ITText className="!text-[12.5px] font-semibold tabular-nums">{timeOf(row.occurredAt)}</ITText>
-                          <ITText className="!text-[12px]">
-                            {row.type
-                              ? PUNCH_LABEL[row.type]
-                              : row.source === "CLOCK"
-                                ? tr("punches.clock")
-                                : tr("punches.access")}
-                          </ITText>
-                        </ITFlex>
-                        <ITBadget color={row.source === "REMOTE" ? "info" : "gray"} size="sm">
-                          {tr(SOURCE_LABEL[row.source])}
-                        </ITBadget>
-                      </div>
-                    ))}
-                  </ITFlex>
                 )}
-
-                <details className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
-                  <summary className="cursor-pointer text-[12px] font-semibold text-slate-600">
-                    {tr("punch.options")}
-                  </summary>
-                  <div className="mt-3 flex flex-col gap-3">
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <ITSearchSelect
-                        name="punchMode"
-                        label={t("punch.mode")}
-                        value={workMode}
-                        onChange={(event) => setWorkMode(event.target.value as typeof workMode)}
-                        options={[
-                          { value: "REMOTO", label: t("telework.mode.REMOTO") },
-                          { value: "HIBRIDO", label: t("telework.mode.HIBRIDO") },
-                          { value: "PRESENCIAL", label: t("telework.mode.PRESENCIAL") },
-                          { value: "CAMPO", label: t("telework.mode.CAMPO") },
-                        ]}
-                      />
-                      <ITInput
-                        name="punchNote"
-                        label={t("punch.note")}
-                        value={note}
-                        onChange={(event) => setNote(event.target.value)}
-                      />
-                    </div>
-                    {geoEnabled && (
-                      <>
-                        <label className="flex items-start gap-2 text-[12px] text-slate-700">
-                          <input type="checkbox" className="mt-0.5" checked={withGeo} onChange={(event) => setWithGeo(event.target.checked)} />
-                          <span className="flex items-center gap-1.5">
-                            <LuMapPin size={13} />
-                            {t("punch.shareLocation")}
-                          </span>
-                        </label>
-                        <ITText muted className="!text-[11px]">{t("punch.privacy")}</ITText>
-                      </>
-                    )}
-                  </div>
-                </details>
-
-                {geoEnabled && lastGeoPunch?.latitude != null && lastGeoPunch?.longitude != null && (
-                  <div className="rounded-2xl border border-slate-100 bg-white p-3">
-                    <ITFlex align="center" gap={1} className="mb-2">
-                      <LuMapPin size={13} className="text-rose-500" />
-                      <ITText className="!text-[12px] font-bold !text-slate-700">Ubicación de tu última checada web</ITText>
-                    </ITFlex>
-                    <LocationMap
-                      latitude={lastGeoPunch.latitude}
-                      longitude={lastGeoPunch.longitude}
-                      height={160}
-                      caption={`${dateOf(lastGeoPunch.occurredAt)} · ${timeOf(lastGeoPunch.occurredAt)}`}
-                    />
-                  </div>
+                {canPunch && geoEnabled && (
+                  <ITText muted className="flex items-start gap-1.5 !text-[11.5px]">
+                    <LuMapPin size={13} className="mt-0.5 shrink-0" />
+                    <span>{tr("punch.locationNotice")}</span>
+                  </ITText>
                 )}
               </ITFlex>
             </ITCard>
@@ -543,16 +489,7 @@ export default function MyWorkdayPage() {
             <ITCard className={`tm-hero-card tm-hero-card--amber ${tab === "telework" ? "lg:col-span-12" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuLaptop size={16} />} title={t("telework.title")} help="NOM-037: el teletrabajo requiere registro, política de desconexión, aviso de privacidad, consentimiento y checklist del lugar. Sin consentimiento no se habilita reportar desde casa." />
-                {!telework || !telework.registration ? (
-                  <div className="flex flex-col items-start gap-3 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm">
-                      <LuLaptop size={18} />
-                    </span>
-                    <ITText muted className="!text-[12px]">
-                      {t("telework.notRegistered")}
-                    </ITText>
-                  </div>
-                ) : (
+                {telework?.registration && (
                   <>
                     <ITFlex align="center" gap={2} wrap="wrap">
                       <ITBadget color="success" size="sm">
@@ -563,101 +500,105 @@ export default function MyWorkdayPage() {
                       </ITText>
                     </ITFlex>
 
-                    <div className="flex flex-col gap-3 rounded-lg bg-slate-50 p-3">
+                    <div className="flex flex-col gap-2">
                       {[
                         { title: t("telework.policyTitle"), body: telework.policy.teleworkPolicy },
                         { title: t("telework.disconnectTitle"), body: telework.policy.disconnectPolicy },
                         { title: t("telework.privacyTitle"), body: telework.policy.privacyNotice },
                       ].map((section) => (
-                        <div key={section.title} className="min-w-0">
-                          <ITText className="font-semibold !text-[13px]">{section.title}</ITText>
-                          <ITText className="whitespace-pre-line !text-[12px]">
+                        <details key={section.title} className="rounded-lg bg-slate-50 px-3 py-2">
+                          <summary className="cursor-pointer text-[13px] font-semibold text-slate-800">{section.title}</summary>
+                          <ITText className="mt-2 block whitespace-pre-line !text-[12px]">
                             {section.body ?? t("telework.noPolicy")}
                           </ITText>
-                        </div>
+                        </details>
                       ))}
                     </div>
 
-                    {!telework.consentCurrent && (
-                      <ITFlex align="center" gap={2} wrap="wrap">
-                        <ITText muted className="!text-[12px]">
-                          {t("telework.consentPending")}
-                        </ITText>
-                        <ITButton
-                          variant="filled"
-                          color="primary"
-                          size="sm"
-                          className="w-full sm:w-auto"
-                          onClick={() => void fx.acceptPolicy()}
-                        >
+                    {telework.consentCurrent ? (
+                      <ITFlex align="center" gap={2}>
+                        <ITBadget color="success" size="sm">{tr("telework.consentDone")}</ITBadget>
+                      </ITFlex>
+                    ) : (
+                      <div className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                        <ITText className="!text-[12.5px] text-amber-900">{t("telework.consentPending")}</ITText>
+                        <ITButton variant="filled" color="primary" size="sm" className="w-full sm:w-auto" disabled={fx.busy} onClick={() => void fx.acceptPolicy()}>
                           {t("telework.accept")}
                         </ITButton>
-                      </ITFlex>
+                      </div>
                     )}
 
-                    <div className="flex flex-col gap-3 rounded-lg border border-slate-100 p-3">
-                      <ITText className="font-semibold !text-[13px]">{t("telework.checklistTitle")}</ITText>
-                      <ITText muted className="!text-[11px]">
-                        {t("telework.checklistHint")}
-                      </ITText>
-                      {checklistItems.map((key) => (
-                        <div
-                          key={key}
-                          className="flex flex-col gap-2 border-b border-slate-100 pb-2 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-                        >
-                          <ITText className="!text-[12px]">{tr(`checklist.items.${key}`)}</ITText>
-                          <div className="flex shrink-0 gap-1">
-                            <ITButton
-                              size="sm"
-                              variant={answers[key] === "YES" ? "filled" : "outlined"}
-                              color={answers[key] === "YES" ? "primary" : "secondary"}
-                              onClick={() => setAnswers((prev) => ({ ...prev, [key]: "YES" }))}
-                            >
-                              {t("checklist.yes")}
-                            </ITButton>
-                            <ITButton
-                              size="sm"
-                              variant={answers[key] === "NO" ? "filled" : "outlined"}
-                              color={answers[key] === "NO" ? "danger" : "secondary"}
-                              onClick={() => setAnswers((prev) => ({ ...prev, [key]: "NO" }))}
-                            >
-                              {t("checklist.no")}
-                            </ITButton>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <ITButton
-                          variant="filled"
-                          color="primary"
-                          size="sm"
-                          className="w-full sm:w-auto"
-                          disabled={checklistItems.some((key) => !answers[key])}
-                          onClick={() => void submitChecklist(telework.lastChecklist ? "PERIODIC" : "INITIAL")}
-                        >
-                          {t("checklist.submit")}
-                        </ITButton>
-                        {telework.lastChecklist && (
-                          <ITText muted className="!text-[11px]">
-                            {t("telework.lastChecklist")}: {dateOf(telework.lastChecklist.completedAt)}
+                    {!checklistDue && !refillChecklist ? (
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 p-3">
+                        <div>
+                          <ITText className="block font-semibold !text-[13px]">{t("telework.checklistTitle")}</ITText>
+                          <ITText muted className="block !text-[11.5px]">
+                            {tr("telework.checklistOk", { date: dateOf(telework.lastChecklist!.completedAt) })}
+                            {telework.nextPeriodicDueAt ? ` · ${tr("telework.checklistNext", { date: dateOf(telework.nextPeriodicDueAt) })}` : ""}
                           </ITText>
-                        )}
+                        </div>
+                        <ITButton variant="text" color="secondary" size="sm" onClick={() => setRefillChecklist(true)}>
+                          {tr("telework.checklistRefill")}
+                        </ITButton>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex flex-col gap-3 rounded-lg border border-slate-100 p-3">
+                        <ITText className="font-semibold !text-[13px]">{t("telework.checklistTitle")}</ITText>
+                        <ITText muted className="!text-[11px]">
+                          {t("telework.checklistHint")}
+                        </ITText>
+                        {checklistItems.map((key) => (
+                          <div
+                            key={key}
+                            className="flex flex-col gap-2 border-b border-slate-100 pb-2 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <ITText className="!text-[12px]">{tr(`checklist.items.${key}`)}</ITText>
+                            <div className="flex shrink-0 gap-1">
+                              <ITButton
+                                size="sm"
+                                variant={answers[key] === "YES" ? "filled" : "outlined"}
+                                color={answers[key] === "YES" ? "primary" : "secondary"}
+                                onClick={() => setAnswers((prev) => ({ ...prev, [key]: "YES" }))}
+                              >
+                                {t("checklist.yes")}
+                              </ITButton>
+                              <ITButton
+                                size="sm"
+                                variant={answers[key] === "NO" ? "filled" : "outlined"}
+                                color={answers[key] === "NO" ? "danger" : "secondary"}
+                                onClick={() => setAnswers((prev) => ({ ...prev, [key]: "NO" }))}
+                              >
+                                {t("checklist.no")}
+                              </ITButton>
+                            </div>
+                          </div>
+                        ))}
+                        <div>
+                          <ITButton
+                            variant="filled"
+                            color="primary"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                            disabled={fx.busy || checklistItems.some((key) => !answers[key])}
+                            onClick={() => void submitChecklist(telework.lastChecklist ? "PERIODIC" : "INITIAL")}
+                          >
+                            {t("checklist.submit")}
+                          </ITButton>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
               </ITFlex>
             </ITCard>
             {/* Consentimiento de horas extra (F3/1.5) */}
-            <ITCard className={`tm-hero-card tm-hero-card--amber ${tab === "compliance" ? "lg:col-span-6" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--amber ${tab === "compliance" && wc.requests.length > 0 ? "lg:col-span-5" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuClock size={16} />} title={tr("requests.title")} help="El trabajo fuera de jornada requiere tu consentimiento: aquí ves y decides cada solicitud antes de programarla. La decisión queda auditada." />
                 <ITText muted className="!text-[12px]">{tr("requests.hint")}</ITText>
-                {wc.requests.length === 0 ? (
-                  <ITText muted className="!text-[12px]">{tr("requests.empty")}</ITText>
-                ) : (
+                {(
                   <ITFlex direction="column" gap={2}>
-                    {wc.requests.map((request) => (
+                    {[...wc.requests].sort((a, b) => Number(b.status === "PENDING") - Number(a.status === "PENDING")).map((request) => (
                       <div key={request.id} className="flex flex-col gap-2 rounded-lg border border-slate-100 p-3">
                         <ITFlex align="center" justify="between" gap={2} wrap="wrap">
                           <ITText className="font-semibold !text-[13px]">{request.reason}</ITText>
@@ -708,7 +649,7 @@ export default function MyWorkdayPage() {
               </ITFlex>
             </ITCard>
             {/* Prueba plena (R-01): método de registro y conformidad semanal */}
-            <ITCard className={`tm-hero-card tm-hero-card--mint ${tab === "compliance" ? "lg:col-span-7" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
+            <ITCard className={`tm-hero-card tm-hero-card--mint ${tab === "compliance" ? (wc.requests.length > 0 ? "lg:col-span-7" : "lg:col-span-12") : "hidden"}`} contentClassName="!p-4 sm:!p-5">
               <ITFlex direction="column" gap={3}>
                 <CardHeader icon={<LuFileText size={16} />} title={tr("record.title")} help="Prueba plena del registro electrónico: aceptas el método (reloj, web, app o mixto) y la conformidad semanal; si algo no coincide, reportas la discrepancia con nota." />
                 <ITText muted className="!text-[12px]">{tr("record.hint")}</ITText>
@@ -717,18 +658,6 @@ export default function MyWorkdayPage() {
                     {wc.error}
                   </ITText>
                 )}
-                {wc.proposal && (
-                  <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
-                    <ITText className="font-semibold !text-[12.5px]">{tr("record.textTitle")}</ITText>
-                    <ITText className="!text-[12px]">{wc.proposal.text}</ITText>
-                    <ITFlex gap={1} wrap="wrap">
-                      {wc.proposal.methods.map((method) => (
-                        <ITBadget key={method} color="info" size="sm">{tr(`agreements.methods.${method}`)}</ITBadget>
-                      ))}
-                    </ITFlex>
-                  </div>
-                )}
-
                 {wc.agreement?.acceptedAt ? (
                   <ITFlex align="center" gap={2} wrap="wrap">
                     <ITBadget color="success" size="sm">{tr("record.accepted")}</ITBadget>
@@ -754,43 +683,51 @@ export default function MyWorkdayPage() {
 
                 <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
                   <ITText className="font-semibold !text-[13px]">{tr("record.ackTitle")}</ITText>
-                  <ITText muted className="!text-[11px]">{tr("record.ackHint")}</ITText>
-                  {wc.acknowledgments[0] ? (
-                    <ITText muted className="!text-[11px]">
-                      {tr("record.lastAck")}: {dateOf(wc.acknowledgments[0].acceptedAt ?? wc.acknowledgments[0].periodEnd)} ·{" "}
-                      {wc.acknowledgments[0].status === "ACCEPTED" ? tr("record.ackAccepted") : tr("record.ackDiscrepancySent")}
-                    </ITText>
+                  {wc.weekAck ? (
+                    <ITFlex align="center" gap={2} wrap="wrap">
+                      <ITBadget color={wc.weekAck.status === "ACCEPTED" ? "success" : "warning"} size="sm">
+                        {wc.weekAck.status === "ACCEPTED" ? tr("record.ackAccepted") : tr("record.ackDiscrepancySent")}
+                      </ITBadget>
+                      <ITText muted className="!text-[11.5px]">{tr("record.ackDoneHint")}</ITText>
+                    </ITFlex>
                   ) : (
-                    <ITText muted className="!text-[11px]">{tr("record.noAck")}</ITText>
+                    <>
+                      <ITText muted className="!text-[11.5px]">{tr("record.ackHint")}</ITText>
+                      {reportingWeek ? (
+                        <>
+                          <ITTextarea name="ackNote" label={tr("record.ackNote")} value={ackNote} onChange={(value) => setAckNote(value)} rows={2} />
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <ITButton
+                              variant="filled"
+                              color="primary"
+                              className="w-full"
+                              disabled={wc.busy !== null || ackNote.trim().length < 3}
+                              onClick={() => {
+                                void wc.acknowledge(false, ackNote.trim());
+                                setReportingWeek(false);
+                                setAckNote("");
+                              }}
+                            >
+                              {tr("record.ackSend")}
+                            </ITButton>
+                            <ITButton variant="outlined" color="secondary" className="w-full" onClick={() => setReportingWeek(false)}>
+                              {t("cancel")}
+                            </ITButton>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <ITButton variant="filled" color="primary" className="w-full" disabled={wc.busy !== null} onClick={() => void wc.acknowledge(true)}>
+                            <LuCheck size={14} className="mr-1" />
+                            {tr("record.ackAccept")}
+                          </ITButton>
+                          <ITButton variant="outlined" color="secondary" className="w-full" disabled={wc.busy !== null} onClick={() => setReportingWeek(true)}>
+                            {tr("record.ackDiscrepancy")}
+                          </ITButton>
+                        </div>
+                      )}
+                    </>
                   )}
-                  <ITTextarea
-                    name="ackNote"
-                    label={tr("record.ackNote")}
-                    value={ackNote}
-                    onChange={(value) => setAckNote(value)}
-                    rows={2}
-                  />
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <ITButton
-                      variant="filled"
-                      color="primary"
-                      className="w-full"
-                      disabled={wc.busy !== null}
-                      onClick={() => void wc.acknowledge(true)}
-                    >
-                      <LuCheck size={14} className="mr-1" />
-                      {tr("record.ackAccept")}
-                    </ITButton>
-                    <ITButton
-                      variant="outlined"
-                      color="secondary"
-                      className="w-full"
-                      disabled={wc.busy !== null || ackNote.trim().length < 3}
-                      onClick={() => void wc.acknowledge(false, ackNote.trim())}
-                    >
-                      {tr("record.ackDiscrepancy")}
-                    </ITButton>
-                  </div>
                 </div>
               </ITFlex>
             </ITCard>
@@ -819,20 +756,15 @@ export default function MyWorkdayPage() {
                   </ITText>
                 )}
                 <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
-                  <label className="flex flex-col gap-1 text-[12px] text-slate-600">
-                    {tr("leave.type")}
-                    <select
+                  {leave.types.length > 1 && (
+                    <ITSearchSelect
+                      name="leaveType"
+                      label={tr("leave.type")}
                       value={leaveTypeId || leave.types[0]?.id || ""}
-                      onChange={(event) => setLeaveTypeId(event.target.value)}
-                      className="rounded-md border border-slate-200 px-2 py-2 text-[13px]"
-                    >
-                      {leave.types.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}{type.paid ? "" : " (sin goce)"}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                      onChange={(event) => setLeaveTypeId(String(event.target.value))}
+                      options={leave.types.map((type) => ({ value: type.id, label: `${type.name}${type.paid ? "" : " (sin goce)"}` }))}
+                    />
+                  )}
                   <ITDatePicker
                     name="leaveRange"
                     label={`${tr("leave.from")} – ${tr("leave.to")}`}
@@ -853,10 +785,12 @@ export default function MyWorkdayPage() {
                     onClick={() => {
                       const typeId = leaveTypeId || leave.types[0]?.id;
                       if (!typeId) return;
-                      void leave.request({ typeId, startDate: leaveFrom, endDate: leaveTo, reason: leaveReason || undefined });
-                      setLeaveFrom("");
-                      setLeaveTo("");
-                      setLeaveReason("");
+                      void leave.request({ typeId, startDate: leaveFrom, endDate: leaveTo, reason: leaveReason || undefined }).then((ok) => {
+                        if (!ok) return;
+                        setLeaveFrom("");
+                        setLeaveTo("");
+                        setLeaveReason("");
+                      });
                     }}
                   >
                     {tr("leave.request")}

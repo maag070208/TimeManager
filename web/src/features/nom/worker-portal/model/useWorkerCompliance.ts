@@ -103,8 +103,13 @@ export const useWorkerCompliance = () => {
       await nomApi.decideOvertimeRequest(id, { accept });
     });
 
+  /** Conformidad ya respondida de la semana en curso, si existe: no se vuelve a pedir. */
+  const weekStart = currentWeek().periodStart;
+  const weekAck = acknowledgments.find((row) => row.periodStart.slice(0, 10) === weekStart && row.status !== "PENDING") ?? null;
+
   return {
     agreement,
+    weekAck,
     proposal,
     acknowledgments,
     requests,

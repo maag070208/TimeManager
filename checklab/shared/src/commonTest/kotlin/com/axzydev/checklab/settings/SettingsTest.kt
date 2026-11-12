@@ -35,7 +35,7 @@ import kotlin.test.assertTrue
 private val NOM_SETTINGS_KEYS = setOf(
     "weekStartDay", "defaultEntryToleranceMin", "defaultExitToleranceMin", "defaultMealBreakMin", "defaultMinOvertimeMin",
     "workdayLimitMinutes", "weeklyLimitMinutes", "retentionMonths", "remotePunchEnabled", "remoteCountsForWorkday",
-    "blockRemoteWithoutAgreement", "requireUnionForCollective", "remoteGeolocationEnabled",
+    "blockRemoteWithoutAgreement", "requireUnionForCollective", "remoteGeolocationEnabled", "lunchPunchEnabled",
 )
 
 class SettingsApiTest {
@@ -62,7 +62,7 @@ class SettingsApiTest {
 
     @Test
     fun guardarSoloMandaClavesQueAceptaElDtoEstricto() = runTest {
-        settings.saveConfig(configUpdate("15", "", "45", "30", true, false, true, true, false))
+        settings.saveConfig(configUpdate("15", "", "45", "30", true, false, true, true, false, false))
         val body = api.last.bodyJson()
         assertEquals(HttpMethod.Put, api.last.method)
         assertTrue(NOM_SETTINGS_KEYS.containsAll(body.keys), "claves de más: ${body.keys - NOM_SETTINGS_KEYS}")
@@ -70,6 +70,7 @@ class SettingsApiTest {
         assertEquals(JsonPrimitive(0), body["defaultExitToleranceMin"])
         assertEquals(JsonPrimitive(false), body["remoteCountsForWorkday"])
         assertEquals(JsonPrimitive(false), body["remoteGeolocationEnabled"])
+        assertEquals(JsonPrimitive(false), body["lunchPunchEnabled"])
     }
 
     @Test
@@ -140,7 +141,7 @@ class SettingsViewModelTest {
         val vm = ConfigViewModel(SettingsApi(api.client))
         vm.load()
         assertIs<Slot.Ready<NomConfig>>(vm.awaitState { it.settled() }.items)
-        vm.save(configUpdate("10", "10", "30", "30", true, true, true, true, true))
+        vm.save(configUpdate("10", "10", "30", "30", true, true, true, true, true, true))
         val saved = vm.awaitState { it.notice != null && it.settled() }
         awaitTrue { api.requests.size == 3 }
         assertEquals("Configuración guardada.", saved.notice)
@@ -156,7 +157,7 @@ class SettingsViewModelTest {
         val vm = ConfigViewModel(SettingsApi(api.client))
         vm.load()
         vm.awaitState { it.settled() }
-        vm.save(configUpdate("10", "10", "30", "30", true, true, true, true, true))
+        vm.save(configUpdate("10", "10", "30", "30", true, true, true, true, true, true))
         val after = vm.awaitState { it.error != null && !it.busy }
         assertEquals("Permisos insuficientes", after.error)
         assertNull(after.notice)

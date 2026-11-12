@@ -6,19 +6,14 @@
   "punch": {
     "title": "Marcaje de hoy",
     "hint": "Marca sin reloj físico para home office o campo. La hora la registra el servidor.",
-    "note": "Nota (opcional)",
-    "shareLocation": "Compartir ubicación solo en este marcaje",
     "entry": "Registrar entrada",
     "exit": "Registrar salida",
     "open": "Jornada abierta",
-    "privacy": "La ubicación es opcional y se guarda únicamente en este marcaje; no hay rastreo continuo.",
-    "mode": "Modalidad del marcaje",
     "today": "Hoy",
     "next": "Siguiente paso",
     "lunchStart": "Salida a comer",
     "lunchEnd": "Regreso de comer",
     "timeline": "Marcajes de hoy",
-    "options": "Opciones de marcaje (modalidad, nota, ubicación)",
     "status": {
       "none": "Sin checar",
       "working": "En jornada",
@@ -33,7 +28,10 @@
     "register": "Registrar {{action}}",
     "dayClosed": "Jornada completa",
     "dayClosedHint": "Ya registraste tus checadas de hoy. Mañana podrás volver a checar.",
-    "channelHint": "Checa desde la web o con tu reloj físico: todas tus checadas se ven aquí."
+    "channelHint": "Checa desde la web o con tu reloj físico: todas tus checadas se ven aquí.",
+    "locationNotice": "Tu ubicación se guarda solo en el momento de marcar; no hay rastreo continuo. Tu empresa lo tiene activado.",
+    "clockOnlyTitle": "Checas en el reloj",
+    "clockOnlyHint": "Tu empresa registra tu jornada con el reloj checador. Aquí ves tus marcajes y puedes reportar si algo no coincide."
   },
   "punches": {
     "title": "Mis marcajes",
@@ -73,7 +71,11 @@
     "accept": "Aceptar",
     "checklistTitle": "Checklist del lugar de teletrabajo",
     "checklistHint": "Inicial al alta y periódico (cada 12 meses). Responde todos los puntos.",
-    "lastChecklist": "Último checklist"
+    "lastChecklist": "Último checklist",
+    "consentDone": "Política y aviso aceptados",
+    "checklistOk": "Al día: lo llenaste el {{date}}",
+    "checklistNext": "toca de nuevo el {{date}}",
+    "checklistRefill": "Volver a llenar"
   },
   "checklist": {
     "yes": "Sí",
@@ -129,14 +131,14 @@
   },
   "record": {
     "title": "Mi registro de jornada",
-    "hint": "Acepta cómo se registra tu jornada y confirma tu semana: así queda constancia de tus horas.",
+    "hint": "Confirma tu semana para dejar constancia de tus horas.",
     "accept": "Aceptar forma de registro",
     "accepted": "Aceptado",
     "version": "Versión",
     "ackTitle": "Conformidad de mi semana",
-    "ackHint": "Revisa tu resumen y confírmalo o reporta una discrepancia.",
-    "ackAccept": "Confirmar mi semana",
-    "ackDiscrepancy": "Reportar discrepancia",
+    "ackHint": "¿Tus horas de esta semana están bien?",
+    "ackAccept": "Sí, todo correcto",
+    "ackDiscrepancy": "Algo no coincide",
     "ackNote": "Describe la discrepancia",
     "ackAccepted": "Semana confirmada",
     "ackDiscrepancySent": "Discrepancia enviada",
@@ -144,7 +146,9 @@
     "noAck": "Aún no has confirmado ninguna semana.",
     "textTitle": "Cómo se registra tu jornada",
     "employerSigned": "Firmado por la empresa",
-    "employerPending": "Falta la firma de la empresa"
+    "employerPending": "Falta la firma de la empresa",
+    "ackDoneHint": "Ya respondiste esta semana.",
+    "ackSend": "Enviar discrepancia"
   },
   "requests": {
     "title": "Solicitudes de horas extra",

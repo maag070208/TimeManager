@@ -68,5 +68,13 @@ export const useClientOverview = () => {
 
   const hasAny = can.attendance || can.records || can.overtime || can.setup;
 
-  return { can, attendance, people, records, overtime, setup, onboarding, hasAny };
+  /** Primera carga: algún bloque con permiso aún no responde. El inicio muestra su esqueleto completo. */
+  const loading =
+    (can.attendance && attendance === undefined) ||
+    (can.records && (people === undefined || records === undefined)) ||
+    (can.overtime && overtime === undefined) ||
+    (can.setup && setup === undefined) ||
+    (can.schedules && scheduleCount === undefined);
+
+  return { can, attendance, people, records, overtime, setup, onboarding, hasAny, loading };
 };

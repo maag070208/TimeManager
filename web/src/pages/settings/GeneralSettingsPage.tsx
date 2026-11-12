@@ -41,6 +41,7 @@ export default function GeneralSettingsPage() {
     blockRemoteWithoutAgreement: true,
     requireUnionForCollective: true,
     remoteGeolocationEnabled: true,
+    lunchPunchEnabled: true,
   });
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function GeneralSettingsPage() {
           blockRemoteWithoutAgreement: next.blockRemoteWithoutAgreement ?? true,
           requireUnionForCollective: next.requireUnionForCollective ?? true,
           remoteGeolocationEnabled: next.remoteGeolocationEnabled ?? true,
+          lunchPunchEnabled: next.lunchPunchEnabled ?? true,
         });
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."))
@@ -105,6 +107,7 @@ export default function GeneralSettingsPage() {
         blockRemoteWithoutAgreement: form.blockRemoteWithoutAgreement,
         requireUnionForCollective: form.requireUnionForCollective,
         remoteGeolocationEnabled: form.remoteGeolocationEnabled,
+        lunchPunchEnabled: form.lunchPunchEnabled,
       });
       await dispatch(meThunk()).unwrap().catch(() => undefined);
       setToast("Configuración guardada.");
@@ -288,9 +291,15 @@ export default function GeneralSettingsPage() {
                   )}
                 </div>
                 <div>
-                  <ITSearchSelect name="remoteGeolocationEnabled" label="Ubicación en la checada web" value={form.remoteGeolocationEnabled ? "true" : "false"} onChange={(e) => set("remoteGeolocationEnabled", e.target.value === "true")} options={[{ value: "true", label: "Encendida: el trabajador puede compartirla" }, { value: "false", label: "Apagada: no se pide ni se guarda" }]} />
+                  <ITSearchSelect name="remoteGeolocationEnabled" label="Ubicación en la checada web" value={form.remoteGeolocationEnabled ? "true" : "false"} onChange={(e) => set("remoteGeolocationEnabled", e.target.value === "true")} options={[{ value: "true", label: "Encendida: se guarda al marcar" }, { value: "false", label: "Apagada: no se pide ni se guarda" }]} />
                   <ITText as="span" className="mt-1 block !text-[11px] text-slate-500">
                     Apagarla no borra las ubicaciones ya guardadas.
+                  </ITText>
+                </div>
+                <div>
+                  <ITSearchSelect name="lunchPunchEnabled" label="Comida en la checada web" value={form.lunchPunchEnabled ? "true" : "false"} onChange={(e) => set("lunchPunchEnabled", e.target.value === "true")} options={[{ value: "true", label: "Encendida: entrada, comida, regreso y salida" }, { value: "false", label: "Apagada: solo entrada y salida" }]} />
+                  <ITText as="span" className="mt-1 block !text-[11px] text-slate-500">
+                    Con la comida encendida sigue siendo opcional: se puede salir sin marcarla.
                   </ITText>
                 </div>
                 <ITSearchSelect name="blockRemoteWithoutAgreement" label="Exigir acuerdo para checar web" value={form.blockRemoteWithoutAgreement ? "true" : "false"} onChange={(e) => set("blockRemoteWithoutAgreement", e.target.value === "true")} options={[{ value: "true", label: "Sí, bloquear sin acuerdo" }, { value: "false", label: "No" }]} />

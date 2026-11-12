@@ -35,14 +35,16 @@ export const useMyLeave = () => {
     void load();
   }, [load]);
 
-  const run = async (action: () => Promise<void>) => {
+  const run = async (action: () => Promise<void>): Promise<boolean> => {
     setBusy(true);
     setError(null);
     try {
       await action();
       await load();
+      return true;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo completar la acción.");
+      return false;
     } finally {
       setBusy(false);
     }

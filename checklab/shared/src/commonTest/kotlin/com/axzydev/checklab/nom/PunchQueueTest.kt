@@ -53,6 +53,8 @@ class NextPunchTest {
         assertEquals(listOf(PunchType.LUNCH_END), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.LUNCH_START)))
         assertEquals(listOf(PunchType.EXIT), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.LUNCH_START, PunchType.LUNCH_END)))
         assertEquals(emptyList(), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.EXIT)))
+        assertEquals(listOf(PunchType.EXIT), nextPunchTypes(listOf(PunchType.ENTRY), lunchEnabled = false))
+        assertEquals(listOf(PunchType.LUNCH_END, PunchType.EXIT), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.LUNCH_START), lunchEnabled = false))
         assertEquals(emptyList(), nextPunchTypes(listOf(PunchType.ENTRY, PunchType.LUNCH_START, PunchType.LUNCH_END, PunchType.EXIT)))
     }
 

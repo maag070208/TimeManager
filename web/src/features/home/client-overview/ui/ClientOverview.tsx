@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
-import { ITBadget, ITButton, ITCard, ITText } from "@axzydev/axzy_ui_system";
+import { ITBadget, ITButton, ITCard, ITSkeleton, ITText } from "@axzydev/axzy_ui_system";
 import { useCan } from "@entities/user";
 import { LuArrowRight, LuCalendarClock, LuCalendarDays, LuCircleCheck, LuCircle, LuClock3, LuFolderOpen, LuSettings2, LuUsersRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { dyn } from "@shared/i18n";
-import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { PanelCard } from "@shared/ui/panel-card";
 import { TicState } from "@shared/ui/tic";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
@@ -15,9 +14,32 @@ const hours = (min: number) => (min / 60).toFixed(1).replace(/\.0$/, "");
 
 function Block<T>({ value, children }: { value: T | null | undefined; children: (v: T) => ReactNode }) {
   const { t } = useTranslation("home");
-  if (value === undefined) return <ContentSkeleton size="sm" />;
+  if (value === undefined) return null;
   if (value === null) return <TicState kind="error" size="sm" description={t("client.loadError")} />;
   return <>{children(value)}</>;
+}
+
+/** Esqueleto con la forma del inicio: jornada de hoy + lateral, indicadores y paneles. */
+function OverviewSkeleton() {
+  const { t } = useTranslation("common");
+  const box = (height: number, className = "") => <ITSkeleton variant="rectangular" height={height} className={`rounded-2xl ${className}`} />;
+  return (
+    <div role="status" aria-busy="true" aria-label={t("loading")} className="flex flex-col gap-4">
+      <div className="grid items-start gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-8">{box(260)}</div>
+        <div className="lg:col-span-4">{box(260)}</div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((item) => (
+          <div key={item}>{box(112)}</div>
+        ))}
+      </div>
+      <div className="grid items-start gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-7">{box(220)}</div>
+        <div className="lg:col-span-5">{box(220)}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function ClientOverview() {
@@ -36,6 +58,8 @@ export default function ClientOverview() {
       </PanelCard>
     );
   }
+
+  if (fx.loading) return <OverviewSkeleton />;
 
   const onboardingSteps = fx.onboarding?.filter((step) => step.id !== "clock" || canTimeClockView) ?? null;
   const doneSteps = onboardingSteps?.filter((step) => step.done).length ?? 0;
@@ -145,8 +169,16 @@ export default function ClientOverview() {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid items-start gap-4 lg:grid-cols-12">
-        <div className="lg:col-span-8">{attendanceHero ?? <div />}</div>
-        <div className="lg:col-span-4">
+        {fx.can.attendance && (
+          <div className="lg:col-span-8">
+            {attendanceHero ?? (
+              <PanelCard icon={<LuClock3 size={16} />} title={t("client.attendance.title")}>
+                <TicState kind="error" size="sm" description={t("client.loadError")} />
+              </PanelCard>
+            )}
+          </div>
+        )}
+        <div className={fx.can.attendance ? "lg:col-span-4" : "lg:col-span-12"}>
           {onboardingSteps && pendingSteps > 0 ? (
             <PanelCard icon={<LuCircleCheck size={16} />} title={t("client.onboarding.title")} description={`${doneSteps} de ${onboardingSteps.length} completados`}>
               <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-slate-100">

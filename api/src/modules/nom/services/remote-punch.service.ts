@@ -88,8 +88,12 @@ export class RemotePunchService {
     // permite marcar desde ese lugar.
     const registration = await this.db.teleworkRegistration.findFirst({
       where: { userId: user.id, status: "ACTIVE" },
-      select: { id: true },
+      select: { id: true, mode: true },
     });
+    // La modalidad la define el registro de teletrabajo de RH, no cada marcaje;
+    // sin registro la checada web se asienta como remota. Un cliente que la
+    // mande explícita (app móvil anterior) se respeta.
+    input = { ...input, workMode: input.workMode ?? registration?.mode };
     if (registration) {
       const lastValidation = await this.db.teleworkChecklist.findFirst({
         where: { userId: user.id, validatedAt: { not: null } },
@@ -111,7 +115,7 @@ export class RemotePunchService {
     }
 
     const timezone = user.tenant?.timezone ?? "America/Mexico_City";
-    const { row, created } = await this.insertSerialized(userId, input, timezone, clientReportedAt);
+    const { row, created } = await this.insertSerialized(userId, input, timezone, clientReportedAt, config.lunchPunchEnabled);
 
     if (created) {
       await this.audit?.({
@@ -149,7 +153,8 @@ export class RemotePunchService {
     userId: string,
     input: RemotePunchInput,
     timezone: string,
-    clientReportedAt: Date | null
+    clientReportedAt: Date | null,
+    lunchEnabled: boolean
   ): Promise<{ row: Row; created: boolean }> {
     try {
       return await tenantTransaction(this.db, async (tx) => {
@@ -173,7 +178,7 @@ export class RemotePunchService {
           orderBy: { occurredAt: "desc" },
         });
         const lastIsToday = last ? localDateKey(last.occurredAt, timezone) === localDateKey(new Date(), timezone) : false;
-        assertPunchSequence(input.type, last?.type ?? null, lastIsToday);
+        assertPunchSequence(input.type, last?.type ?? null, lastIsToday, lunchEnabled);
 
         const row = await tx.remotePunch.create({
           data: {

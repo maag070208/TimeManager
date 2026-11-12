@@ -43,6 +43,8 @@ export interface NomConfig {
   requireUnionForCollective: boolean;
   /** Si está apagada, la checada web no pide ni guarda ubicación. */
   remoteGeolocationEnabled: boolean;
+  /** Si está apagada, la checada web/app solo registra entrada y salida. */
+  lunchPunchEnabled: boolean;
   /** Textos NOM-037 y aviso de privacidad vigentes (F2-08). */
   policy: TeleworkPolicyTexts;
 }
@@ -62,6 +64,7 @@ export interface NomSettingsUpdateInput {
   blockRemoteWithoutAgreement?: boolean;
   requireUnionForCollective?: boolean;
   remoteGeolocationEnabled?: boolean;
+  lunchPunchEnabled?: boolean;
 }
 
 /** Snapshot de la checada al momento de pedir el ajuste (valor anterior). */
@@ -370,7 +373,10 @@ export interface MyTelework {
   registration: TeleworkRegistrationDto | null;
   policy: TeleworkPolicyTexts;
   remotePunchEnabled: boolean;
+  /** ¿Esta persona puede checar por web/app? Falso si el cliente lo apagó o ella checa solo en reloj. */
+  canPunchRemote: boolean;
   remoteGeolocationEnabled: boolean;
+  lunchPunchEnabled: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklistDto | null;
   nextPeriodicDueAt: string | null;

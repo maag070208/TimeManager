@@ -35,6 +35,7 @@ export const NomSettingsUpdateDto = z
     blockRemoteWithoutAgreement: z.boolean().optional(),
     requireUnionForCollective: z.boolean().optional(),
     remoteGeolocationEnabled: z.boolean().optional(),
+    lunchPunchEnabled: z.boolean().optional(),
   })
   .strict();
 

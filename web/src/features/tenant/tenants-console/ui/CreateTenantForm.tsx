@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { ITAlert, ITButton, ITCard, ITInput, ITText } from "@axzydev/axzy_ui_system";
-import { LuBuilding2, LuCheck, LuCopy, LuExternalLink, LuGlobe, LuKeyRound, LuLayers, LuPlus, LuUserRound } from "react-icons/lu";
+import { LuBuilding2, LuCheck, LuCopy, LuExternalLink, LuGlobe, LuKeyRound, LuLayers, LuPlus, LuRefreshCw, LuUserRound } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { dyn } from "@shared/i18n";
 import { tenantHost, tenantUrl } from "@shared/api/tenant";
@@ -9,7 +9,7 @@ import { FormSection } from "@shared/ui/form-section";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { LiveSummary, LiveSummaryRow } from "@shared/ui/live-summary";
 import { StickyActions } from "@shared/ui/sticky-actions";
-import { MX_TIMEZONES } from "../model/slug";
+import { generatePassword, MX_TIMEZONES } from "../model/slug";
 import { useCreateTenant } from "../model/useCreateTenant";
 
 interface Props {
@@ -21,7 +21,7 @@ interface Props {
 
 const tzLabel = (tz: string) => tz.replace("America/", "").replace(/_/g, " ");
 
-/** Opción tipo tarjeta de un grupo de selección única (plan, modo de contraseña). */
+/** Opción tipo tarjeta de un grupo de selección única (plan). */
 const Choice = ({ selected, onSelect, title, children }: { selected: boolean; onSelect: () => void; title: ReactNode; children?: ReactNode }) => (
   <button
     type="button"
@@ -75,12 +75,11 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
 
   if (fx.created) {
     const { tenant, admin, temporaryPassword, welcomeEmail } = fx.created;
+    const password = temporaryPassword ?? fx.form.adminPassword;
     const rows = [
       { id: "url", label: t("platform.create.done.url"), value: tenantHost(tenant.slug), copy: tenantUrl(tenant.slug) },
       { id: "user", label: t("platform.create.done.user"), value: admin.username, copy: admin.username },
-      temporaryPassword
-        ? { id: "password", label: t("platform.create.done.password"), value: temporaryPassword, copy: temporaryPassword }
-        : { id: "password", label: t("platform.create.done.passwordLabelCustom"), value: t("platform.create.done.passwordCustom"), copy: null },
+      { id: "password", label: t("platform.create.done.password"), value: password, copy: password },
     ];
     const everything = rows.filter((row) => row.copy).map((row) => `${row.label}: ${row.copy}`).join("\n");
     return (
@@ -123,7 +122,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
 
           <ITText className="mt-3 block !text-[12.5px] text-slate-600 dark:text-slate-300">
             {welcomeEmail ? t("platform.create.done.emailed", { email: welcomeEmail }) : t("platform.create.done.notEmailed")}
-            {temporaryPassword ? ` ${t("platform.create.done.onlyNow")}` : ""}
+            {` ${t("platform.create.done.onlyNow")}`}
           </ITText>
 
           <div className="mt-6 flex flex-wrap gap-2">
@@ -340,30 +339,23 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
                 />
                 <ITText className="mt-1 block !text-[12px] text-slate-500">{t("platform.create.admin.usernameHint")}</ITText>
               </div>
-              <div className="md:col-span-2">
-                <ITText className="mb-1.5 block !text-[13px] font-semibold text-slate-700 dark:text-slate-200">{t("platform.create.admin.passwordMode")}</ITText>
-                <div role="radiogroup" aria-label={t("platform.create.admin.passwordMode")} className="grid gap-3 sm:grid-cols-2">
-                  <Choice selected={fx.form.passwordMode === "generate"} onSelect={() => fx.set("passwordMode", "generate")} title={t("platform.create.admin.generate")}>
-                    <span className="text-[12px] text-slate-500">{t("platform.create.admin.generateHint")}</span>
-                  </Choice>
-                  <Choice selected={fx.form.passwordMode === "custom"} onSelect={() => fx.set("passwordMode", "custom")} title={t("platform.create.admin.custom")}>
-                    <span className="text-[12px] text-slate-500">{t("platform.create.admin.passwordHint")}</span>
-                  </Choice>
+              <div>
+                <ITInput
+                  name="adminPassword"
+                  label={t("platform.create.admin.password")}
+                  value={fx.form.adminPassword}
+                  onChange={(e) => fx.set("adminPassword", e.target.value)}
+                  error={err("adminPassword")}
+                  touched={!!fx.errors.adminPassword}
+                  className="font-mono"
+                  required
+                />
+                <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                  <ITText className="!text-[12px] text-slate-500">{t("platform.create.admin.passwordHint")}</ITText>
+                  <button type="button" className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700 underline underline-offset-2 dark:text-slate-200" onClick={() => fx.set("adminPassword", generatePassword())}>
+                    <LuRefreshCw size={11} /> {t("platform.create.admin.regenerate")}
+                  </button>
                 </div>
-                {fx.form.passwordMode === "custom" && (
-                  <div className="mt-3 max-w-md">
-                    <ITInput
-                      name="adminPassword"
-                      type="password"
-                      label={t("platform.create.admin.password")}
-                      value={fx.form.adminPassword}
-                      onChange={(e) => fx.set("adminPassword", e.target.value)}
-                      error={err("adminPassword")}
-                      touched={!!fx.errors.adminPassword}
-                      required
-                    />
-                  </div>
-                )}
               </div>
             </div>
           </FormSection>
@@ -395,7 +387,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
             label={t("platform.create.summary.password")}
             value={
               <span className="inline-flex items-center gap-1">
-                <LuKeyRound size={11} /> {t(fx.form.passwordMode === "custom" ? "platform.create.summary.custom" : "platform.create.summary.generated")}
+                <LuKeyRound size={11} /> {fx.form.adminPassword ? "•".repeat(Math.min(fx.form.adminPassword.length, 12)) : "—"}
               </span>
             }
           />

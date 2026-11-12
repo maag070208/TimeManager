@@ -1,6 +1,9 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  /// Las relaciones (`include`/`select` anidados) se cargan en UNA consulta con
+  /// JOIN en vez de una por relación: cada viaje a la base cuenta.
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -1735,6 +1738,8 @@ model NomSettings {
   requireUnionForCollective   Boolean   @default(true)
   /// ¿La checada web/app puede guardar la ubicación del trabajador?
   remoteGeolocationEnabled    Boolean   @default(true)
+  /// ¿La checada web/app registra salida a comer y regreso? Apagada: solo entrada y salida.
+  lunchPunchEnabled           Boolean   @default(true)
   /// Política de teletrabajo editable por cliente (NOM-037 / F2-08).
   teleworkPolicy              String?
   /// Política de desconexión digital (NOM-037 / F2-08).

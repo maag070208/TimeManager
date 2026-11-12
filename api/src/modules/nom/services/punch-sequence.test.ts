@@ -75,3 +75,15 @@ test("secuencia: los pasos válidos no lanzan", async () => {
   assert.doesNotThrow(() => assertPunchSequence("LUNCH_END", "LUNCH_START", true));
   assert.doesNotThrow(() => assertPunchSequence("EXIT", "LUNCH_END", true));
 });
+
+test("secuencia con la comida apagada: entrada → salida, sin dejar atorado a quien ya salió a comer", async () => {
+  const { expectedNextTypes, assertPunchSequence } = await loadSequence();
+  assert.deepEqual(expectedNextTypes("ENTRY", true, false), ["EXIT"]);
+  assert.deepEqual(expectedNextTypes("LUNCH_START", true, false), ["LUNCH_END", "EXIT"]);
+  assert.deepEqual(expectedNextTypes("LUNCH_END", true, false), ["EXIT"]);
+  assert.throws(
+    () => assertPunchSequence("LUNCH_START", "ENTRY", true, false),
+    (error: { code?: string }) => error.code === "INVALID_PUNCH_SEQUENCE"
+  );
+  assert.doesNotThrow(() => assertPunchSequence("EXIT", "ENTRY", true, false));
+});

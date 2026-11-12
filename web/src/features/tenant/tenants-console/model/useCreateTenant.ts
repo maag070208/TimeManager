@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { planApi, type Plan } from "@entities/plan";
 import { tenantApi, type TenantCreated } from "@entities/tenant";
-import { isValidSlug, MX_TIMEZONES, slugify } from "./slug";
+import { generatePassword, isCommonUsername, isValidSlug, MX_TIMEZONES, slugify } from "./slug";
 
 interface Form {
   name: string;
@@ -12,7 +12,6 @@ interface Form {
   adminName: string;
   adminUsername: string;
   adminEmail: string;
-  passwordMode: "generate" | "custom";
   adminPassword: string;
 }
 
@@ -25,7 +24,6 @@ const EMPTY: Form = {
   adminName: "",
   adminUsername: "",
   adminEmail: "",
-  passwordMode: "generate",
   adminPassword: "",
 };
 
@@ -51,18 +49,20 @@ const validate = (form: Form): Errors => {
   if (form.employeeLimit && !(Number.parseInt(form.employeeLimit, 10) > 0)) e.employeeLimit = "number";
   if (form.adminName.trim().length < 2) e.adminName = "required";
   if (form.adminUsername.trim().length < 3) e.adminUsername = "username";
+  else if (isCommonUsername(form.adminUsername)) e.adminUsername = "commonUsername";
   if (form.adminEmail && !/^\S+@\S+\.\S+$/.test(form.adminEmail.trim())) e.adminEmail = "email";
-  if (form.passwordMode === "custom" && (form.adminPassword.length < 8 || form.adminPassword.length > 128)) e.adminPassword = "password";
+  if (form.adminPassword.length < 12 || form.adminPassword.length > 128) e.adminPassword = "password";
   return e;
 };
 
 /**
  * Alta de cliente: empresa y subdominio, plan y su administrador. El subdominio
  * y el usuario se proponen solos a partir de los nombres hasta que se editan a
- * mano. Al terminar deja los datos de acceso para mostrarlos una sola vez.
+ * mano, y la contraseña inicial llega generada (se puede escribir otra). Al
+ * terminar deja los datos de acceso para mostrarlos una sola vez.
  */
 export const useCreateTenant = () => {
-  const [form, setForm] = useState<Form>(EMPTY);
+  const [form, setForm] = useState<Form>(() => ({ ...EMPTY, adminPassword: generatePassword() }));
   const [slugTouched, setSlugTouched] = useState(false);
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
@@ -132,7 +132,7 @@ export const useCreateTenant = () => {
             name: form.adminName.trim(),
             username: form.adminUsername.trim(),
             email: form.adminEmail.trim() || null,
-            ...(form.passwordMode === "custom" && { password: form.adminPassword }),
+            password: form.adminPassword,
           },
         })
       );
@@ -145,7 +145,7 @@ export const useCreateTenant = () => {
   };
 
   const reset = () => {
-    setForm(EMPTY);
+    setForm({ ...EMPTY, adminPassword: generatePassword() });
     setSlugTouched(false);
     setUsernameTouched(false);
     setErrors({});

@@ -563,6 +563,73 @@ describe("F2-07 marcaje remoto (home office/campo)", () => {
     assert.equal(entry.body?.punch?.longitude, null, "no se guarda longitud");
   });
 
+  test("la modalidad del marcaje sale del registro de teletrabajo, no del trabajador", async () => {
+    const admin = await clientSession("CLIENT_ADMIN");
+    const hr = await clientSession("HUMAN_RESOURCES", { tenant: admin.tenant! });
+    const field = await clientSession("CLIENT_STAFF", { tenant: admin.tenant! });
+    const plain = await clientSession("CLIENT_STAFF", { tenant: admin.tenant! });
+    expectStatus(
+      await api("PUT", "/nom/config", { token: admin.token, body: { blockRemoteWithoutAgreement: false } }),
+      200,
+      "sin exigir acuerdo"
+    );
+    expectStatus(
+      await api("POST", "/nom/telework/registrations", { token: hr.token, body: { userId: field.user.id, mode: "CAMPO" } }),
+      201,
+      "alta de teletrabajo en campo"
+    );
+
+    const registered = await api("POST", "/nom/me/punch", {
+      token: field.token,
+      body: { type: "ENTRY", clientEventId: randomUUID() },
+    });
+    expectStatus(registered, 201, "checada de quien tiene registro");
+    assert.equal(registered.body?.punch?.workMode, "CAMPO", "toma la modalidad del registro");
+
+    const unregistered = await api("POST", "/nom/me/punch", {
+      token: plain.token,
+      body: { type: "ENTRY", clientEventId: randomUUID() },
+    });
+    expectStatus(unregistered, 201, "checada sin registro");
+    assert.equal(unregistered.body?.punch?.workMode, "REMOTO", "sin registro se asienta como remota");
+
+    const explicit = await api("POST", "/nom/me/punch", {
+      token: field.token,
+      body: { type: "EXIT", workMode: "HIBRIDO", clientEventId: randomUUID() },
+    });
+    expectStatus(explicit, 201, "modalidad explícita");
+    assert.equal(explicit.body?.punch?.workMode, "HIBRIDO", "una modalidad explícita se respeta");
+  });
+
+  test("con la comida apagada solo hay entrada y salida, y quien checa en reloj no puede marcar por web", async () => {
+    const admin = await clientSession("CLIENT_ADMIN");
+    const worker = await clientSession("CLIENT_STAFF", { tenant: admin.tenant! });
+    const clockOnly = await createUser({ tenantId: admin.tenant!.id, role: "CLIENT_STAFF" });
+    await (await prismaClient()).user.update({ where: { id: clockOnly.id }, data: { checkinMode: "CLOCK" } });
+    const clockSession = await login({ username: clockOnly.username, tenant: admin.tenant!.slug });
+
+    const before = await api("GET", "/nom/me/telework", { token: worker.token });
+    assert.equal(before.body?.lunchPunchEnabled, true, "la comida viene encendida");
+    assert.equal(before.body?.canPunchRemote, true);
+    const clockState = await api("GET", "/nom/me/telework", { token: clockSession.token });
+    assert.equal(clockState.body?.canPunchRemote, false, "quien checa solo en reloj no puede marcar por web");
+
+    const off = await api("PUT", "/nom/config", {
+      token: admin.token,
+      body: { lunchPunchEnabled: false, blockRemoteWithoutAgreement: false },
+    });
+    expectStatus(off, 200, "apagar comida");
+    assert.equal(off.body?.lunchPunchEnabled, false);
+    const after = await api("GET", "/nom/me/telework", { token: worker.token });
+    assert.equal(after.body?.lunchPunchEnabled, false, "el portal sabe que no hay comida");
+
+    const punch = (type: string) =>
+      api("POST", "/nom/me/punch", { token: worker.token, body: { type, clientEventId: randomUUID() } });
+    expectStatus(await punch("ENTRY"), 201, "entrada");
+    expectError(await punch("LUNCH_START"), 409, "INVALID_PUNCH_SEQUENCE", "salida a comer con la comida apagada");
+    expectStatus(await punch("EXIT"), 201, "salida directa");
+  });
+
   test("marca sin reloj, es idempotente y guarda geolocalización solo en el marcaje", async () => {
     const tenant = await createTenant();
     const employee = await createUser({

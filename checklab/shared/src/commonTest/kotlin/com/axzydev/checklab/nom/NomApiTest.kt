@@ -24,7 +24,7 @@ class NomApiTest {
     private val api = MockApi { request ->
         when (request.route) {
             "nom/me/punch" -> ok("""{"created":true,"punch":{"id":"p1","type":"ENTRY","occurredAt":"2026-11-08T15:00:00.000Z"}}""")
-            "nom/me/telework" -> ok("""{"registration":null,"remotePunchEnabled":true,"remoteGeolocationEnabled":false}""")
+            "nom/me/telework" -> ok("""{"registration":null,"remotePunchEnabled":true,"canPunchRemote":false,"remoteGeolocationEnabled":false,"lunchPunchEnabled":false}""")
             else -> ok("[]")
         }
     }
@@ -53,7 +53,10 @@ class NomApiTest {
 
     @Test
     fun leeSiElClienteApagoLaUbicacion() = runTest {
-        assertFalse(NomApi(api.client).punchSettings().remoteGeolocationEnabled)
+        val settings = NomApi(api.client).punchSettings()
+        assertFalse(settings.remoteGeolocationEnabled)
+        assertFalse(settings.canPunchRemote)
+        assertFalse(settings.lunchPunchEnabled)
     }
 
     @Test

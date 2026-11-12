@@ -76,7 +76,11 @@ export interface MeTelework {
   registration: TeleworkRegistration | null;
   policy: TeleworkPolicyTexts;
   remotePunchEnabled: boolean;
+  /** ¿Esta persona puede checar por web? Falso si el cliente lo apagó o ella checa solo en reloj. */
+  canPunchRemote: boolean;
   remoteGeolocationEnabled: boolean;
+  /** Apagada, la checada web solo registra entrada y salida. */
+  lunchPunchEnabled: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklist | null;
   nextPeriodicDueAt: string | null;

@@ -33,6 +33,10 @@ data class MyWorkdayState(
     val shareLocation: Boolean = true,
     /** El cliente puede apagar la ubicación: entonces ni se pide ni se muestra. */
     val geoEnabled: Boolean = true,
+    /** El cliente puede apagar la comida: entonces solo hay entrada y salida. */
+    val lunchEnabled: Boolean = true,
+    /** Falso si la persona checa solo en el reloj o el cliente apagó la checada desde la app. */
+    val canPunch: Boolean = true,
     val busy: Boolean = false,
     val notice: String? = null,
     val error: String? = null,
@@ -41,7 +45,7 @@ data class MyWorkdayState(
     val todayTypes: List<PunchType>
         get() = today.filter { it.source == "REMOTE" }.mapNotNull { it.type } + pending.map { it.type }
 
-    val next: List<PunchType> get() = nextPunchTypes(todayTypes)
+    val next: List<PunchType> get() = nextPunchTypes(todayTypes, lunchEnabled)
 
     fun timeOf(type: PunchType): MyPunch? = today.lastOrNull { it.source == "REMOTE" && it.type == type }
 
@@ -76,13 +80,15 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
                 val history = api.myPunches(from = from.toString(), to = todayKey.toString(), limit = 300)
                     .sortedByDescending { it.occurredAt }
                 val today = history.filter { dayOf(it.occurredAt) == todayKey.toString() }.sortedBy { it.occurredAt }
-                val geoEnabled = runCatching { api.punchSettings().remoteGeolocationEnabled }.getOrNull()
+                val settings = runCatching { api.punchSettings() }.getOrNull()
                 _state.update {
                     it.copy(
                         loading = false,
                         today = today,
                         history = history,
-                        geoEnabled = geoEnabled ?: it.geoEnabled,
+                        geoEnabled = settings?.remoteGeolocationEnabled ?: it.geoEnabled,
+                        lunchEnabled = settings?.lunchPunchEnabled ?: it.lunchEnabled,
+                        canPunch = settings?.canPunchRemote ?: it.canPunch,
                         pending = q.pending(),
                         error = rejected.firstOrNull()?.let { e -> "Una checada guardada sin red no se aceptó: ${e.message}" },
                     )

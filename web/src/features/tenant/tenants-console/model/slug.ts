@@ -28,6 +28,17 @@ export const slugify = (name: string): string =>
 
 export const isValidSlug = (slug: string): boolean => SLUG_PATTERN.test(slug) && !RESERVED_SLUGS.includes(slug);
 
+/** Espejo de `COMMON_ADMIN_USERNAMES` del API: usuarios que no puede llevar el administrador de un cliente. */
+const COMMON_ADMIN_USERNAMES = ["admin", "administrador", "administrator", "root", "superadmin", "sysadmin", "user", "usuario", "test", "prueba", "soporte", "support", "demo"];
+
+export const isCommonUsername = (username: string): boolean => COMMON_ADMIN_USERNAMES.includes(username.trim().toLowerCase());
+
+/** Contraseña inicial legible (sin caracteres ambiguos), de 14 caracteres. */
+export const generatePassword = (): string => {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  return Array.from(crypto.getRandomValues(new Uint8Array(14)), (byte) => alphabet[byte % alphabet.length]).join("");
+};
+
 /** Zonas horarias de México (las del API son IANA; cualquier otra se puede mandar por API). */
 export const MX_TIMEZONES = [
   "America/Mexico_City",

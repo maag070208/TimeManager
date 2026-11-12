@@ -99,13 +99,10 @@
         "email": "Correo",
         "emailHint": "Opcional. Si lo pones, le enviamos sus accesos.",
         "username": "Usuario para entrar",
-        "usernameHint": "Se propone a partir del nombre.",
-        "passwordMode": "Contraseña inicial",
-        "generate": "Generarla por mí",
-        "generateHint": "Te la mostramos al terminar para que se la compartas.",
-        "custom": "Escribirla yo",
-        "password": "Contraseña",
-        "passwordHint": "Mínimo 8 caracteres. Se le pedirá cambiarla la primera vez que entre."
+        "usernameHint": "Con esto inicia sesión. Se propone a partir del nombre; no puede ser admin, root ni otro genérico.",
+        "password": "Contraseña inicial",
+        "passwordHint": "Mínimo 12 caracteres. Se le pedirá cambiarla al entrar.",
+        "regenerate": "Generar otra"
       },
       "summary": {
         "title": "Así quedará",
@@ -115,8 +112,6 @@
         "admin": "Administra",
         "user": "Usuario",
         "password": "Contraseña",
-        "generated": "Se genera al crear",
-        "custom": "La que escribas",
         "note": "Al crear el cliente también se cargan sus catálogos base (roles, departamentos y tipos de documento)."
       },
       "errors": {
@@ -125,16 +120,15 @@
         "username": "Mínimo 3 caracteres",
         "email": "Correo no válido",
         "number": "Debe ser un número mayor a 0",
-        "password": "Mínimo 8 caracteres"
+        "password": "Mínimo 12 caracteres",
+        "commonUsername": "Elige uno propio: admin, root y similares no se permiten"
       },
       "done": {
         "title": "{{name}} está listo",
         "subtitle": "Comparte estos accesos con {{admin}}.",
         "url": "Entrada",
         "user": "Usuario",
-        "password": "Contraseña provisional",
-        "passwordLabelCustom": "Contraseña",
-        "passwordCustom": "La que escribiste",
+        "password": "Contraseña inicial",
         "copyOne": "Copiar {{label}}",
         "copy": "Copiar todo",
         "copied": "Copiado",

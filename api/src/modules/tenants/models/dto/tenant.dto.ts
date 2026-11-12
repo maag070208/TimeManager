@@ -2,6 +2,12 @@ import { z } from "@core/swagger/registry";
 import { isValidTimezone } from "@core/utils/timezone";
 
 /** Subdominios que no pueden ser de un cliente (plataforma e infraestructura). */
+/** Usuarios que no puede llevar el administrador de un cliente: son los primeros que prueba un atacante. */
+export const COMMON_ADMIN_USERNAMES = [
+  "admin", "administrador", "administrator", "root", "superadmin", "sysadmin",
+  "user", "usuario", "test", "prueba", "soporte", "support", "demo",
+] as const;
+
 export const RESERVED_SLUGS = ["app", "admin", "api", "www", "static", "cdn", "mail"] as const;
 
 const SlugSchema = z
@@ -83,10 +89,15 @@ export const TenantCreateDto = z
     employeeLimit: z.number().int().positive().nullish(),
     admin: z.object({
       name: z.string().trim().min(2).max(120),
-      username: z.string().trim().min(3).max(60),
+      username: z
+        .string()
+        .trim()
+        .min(3)
+        .max(60)
+        .refine((value) => !(COMMON_ADMIN_USERNAMES as readonly string[]).includes(value.toLowerCase()), "ADMIN_USERNAME_TOO_COMMON"),
       email: z.string().trim().email().nullish(),
       /** Sin contraseña se genera una provisional y se devuelve una sola vez. */
-      password: z.string().min(8).max(128).optional(),
+      password: z.string().min(12, "PASSWORD_MIN_LENGTH").max(128).optional(),
     }),
   })
   .openapi("TenantCreate");

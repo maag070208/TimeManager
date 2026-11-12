@@ -187,6 +187,7 @@ export class NomSettingsService {
       blockRemoteWithoutAgreement: settings?.blockRemoteWithoutAgreement ?? true,
       requireUnionForCollective: settings?.requireUnionForCollective ?? true,
       remoteGeolocationEnabled: settings?.remoteGeolocationEnabled ?? true,
+      lunchPunchEnabled: settings?.lunchPunchEnabled ?? true,
       policy,
       source: {
         workdayLimit: settings?.workdayLimitMinutes != null ? "tenant" : sysWorkday != null ? "sys_config" : "legal_default",
@@ -274,6 +275,7 @@ export class NomSettingsService {
       ...(input.blockRemoteWithoutAgreement !== undefined ? { blockRemoteWithoutAgreement: input.blockRemoteWithoutAgreement } : {}),
       ...(input.requireUnionForCollective !== undefined ? { requireUnionForCollective: input.requireUnionForCollective } : {}),
       ...(input.remoteGeolocationEnabled !== undefined ? { remoteGeolocationEnabled: input.remoteGeolocationEnabled } : {}),
+      ...(input.lunchPunchEnabled !== undefined ? { lunchPunchEnabled: input.lunchPunchEnabled } : {}),
       updatedById: actor.id,
     };
     await this.db.nomSettings.upsert({
@@ -296,6 +298,7 @@ export class NomSettingsService {
         remotePunchEnabled: previous.remotePunchEnabled,
         remoteCountsForWorkday: previous.remoteCountsForWorkday,
         remoteGeolocationEnabled: previous.remoteGeolocationEnabled,
+        lunchPunchEnabled: previous.lunchPunchEnabled,
       },
       newState: { ...input },
     });

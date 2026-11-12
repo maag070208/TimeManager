@@ -4,7 +4,6 @@ import {
   type MeTelework,
   type MyPunch,
   type PunchType,
-  type RemoteWorkMode,
   type TeleworkChecklistKind,
 } from "@entities/nom";
 import { newId } from "@shared/lib/newId";
@@ -16,8 +15,7 @@ const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
 export interface PunchOptions {
-  workMode?: RemoteWorkMode;
-  note?: string;
+  /** Ubicación en el momento de marcar; la decide la empresa (`remoteGeolocationEnabled`). */
   withGeolocation?: boolean;
 }
 
@@ -79,7 +77,8 @@ export const useMyWorkday = () => {
     run(async () => {
       const clientEventId = pendingEventIds.current[type] ?? newId();
       pendingEventIds.current[type] = clientEventId;
-      const base = { type, clientEventId, workMode: options.workMode, note: options.note };
+      // La modalidad la pone el API según el registro de teletrabajo de la persona.
+      const base = { type, clientEventId };
       // La ubicación (si se comparte) se pide EN ESTE MOMENTO y viaja solo con
       // el marcaje: no hay rastreo continuo.
       if (!options.withGeolocation || !("geolocation" in navigator)) {

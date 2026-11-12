@@ -6,19 +6,14 @@
   "punch": {
     "title": "Today's punch",
     "hint": "Punch without a physical clock for home office or field work. The server records the time.",
-    "note": "Note (optional)",
-    "shareLocation": "Share location for this punch only",
     "entry": "Clock in",
     "exit": "Clock out",
     "open": "Workday open",
-    "privacy": "Location is optional and stored only with this punch; there is no continuous tracking.",
-    "mode": "Punch mode",
     "today": "Today",
     "next": "Next step",
     "lunchStart": "Lunch out",
     "lunchEnd": "Lunch back",
     "timeline": "Today's punches",
-    "options": "Punch options (mode, note, location)",
     "status": {
       "none": "Not checked in",
       "working": "Working",
@@ -33,7 +28,10 @@
     "register": "Register {{action}}",
     "dayClosed": "Workday complete",
     "dayClosedHint": "You already recorded today’s punches. You can punch again tomorrow.",
-    "channelHint": "Check in from the web or your physical clock: all your punches show here."
+    "channelHint": "Check in from the web or your physical clock: all your punches show here.",
+    "locationNotice": "Your location is saved only when you punch; there is no continuous tracking. Your company has this turned on.",
+    "clockOnlyTitle": "You punch at the clock",
+    "clockOnlyHint": "Your company records your workday with the time clock. Here you can see your punches and report anything that's off."
   },
   "punches": {
     "title": "My records",
@@ -73,7 +71,11 @@
     "accept": "Accept",
     "checklistTitle": "Telework workplace checklist",
     "checklistHint": "Initial at onboarding and periodic (every 12 months). Answer every item.",
-    "lastChecklist": "Last checklist"
+    "lastChecklist": "Last checklist",
+    "consentDone": "Policy and notice accepted",
+    "checklistOk": "Up to date: completed on {{date}}",
+    "checklistNext": "due again on {{date}}",
+    "checklistRefill": "Fill in again"
   },
   "checklist": {
     "yes": "Yes",
@@ -129,14 +131,14 @@
   },
   "record": {
     "title": "My work record",
-    "hint": "Agree on the recording method and confirm your periodic summary.",
+    "hint": "Confirm your week to keep a record of your hours.",
     "accept": "Accept recording method",
     "accepted": "Method accepted",
     "version": "Version",
     "ackTitle": "My weekly acknowledgment",
-    "ackHint": "Review your summary and confirm it or report a discrepancy.",
-    "ackAccept": "Confirm my week",
-    "ackDiscrepancy": "Report discrepancy",
+    "ackHint": "Are this week's hours right?",
+    "ackAccept": "Yes, all correct",
+    "ackDiscrepancy": "Something is off",
     "ackNote": "Describe the discrepancy",
     "ackAccepted": "Week confirmed",
     "ackDiscrepancySent": "Discrepancy sent",
@@ -144,7 +146,9 @@
     "noAck": "You have not confirmed any week yet.",
     "textTitle": "Work record agreement",
     "employerSigned": "Signed by employer",
-    "employerPending": "Employer signature pending"
+    "employerPending": "Employer signature pending",
+    "ackDoneHint": "You already answered this week.",
+    "ackSend": "Send discrepancy"
   },
   "requests": {
     "title": "Overtime requests",

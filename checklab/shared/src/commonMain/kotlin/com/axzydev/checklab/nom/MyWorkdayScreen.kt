@@ -117,8 +117,8 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
             Pill(status.first, status.second, if (status.second == Brand.Muted) Brand.Paper else status.second.copy(alpha = 0.12f))
         }
 
-        // Las cuatro marcas del día, como las tarjetas de Mi jornada en la web.
-        STEPS.chunked(2).forEach { row ->
+        // Las marcas del día, como las tarjetas de Mi jornada en la web; sin comida si el cliente la apagó.
+        STEPS.filter { state.lunchEnabled || (it.type != PunchType.LUNCH_START && it.type != PunchType.LUNCH_END) }.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { step ->
                     val done = state.timeOf(step.type)
@@ -157,7 +157,27 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
         }
 
         val primary = state.next.firstOrNull()
-        if (primary == null) {
+        if (!state.canPunch) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Brand.Paper)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Lucide.Clock, Brand.Muted, size = 22.dp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Checas en el reloj", color = Brand.Ink, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(
+                        "Tu empresa registra tu jornada con el reloj checador. Aquí ves tus marcajes y puedes reportar si algo no coincide.",
+                        color = Brand.Muted,
+                        fontSize = 13.sp,
+                    )
+                }
+            }
+        } else if (primary == null) {
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -200,7 +220,7 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
             Text(clock, color = Brand.Ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
         }
 
-        state.next.drop(1).forEach { other ->
+        if (state.canPunch) state.next.drop(1).forEach { other ->
             Text(
                 "o ${other.action.replaceFirstChar { it.lowercase() }} sin salir a comer",
                 modifier = Modifier
@@ -232,7 +252,7 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
             }
         }
 
-        if (!compact) CheckOptions(state, viewModel)
+        if (!compact && state.canPunch) CheckOptions(state, viewModel)
     }
 }
 

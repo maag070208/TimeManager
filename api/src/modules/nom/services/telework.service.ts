@@ -376,7 +376,7 @@ export class TeleworkService {
   async me(userId: string): Promise<MyTelework> {
     const user = await this.db.user.findUnique({
       where: { id: userId },
-      select: { tenantId: true },
+      select: { tenantId: true, checkinMode: true },
     });
     if (!user?.tenantId) throw new HttpError(400, "TENANT_REQUIRED");
 
@@ -399,7 +399,9 @@ export class TeleworkService {
       registration: registration ? this.toRegistrationDto(registration) : null,
       policy: config.policy,
       remotePunchEnabled: config.remotePunchEnabled,
+      canPunchRemote: config.remotePunchEnabled && user.checkinMode !== "CLOCK",
       remoteGeolocationEnabled: config.remoteGeolocationEnabled,
+      lunchPunchEnabled: config.lunchPunchEnabled,
       checklistTemplate: this.checklistTemplate(),
       lastChecklist: lastChecklist ? this.toChecklistDto(lastChecklist) : null,
       nextPeriodicDueAt: registration

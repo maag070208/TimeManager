@@ -56,19 +56,28 @@ describe("alta de cliente: su administrador puede entrar", () => {
   });
 
   test("con contraseña definida por plataforma entra y no se devuelve la contraseña", async () => {
-    const { response, slug } = await createClient({ password: "Admin123" });
+    const { response, slug } = await createClient({ password: "ClaveInicial2027" });
     expectStatus(response, 201, "alta con contraseña definida");
     assert.equal(response.body?.temporaryPassword, undefined);
 
-    const first = await login(slug, "maria.perez", "Admin123");
+    const first = await login(slug, "maria.perez", "ClaveInicial2027");
     expectStatus(first, 200, "login con la contraseña definida");
     assert.equal(first.body?.user?.mustChangePassword, true);
   });
 
+  test("rechaza usuarios genéricos y contraseñas cortas", async () => {
+    for (const username of ["admin", "Admin", "root", "usuario"]) {
+      const { response } = await createClient({ username });
+      assert.equal(response.status, 400, `usuario genérico "${username}"`);
+    }
+    const { response } = await createClient({ password: "Admin123" });
+    assert.equal(response.status, 400, "contraseña de menos de 12 caracteres");
+  });
+
   test("solo entra por su subdominio: ni sin cliente ni con una cuenta de plataforma", async () => {
-    const { response, slug } = await createClient({ password: "Admin123" });
+    const { response, slug } = await createClient({ password: "ClaveInicial2027" });
     expectStatus(response, 201, "alta de cliente");
-    expectError(await login(undefined, "maria.perez", "Admin123"), 401, "INVALID_CREDENTIALS", "sin subdominio");
-    expectError(await login(slug, platform.user.username, "Admin123"), 401, "INVALID_CREDENTIALS", "cuenta de plataforma en el subdominio del cliente");
+    expectError(await login(undefined, "maria.perez", "ClaveInicial2027"), 401, "INVALID_CREDENTIALS", "sin subdominio");
+    expectError(await login(slug, platform.user.username, "ClaveInicial2027"), 401, "INVALID_CREDENTIALS", "cuenta de plataforma en el subdominio del cliente");
   });
 });
