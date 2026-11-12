@@ -63,14 +63,18 @@ export class StpsExportService {
     });
 
     // Asegura el ledger semanal del periodo para exportar las bolsas.
+    // Cada semana es independiente (su propia fila de ledger): se calculan en paralelo.
     if (this.weekly) {
+      const weekKeys: string[] = [];
       for (
         let cursor = new Date(range.start.getTime());
         cursor.getTime() < range.end.getTime();
         cursor = new Date(cursor.getTime() + 7 * 24 * 60 * 60 * 1000)
       ) {
-        await this.weekly.computeWeek(tenantId, localDateKey(cursor, range.timezone));
+        weekKeys.push(localDateKey(cursor, range.timezone));
       }
+      const weekly = this.weekly;
+      await Promise.all(weekKeys.map((week) => weekly.computeWeek(tenantId, week)));
     }
 
     type LedgerDay = {

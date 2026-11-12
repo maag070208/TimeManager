@@ -1,3 +1,4 @@
+import { tenantCalendar } from "@core/utils/tenant-timezone";
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
@@ -121,23 +122,32 @@ export class TimeClockReportService {
     const range = await this.resolveRange(filters);
     const includeInactive = filters.includeInactive === true || filters.includeInactive === "true";
     const tenantId = currentTenantId();
-    const nomSettings = tenantId
-      ? await this.db.nomSettings.findUnique({
-          where: { tenantId },
-          select: { remoteCountsForWorkday: true },
-        })
-      : null;
+    // Lo que no depende de nada más se pide junto: cada viaje a la BD cuenta.
+    const [nomSettings, fromAttendance] = await Promise.all([
+      tenantId
+        ? this.db.nomSettings.findUnique({
+            where: { tenantId },
+            select: { remoteCountsForWorkday: true },
+          })
+        : null,
+      this.onlyAttendanceClocks(),
+    ]);
     const remoteCountsForWorkday = nomSettings?.remoteCountsForWorkday ?? true;
-    const fromAttendance = await this.onlyAttendanceClocks();
     const people = this.filter(await this.universe(range, includeInactive, fromAttendance), filters);
 
     const numbers = people.flatMap((p) => p.clockNumbers);
     const webOnlyNumbers = new Set(people.filter((p) => p.checkinMode === "WEB").flatMap((p) => p.clockNumbers));
     const clockNumbers = numbers.filter((number) => !webOnlyNumbers.has(number));
-    const punches =
+    // Checadas del reloj y web/app de la misma gente: independientes, se piden juntas.
+    // RJ-02: las web/app solo cuentan si ese día no hay reloj.
+    const remoteUserIds = people
+      .filter((person) => person.checkinMode !== "CLOCK")
+      .map((person) => person.id)
+      .filter((id) => !id.startsWith("reloj:"));
+    const [punches, remotePunches] = await Promise.all([
       clockNumbers.length === 0
         ? []
-        : await this.db.timeClockPunch.findMany({
+        : this.db.timeClockPunch.findMany({
             where: {
               ...fromAttendance,
               employeeNumber: { in: clockNumbers },
@@ -151,13 +161,30 @@ export class TimeClockReportService {
             },
             orderBy: [{ occurredAt: "asc" }, { serialNo: "asc" }],
             select: { id: true, employeeNumber: true, occurredAt: true },
-          });
+          }),
+      this.db.remotePunch.findMany({
+        where: { userId: { in: remoteUserIds }, occurredAt: { gte: range.start, lt: range.end } },
+        orderBy: { occurredAt: "asc" },
+        select: { id: true, userId: true, type: true, occurredAt: true },
+      }),
+    ]);
 
-    // RJ-03: la jornada usa el valor VIGENTE de cada checada (original + ajustes aprobados).
-    const adjustments = await loadApprovedAdjustments(
-      this.db,
-      punches.map((punch) => punch.id)
-    );
+    // RJ-03/RJ-04: valor VIGENTE de cada checada (original + ajustes aprobados), reloj y web/app juntos.
+    const [adjustments, remoteAdjustments] = await Promise.all([
+      loadApprovedAdjustments(
+        this.db,
+        punches.map((punch) => punch.id)
+      ),
+      this.db.punchAdjustment.findMany({
+        where: {
+          targetType: "REMOTE",
+          targetId: { in: remotePunches.map((punch) => punch.id) },
+          status: "APPROVED",
+        },
+        orderBy: [{ decidedAt: "asc" }, { createdAt: "asc" }],
+        select: { targetId: true, newState: true },
+      }),
+    ]);
 
     const effectivePunches = applyApprovedAdjustments(punches, adjustments);
     const byNumber = new Map<string, Date[]>();
@@ -167,25 +194,6 @@ export class TimeClockReportService {
       else byNumber.set(c.employeeNumber, [c.occurredAt]);
     }
 
-    // RJ-02: checadas web/app por persona (solo cuentan si ese día no hay reloj).
-    const remotePunches = await this.db.remotePunch.findMany({
-      where: {
-        userId: { in: people.filter((person) => person.checkinMode !== "CLOCK").map((person) => person.id).filter((id) => !id.startsWith("reloj:")) },
-        occurredAt: { gte: range.start, lt: range.end },
-      },
-      orderBy: { occurredAt: "asc" },
-      select: { id: true, userId: true, type: true, occurredAt: true },
-    });
-    // RJ-04: ajustes aprobados sobre marcajes remotos (hora y tipo vigentes).
-    const remoteAdjustments = await this.db.punchAdjustment.findMany({
-      where: {
-        targetType: "REMOTE",
-        targetId: { in: remotePunches.map((punch) => punch.id) },
-        status: "APPROVED",
-      },
-      orderBy: [{ decidedAt: "asc" }, { createdAt: "asc" }],
-      select: { targetId: true, newState: true },
-    });
     const remoteStateById = new Map<string, { occurredAt?: string; type?: string }>();
     for (const adjustment of remoteAdjustments) {
       const state = adjustment.newState as Record<string, unknown>;
@@ -265,7 +273,7 @@ export class TimeClockReportService {
       await (async () => {
         const tenantId = currentTenantId();
         const tenant = tenantId
-          ? await this.db.tenant.findUnique({ where: { id: tenantId }, select: { weekStartDay: true } })
+          ? await tenantCalendar(tenantId, this.db as never)
           : null;
         return tenant?.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
       })()
@@ -297,7 +305,7 @@ export class TimeClockReportService {
     includeInactive: boolean,
     fromAttendance: Prisma.TimeClockPunchWhereInput
   ): Promise<Person[]> {
-    const [links, inPeriod] = await Promise.all([
+    const [links, inPeriod, remotePeople] = await Promise.all([
       this.db.timeClockEmployee.findMany({
         select: { employeeNumber: true, user: { select: universeSelect } },
       }),
@@ -305,19 +313,16 @@ export class TimeClockReportService {
         by: ["employeeNumber"],
         where: { ...fromAttendance, method: { not: "OTHER" }, occurredAt: { gte: range.start, lt: range.end } },
       }),
+      // Quien checó por web/app en el periodo (un solo viaje con la relación).
+      this.db.user.findMany({
+        where: {
+          remotePunches: { some: { occurredAt: { gte: range.start, lt: range.end } } },
+          active: includeInactive ? undefined : true,
+        },
+        select: universeSelect,
+      }),
     ]);
     const punched = new Set(inPeriod.map((c) => c.employeeNumber));
-    const remoteUsers = await this.db.remotePunch.groupBy({
-      by: ["userId"],
-      where: { occurredAt: { gte: range.start, lt: range.end } },
-    });
-    const remotePeople =
-      remoteUsers.length > 0
-        ? await this.db.user.findMany({
-            where: { id: { in: remoteUsers.map((row) => row.userId) }, active: includeInactive ? undefined : true },
-            select: universeSelect,
-          })
-        : [];
 
     const byUser = new Map<string, Person>();
     for (const { employeeNumber, user } of links) {

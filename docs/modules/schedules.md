@@ -43,6 +43,8 @@ Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Hor
 ## Frontend
 
 `pages/schedules/*`, `features/schedule/*` (assign, schedules-table, weekly-attendance), `entities/schedule`, widgets de reportes de asistencia. App móvil: `PayrollScreen.kt`.
+- Formulario de horario (`features/schedule/schedule-form`): **horario base** con días laborales como botones (L M M J V S D), entrada y salida con `ITTimePicker` y botón **Aplicar a todos** que copia las horas a cada día laboral; por día se ajusta solo lo distinto. El nombre se propone solo («L–S 08:00–16:00», `suggestedName`) hasta que lo escriban. `splitStartTime`/`splitEndTime` es un **segundo turno** (jornada partida) que suma horas, no la comida: se abre por día con «Agregar segundo turno». **Comida por día:** `schedule_days.mealStartTime`/`mealEndTime` (migración `20261213000000_schedule_day_meal_window`, ambas o ninguna → 400). Si el día tiene ventana se descuenta esa (`mealMinutesOf`), si no los `mealBreakMin` del horario («Comida sin horario fijo»); aplica al cálculo de jornada, a la validación legal y a los totales de la web. El horario base copia entrada, salida y comida con «Aplicar a todos». La app móvil conserva la ventana al guardar pero no la edita.
+- **Errores de horario claros:** `SCHEDULE_ILLEGAL` ya no muestra códigos: cada regla se explica en el idioma de la petición (`scheduleRules.*`: «la semana suma 54 h y el máximo legal es 48 h…», «marca al menos uno de descanso», «el miércoles pasa de 12 horas»); los códigos siguen en `params.codes`. El resumen del formulario avisa antes de guardar si no hay día de descanso o un día pasa de 12 h.
 
 ## Dependencias
 

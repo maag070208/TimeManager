@@ -1,3 +1,5 @@
+import { t, type MessageKey } from "@core/i18n";
+import { tenantCalendar } from "@core/utils/tenant-timezone";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { requireTenantId, tenantTransaction } from "@core/tenancy";
@@ -38,6 +40,26 @@ const MS_PER_MINUTE = 60 * 1000;
 // Helpers de jornada: viven en `workday-rules` (compartidos con el reporte semanal).
 export { toUtcDate, dateKeyOf } from "./workday-rules";
 
+const hoursText = (minutes: number): string => {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}:${String(m).padStart(2, "0")}` : String(h);
+};
+
+/** Violaciones H-02 en lenguaje claro, en el idioma de la petición ("DIA_MAYOR_12H:3" → "el miércoles pasa de 12 horas"). */
+const describeViolations = (legality: { violations: string[]; weeklyMinutes: number; legalWeeklyMinutes: number }): string =>
+  legality.violations
+    .map((violation) => {
+      const [code, weekday] = violation.split(":");
+      if (code === "SEMANA_MAYOR_LEGAL") {
+        return t("scheduleRules.SEMANA_MAYOR_LEGAL", { weekly: hoursText(legality.weeklyMinutes), legal: hoursText(legality.legalWeeklyMinutes) });
+      }
+      if (code === "SIN_DIA_DE_DESCANSO") return t("scheduleRules.SIN_DIA_DE_DESCANSO");
+      if (code === "DIA_MAYOR_12H") return t("scheduleRules.DIA_MAYOR_12H", { day: t(`scheduleRules.day${weekday}` as MessageKey) });
+      return violation;
+    })
+    .join("; ");
+
 export class ScheduleService {
   constructor(
     private readonly db: PrismaClient = prismaClient,
@@ -69,6 +91,8 @@ export class ScheduleService {
       endTime: restDay ? null : d.endTime ?? null,
       splitStartTime: restDay ? null : d.splitStartTime ?? null,
       splitEndTime: restDay ? null : d.splitEndTime ?? null,
+      mealStartTime: restDay ? null : d.mealStartTime ?? null,
+      mealEndTime: restDay ? null : d.mealEndTime ?? null,
     };
   }
 
@@ -94,7 +118,8 @@ export class ScheduleService {
     });
     if (!legality.valid) {
       throw new HttpError(400, "SCHEDULE_ILLEGAL", {
-        violations: legality.violations,
+        violations: describeViolations(legality),
+        codes: legality.violations,
         weeklyMinutes: legality.weeklyMinutes,
         legalWeeklyMinutes: legality.legalWeeklyMinutes,
       });
@@ -127,7 +152,8 @@ export class ScheduleService {
     });
     if (!legality.valid) {
       throw new HttpError(400, "SCHEDULE_ILLEGAL", {
-        violations: legality.violations,
+        violations: describeViolations(legality),
+        codes: legality.violations,
         weeklyMinutes: legality.weeklyMinutes,
         legalWeeklyMinutes: legality.legalWeeklyMinutes,
       });
@@ -364,11 +390,8 @@ export class ScheduleService {
     const dateKey = assertDateKey(filters.date, "INVALID_REPORT_DATE");
     const explicitTz = typeof filters.tz === "string" && filters.tz !== "" ? filters.tz : undefined;
     const timezone = await resolveTimezoneWithConfig(explicitTz, this.sysConfig);
-    const tenant = await this.db.tenant.findUnique({
-      where: { id: requireTenantId() },
-      select: { weekStartDay: true },
-    });
-    const weekStart = tenant?.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
+    const tenant = await tenantCalendar(requireTenantId(), this.db as never);
+    const weekStart = tenant.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
     const { start, end } = resolveReportRange(rawPeriod, dateKey, timezone, weekStart);
     return { start, end, timezone, period: rawPeriod };
   }

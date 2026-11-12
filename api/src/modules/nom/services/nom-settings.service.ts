@@ -1,3 +1,4 @@
+import { forgetTenantTimezone, tenantCalendar } from "@core/utils/tenant-timezone";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
@@ -141,14 +142,16 @@ export class NomSettingsService {
   async resolve(tenantId: string): Promise<NomConfig> {
     const [settings, tenant] = await Promise.all([
       this.db.nomSettings.findUnique({ where: { tenantId } }),
-      this.db.tenant.findUnique({ where: { id: tenantId }, select: { timezone: true, weekStartDay: true } }),
+      tenantCalendar(tenantId, this.db as never),
     ]);
-    const timezone = tenant?.timezone ?? "America/Mexico_City";
+    const timezone = tenant.timezone ?? "America/Mexico_City";
     const year = Number(localDateKey(new Date(), timezone).slice(0, 4));
 
-    const sysWorkday = await this.sysInt(NOM_WORKDAY_LIMIT_CONFIG_KEY);
-    const sysWeekly = await this.sysInt(NOM_WEEKLY_LIMIT_CONFIG_KEY);
-    const sysRetention = await this.sysInt(NOM_RETENTION_MONTHS_CONFIG_KEY);
+    const [sysWorkday, sysWeekly, sysRetention] = await Promise.all([
+      this.sysInt(NOM_WORKDAY_LIMIT_CONFIG_KEY),
+      this.sysInt(NOM_WEEKLY_LIMIT_CONFIG_KEY),
+      this.sysInt(NOM_RETENTION_MONTHS_CONFIG_KEY),
+    ]);
     const legalWeekly = weeklyLimitForYear(year);
 
     // Solo más estricto que la ley: recorta valores legados o de sys_config.
@@ -173,7 +176,7 @@ export class NomSettingsService {
 
     return {
       workdayLimitMinutes,
-      weekStartDay: tenant?.weekStartDay ?? 3,
+      weekStartDay: tenant.weekStartDay ?? 3,
       attendanceDefaults: {
         entryToleranceMin: settings?.defaultEntryToleranceMin ?? 10,
         exitToleranceMin: settings?.defaultExitToleranceMin ?? 10,
@@ -259,6 +262,7 @@ export class NomSettingsService {
     // Se guarda hasta que toda la petición pasó la validación.
     if (input.weekStartDay != null) {
       await this.db.tenant.update({ where: { id: tenantId }, data: { weekStartDay: input.weekStartDay } });
+      forgetTenantTimezone(tenantId);
     }
     // Lo mismo en el alta que en la edición: en un cliente sin configuración
     // el primer guardado también aplica todos los campos que llegan.

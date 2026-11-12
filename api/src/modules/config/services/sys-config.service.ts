@@ -35,7 +35,8 @@ export class SysConfigService {
   // sys_config es de PLATAFORMA (sin tenantId): una sola clave por config,
   // compartida por todos los clientes. Si algún día haya config por cliente,
   // la clave debe pasar a `${tenantId}:${key}`.
-  private readonly cache = new Map<string, { value: string; ts: number }>();
+  // `value: null` = la clave no existe: también se cachea para no consultarla en cada petición.
+  private readonly cache = new Map<string, { value: string | null; ts: number }>();
 
   constructor(
     private readonly db: PrismaClient = prismaClient,
@@ -50,17 +51,18 @@ export class SysConfigService {
     }
   }
 
-  private cacheGet(key: string): string | null {
+  /** `undefined` = no está en cache; `null` = se sabe que la clave no existe. */
+  private cacheGet(key: string): string | null | undefined {
     const hit = this.cache.get(key);
-    if (!hit) return null;
+    if (!hit) return undefined;
     if (Date.now() - hit.ts > CACHE_TTL_MS) {
       this.cache.delete(key);
-      return null;
+      return undefined;
     }
     return hit.value;
   }
 
-  private cacheSet(key: string, value: string) {
+  private cacheSet(key: string, value: string | null) {
     this.cache.set(key, { value, ts: Date.now() });
   }
 
@@ -78,7 +80,8 @@ export class SysConfigService {
   async get(key: string): Promise<SysConfigRecord | null> {
     assertSysConfigKey(key);
     const cached = this.cacheGet(key);
-    if (cached !== null) {
+    if (cached === null) return null;
+    if (cached !== undefined) {
       return {
         id: "cached",
         key,
@@ -93,8 +96,7 @@ export class SysConfigService {
       where: { key },
       select: sysConfigSelect,
     });
-    if (!row) return null;
-    this.cacheSet(key, row.value);
+    this.cacheSet(key, row?.value ?? null);
     return row;
   }
 

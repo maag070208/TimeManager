@@ -32,7 +32,7 @@ const Usage = ({ icon, usage, limit, unlimited }: { icon: ReactNode; usage: numb
         <span className="text-slate-400">/ {limit ?? unlimited}</span>
       </span>
       {limit !== null && (
-        <span className="mt-1 block h-1 w-full max-w-[96px] overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <span className="mt-1 block h-1 w-full max-w-[96px] overflow-hidden rounded-full bg-slate-100">
           <span
             className={`block h-full rounded-full ${over ? "bg-rose-500" : percent >= 85 ? "bg-amber-500" : "bg-emerald-500"}`}
             style={{ width: `${Math.max(percent, usage > 0 ? 4 : 0)}%` }}
@@ -57,11 +57,11 @@ export default function TenantsTable({ rows }: Props) {
       cellClassName: "min-w-[220px]",
       render: (row) => (
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[12px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-200">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[12px] font-bold text-slate-600">
             {initials(row.name)}
           </span>
           <div className="min-w-0">
-            <ITText className="block truncate font-semibold text-slate-800 dark:text-slate-100">{row.name}</ITText>
+            <ITText className="block truncate font-semibold text-slate-800">{row.name}</ITText>
             <a
               href={tenantUrl(row.slug)}
               target="_blank"

@@ -67,6 +67,9 @@ data class ScheduleDay(
     val endTime: String? = null,
     val splitStartTime: String? = null,
     val splitEndTime: String? = null,
+    /** Comida de ese día (p. ej. 12:00-13:00); se edita en la web y aquí solo se conserva al guardar. */
+    val mealStartTime: String? = null,
+    val mealEndTime: String? = null,
     val restDay: Boolean = false,
 )
 

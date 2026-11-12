@@ -29,18 +29,16 @@ const Choice = ({ selected, onSelect, title, children }: { selected: boolean; on
     aria-checked={selected}
     onClick={onSelect}
     className={`flex min-w-0 flex-col gap-1 rounded-2xl border px-4 py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 ${
-      selected
-        ? "border-[color:var(--color-primary)] bg-[color:var(--color-primary-soft)] shadow-sm"
-        : "border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900"
+      selected ? "shadow-sm" : "hover:border-slate-300"
     }`}
+    style={selected ? { borderColor: "#0f172a", backgroundColor: "#f8fafc" } : { borderColor: "#e2e8f0", backgroundColor: "#ffffff" }}
   >
     <span className="flex items-center justify-between gap-2">
-      <span className="min-w-0 truncate text-[14px] font-bold text-slate-800 dark:text-slate-100">{title}</span>
+      <span className="min-w-0 truncate text-[14px] font-bold text-slate-800">{title}</span>
       <span
         aria-hidden
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-          selected ? "border-transparent bg-[color:var(--color-primary)] text-white" : "border-slate-300 dark:border-slate-600"
-        }`}
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
+        style={selected ? { borderColor: "#0f172a", backgroundColor: "#0f172a", color: "#ffffff" } : { borderColor: "#cbd5e1" }}
       >
         {selected && <LuCheck size={12} strokeWidth={3} />}
       </span>
@@ -90,7 +88,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
               <LuCheck size={24} strokeWidth={3} />
             </span>
             <div className="min-w-0">
-              <ITText as="h2" className="m-0 truncate !text-[22px] font-extrabold !text-slate-900 dark:!text-slate-100">
+              <ITText as="h2" className="m-0 truncate !text-[22px] font-extrabold !text-slate-900">
                 {t("platform.create.done.title", { name: tenant.name })}
               </ITText>
               <ITText className="!text-[13px] text-slate-500">{t("platform.create.done.subtitle", { admin: fx.form.adminName.trim() || admin.username })}</ITText>
@@ -99,10 +97,10 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
 
           <ul className="mt-6 flex flex-col gap-2">
             {rows.map((row) => (
-              <li key={row.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
+              <li key={row.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
                 <div className="min-w-0">
                   <span className="block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-500">{row.label}</span>
-                  <span className={`block break-all text-[17px] font-bold text-slate-900 dark:text-slate-100 ${row.copy ? "font-mono" : ""}`}>{row.value}</span>
+                  <span className={`block break-all text-[17px] font-bold text-slate-900 ${row.copy ? "font-mono" : ""}`}>{row.value}</span>
                 </div>
                 {row.copy && (
                   <ITButton
@@ -120,7 +118,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
             ))}
           </ul>
 
-          <ITText className="mt-3 block !text-[12.5px] text-slate-600 dark:text-slate-300">
+          <ITText className="mt-3 block !text-[12.5px] text-slate-600">
             {welcomeEmail ? t("platform.create.done.emailed", { email: welcomeEmail }) : t("platform.create.done.notEmailed")}
             {` ${t("platform.create.done.onlyNow")}`}
           </ITText>
@@ -159,16 +157,16 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
         </ITCard>
 
         <ITCard className="self-start" contentClassName="!p-5">
-          <ITText as="h3" className="m-0 mb-3 !text-[16px] font-bold !text-slate-800 dark:!text-slate-100">{t("platform.create.done.nextTitle")}</ITText>
+          <ITText as="h3" className="m-0 mb-3 !text-[16px] font-bold !text-slate-800">{t("platform.create.done.nextTitle")}</ITText>
           <ol className="flex flex-col gap-3">
             {(["next1", "next2", "next3"] as const).map((key, index) => (
-              <li key={key} className="flex gap-3 text-[12.5px] text-slate-600 dark:text-slate-300">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-extrabold text-slate-600 dark:bg-slate-800 dark:text-slate-200">{index + 1}</span>
+              <li key={key} className="flex gap-3 text-[12.5px] text-slate-600">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-extrabold text-slate-600">{index + 1}</span>
                 <span>{t(`platform.create.done.${key}`)}</span>
               </li>
             ))}
           </ol>
-          <ITText className="mt-4 block rounded-xl bg-amber-50 px-3 py-2 !text-[12px] text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+          <ITText className="mt-4 block rounded-xl bg-amber-50 px-3 py-2 !text-[12px] text-amber-900">
             {t("platform.create.done.useThisUser", { user: admin.username })}
           </ITText>
         </ITCard>
@@ -241,7 +239,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
                   {host && !fx.errors.slug && fx.complete.company ? (
                     <>
                       <span>{t("platform.create.company.slugPreview")}</span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-mono text-[12.5px] font-semibold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-mono text-[12.5px] font-semibold text-emerald-800">
                         <LuGlobe size={12} /> {host}
                       </span>
                     </>
@@ -264,7 +262,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
                   </Choice>
                   {fx.plans.map((item) => (
                     <Choice key={item.id} selected={fx.form.planId === item.id} onSelect={() => fx.set("planId", item.id)} title={item.name}>
-                      <span className="text-[15px] font-extrabold tabular-nums text-slate-900 dark:text-slate-100">
+                      <span className="text-[15px] font-extrabold tabular-nums text-slate-900">
                         {item.monthlyPrice ? (
                           <>
                             {money(item.monthlyPrice)}
@@ -295,7 +293,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
                     <ITText className="mt-1 block !text-[12px] text-slate-500">{t("platform.create.plan.employeeLimitHint")}</ITText>
                   </div>
                 ) : (
-                  <button type="button" className="mt-3 text-[12px] font-semibold text-slate-600 underline underline-offset-2 dark:text-slate-300" onClick={() => setCustomLimit(true)}>
+                  <button type="button" className="mt-3 text-[12px] font-semibold text-slate-600 underline underline-offset-2" onClick={() => setCustomLimit(true)}>
                     {t("platform.create.plan.customLimit")}
                   </button>
                 )}
@@ -352,7 +350,7 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
                 />
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
                   <ITText className="!text-[12px] text-slate-500">{t("platform.create.admin.passwordHint")}</ITText>
-                  <button type="button" className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700 underline underline-offset-2 dark:text-slate-200" onClick={() => fx.set("adminPassword", generatePassword())}>
+                  <button type="button" className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700 underline underline-offset-2" onClick={() => fx.set("adminPassword", generatePassword())}>
                     <LuRefreshCw size={11} /> {t("platform.create.admin.regenerate")}
                   </button>
                 </div>
@@ -368,11 +366,11 @@ export default function CreateTenantForm({ onCancel, onView }: Props) {
           footer={<ITText className="block !text-[11.5px] text-slate-500">{t("platform.create.summary.note")}</ITText>}
         >
           <div className="mb-1 flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-[15px] font-extrabold text-slate-600 dark:bg-slate-800 dark:text-slate-200">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-[15px] font-extrabold text-slate-600">
               {fx.form.name.trim().slice(0, 1).toUpperCase() || <LuBuilding2 size={18} />}
             </span>
             <div className="min-w-0">
-              <ITText className="block truncate !text-[14px] font-bold !text-slate-800 dark:!text-slate-100">{fx.form.name.trim() || t("platform.create.company.name")}</ITText>
+              <ITText className="block truncate !text-[14px] font-bold !text-slate-800">{fx.form.name.trim() || t("platform.create.company.name")}</ITText>
               <ITText className="block truncate font-mono !text-[11.5px] text-slate-500">{host || "…"}</ITText>
             </div>
           </div>

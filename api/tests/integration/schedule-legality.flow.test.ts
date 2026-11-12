@@ -37,6 +37,7 @@ describe("F2 horarios legales y transición 2027", () => {
       },
     });
     expectError(tooLong, 400, "SCHEDULE_ILLEGAL", "semana mayor al tope legal");
+    assert.match(String(tooLong.body?.message), /la semana suma 54 h y el máximo legal es \d+ h/, "el mensaje explica el tope sin códigos");
 
     const noRest = await api("POST", "/schedules", {
       token: admin.token,
@@ -47,6 +48,35 @@ describe("F2 horarios legales y transición 2027", () => {
       },
     });
     expectError(noRest, 400, "SCHEDULE_ILLEGAL", "semana sin día de descanso");
+    assert.match(String(noRest.body?.message), /marca al menos uno de descanso/, "el mensaje dice qué hacer");
+    assert.doesNotMatch(String(noRest.body?.message), /SIN_DIA_DE_DESCANSO|SEMANA_MAYOR_LEGAL/, "sin códigos internos");
+  });
+
+  test("la comida puede ser distinta cada día y se guarda por día", async () => {
+    const admin = await clientSession("CLIENT_ADMIN");
+    const created = await api("POST", "/schedules", {
+      token: admin.token,
+      body: {
+        name: "Comida por día",
+        mealBreakMin: 60,
+        days: [
+          { ...day(1), mealStartTime: "12:00", mealEndTime: "13:00" },
+          { ...day(2), mealStartTime: "14:00", mealEndTime: "15:00" },
+          day(3),
+          { weekday: 7, restDay: true },
+        ],
+      },
+    });
+    expectStatus(created, 201, "horario con comida por día");
+    const days = created.body?.days as Array<{ weekday: number; mealStartTime: string | null; mealEndTime: string | null }>;
+    assert.deepEqual(days.find((row) => row.weekday === 2), { ...days.find((row) => row.weekday === 2), mealStartTime: "14:00", mealEndTime: "15:00" });
+    assert.equal(days.find((row) => row.weekday === 3)?.mealStartTime, null, "sin ventana usa los minutos del horario");
+
+    const incomplete = await api("POST", "/schedules", {
+      token: admin.token,
+      body: { name: "Comida incompleta", days: [{ ...day(1), mealStartTime: "12:00" }, { weekday: 7, restDay: true }] },
+    });
+    assert.equal(incomplete.status, 400, "la comida necesita inicio y fin");
   });
 
   test("los defaults de asistencia del cliente aplican a horarios nuevos", async () => {

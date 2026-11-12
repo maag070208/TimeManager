@@ -6,6 +6,8 @@ export interface ScheduleDayEntity {
   endTime: string | null;
   splitStartTime: string | null;
   splitEndTime: string | null;
+  mealStartTime: string | null;
+  mealEndTime: string | null;
   restDay: boolean;
 }
 

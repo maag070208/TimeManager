@@ -83,6 +83,15 @@ export const shiftTypeOf = (day: {
   return night < 210 ? "MIXTA" : "NOCTURNA";
 };
 
+/**
+ * Minutos de comida que se descuentan en un día: la ventana del día
+ * (`mealStartTime`–`mealEndTime`) si tiene, si no los `mealBreakMin` del horario.
+ */
+export const mealMinutesOf = (
+  day: { mealStartTime?: string | null; mealEndTime?: string | null },
+  mealBreakMin: number
+): number => (day.mealStartTime && day.mealEndTime ? minutesBetween(day.mealStartTime, day.mealEndTime) : mealBreakMin);
+
 export interface WorkdaySchedule {
   name: string;
   entryToleranceMin: number;
@@ -96,6 +105,8 @@ export interface WorkdaySchedule {
     endTime: string | null;
     splitStartTime: string | null;
     splitEndTime: string | null;
+    mealStartTime?: string | null;
+    mealEndTime?: string | null;
     restDay: boolean;
   }>;
 }
@@ -189,7 +200,7 @@ export const computeWorkday = (
     0,
     minutesBetween(day.startTime, day.endTime) +
       (day.splitStartTime && day.splitEndTime ? minutesBetween(day.splitStartTime, day.splitEndTime) : 0) -
-      schedule.mealBreakMin
+      mealMinutesOf(day, schedule.mealBreakMin)
   );
 
   // RJ-08: la jornada ordinaria diaria se topa al estándar del turno (8/7/7.5 h)
@@ -257,6 +268,8 @@ export interface ScheduleValidationDay {
   endTime: string | null;
   splitStartTime: string | null;
   splitEndTime: string | null;
+  mealStartTime?: string | null;
+  mealEndTime?: string | null;
   restDay: boolean;
 }
 
@@ -302,7 +315,8 @@ export const validateScheduleLegality = (
       (day.splitStartTime && day.splitEndTime
         ? minutesBetween(day.splitStartTime, day.splitEndTime)
         : 0);
-    const net = Math.max(0, minutes - input.mealBreakMin);
+    const meal = mealMinutesOf(day, input.mealBreakMin);
+    const net = Math.max(0, minutes - meal);
     weeklyMinutes += net;
     maxDailyMinutes = Math.max(maxDailyMinutes, net);
 
@@ -310,7 +324,7 @@ export const validateScheduleLegality = (
     if (net > 12 * 60) violations.push(`DIA_MAYOR_12H:${day.weekday}`);
     else if (net > maxDailyMinutesForShift(shift)) warnings.push(`DIA_MAYOR_ESTANDAR:${day.weekday}`);
     const continuous = !day.splitStartTime && !day.splitEndTime;
-    if (continuous && net >= 6 * 60 && input.mealBreakMin < 30) {
+    if (continuous && net >= 6 * 60 && meal < 30) {
       warnings.push(`DESCANSO_NO_DECLARADO:${day.weekday}`);
     }
   }

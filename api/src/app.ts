@@ -36,6 +36,8 @@ const trustProxyValue = (raw: string): boolean | number | string | string[] => {
 
 // Id de correlación en el access log (morgan no lo conoce por defecto).
 morgan.token("reqid", () => currentRequestContext()?.requestId ?? "-");
+// Consultas a la BD de la petición: el indicador principal de latencia (cada una es un viaje).
+morgan.token("queries", (_req, res) => String((res as { locals?: { requestContext?: { queries?: number } } }).locals?.requestContext?.queries ?? 0));
 
 export const createApp = () => {
   const app = express();
@@ -58,7 +60,7 @@ export const createApp = () => {
       crossOriginResourcePolicy: false,
       contentSecurityPolicy: false,
     }),
-    morgan(config.NODE_ENV === "development" ? "dev" : ":method :url :status :response-time ms req=:reqid", {
+    morgan(config.NODE_ENV === "development" ? ":method :url :status :response-time ms q=:queries" : ":method :url :status :response-time ms q=:queries req=:reqid", {
       stream: { write: (line: string) => process.stdout.write(line) },
     }),
   ]);

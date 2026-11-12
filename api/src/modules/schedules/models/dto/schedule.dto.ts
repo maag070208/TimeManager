@@ -22,6 +22,8 @@ export const ScheduleDaySchema = registry.register(
     endTime: z.string().nullable(),
     splitStartTime: z.string().nullable(),
     splitEndTime: z.string().nullable(),
+    mealStartTime: z.string().nullable(),
+    mealEndTime: z.string().nullable(),
     restDay: z.boolean(),
   })
 );
@@ -50,8 +52,11 @@ const ScheduleDayInput = z.object({
   endTime: HHMM.nullable().optional(),
   splitStartTime: HHMM.nullable().optional(),
   splitEndTime: HHMM.nullable().optional(),
+  /** Comida de ese día; si viene, se descuenta en lugar de `mealBreakMin`. Van juntas. */
+  mealStartTime: HHMM.nullable().optional(),
+  mealEndTime: HHMM.nullable().optional(),
   restDay: z.boolean().optional(),
-});
+}).refine((day) => !day.mealStartTime === !day.mealEndTime, { message: "MEAL_WINDOW_INCOMPLETE", path: ["mealEndTime"] });
 
 export const ScheduleCreateDto = registry.register(
   "ScheduleCreateInput",

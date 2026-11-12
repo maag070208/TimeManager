@@ -18,7 +18,10 @@ export const requestContextMiddleware = () => (req: Request, res: Response, next
       ? incoming.trim()
       : newRequestId();
   res.setHeader("X-Request-Id", requestId);
-  runWithRequestContext({ requestId, ip: req.ip ?? null, userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : null }, next);
+  const context = { requestId, ip: req.ip ?? null, userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : null, queries: 0 };
+  // El log de la petición (morgan) lee de aquí cuántas consultas hizo.
+  res.locals.requestContext = context;
+  runWithRequestContext(context, next);
 };
 
 const rateLimitHandler = (_req: Request, res: Response): void => {

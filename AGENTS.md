@@ -34,6 +34,8 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 
 - PostgreSQL en la nube; `DATABASE_URL` en `api/.env` (no commitear).
 - **No usar `DATABASE_URL` como shadow DB**; migraciones SQL a mano con backfill cuando haga falta.
+- **Rendimiento:** cada línea de log de petición trae `q=` (operaciones de BD de esa petición; cada una es al menos un viaje a la base). Para auditar qué consultas hace cada endpoint: `QUERY_TRACE=1 pnpm test:integration` imprime `[q] <request-id> Modelo.operación` por consulta, y `QUERY_DELAY_MS=80` simula la latencia de una BD remota en cada viaje para medir tiempo real (solo para medir; nunca en producción). Las consultas independientes de un endpoint se piden con `Promise.all` (p. ej. reporte del reloj y asistencia semanal). Lecturas repetidas por petición van con caché (`sysConfigService.get` cachea también claves ausentes; `tenantCalendar` cachea zona y semana del cliente 60 s y se invalida al cambiarlas).
+- El API escucha hasta cargar la matriz de permisos (`src/index.ts`): antes, cada petición de un reinicio respondía 403.
 - `pnpm cutover` hace `migrate deploy` + reseed forzado — destructivo, solo si se pide.
 
 ## Web (`web/`)

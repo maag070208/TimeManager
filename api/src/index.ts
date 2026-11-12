@@ -1,3 +1,4 @@
+import type { Server } from "node:http";
 import { createApp } from "./app";
 import { env as config } from "@core/config/env.config";
 import { logger } from "@core/utils/logger";
@@ -20,9 +21,19 @@ const SHUTDOWN_TIMEOUT_MS = 20_000;
  * local se pueden correr dentro del API con `RUN_WORKERS_IN_API=true`.
  */
 const app = createApp();
-const server = app.listen(config.PORT, "0.0.0.0", () => {
-  logger.info(`API running on port ${config.PORT} (${config.NODE_ENV})`);
-});
+let server: Server | null = null;
+
+/**
+ * Se escucha hasta tener cargada la matriz de permisos: antes de eso la matriz
+ * está vacía y cada petición respondería 403 «Permisos insuficientes» (en local
+ * contra una BD remota, varios segundos tras cada reinicio; en producción, en
+ * cada despliegue).
+ */
+const listen = (): void => {
+  server = app.listen(config.PORT, "0.0.0.0", () => {
+    logger.info(`API running on port ${config.PORT} (${config.NODE_ENV})`);
+  });
+};
 
 let workerRuntime: WorkerRuntime | null = null;
 let shuttingDown = false;
@@ -37,7 +48,7 @@ const shutdown = async (signal: string): Promise<void> => {
   }, SHUTDOWN_TIMEOUT_MS);
   force.unref();
 
-  await new Promise<void>((resolve) => server.close(() => resolve()));
+  if (server) await new Promise<void>((resolve) => server!.close(() => resolve()));
   try {
     if (workerRuntime) await workerRuntime.stop();
     await prismaClient.$disconnect();
@@ -52,7 +63,9 @@ const shutdown = async (signal: string): Promise<void> => {
 process.on("SIGTERM", () => void shutdown("SIGTERM"));
 process.on("SIGINT", () => void shutdown("SIGINT"));
 
-if (process.env.NODE_ENV !== "test") {
+if (process.env.NODE_ENV === "test") {
+  listen();
+} else {
   void (async () => {
     // Catálogo y matriz de permisos: la BD manda. Se siembran insert-missing
     // desde los fixtures (sin pisar ediciones) y se cargan en cache. Si falla,
@@ -64,6 +77,7 @@ if (process.env.NODE_ENV !== "test") {
         `Could not load the permission catalog/matrix; the API starts without permissions (everything 403): ${error}`
       );
     }
+    listen();
 
     // Planes de arranque: insert-missing (la migración ya los crea; esto cubre
     // una BD montada con `db push` o un catálogo vaciado a mano).

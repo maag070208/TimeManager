@@ -1,3 +1,4 @@
+import { tenantCalendar } from "@core/utils/tenant-timezone";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { staffRoleKeys } from "@core/permissions";
@@ -98,7 +99,7 @@ export class WeeklyAttendanceService {
     const weekStart = await (async () => {
         const tenantId = currentTenantId();
         const tenant = tenantId
-          ? await this.db.tenant.findUnique({ where: { id: tenantId }, select: { weekStartDay: true } })
+          ? await tenantCalendar(tenantId, this.db as never)
           : null;
         return tenant?.weekStartDay ?? (await resolveWeekStartWithConfig(this.sysConfig));
       })();
@@ -107,11 +108,27 @@ export class WeeklyAttendanceService {
     const days = Array.from({ length: 7 }, (_, i) => addDays(firstDay, i));
     const today = localDateKey(new Date(), timezone);
 
-    // Sesiones del reloj de la semana (una fila por sesión), por persona y día.
-    // `reportExport` ya trae el periodo completo (el cálculo no pagina): se pide
-    // el tope de tabla, no un `limit: 100000` decorativo (F1C-05).
-    const sessions = (
-      await this.timeClockReport.reportExport({
+    const peopleSelect = {
+      id: true,
+      name: true,
+      employeeNumber: true,
+      jobTitle: true,
+      active: true,
+      department: { select: { id: true, name: true } },
+      payrollPosition: { select: { name: true, dailySalary: true, sbcDaily: true } },
+      timeClockEmployees: { select: { employeeNumber: true } },
+    } as const;
+    const peopleWhere = (extraIds: string[]) => ({
+      role: { in: personalRoles() },
+      ...(params.departmentId && { departmentId: params.departmentId }),
+      OR: [{ active: true }, { id: { in: extraIds } }],
+    });
+
+    // Sesiones del reloj de la semana (una fila por sesión), por persona y día, y
+    // el personal activo: independientes, se piden juntas. `reportExport` ya trae
+    // el periodo completo (el cálculo no pagina): se pide el tope de tabla (F1C-05).
+    const [report, activePeople] = await Promise.all([
+      this.timeClockReport.reportExport({
         page: 1,
         limit: TABLE_MAX_LIMIT,
         filters: {
@@ -121,45 +138,59 @@ export class WeeklyAttendanceService {
           ...(params.departmentId && { departmentId: params.departmentId }),
         },
         sort: undefined,
-      })
-    ).data.filter((s) => s.linked === true);
+      }),
+      this.db.user.findMany({ where: peopleWhere([]), select: peopleSelect, orderBy: { name: "asc" } }),
+    ]);
+    const sessions = report.data.filter((s) => s.linked === true);
     const sessionsByKey = new Map<string, typeof sessions>();
     for (const s of sessions) {
       const key = `${s.employeeId}|${s.date}`;
       sessionsByKey.set(key, [...(sessionsByKey.get(key) ?? []), s]);
     }
     const withSessions = [...new Set(sessions.map((s) => s.employeeId))];
-
-    const people = await this.db.user.findMany({
-      where: {
-        role: { in: personalRoles() },
-        ...(params.departmentId && { departmentId: params.departmentId }),
-        OR: [{ active: true }, { id: { in: withSessions } }],
-      },
-      select: {
-        id: true,
-        name: true,
-        employeeNumber: true,
-        jobTitle: true,
-        active: true,
-        department: { select: { id: true, name: true } },
-        payrollPosition: { select: { name: true, dailySalary: true, sbcDaily: true } },
-        timeClockEmployees: { select: { employeeNumber: true } },
-      },
-      orderBy: { name: "asc" },
-    });
+    // Bajas que sí checaron esta semana (raro): solo entonces se vuelve a pedir la lista con ellas.
+    const activeIds = new Set(activePeople.map((p) => p.id));
+    const people = withSessions.some((id) => !activeIds.has(id))
+      ? await this.db.user.findMany({ where: peopleWhere(withSessions), select: peopleSelect, orderBy: { name: "asc" } })
+      : activePeople;
     const userIds = people.map((p) => p.id);
 
-    // Checadas web/app (sin reloj): cuentan igual que las del reloj para
-    // asistencia, horas trabajadas y pre-nómina.
-    const remotePunches = await this.db.remotePunch.findMany({
-      where: {
-        userId: { in: userIds },
-        occurredAt: { gte: range.start, lt: range.end },
-      },
-      orderBy: { occurredAt: "asc" },
-      select: { id: true, userId: true, type: true, occurredAt: true },
-    });
+    // Todo lo que sigue solo necesita los ids de la gente: un solo viaje en paralelo.
+    const [remotePunches, agreements, assignments, approvals, leaves] = await Promise.all([
+      // Checadas web/app (sin reloj): cuentan igual que las del reloj para
+      // asistencia, horas trabajadas y pre-nómina.
+      this.db.remotePunch.findMany({
+        where: {
+          userId: { in: userIds },
+          occurredAt: { gte: range.start, lt: range.end },
+        },
+        orderBy: { occurredAt: "asc" },
+        select: { id: true, userId: true, type: true, occurredAt: true },
+      }),
+      this.db.workdayDistributionAgreement.findMany({
+        where: {
+          userId: { in: userIds },
+          acceptedAt: { not: null },
+          effectiveFrom: { lte: range.end },
+          OR: [{ effectiveTo: null }, { effectiveTo: { gte: range.start } }],
+        },
+        select: { userId: true },
+      }),
+      loadScheduleAssignments(this.db, userIds, range),
+      this.db.overtimeApproval.findMany({
+        where: { userId: { in: userIds }, date: { gte: toUtcDate(days[0]), lte: toUtcDate(days[6]) } },
+      }),
+      // Vacaciones y permisos aprobados: el día no es falta.
+      this.db.leaveRequest.findMany({
+        where: {
+          userId: { in: userIds },
+          status: "APPROVED",
+          startDate: { lte: toUtcDate(days[6]) },
+          endDate: { gte: toUtcDate(days[0]) },
+        },
+        select: { userId: true, startDate: true, endDate: true },
+      }),
+    ]);
     const remoteSessionsByKey = new Map<string, Array<{ entryAt: string; exitAt: string | null; workedMinutes: number }>>();
     const remoteOpenByUser = new Map<string, Date>();
     for (const punch of remotePunches) {
@@ -179,35 +210,8 @@ export class WeeklyAttendanceService {
       remoteSessionsByKey.set(key, list);
     }
 
-    const agreements = await this.db.workdayDistributionAgreement.findMany({
-      where: {
-        userId: { in: userIds },
-        acceptedAt: { not: null },
-        effectiveFrom: { lte: range.end },
-        OR: [{ effectiveTo: null }, { effectiveTo: { gte: range.start } }],
-      },
-      select: { userId: true },
-    });
     const agreementUsers = new Set(agreements.map((row) => row.userId).filter(Boolean) as string[]);
-
-    const [assignments, approvals] = await Promise.all([
-      loadScheduleAssignments(this.db, userIds, range),
-      this.db.overtimeApproval.findMany({
-        where: { userId: { in: userIds }, date: { gte: toUtcDate(days[0]), lte: toUtcDate(days[6]) } },
-      }),
-    ]);
     const approvalByKey = new Map(approvals.map((a) => [`${a.userId}|${dateKeyOf(a.date)}`, a]));
-
-    // Vacaciones y permisos aprobados: el día no es falta.
-    const leaves = await this.db.leaveRequest.findMany({
-      where: {
-        userId: { in: userIds },
-        status: "APPROVED",
-        startDate: { lte: toUtcDate(days[6]) },
-        endDate: { gte: toUtcDate(days[0]) },
-      },
-      select: { userId: true, startDate: true, endDate: true },
-    });
     const onLeave = (userId: string, dayKey: string) =>
       leaves.some((l) => l.userId === userId && dateKeyOf(l.startDate) <= dayKey && dayKey <= dateKeyOf(l.endDate));
 

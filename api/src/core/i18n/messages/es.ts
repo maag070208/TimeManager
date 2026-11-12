@@ -421,7 +421,7 @@ export const es = {
     HOLIDAY_ALREADY_EXISTS: "Ese día ya está en el catálogo de festivos",
     HOLIDAY_NOT_FOUND: "Festivo no encontrado",
     INVALID_HOLIDAY_NAME: "El nombre del festivo debe tener al menos 3 caracteres",
-    SCHEDULE_ILLEGAL: "El horario no cumple la jornada legal del año: {{violations}}",
+    SCHEDULE_ILLEGAL: "No se puede guardar el horario: {{violations}}.",
     INVALID_RECORD_METHODS: "Métodos de registro inválidos (usa CLOCK, REMOTE o ACCESS)",
     INVALID_ACK_PERIOD: "El periodo de la conformidad no es válido",
     DISCREPANCY_NOTE_REQUIRED: "Describe la discrepancia para enviarla",
@@ -545,6 +545,19 @@ export const es = {
     DUPLICATE_UNITS: "Una unidad viene repetida",
     QUANTITY_OR_UNITS_REQUIRED: "Indica la cantidad o las unidades",
     QUANTITY_UNITS_MISMATCH: "La cantidad no coincide con las unidades seleccionadas",
+  },
+  /** Reglas de jornada (H-02) en lenguaje claro para el error SCHEDULE_ILLEGAL. */
+  scheduleRules: {
+    SEMANA_MAYOR_LEGAL: "la semana suma {{weekly}} h y el máximo legal es {{legal}} h; quita horas o marca otro día de descanso",
+    SIN_DIA_DE_DESCANSO: "todos los días están como laborales; marca al menos uno de descanso",
+    DIA_MAYOR_12H: "el {{day}} pasa de 12 horas de trabajo",
+    day1: "lunes",
+    day2: "martes",
+    day3: "miércoles",
+    day4: "jueves",
+    day5: "viernes",
+    day6: "sábado",
+    day7: "domingo",
   },
   labels: {
     administrator: "Administrador",

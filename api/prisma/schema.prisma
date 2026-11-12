@@ -663,6 +663,9 @@ model ScheduleDay {
   // Turno partido (p. ej. camaristas/restaurante): segundo tramo opcional.
   splitStartTime String?
   splitEndTime   String?
+  // Comida del día (p. ej. 12:00-13:00): se descuenta en vez de `Schedule.mealBreakMin`.
+  mealStartTime  String?
+  mealEndTime    String?
   restDay        Boolean @default(false)
 
   @@unique([scheduleId, weekday])

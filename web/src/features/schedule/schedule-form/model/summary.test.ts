@@ -10,6 +10,7 @@ import {
   daysWorked,
   minutesBetween,
   restDays,
+  suggestedName,
   weeklyMinutes,
 } from "./summary.ts";
 import type { ScheduleDayInput } from "@entities/schedule";
@@ -59,4 +60,20 @@ test("[SCH-02] daysWorked y restDays cuentan la semana", () => {
   ];
   assert.equal(daysWorked(days), 2);
   assert.equal(restDays(days), 1);
+});
+
+test("suggestedName propone el nombre a partir de los días y las horas", () => {
+  const week = (rest: number[], patch: (weekday: number) => Partial<ScheduleDayInput> = () => ({})) =>
+    [1, 2, 3, 4, 5, 6, 7].map((weekday) => workday({ weekday, restDay: rest.includes(weekday), ...patch(weekday) }));
+  assert.equal(suggestedName(week([6, 7])), "L–V 08:00–17:00");
+  assert.equal(suggestedName(week([7])), "L–S 08:00–17:00");
+  assert.equal(suggestedName(week([2, 4, 6, 7])), "L M V 08:00–17:00");
+  assert.equal(suggestedName(week([7], (weekday) => (weekday === 6 ? { endTime: "13:00" } : {}))), "L–S");
+  assert.equal(suggestedName(week([1, 2, 3, 4, 5, 6, 7])), "");
+});
+
+test("la comida del día se descuenta en vez de los minutos del horario", () => {
+  assert.equal(dayMinutes(workday(), 60), 8 * 60, "sin ventana: 9 h − 60 min");
+  assert.equal(dayMinutes(workday({ mealStartTime: "14:00", mealEndTime: "14:30" }), 60), 8 * 60 + 30, "con ventana de 30 min");
+  assert.equal(dayMinutes(workday({ mealStartTime: "14:00" }), 60), 8 * 60, "ventana incompleta: usa los minutos del horario");
 });

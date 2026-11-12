@@ -18,6 +18,8 @@ export interface RequestContext {
   permissions?: Array<{ permission: string; scope: string; expiresAt?: Date | null }>;
   ip?: string | null;
   userAgent?: string | null;
+  /** Operaciones de Prisma de la petición (cada una es al menos un viaje a la BD). */
+  queries?: number;
 }
 
 const storage = new AsyncLocalStorage<RequestContext>();
@@ -29,6 +31,12 @@ export const currentRequestContext = (): RequestContext | null => storage.getSto
 
 /** Id de correlación (`X-Request-Id`); genera uno si la petición no lo trae. */
 export const newRequestId = (): string => randomUUID();
+
+/** Cuenta una operación de BD en la petición en curso (no hace nada fuera de una petición). */
+export const countQuery = (): void => {
+  const context = storage.getStore();
+  if (context) context.queries = (context.queries ?? 0) + 1;
+};
 
 /** Añade usuario/cliente al contexto cuando `authenticate` los resuelve. */
 export const setRequestPrincipal = (principal: {

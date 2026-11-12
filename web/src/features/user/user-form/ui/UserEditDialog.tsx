@@ -130,7 +130,7 @@ export default function UserEditDialog({ userId, onClose, onSaved, onDeactivate,
           </div>
           {fx.EXTRA_ROLE_OPTIONS.length > 0 && (
             <div className="sm:col-span-2">
-              <ITText className="mb-1.5 block text-[13px] font-semibold text-slate-700 dark:text-slate-200">{t("access.extraRoles")}</ITText>
+              <ITText className="mb-1.5 block text-[13px] font-semibold text-slate-700">{t("access.extraRoles")}</ITText>
               <div className="flex flex-wrap gap-x-5 gap-y-2">
                 {fx.EXTRA_ROLE_OPTIONS.map((option) => (
                   <ITCheckbox
@@ -150,7 +150,7 @@ export default function UserEditDialog({ userId, onClose, onSaved, onDeactivate,
           <ITText className="block text-xs text-slate-500">
             {t("access.personHint")}{" "}
             {canSeeRecords && userId && (
-              <button type="button" className="font-semibold text-slate-700 underline underline-offset-2 dark:text-slate-200" onClick={() => navigate(`/employees/${userId}/edit`)}>
+              <button type="button" className="font-semibold text-slate-700 underline underline-offset-2" onClick={() => navigate(`/employees/${userId}/edit`)}>
                 {t("form.openRecord")}
               </button>
             )}
@@ -158,7 +158,7 @@ export default function UserEditDialog({ userId, onClose, onSaved, onDeactivate,
         )}
 
         {target && onDeactivate && onReactivate && (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2.5 dark:border-slate-700">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2.5">
             <div>
               <ITText className="block text-[13px] font-semibold">{t("access.status")}</ITText>
               <ITText className="block text-xs text-slate-500">{t(target.active ? "access.statusActive" : "access.statusInactive")}</ITText>

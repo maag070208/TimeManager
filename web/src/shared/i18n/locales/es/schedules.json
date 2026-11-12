@@ -169,7 +169,21 @@
   "form": {
     "notFound": "Horario no encontrado",
     "confirmTitle": "Guardar nuevo horario",
-    "confirmMessage": "Se creará «{{name}}» con {{days}} días de trabajo ({{weekly}} horas por semana). ¿Continuamos?"
+    "confirmMessage": "Se creará «{{name}}» con {{days}} días de trabajo ({{weekly}} horas por semana). ¿Continuamos?",
+    "baseTitle": "Horario base",
+    "workdays": "Días que se trabaja",
+    "applyAll": "Aplicar a todos",
+    "baseHint": "Toca los días para marcarlos como laborales o de descanso. «Aplicar a todos» copia entrada, salida y comida a cada día laboral; luego ajusta solo el que sea distinto. Un día sin horario de comida descuenta los minutos de «Comida sin horario fijo».",
+    "addSecond": "Agregar segundo turno (jornada partida)",
+    "removeSecond": "Quitar segundo turno",
+    "nextDay": "Este turno termina al día siguiente.",
+    "mealFrom": "Comida de",
+    "mealTo": "Comida a",
+    "mealShort": "Comida",
+    "noMeal": "Sin comida",
+    "mealIncomplete": "La comida necesita hora de inicio y de fin.",
+    "needsRest": "Marca al menos un día de descanso: sin él no se puede guardar.",
+    "over12": "El {{day}} pasa de 12 horas de trabajo: no se puede guardar."
   },
   "namePlaceholder": "Ej. Recepción mañana",
   "agent": {
@@ -258,5 +272,7 @@
     "title": "Activar horario",
     "message": "¿Activar el horario «{{name}}»? Volverá a aplicarse en el cálculo de asistencia y horas extra.",
     "confirm": "Activar"
-  }
+  },
+  "mealUnpaid": "Comida sin goce (min)",
+  "mealFallback": "Comida sin horario fijo (min)"
 }

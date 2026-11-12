@@ -192,3 +192,28 @@ test("turno nocturno: el retardo se mide contra la entrada del turno y cruza med
   assert.equal(computeWorkday(LATE_DAY, late, nocturno, TZ).lateMin, 7);
   assert.equal(computeWorkday(LATE_DAY, late, nocturno, TZ).restDay, false);
 });
+
+test("la comida del día se descuenta en vez de la del horario", async () => {
+  const { mealMinutesOf, validateScheduleLegality } = await import("./workday-rules");
+  assert.equal(mealMinutesOf({}, 60), 60, "sin ventana usa los minutos del horario");
+  assert.equal(mealMinutesOf({ mealStartTime: "14:00", mealEndTime: "14:30" }, 60), 30, "con ventana usa la ventana");
+
+  const withWindow: WorkdaySchedule = {
+    ...schedule,
+    days: [{ ...schedule.days[0], mealStartTime: "13:00", mealEndTime: "15:00" }],
+  };
+  const sessions = [{ entryAt: "2026-11-05T14:00:00.000Z", exitAt: "2026-11-05T23:00:00.000Z", workedMinutes: 9 * 60 }];
+  assert.equal(computeWorkday("2026-11-05", sessions, schedule, "America/Mexico_City").scheduledMin, 8 * 60);
+  assert.equal(computeWorkday("2026-11-05", sessions, withWindow, "America/Mexico_City").scheduledMin, 7 * 60, "comida de 2 h ese día");
+
+  const day = (weekday: number, meal: Partial<{ mealStartTime: string; mealEndTime: string }> = {}) => ({
+    weekday, startTime: "08:00", endTime: "17:00", splitStartTime: null, splitEndTime: null, restDay: weekday === 7, ...meal,
+  });
+  const legality = validateScheduleLegality({
+    mealBreakMin: 0,
+    days: [day(1, { mealStartTime: "12:00", mealEndTime: "13:00" }), day(2, { mealStartTime: "14:00", mealEndTime: "15:00" }), day(3), day(7)],
+  });
+  assert.equal(legality.weeklyMinutes, 8 * 60 + 8 * 60 + 9 * 60, "cada día descuenta su propia comida");
+  assert.deepEqual(legality.warnings.filter((w) => !w.endsWith(":3")), [], "los días con su comida no tienen avisos");
+  assert.ok(legality.warnings.includes("DESCANSO_NO_DECLARADO:3"), "el día sin comida avisa que no declara descanso");
+});

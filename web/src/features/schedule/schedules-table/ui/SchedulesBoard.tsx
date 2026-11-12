@@ -34,7 +34,8 @@ function dayMinutes(d: ScheduleDay, mealBreakMin: number): number {
   const toMin = (v: string) => Number(v.split(":")[0]) * 60 + Number(v.split(":")[1]);
   const span = toMin(d.endTime) - toMin(d.startTime);
   const second = d.splitStartTime && d.splitEndTime ? toMin(d.splitEndTime) - toMin(d.splitStartTime) : 0;
-  return Math.max(0, (span > 0 ? span : span + 1440) + second - mealBreakMin);
+  const meal = d.mealStartTime && d.mealEndTime ? toMin(d.mealEndTime) - toMin(d.mealStartTime) : mealBreakMin;
+  return Math.max(0, (span > 0 ? span : span + 1440) + second - meal);
 }
 
 /** "08:00–16:00 · descanso 14:00–15:00" del primer día laborable. */

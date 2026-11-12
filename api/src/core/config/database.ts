@@ -1,3 +1,4 @@
+import { countQuery, currentRequestContext } from "@core/observability/request-context";
 import { PrismaClient } from "@prisma/client";
 import { env } from "@core/config/env.config";
 // Directo del archivo (no del barrel): iterate.ts importa este módulo y un
@@ -88,7 +89,19 @@ const base = new PrismaClient({
     : {}),
 });
 
+const QUERY_DELAY_MS = Number(process.env.QUERY_DELAY_MS ?? 0);
+
 const extended = base.$extends({
+  // Cuenta cada operación en el contexto de la petición (log `q=`): así se ve qué endpoint hace de más viajes.
+  query: {
+    $allOperations({ args, query, model, operation }: { args: unknown; query: (args: unknown) => Promise<unknown>; model?: string; operation: string }) {
+      countQuery();
+      // Solo para medir: simula la latencia de una BD remota en cada viaje (p. ej. QUERY_DELAY_MS=80).
+      if (QUERY_DELAY_MS > 0) return new Promise((resolve) => setTimeout(resolve, QUERY_DELAY_MS)).then(() => query(args));
+      if (process.env.QUERY_TRACE === "1") process.stdout.write(`  [q] ${currentRequestContext()?.requestId ?? "-"} ${model ?? "$raw"}.${operation}\n`);
+      return query(args);
+    },
+  },
   result: {
     user: {
       name: {

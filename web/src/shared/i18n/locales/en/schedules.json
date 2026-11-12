@@ -169,7 +169,21 @@
   "form": {
     "notFound": "Schedule not found",
     "confirmTitle": "Save new schedule",
-    "confirmMessage": "“{{name}}” will be created with {{days}} working days ({{weekly}} hours per week). Continue?"
+    "confirmMessage": "“{{name}}” will be created with {{days}} working days ({{weekly}} hours per week). Continue?",
+    "baseTitle": "Base schedule",
+    "workdays": "Working days",
+    "applyAll": "Apply to all",
+    "baseHint": "Tap the days to mark them as working or rest days. «Apply to all» copies the start, end and meal to every working day; then adjust only the one that differs. A day without a meal time deducts the minutes from «Meal break without a fixed time».",
+    "addSecond": "Add a second shift (split day)",
+    "removeSecond": "Remove second shift",
+    "nextDay": "This shift ends the next day.",
+    "mealFrom": "Meal from",
+    "mealTo": "Meal to",
+    "mealShort": "Meal",
+    "noMeal": "No meal",
+    "mealIncomplete": "The meal needs a start and an end time.",
+    "needsRest": "Mark at least one rest day: it can't be saved without one.",
+    "over12": "{{day}} goes over 12 working hours: it can't be saved."
   },
   "namePlaceholder": "e.g. Front desk morning",
   "agent": {
@@ -258,5 +272,7 @@
     "title": "Activate schedule",
     "message": "Activate schedule \"{{name}}\"? It will apply again to attendance and overtime.",
     "confirm": "Activate"
-  }
+  },
+  "mealUnpaid": "Unpaid meal break (min)",
+  "mealFallback": "Meal break without a fixed time (min)"
 }

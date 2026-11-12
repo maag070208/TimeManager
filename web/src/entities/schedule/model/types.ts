@@ -4,6 +4,9 @@ export interface ScheduleDay {
   endTime: string | null;
   splitStartTime: string | null;
   splitEndTime: string | null;
+  /** Comida de ese día; si existe se descuenta en lugar de `mealBreakMin`. */
+  mealStartTime?: string | null;
+  mealEndTime?: string | null;
   restDay: boolean;
 }
 
@@ -28,6 +31,8 @@ export interface ScheduleDayInput {
   endTime?: string | null;
   splitStartTime?: string | null;
   splitEndTime?: string | null;
+  mealStartTime?: string | null;
+  mealEndTime?: string | null;
   restDay?: boolean;
 }
 

@@ -42,16 +42,12 @@ export class HolidayService {
     private readonly audit?: AuditLogger
   ) {}
 
+  /** Siembra los festivos obligatorios que falten de esos años en un solo viaje (los existentes no se tocan). */
   private async ensureDefaults(tenantId: string, years: number[]): Promise<void> {
-    for (const year of [...new Set(years)]) {
-      for (const holiday of legalHolidays(year)) {
-        await this.db.holiday.upsert({
-          where: { tenantId_date: { tenantId, date: toUtcDate(holiday.date) } },
-          create: { tenantId, date: toUtcDate(holiday.date), name: holiday.name, kind: "OBLIGATORIO" },
-          update: {},
-        });
-      }
-    }
+    const data = [...new Set(years)].flatMap((year) =>
+      legalHolidays(year).map((holiday) => ({ tenantId, date: toUtcDate(holiday.date), name: holiday.name, kind: "OBLIGATORIO" as const }))
+    );
+    if (data.length > 0) await this.db.holiday.createMany({ data, skipDuplicates: true });
   }
 
   async list(tenantId: string, year: number): Promise<unknown[]> {

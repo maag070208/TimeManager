@@ -1,3 +1,4 @@
+import { forgetTenantTimezone } from "@core/utils/tenant-timezone";
 import { randomBytes } from "node:crypto";
 import { Prisma, type Plan, type PrismaClient, type Tenant } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
@@ -373,6 +374,7 @@ export class TenantService {
           emailFrom: updated.emailFrom,
         },
       });
+      if (updated.timezone !== previous.timezone) forgetTenantTimezone(id);
       return toView(updated, await tenantUsage(id, this.db));
     }, true);
   }

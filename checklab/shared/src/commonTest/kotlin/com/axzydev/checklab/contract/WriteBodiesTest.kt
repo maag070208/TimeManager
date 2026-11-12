@@ -92,7 +92,7 @@ class WriteBodiesTest {
         val sent = api.last.bodyJson()["days"]!!.jsonArray.map { it.jsonObject }
         assertEquals((1..7).map { JsonPrimitive(it) }, sent.map { it["weekday"] })
         assertEquals(JsonPrimitive(true), sent.last()["restDay"])
-        assertTrue(sent.all { setOf("weekday", "startTime", "endTime", "splitStartTime", "splitEndTime", "restDay").containsAll(it.keys) })
+        assertTrue(sent.all { setOf("weekday", "startTime", "endTime", "splitStartTime", "splitEndTime", "mealStartTime", "mealEndTime", "restDay").containsAll(it.keys) })
     }
 
     // AssignmentCreateDto: { scheduleId, userIds, from }
