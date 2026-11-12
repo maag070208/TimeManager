@@ -407,6 +407,7 @@ export class TeleworkService {
       canPunchRemote: remoteEnabled,
       remoteGeolocationEnabled: config.remoteGeolocationEnabled,
       lunchPunchEnabled: config.lunchPunchEnabled,
+      remoteAgreementRequired: config.blockRemoteWithoutAgreement,
       checklistTemplate: this.checklistTemplate(),
       lastChecklist: lastChecklist ? this.toChecklistDto(lastChecklist) : null,
       nextPeriodicDueAt: registration

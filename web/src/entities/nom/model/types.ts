@@ -99,6 +99,8 @@ export interface MeTelework {
   remoteGeolocationEnabled: boolean;
   /** Apagada, la checada web solo registra entrada y salida. */
   lunchPunchEnabled: boolean;
+  /** Sin acuerdo de método aceptado que incluya REMOTE, el API rechaza la checada. */
+  remoteAgreementRequired?: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklist | null;
   nextPeriodicDueAt: string | null;

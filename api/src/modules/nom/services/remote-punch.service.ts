@@ -64,12 +64,29 @@ export class RemotePunchService {
     if (!user) throw new HttpError(404, "USER_NOT_FOUND");
     if (!user.tenantId) throw new HttpError(400, "TENANT_REQUIRED");
 
+    // Las lecturas previas son independientes: un solo viaje en paralelo.
+    const [channels, config, agreement, registration, lastValidation] = await Promise.all([
+      tenantPunchChannels(user.tenantId),
+      this.settings.resolve(user.tenantId),
+      this.db.workRecordAgreement.findUnique({
+        where: { userId: user.id },
+        select: { methods: true, acceptedAt: true },
+      }),
+      this.db.teleworkRegistration.findFirst({
+        where: { userId: user.id, status: "ACTIVE" },
+        select: { id: true, mode: true },
+      }),
+      this.db.teleworkChecklist.findFirst({
+        where: { userId: user.id, validatedAt: { not: null } },
+        orderBy: { validatedAt: "desc" },
+        select: { result: true },
+      }),
+    ]);
+
     // Canal habilitado por el cliente (WEB/APP). El reloj no pasa por aquí.
-    const channels = await tenantPunchChannels(user.tenantId);
     if (!channels.includes(source)) {
       throw new HttpError(403, "PUNCH_CHANNEL_DISABLED");
     }
-    const config = await this.settings.resolve(user.tenantId);
     if (!config.remotePunchEnabled) throw new HttpError(403, "REMOTE_PUNCH_DISABLED");
     // Ubicación apagada por el cliente: se descarta aunque el dispositivo la mande.
     if (!config.remoteGeolocationEnabled) {
@@ -80,35 +97,20 @@ export class RemotePunchService {
     // aceptado que incluya REMOTE (prueba de dos partes; la firma patronal se
     // valida aparte cuando el cliente la exige).
     if (config.blockRemoteWithoutAgreement) {
-      const agreement = await this.db.workRecordAgreement.findUnique({
-        where: { userId: user.id },
-        select: { methods: true, acceptedAt: true },
-      });
       const methods = Array.isArray(agreement?.methods) ? (agreement.methods as string[]) : [];
       if (!agreement?.acceptedAt || !methods.includes("REMOTE")) {
         throw new HttpError(403, "REMOTE_AGREEMENT_REQUIRED");
       }
     }
 
-    // NOM-037 5.4/5.5: si la Comisión validó el lugar como NO_APTO, no se
-    // permite marcar desde ese lugar.
-    const registration = await this.db.teleworkRegistration.findFirst({
-      where: { userId: user.id, status: "ACTIVE" },
-      select: { id: true, mode: true },
-    });
     // La modalidad la define el registro de teletrabajo de RH, no cada marcaje;
     // sin registro la checada web se asienta como remota. Un cliente que la
     // mande explícita (app móvil anterior) se respeta.
     input = { ...input, workMode: input.workMode ?? registration?.mode };
-    if (registration) {
-      const lastValidation = await this.db.teleworkChecklist.findFirst({
-        where: { userId: user.id, validatedAt: { not: null } },
-        orderBy: { validatedAt: "desc" },
-        select: { result: true },
-      });
-      if (lastValidation?.result === "NO_APTO") {
-        throw new HttpError(403, "TELEWORK_WORKPLACE_NOT_APPROVED");
-      }
+    // NOM-037 5.4/5.5: si la Comisión validó el lugar como NO_APTO, no se
+    // permite marcar desde ese lugar.
+    if (registration && lastValidation?.result === "NO_APTO") {
+      throw new HttpError(403, "TELEWORK_WORKPLACE_NOT_APPROVED");
     }
 
     const hasLat = input.latitude !== undefined;

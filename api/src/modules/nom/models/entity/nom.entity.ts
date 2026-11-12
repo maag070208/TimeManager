@@ -394,6 +394,8 @@ export interface MyTelework {
   canPunchRemote: boolean;
   remoteGeolocationEnabled: boolean;
   lunchPunchEnabled: boolean;
+  /** El cliente exige acuerdo de método con REMOTE aceptado antes de checar remoto. */
+  remoteAgreementRequired: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklistDto | null;
   nextPeriodicDueAt: string | null;

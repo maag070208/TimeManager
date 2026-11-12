@@ -30,6 +30,13 @@
     "dayClosedHint": "Ya registraste tus checadas de hoy. Mañana podrás volver a checar.",
     "channelHint": "Checa desde la web o con tu reloj físico: todas tus checadas se ven aquí.",
     "locationNotice": "Tu ubicación se guarda solo en el momento de marcar; no hay rastreo continuo. Tu empresa lo tiene activado.",
+    "stage": {
+      "accepting": "Guardando tu aceptación…",
+      "locating": "Obteniendo tu ubicación…",
+      "sending": "Registrando…"
+    },
+    "agreementLockedEyebrow": "Un paso antes de checar",
+    "acceptAndPunch": "Acepto y registro mi {{action}}",
     "clockOnlyTitle": "Checas en el reloj",
     "clockOnlyHint": "Tu empresa registra tu jornada con el reloj checador. Aquí ves tus marcajes y puedes reportar si algo no coincide.",
     "channelHintNoClock": "Checa desde la web o la app: todas tus checadas se ven aquí.",

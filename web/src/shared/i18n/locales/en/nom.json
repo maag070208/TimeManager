@@ -30,6 +30,13 @@
     "dayClosedHint": "You already recorded today’s punches. You can punch again tomorrow.",
     "channelHint": "Check in from the web or your physical clock: all your punches show here.",
     "locationNotice": "Your location is saved only when you punch; there is no continuous tracking. Your company has this turned on.",
+    "stage": {
+      "accepting": "Saving your acceptance…",
+      "locating": "Getting your location…",
+      "sending": "Recording…"
+    },
+    "agreementLockedEyebrow": "One step before punching",
+    "acceptAndPunch": "I accept and record my {{action}}",
     "clockOnlyTitle": "You punch at the clock",
     "clockOnlyHint": "Your company records your workday with the time clock. Here you can see your punches and report anything that's off.",
     "channelHintNoClock": "Punch from the web or the app: all your punches show here.",

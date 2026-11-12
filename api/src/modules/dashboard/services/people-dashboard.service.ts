@@ -2,7 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { currentTenantPunchChannels } from "@core/utils/tenant-punch-channels";
 import { localDateKey, resolveTimezoneWithConfig } from "@core/utils/timezone";
-import { scopeOf, staffRoleKeys, type UserPermissions } from "@core/permissions";
+import { ADMIN_ROLE_KEYS, scopeOf, staffRoleKeys, type UserPermissions } from "@core/permissions";
 import type { EmployeeRecordsService } from "@modules/hr";
 import type { WeeklyAttendanceService } from "@modules/schedules/services/weekly-attendance.service";
 
@@ -219,9 +219,12 @@ export class PeopleDashboardService {
     const today = new Date(`${date}T00:00:00.000Z`);
     const since = new Date(today.getTime() - 30 * MS_PER_DAY);
     const hasClockChannel = (await currentTenantPunchChannels()).includes("CLOCK");
+    // Solo personal operativo: las cuentas de administración (p. ej. el
+    // administrador del cliente) no necesitan horario y no deben aparecer como
+    // pendiente en los primeros pasos.
     const withoutSchedule = await this.db.user.count({
       where: {
-        role: { in: personalRoles() },
+        role: { in: personalRoles(), notIn: [...ADMIN_ROLE_KEYS] },
         active: true,
         scheduleAssignments: { none: { validFrom: { lte: today }, OR: [{ validTo: null }, { validTo: { gte: today } }] } },
       },
@@ -234,7 +237,7 @@ export class PeopleDashboardService {
     const [clockNumbers, linked, withoutClock] = await Promise.all([
       this.db.timeClockPunch.findMany({ where: { occurredAt: { gte: since } }, distinct: ["employeeNumber"], select: { employeeNumber: true } }),
       this.db.timeClockEmployee.findMany({ select: { employeeNumber: true } }),
-      this.db.user.count({ where: { role: { in: personalRoles() }, active: true, timeClockEmployees: { none: {} } } }),
+      this.db.user.count({ where: { role: { in: personalRoles(), notIn: [...ADMIN_ROLE_KEYS] }, active: true, timeClockEmployees: { none: {} } } }),
     ]);
     const linkedSet = new Set(linked.map((l) => l.employeeNumber));
     return {

@@ -33,6 +33,7 @@ import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 import { LocationMap } from "@shared/ui/location-map";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { useMyWorkday } from "@features/nom/worker-portal/model/useMyWorkday";
+import { PunchCard } from "@features/nom/worker-portal/ui/PunchCard";
 import { useWorkerCompliance } from "@features/nom/worker-portal/model/useWorkerCompliance";
 import { useMyLeave } from "@features/nom/worker-portal/model/useMyLeave";
 
@@ -125,6 +126,11 @@ export default function MyWorkdayPage() {
   // La checada de ESTA pantalla es la web: se gatea por canal WEB, no por el
   // agregado `canPunchRemote` (que también cuenta la app).
   const canPunch = telework?.canPunchWeb ?? (telework?.canPunchRemote ?? true);
+  /** Mismo candado que el API (REMOTE_AGREEMENT_REQUIRED): sin acuerdo con REMOTE no se checa. */
+  const agreementLocked =
+    canPunch &&
+    telework?.remoteAgreementRequired === true &&
+    (wc.loading || !wc.agreement?.acceptedAt || !wc.agreement.methods.includes("REMOTE"));
   /** Sin canal CLOCK la empresa no tiene reloj checador: nunca se le menciona. */
   const hasClock = telework?.punchChannels?.includes("CLOCK") ?? true;
   /** Cliente con app pero sin checada web: la pantalla lo manda a la app. */
@@ -192,16 +198,9 @@ export default function MyWorkdayPage() {
     EXIT: tr("punch.status.done"),
   };
   const statusTone = !lastType ? "gray" : lastType === "LUNCH_START" ? "warning" : lastType === "EXIT" ? "gray" : "success";
-  const primaryLabel = !primaryNext
-    ? ""
-    : primaryNext === "ENTRY" || primaryNext === "EXIT"
-      ? tr("punch.register", { action: PUNCH_LABEL[primaryNext] })
-      : PUNCH_LABEL[primaryNext];
-  const PUNCH_ICON: Record<PunchType, ReactNode> = {
-    ENTRY: <LuLogIn size={18} />,
-    LUNCH_START: <LuUtensils size={18} />,
-    LUNCH_END: <LuCoffee size={18} />,
-    EXIT: <LuLogOut size={18} />,
+  /** Un solo clic: acepta el acuerdo y registra el siguiente paso. */
+  const acceptAndPunch = async () => {
+    if ((await wc.acceptAgreement()) && primaryNext) await doPunch(primaryNext);
   };
 
   return (
@@ -238,7 +237,7 @@ export default function MyWorkdayPage() {
       {wc.error && tab !== "compliance" && (
         <ITText className="mb-4 block rounded-lg border border-red-200 bg-red-50 px-3 py-2 !text-[13px] text-red-700">{wc.error}</ITText>
       )}
-      {!wc.loading && wc.proposal && !wc.agreement?.acceptedAt && (
+      {!wc.loading && wc.proposal && !wc.agreement?.acceptedAt && !(agreementLocked && tab === "checada") && (
         <div className="mb-4">
         <ITCard className="tm-hero-card tm-hero-card--amber" contentClassName="!p-4 sm:!p-5">
           <ITFlex direction="column" gap={2}>
@@ -304,96 +303,23 @@ export default function MyWorkdayPage() {
           <ContentSkeleton />
         ) : (
           <>
-            {/* Checada del día: siguiente paso grande + los 4 movimientos. */}
-            <ITCard className={`tm-hero-card tm-hero-card--mint ${tab === "checada" ? "lg:col-span-7" : "hidden"}`} contentClassName="!p-4 sm:!p-5">
-              <ITFlex direction="column" gap={4}>
-                <ITFlex align="center" justify="between" gap={2} wrap="wrap">
-                  <ITFlex direction="column" gap={0.5}>
-                    <ITText muted className="!text-[11px] font-semibold uppercase tracking-[0.08em]">
-                      {tr("punch.today")}
-                    </ITText>
-                    <ITText className="!text-[15px] font-bold">
-                      {new Date().toLocaleDateString(dateLocale(), { weekday: "long", day: "numeric", month: "long" })}
-                    </ITText>
-                  </ITFlex>
-                  <ITBadget color={statusTone as never} size="sm">
-                    {statusLabel[lastType ?? "none"]}
-                  </ITBadget>
-                </ITFlex>
-
-                {!canPunch ? (
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600">
-                      <LuClock size={18} />
-                    </span>
-                    <span className="flex flex-col">
-                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">
-                        {tr(hasClock ? "punch.clockOnlyTitle" : appOnly ? "punch.appOnlyTitle" : "punch.remoteOffTitle")}
-                      </span>
-                      <span className="text-[12.5px] text-slate-600">
-                        {tr(hasClock ? "punch.clockOnlyHint" : appOnly ? "punch.appOnlyHint" : "punch.remoteOffHint")}
-                      </span>
-                    </span>
-                  </div>
-                ) : primaryNext ? (
-                  <>
-                    <button
-                      type="button"
-                      disabled={fx.busy}
-                      onClick={() => void doPunch(primaryNext!)}
-                      className="flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left text-slate-900 transition hover:brightness-[0.99] disabled:opacity-60"
-                      style={{ backgroundColor: "#eaf6ef", borderColor: "#d1fae5", color: "#0f172a" }}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                          {PUNCH_ICON[primaryNext!]}
-                        </span>
-                        <span className="flex flex-col">
-                          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                            {tr("punch.next")}
-                          </span>
-                          <span className="text-[18px] font-extrabold leading-tight text-slate-900">
-                            {primaryLabel}
-                          </span>
-                        </span>
-                      </span>
-                      <span className="text-[20px] font-black tabular-nums text-slate-900">
-                        {fx.busy ? "…" : timeOf(now.toISOString())}
-                      </span>
-                    </button>
-                    {nextTypes.slice(1).map((type) => (
-                      <ITButton key={type} variant="outlined" color="secondary" className="w-full" disabled={fx.busy} onClick={() => void doPunch(type)}>
-                        <span className="inline-flex items-center justify-center gap-2">
-                          {PUNCH_ICON[type]}
-                          {type === "EXIT" ? tr("punch.register", { action: PUNCH_LABEL[type] }) : PUNCH_LABEL[type]}
-                        </span>
-                      </ITButton>
-                    ))}
-                  </>
-                ) : (
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                      <LuCalendarCheck size={18} />
-                    </span>
-                    <span className="flex flex-col">
-                      <span className="text-[18px] font-extrabold leading-tight text-slate-900">{tr("punch.dayClosed")}</span>
-                      <span className="text-[12.5px] text-slate-600">{tr("punch.dayClosedHint")}</span>
-                    </span>
-                  </div>
-                )}
-                {canPunch && (
-                  <ITText muted className="!text-[11.5px]">
-                    {tr(hasClock ? "punch.channelHint" : "punch.channelHintNoClock")}
-                  </ITText>
-                )}
-                {canPunch && geoEnabled && (
-                  <ITText muted className="flex items-start gap-1.5 !text-[11.5px]">
-                    <LuMapPin size={13} className="mt-0.5 shrink-0" />
-                    <span>{tr("punch.locationNotice")}</span>
-                  </ITText>
-                )}
-              </ITFlex>
-            </ITCard>
+            <PunchCard
+              className={tab === "checada" ? "lg:col-span-7" : "hidden"}
+              tr={tr}
+              clock={timeOf(now.toISOString())}
+              status={{ label: statusLabel[lastType ?? "none"], tone: statusTone }}
+              labels={PUNCH_LABEL}
+              nextTypes={nextTypes}
+              canPunch={canPunch}
+              hasClock={hasClock}
+              appOnly={appOnly}
+              geoEnabled={geoEnabled}
+              agreementLocked={agreementLocked}
+              proposal={wc.proposal}
+              stage={wc.busy === "agreement" ? "accepting" : fx.punchStage}
+              onPunch={(type) => void doPunch(type)}
+              onAcceptAndPunch={() => void acceptAndPunch()}
+            />
 
             {/* Mis marcajes */}
             <ITCard className={`tm-hero-card tm-hero-card--sky ${tab === "checada" ? "lg:col-span-5" : "hidden"}`} contentClassName="!p-4 sm:!p-5">

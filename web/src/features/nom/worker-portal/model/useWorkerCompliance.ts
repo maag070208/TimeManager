@@ -76,15 +76,27 @@ export const useWorkerCompliance = () => {
     }
   };
 
-  const acceptAgreement = () =>
-    run("agreement", async () => {
-      await nomApi.acceptRecordAgreement({
-        methods: proposal?.methods ?? ["CLOCK", "REMOTE"],
-        roundingPolicy: "Minutos exactos; el redondeo es solo para nómina",
-        correctionRules: "Toda corrección pasa por ajuste documentado y aprobado",
-      });
+  /** No recarga el portal: la respuesta ya trae el acuerdo aceptado. */
+  const acceptAgreement = async (): Promise<boolean> => {
+    setBusy("agreement");
+    setError(null);
+    try {
+      setAgreement(
+        await nomApi.acceptRecordAgreement({
+          methods: proposal?.methods ?? ["CLOCK", "REMOTE"],
+          roundingPolicy: "Minutos exactos; el redondeo es solo para nómina",
+          correctionRules: "Toda corrección pasa por ajuste documentado y aprobado",
+        })
+      );
       setNotice("Método de registro aceptado.");
-    });
+      return true;
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo completar la acción.");
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const acceptScheduleAgreement = (id: string) =>
     run(`schedule-${id}`, async () => {

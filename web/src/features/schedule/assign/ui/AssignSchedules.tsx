@@ -275,7 +275,7 @@ export default function AssignSchedules() {
       <BentoKpiGrid
         items={[
           { id: "assigned", label: "En este horario", value: assigned.length, caption: currentSchedule?.name ?? "—", icon: <FaArrowLeft size={14} />, tone: "success" },
-          { id: "pending", label: "Por asignar", value: availableRows.length, caption: "con estos filtros", icon: <FaArrowRight size={14} />, tone: "warning" },
+          { id: "pending", label: "Sin este horario", value: availableRows.length, caption: "con estos filtros", icon: <FaArrowRight size={14} />, tone: "warning" },
           { id: "people", label: "Personal", value: employees.length, caption: "en el filtro", icon: <FaPlus size={14} />, tone: "info" },
         ]}
       />
