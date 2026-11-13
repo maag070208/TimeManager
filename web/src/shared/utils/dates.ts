@@ -1,23 +1,45 @@
-/** Formatea una fecha ISO a `DD/MM/AAAA`. */
-export const formatDate = (iso: string): string => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yy = d.getFullYear();
-  return `${dd}/${mm}/${yy}`;
+let defaultTimeZone: string | undefined;
+
+/**
+ * Zona en la que `formatDate` y `formatDateTime` muestran los instantes: la del
+ * cliente de la sesión. Sin ella (o inválida) caen a la zona del navegador.
+ */
+export const setDefaultTimeZone = (timeZone?: string | null): void => {
+  if (!timeZone) {
+    defaultTimeZone = undefined;
+    return;
+  }
+  try {
+    new Intl.DateTimeFormat("en-GB", { timeZone }).format(0);
+    defaultTimeZone = timeZone;
+  } catch {
+    defaultTimeZone = undefined;
+  }
 };
 
-/** Formatea una fecha ISO a `DD/MM/AAAA HH:mm`. */
+const partsOf = (iso: string, withTime: boolean): Record<string, string> | null => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
+  if (withTime) Object.assign(options, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  if (defaultTimeZone) options.timeZone = defaultTimeZone;
+  const parts: Record<string, string> = {};
+  for (const part of new Intl.DateTimeFormat("en-GB", options).formatToParts(date)) parts[part.type] = part.value;
+  return parts;
+};
+
+/** Formatea una fecha ISO a `DD/MM/AAAA` en la zona del cliente. */
+export const formatDate = (iso: string): string => {
+  if (!iso) return "";
+  const p = partsOf(iso, false);
+  return p ? `${p.day}/${p.month}/${p.year}` : "";
+};
+
+/** Formatea una fecha ISO a `DD/MM/AAAA HH:mm` en la zona del cliente. */
 export const formatDateTime = (iso: string): string => {
   if (!iso) return "";
-  const d = new Date(iso);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yy = d.getFullYear();
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mi = String(d.getMinutes()).padStart(2, "0");
-  return `${dd}/${mm}/${yy} ${hh}:${mi}`;
+  const p = partsOf(iso, true);
+  return p ? `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}` : "";
 };
 
 /**

@@ -15,6 +15,7 @@ import {
   type ITDataTableFetchParams,
   type ITDataTableResponse,
 } from "@axzydev/axzy_ui_system";
+import { useTranslation } from "react-i18next";
 import { ITPage } from "@shared/ui/page";
 import { LuShieldCheck } from "react-icons/lu";
 import { auditApi, type AuditLog } from "@entities/audit-log";
@@ -26,10 +27,37 @@ import { HelpTip } from "@shared/ui/help-tip";
 import { useClientContext } from "@features/tenant/tenant-switcher";
 
 const MODULES = ["Auth", "User", "Tenant", "Plan", "Payroll", "Schedule", "LeaveType", "DocumentType", "Department", "Permission", "Role", "TimeClock", "Access", "Nom", "Hr", "Config"];
-const COMMON_ACTIONS = ["LOGIN", "ACCESS_DENIED", "LEAVE_TYPE_CREATED", "LEAVE_TYPE_UPDATED", "LEAVE_TYPE_DEACTIVATED", "USER_CREATED", "USER_UPDATED", "USER_DEACTIVATED", "TENANT_UPDATED", "PLAN_UPDATED"];
+const COMMON_ACTIONS = [
+  "LOGIN",
+  "ACCESS_DENIED",
+  "USER_CREATED",
+  "USER_UPDATED",
+  "USER_DEACTIVATED",
+  "USER_PASSWORD_CHANGED",
+  "SCHEDULE_ASSIGNED",
+  "REMOTE_PUNCH_RECORDED",
+  "PUNCH_DISCREPANCY_REPORTED",
+  "OVERTIME_REQUESTED",
+  "OVERTIME_APPROVAL_DECISION",
+  "PAYROLL_WEEK_CLOSED",
+  "STPS_EXPORT_DOWNLOADED",
+  "LEAVE_TYPE_CREATED",
+  "LEAVE_TYPE_UPDATED",
+  "LEAVE_TYPE_DEACTIVATED",
+  "TENANT_UPDATED",
+  "TENANT_IMPERSONATED",
+  "PLAN_UPDATED",
+];
 
-/** Consola de auditoría de plataforma: logs inmutables con filtros y detalle. */
+/** `STPS_EXPORT_DOWNLOADED` → `Stps export downloaded` cuando no hay traducción. */
+const humanize = (code: string): string => {
+  const words = code.toLowerCase().split("_").filter(Boolean).join(" ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
+
+/** Consola de auditoría: logs inmutables con filtros y detalle. */
 export default function AuditLogPage() {
+  const { t } = useTranslation("audit");
   const { isPlatform } = useClientContext();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [people, setPeople] = useState<User[]>([]);
@@ -43,15 +71,21 @@ export default function AuditLogPage() {
   }, [isPlatform]);
 
   const tenantName = useMemo(() => new Map(tenants.map((tenant) => [tenant.id, tenant.name])), [tenants]);
+  const personName = useMemo(() => new Map(people.map((person) => [person.id, person.name])), [people]);
+
+  const actionLabel = (code: string) => t(`actions.${code}`, { defaultValue: humanize(code) });
+  const moduleLabel = (code: string) => t(`modules.${code}`, { defaultValue: code });
+  const tenantLabel = (row: AuditLog) => (row.tenantId ? tenantName.get(row.tenantId) ?? row.tenantId : t("platform"));
+  const userLabel = (row: AuditLog) => row.userName ?? (row.userId ? personName.get(row.userId) ?? row.userId.slice(0, 8) : t("system"));
 
   const columns: Column<AuditLog>[] = [
-    { key: "createdAt", label: "Fecha y hora", type: "string", width: 180, render: (row) => <span className="text-[12px] tabular-nums">{formatDateTime(row.createdAt)}</span> },
-    ...(isPlatform ? [{ key: "tenant", label: "Cliente", type: "string" as const, width: 170, render: (row: AuditLog) => <span className="text-[12px] text-slate-600">{row.tenantId ? tenantName.get(row.tenantId) ?? row.tenantId : "Plataforma"}</span> }] : []),
-    { key: "user", label: "Usuario", type: "string", width: 170, render: (row) => <span className="text-[12px] font-semibold text-slate-700">{row.userName ?? row.userId ?? "—"}</span> },
-    { key: "module", label: "Módulo", type: "string", width: 140, render: (row) => <ITBadget color="info" size="sm">{row.module ?? row.entityType}</ITBadget> },
-    { key: "action", label: "Acción", type: "string", render: (row) => <span className="font-mono text-[11px] text-slate-700">{row.action}</span> },
-    { key: "entity", label: "Entidad", type: "string", width: 220, render: (row) => <span className="text-[11.5px] text-slate-500">{row.entityType} · {row.entityId.slice(0, 8)}</span> },
-    { key: "ip", label: "IP", type: "string", width: 130, render: (row) => <span className="font-mono text-[11px] text-slate-500">{row.ipAddress ?? "—"}</span> },
+    { key: "createdAt", label: t("columns.date"), type: "string", width: 150, render: (row) => <span className="text-[12px] tabular-nums">{formatDateTime(row.createdAt)}</span> },
+    ...(isPlatform ? [{ key: "tenant", label: t("columns.tenant"), type: "string" as const, width: 160, render: (row: AuditLog) => <span className="block truncate text-[12px] text-slate-600">{tenantLabel(row)}</span> }] : []),
+    { key: "user", label: t("columns.user"), type: "string", width: 170, render: (row) => <span className="block truncate text-[12px] font-semibold text-slate-700">{userLabel(row)}</span> },
+    { key: "module", label: t("columns.module"), type: "string", width: 150, render: (row) => <ITBadget color="info" size="sm">{moduleLabel(row.module ?? row.entityType)}</ITBadget> },
+    { key: "action", label: t("columns.action"), type: "string", width: 260, render: (row) => <span className="block truncate text-[12px] text-slate-700" title={row.action}>{actionLabel(row.action)}</span> },
+    { key: "entity", label: t("columns.entity"), type: "string", width: 200, render: (row) => <span className="block truncate text-[11.5px] text-slate-500">{row.entityType} · {row.entityId.slice(0, 8)}</span> },
+    { key: "ip", label: t("columns.ip"), type: "string", width: 120, render: (row) => <span className="font-mono text-[11px] text-slate-500">{row.ipAddress ?? "—"}</span> },
   ];
 
   const fetchData = async (params: ITDataTableFetchParams): Promise<ITDataTableResponse<AuditLog>> => {
@@ -61,28 +95,26 @@ export default function AuditLogPage() {
   const tableKey = JSON.stringify({ filters, from: range[0]?.toISOString(), to: range[1]?.toISOString() });
 
   return (
-    <ITPage title="Auditoría" description="Registro inmutable de acciones: quién, qué módulo, qué acción, cuándo y con qué accesos." icon={<LuShieldCheck size={20} />}>
+    <ITPage title={t("title")} description={t("description")} icon={<LuShieldCheck size={20} />}>
       <div className="flex flex-col gap-4 pb-12">
         <ITAlert variant="warning" dismissible={false}>
-          {isPlatform
-            ? "Los logs de auditoría no se editan ni se borran. Se conservan como evidencia de operación para todos los clientes."
-            : "Los logs de auditoría de tu empresa no se editan ni se borran. Solo puedes ver la actividad de tu propio cliente."}
+          {isPlatform ? t("alert.platform") : t("alert.client")}
         </ITAlert>
 
         <ITCard contentClassName="!p-4">
           <ITFlex align="end" wrap="wrap" gap={2}>
             {isPlatform && (
-              <div className="min-w-[190px] flex-1"><ITSearchSelect name="auditTenant" label="Cliente" value={filters.tenantId} onChange={(value) => setFilters((f) => ({ ...f, tenantId: String(value) }))} options={[{ value: "", label: "Todos los clientes" }, ...tenants.map((tenant) => ({ value: tenant.id, label: tenant.name }))]} /></div>
+              <div className="min-w-[190px] flex-1"><ITSearchSelect name="auditTenant" label={t("filters.tenant")} value={filters.tenantId} onChange={(value) => setFilters((f) => ({ ...f, tenantId: String(value) }))} options={[{ value: "", label: t("filters.allTenants") }, ...tenants.map((tenant) => ({ value: tenant.id, label: tenant.name }))]} /></div>
             )}
-            <div className="min-w-[190px] flex-1"><ITSearchSelect name="auditUser" label="Persona" value={filters.userId} onChange={(value) => setFilters((f) => ({ ...f, userId: String(value) }))} options={[{ value: "", label: "Todas las personas" }, ...people.map((person) => ({ value: person.id, label: person.name }))]} /></div>
-            <div className="min-w-[170px] flex-1"><ITSearchSelect name="auditModule" label="Módulo" value={filters.module} onChange={(value) => setFilters((f) => ({ ...f, module: String(value) }))} options={[{ value: "", label: "Todos los módulos" }, ...MODULES.map((module) => ({ value: module, label: module }))]} /></div>
-            <div className="min-w-[200px] flex-1"><ITSearchSelect name="auditAction" label="Acción" value={filters.action} onChange={(value) => setFilters((f) => ({ ...f, action: String(value) }))} options={[{ value: "", label: "Todas las acciones" }, ...COMMON_ACTIONS.map((action) => ({ value: action, label: action }))]} /></div>
-            <div className="min-w-[260px] flex-[1.4]"><ITInput name="auditSearch" label="Buscar" placeholder="Usuario, acción, entidad…" value={filters.q} onChange={(event) => setFilters((f) => ({ ...f, q: event.target.value }))} /></div>
+            <div className="min-w-[190px] flex-1"><ITSearchSelect name="auditUser" label={t("filters.person")} value={filters.userId} onChange={(value) => setFilters((f) => ({ ...f, userId: String(value) }))} options={[{ value: "", label: t("filters.allPeople") }, ...people.map((person) => ({ value: person.id, label: person.name }))]} /></div>
+            <div className="min-w-[170px] flex-1"><ITSearchSelect name="auditModule" label={t("filters.module")} value={filters.module} onChange={(value) => setFilters((f) => ({ ...f, module: String(value) }))} options={[{ value: "", label: t("filters.allModules") }, ...MODULES.map((module) => ({ value: module, label: moduleLabel(module) }))]} /></div>
+            <div className="min-w-[200px] flex-1"><ITSearchSelect name="auditAction" label={t("filters.action")} value={filters.action} onChange={(value) => setFilters((f) => ({ ...f, action: String(value) }))} options={[{ value: "", label: t("filters.allActions") }, ...COMMON_ACTIONS.map((action) => ({ value: action, label: actionLabel(action) }))]} /></div>
+            <div className="min-w-[260px] flex-[1.4]"><ITInput name="auditSearch" label={t("filters.search")} placeholder={t("filters.searchPlaceholder")} value={filters.q} onChange={(event) => setFilters((f) => ({ ...f, q: event.target.value }))} /></div>
           </ITFlex>
           <ITFlex className="mt-3" align="end" gap={2} wrap="wrap">
-            <div className="min-w-[260px] flex-1"><ITDatePicker name="auditRange" label="Rango de fechas" range value={range} onChange={(event) => { const next = event.target.value; if (Array.isArray(next)) setRange(next as [Date | null, Date | null]); }} /></div>
-            <ITButton variant="outlined" color="gray" onClick={() => { setFilters({ tenantId: "", userId: "", module: "", action: "", q: "" }); setRange([null, null]); }}>Limpiar filtros</ITButton>
-            <HelpTip text="Filtra por cualquier combinación. Los logs son de solo lectura." />
+            <div className="min-w-[260px] flex-1"><ITDatePicker name="auditRange" label={t("filters.range")} range value={range} onChange={(event) => { const next = event.target.value; if (Array.isArray(next)) setRange(next as [Date | null, Date | null]); }} /></div>
+            <ITButton variant="outlined" color="gray" onClick={() => { setFilters({ tenantId: "", userId: "", module: "", action: "", q: "" }); setRange([null, null]); }}>{t("filters.clear")}</ITButton>
+            <HelpTip text={t("filters.help")} />
           </ITFlex>
         </ITCard>
 
@@ -92,27 +124,28 @@ export default function AuditLogPage() {
       </div>
 
       <ITDialog isOpen={!!selected} onClose={() => setSelected(null)} className="max-w-2xl">
-        <DialogHeader icon={<LuShieldCheck size={20} />} title="Detalle del log" subtitle="Evidencia inmutable de la operación." />
+        <DialogHeader icon={<LuShieldCheck size={20} />} title={t("detail.title")} subtitle={t("detail.subtitle")} />
         {selected && (
           <div className="flex max-h-[65vh] flex-col gap-3 overflow-y-auto pr-1">
             <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-[12px]">
-              <Info label="Fecha" value={formatDateTime(selected.createdAt)} />
-              <Info label="Cliente" value={selected.tenantId ? tenantName.get(selected.tenantId) ?? selected.tenantId : "Plataforma"} />
-              <Info label="Usuario" value={selected.userName ?? selected.userId ?? "—"} />
-              <Info label="Módulo" value={selected.module ?? selected.entityType} />
-              <Info label="Acción" value={selected.action} />
-              <Info label="Entidad" value={`${selected.entityType} · ${selected.entityId}`} />
-              <Info label="IP" value={selected.ipAddress ?? "—"} />
-              <Info label="Navegador" value={selected.userAgent ?? "—"} wide />
+              <Info label={t("detail.date")} value={formatDateTime(selected.createdAt)} />
+              <Info label={t("detail.tenant")} value={tenantLabel(selected)} />
+              <Info label={t("detail.user")} value={userLabel(selected)} />
+              <Info label={t("detail.module")} value={moduleLabel(selected.module ?? selected.entityType)} />
+              <Info label={t("detail.action")} value={actionLabel(selected.action)} />
+              <Info label={t("detail.code")} value={selected.action} />
+              <Info label={t("detail.entity")} value={`${selected.entityType} · ${selected.entityId}`} />
+              <Info label={t("detail.ip")} value={selected.ipAddress ?? "—"} />
+              <Info label={t("detail.agent")} value={selected.userAgent ?? "—"} wide />
             </div>
-            <JsonBlock title="Roles al momento" value={selected.roles} />
-            <JsonBlock title="Permisos / excepciones al momento" value={selected.permissions} />
-            <JsonBlock title="Estado anterior" value={selected.previousState} />
-            <JsonBlock title="Estado nuevo" value={selected.newState} />
-            <JsonBlock title="Metadatos" value={selected.metadata} />
+            <JsonBlock title={t("detail.roles")} value={selected.roles} />
+            <JsonBlock title={t("detail.permissions")} value={selected.permissions} />
+            <JsonBlock title={t("detail.previous")} value={selected.previousState} />
+            <JsonBlock title={t("detail.next")} value={selected.newState} />
+            <JsonBlock title={t("detail.metadata")} value={selected.metadata} />
           </div>
         )}
-        <ITFlex justify="end" className="mt-4"><ITButton variant="filled" color="primary" className="tm-save-button" onClick={() => setSelected(null)}>Cerrar</ITButton></ITFlex>
+        <ITFlex justify="end" className="mt-4"><ITButton variant="filled" color="primary" className="tm-save-button" onClick={() => setSelected(null)}>{t("detail.close")}</ITButton></ITFlex>
       </ITDialog>
     </ITPage>
   );

@@ -69,6 +69,8 @@ export const authenticate = (
       where: { id: payload.id },
       select: {
         id: true,
+        name: true,
+        username: true,
         active: true,
         mustChangePassword: true,
         role: true,
@@ -145,6 +147,7 @@ export const authenticate = (
     // Correlación de logs/métricas: quién y qué cliente atiende la petición.
     setRequestPrincipal({
       userId: user.id,
+      userName: user.name ?? user.username,
       tenantId,
       roles: [user.role, ...user.extraRoles.map((r) => r.role)],
       permissions: user.permissionGrants.map((grant) => ({ permission: grant.permission, scope: grant.scope, expiresAt: grant.expiresAt })),

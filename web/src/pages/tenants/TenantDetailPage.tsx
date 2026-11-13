@@ -530,7 +530,7 @@ export default function TenantDetailPage() {
           const slugChanged = updated.slug !== tenant?.slug;
           setTenant(updated);
           const selected = getSelectedTenant();
-          if (selected?.id === updated.id) setSelectedTenant({ ...selected, name: updated.name, slug: updated.slug, punchChannels: updated.punchChannels });
+          if (selected?.id === updated.id) setSelectedTenant({ ...selected, name: updated.name, slug: updated.slug, punchChannels: updated.punchChannels, timezone: updated.timezone });
           setToast(slugChanged ? `Cliente guardado. Nueva entrada: ${tenantHost(updated.slug)}` : "Cliente guardado.");
         }}
       />

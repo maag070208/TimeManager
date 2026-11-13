@@ -9,6 +9,8 @@ import { randomUUID } from "node:crypto";
 export interface RequestContext {
   requestId: string;
   userId?: string | null;
+  /** Nombre visible de quien opera: lo hereda la auditoría cuando el servicio no lo pasa. */
+  userName?: string | null;
   tenantId?: string | null;
   /** Ruta normalizada (sin ids) para las métricas. */
   route?: string;
@@ -41,6 +43,7 @@ export const countQuery = (): void => {
 /** Añade usuario/cliente al contexto cuando `authenticate` los resuelve. */
 export const setRequestPrincipal = (principal: {
   userId?: string | null;
+  userName?: string | null;
   tenantId?: string | null;
   roles?: string[];
   permissions?: Array<{ permission: string; scope: string; expiresAt?: Date | null }>;
@@ -48,6 +51,7 @@ export const setRequestPrincipal = (principal: {
   const context = storage.getStore();
   if (!context) return;
   if (principal.userId !== undefined) context.userId = principal.userId;
+  if (principal.userName !== undefined) context.userName = principal.userName;
   if (principal.tenantId !== undefined) context.tenantId = principal.tenantId;
   if (principal.roles !== undefined) context.roles = principal.roles;
   if (principal.permissions !== undefined) context.permissions = principal.permissions;

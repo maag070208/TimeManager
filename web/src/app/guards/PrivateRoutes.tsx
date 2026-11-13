@@ -17,6 +17,7 @@ import { PLATFORM_PATHS, TenantSwitcher, useClientContext } from "@features/tena
 import { getSelectedTenant } from "@shared/api/tenant";
 import { isPathInDisabledModule } from "@shared/lib/tenant-modules";
 import { setTenantBrand } from "@shared/lib/tenantBrand";
+import { setDefaultTimeZone } from "@shared/utils/dates";
 import logoUrl from "@shared/assets/brand/checklab-logo-for-light-bg.svg";
 import symbolUrl from "@shared/assets/brand/checklab-symbol-for-light-bg.svg";
 
@@ -39,6 +40,11 @@ export default function PrivateRoutes() {
   const unreadCount = useSelector((s: RootState) => s.notifications.unreadCount);
   const [toast, setToast] = useState<string | null>(null);
   const { platformWithoutClient } = useClientContext();
+  const tenantTimezone = user?.tenant?.timezone ?? getSelectedTenant()?.timezone;
+  useEffect(() => {
+    setDefaultTimeZone(tenantTimezone);
+    return () => setDefaultTimeZone(undefined);
+  }, [tenantTimezone]);
 
   // En la app de escritorio llega como notificación nativa del sistema; en el
   // navegador, como aviso dentro de la página.

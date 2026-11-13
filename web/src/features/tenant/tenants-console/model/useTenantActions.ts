@@ -16,7 +16,7 @@ export const useTenantActions = (onStatusChanged: (tenant: Tenant) => void) => {
   const enter = async (tenant: Tenant, path = "/") => {
     try {
       await tenantApi.impersonate(tenant.id);
-      setSelectedTenant({ id: tenant.id, name: tenant.name, slug: tenant.slug, punchChannels: tenant.punchChannels });
+      setSelectedTenant({ id: tenant.id, name: tenant.name, slug: tenant.slug, punchChannels: tenant.punchChannels, timezone: tenant.timezone });
       window.location.assign(path);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));

@@ -41,6 +41,7 @@ export interface SelectedTenant {
   slug: string;
   /** Canales de checada del cliente elegido (los define la plataforma). */
   punchChannels?: PunchChannel[];
+  timezone?: string;
 }
 
 const STORAGE_KEY = "tm_selected_tenant_v1";

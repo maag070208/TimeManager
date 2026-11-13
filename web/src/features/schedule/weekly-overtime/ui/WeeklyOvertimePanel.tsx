@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { LuCalendarCheck, LuCheck, LuRefreshCw } from "react-icons/lu";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { HelpTip } from "@shared/ui/help-tip";
 import { RowAction } from "@shared/ui/row-action";
 import { TicState } from "@shared/ui/tic";
@@ -163,7 +164,7 @@ export default function WeeklyOvertimePanel({ canApprove }: { canApprove: boolea
         ]} />
 
         {loading && rows.length === 0 ? (
-          <ITText muted className="!text-[12px]">Cargando clasificación semanal…</ITText>
+          <ContentSkeleton size="sm" />
         ) : rows.length === 0 ? (
           <TicState kind="empty" size="sm" title="Sin horas extra esta semana" description="Elige otra semana o registra checadas para calcular la clasificación." />
         ) : (

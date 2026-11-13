@@ -45,7 +45,7 @@ export const useTenantSwitcher = () => {
         return;
       }
     }
-    setSelectedTenant(next ? { id: next.id, name: next.name, slug: next.slug, punchChannels: next.punchChannels } : null);
+    setSelectedTenant(next ? { id: next.id, name: next.name, slug: next.slug, punchChannels: next.punchChannels, timezone: next.timezone } : null);
     window.location.assign("/");
   };
 

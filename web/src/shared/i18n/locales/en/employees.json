@@ -68,7 +68,9 @@
       "source": {
         "WEB": "Web",
         "APP": "App",
-        "CLOCK": "Clock"
+        "CLOCK": "Clock",
+        "WEB_HINT": "Punched from the web",
+        "APP_HINT": "Punched from the app"
       },
       "empty": {
         "documents": "No documents uploaded.",

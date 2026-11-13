@@ -30,7 +30,7 @@ export class AuditService {
         entityType: input.entityType,
         entityId: input.entityId,
         userId: input.userId ?? ctx?.userId ?? null,
-        userName: input.userName ?? null,
+        userName: input.userName ?? (input.userId && input.userId !== ctx?.userId ? null : ctx?.userName ?? null),
         permissions: toJson(input.permissions ?? (ctx?.permissions ? { exceptions: ctx.permissions } : undefined)),
         roles: toJson(input.roles ?? (ctx?.roles ? { roles: ctx.roles } : undefined)),
         ipAddress: input.ipAddress ?? ctx?.ip ?? null,

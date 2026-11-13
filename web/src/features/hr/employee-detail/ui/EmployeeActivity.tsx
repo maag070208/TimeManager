@@ -102,7 +102,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
               <li key={punch.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50/70 px-3 py-2">
                 <ITFlex align="center" gap={2} className="min-w-0">
                   <ITBadget color="info" size="sm">{isRemote(punch) ? sourceLabel(punch) : method(punch.method)}</ITBadget>
-                  <ITText className="truncate !text-[11.5px] text-slate-500">{isRemote(punch) ? sourceLabel(punch) : punch.clock ?? t("detail.activity.source.CLOCK")}</ITText>
+                  <ITText className="truncate !text-[11.5px] text-slate-500">{isRemote(punch) ? t(punch.source === "APP" ? "detail.activity.source.APP_HINT" : "detail.activity.source.WEB_HINT") : punch.clock ?? t("detail.activity.source.CLOCK")}</ITText>
                 </ITFlex>
                 <ITText className="shrink-0 !text-[11.5px] tabular-nums text-slate-500">{formatDateTime(punch.occurredAt)}</ITText>
               </li>

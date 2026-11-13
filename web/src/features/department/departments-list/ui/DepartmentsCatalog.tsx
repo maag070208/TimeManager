@@ -251,16 +251,8 @@ export default function DepartmentsCatalog({
                     {d.name}
                   </button>
                 }
-                value={<Num value={peopleOf(d)} />}
-                caption={t("list.people", { count: peopleOf(d) })}
-                aside={
-                  <StatusChip
-                    active={d.active}
-                    label={d.active ? t("detail.active") : t("detail.inactive")}
-                  />
-                }
               >
-                <div className="mt-2 flex min-w-0 flex-1 flex-col gap-2">
+                <div className="mt-1 flex min-w-0 flex-1 flex-col gap-2">
                   <ITText
                     className="m-0 truncate text-[12px]"
                     style={{ color: "var(--it-bento-muted)" }}
@@ -268,7 +260,18 @@ export default function DepartmentsCatalog({
                   >
                     {areasText}
                   </ITText>
-                  <div className="mt-auto flex items-center justify-end gap-1.5">
+                  <div className="mt-auto flex items-end justify-between gap-3">
+                    <div className="flex items-baseline gap-1.5">
+                      <Num value={peopleOf(d)} />
+                      <ITText as="span" className="text-[11.5px]" style={{ color: "var(--it-bento-muted)" }}>
+                        {t("list.people", { count: peopleOf(d) })}
+                      </ITText>
+                      <StatusChip
+                        active={d.active}
+                        label={d.active ? t("detail.active") : t("detail.inactive")}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
                     <ITButton
                       variant="outlined" className="tm-icon-button"
                       color="secondary"
@@ -300,6 +303,7 @@ export default function DepartmentsCatalog({
                         title={t("list.delete")}
                       />
                     )}
+                    </div>
                   </div>
                 </div>
               </ITBentoTile>

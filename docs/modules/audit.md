@@ -6,7 +6,7 @@ Consulta de la bitácora (`AuditLog`): quién hizo qué, cuándo y sobre qué re
 
 `GET /` (lista con filtros: `tenantId`, `module`, `q`, `action`, `entityType`, `entityId`, `userId`, `start`, `end`, paginado), `GET /:id` (detalle). El filtro `entityId` permite pedir el historial completo de un registro concreto (p. ej. `?entityType=TimeClockPunch&entityId=<punchId>`).
 
-Cada registro guarda: cliente, módulo, acción, entidad, usuario, fecha/hora, roles, permisos/excepciones vigentes, IP, user-agent, estado anterior/nuevo y metadatos. La tabla `audit_logs` es **inmutable**: un trigger de PostgreSQL rechaza `UPDATE` y `DELETE`; la API solo expone lectura.
+Cada registro guarda: cliente, módulo, acción, entidad, usuario, fecha/hora, roles, permisos/excepciones vigentes, IP, user-agent, estado anterior/nuevo y metadatos. El nombre del usuario (`userName`) lo hereda del contexto de la petición cuando el servicio no lo pasa, así la consola no muestra UUIDs. La tabla `audit_logs` es **inmutable**: un trigger de PostgreSQL rechaza `UPDATE` y `DELETE`; la API solo expone lectura.
 
 ## Modelos
 
