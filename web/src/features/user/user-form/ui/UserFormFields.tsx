@@ -133,7 +133,7 @@ export default function UserFormFields({
               </ITFlex>
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITInput name="u_password" type="password" label={`${tt("form.password")} ${!isEdit ? "*" : ""}`} value={form.password} onChange={(e) => onFieldChange("password", e.target.value)} onBlur={blob("password")} required={!isEdit} placeholder={isEdit ? tt("form.passwordPlaceholder") : ""} error={fieldError("password")} />
+              <ITInput name="u_password" type="password" label={tt("form.password")} value={form.password} onChange={(e) => onFieldChange("password", e.target.value)} onBlur={blob("password")} required={!isEdit} placeholder={isEdit ? tt("form.passwordPlaceholder") : ""} error={fieldError("password")} />
               {isEdit && (
                 <ITFlex align="center" gap={2} className="mt-1">
                   <LuLock size={11} className="text-slate-400" />

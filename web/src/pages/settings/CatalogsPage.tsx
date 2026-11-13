@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { newId } from "@shared/lib/newId";
 import { useSearchParams } from "react-router-dom";
 import {
   ITAlert,
@@ -180,6 +181,9 @@ export default function CatalogsPage() {
   const positionRows = useMemo(() => positions, [positions]);
   const activeRows = tab === "leave" ? leaveRows : tab === "documents" ? docRows : tab === "departments" ? deptRows : positionRows;
 
+  // Cambia con cada recarga del catálogo activo (alta, edición o baja).
+  const tableKey = useMemo(() => `${tab}-${newId()}`, [tab, activeRows]);
+
   const leaveColumns: Column<CatalogRow>[] = [
     { key: "name", label: "Nombre", type: "string", render: (row) => <ITText className="font-semibold !text-[12px]">{row.name}</ITText> },
     { key: "key", label: "Clave", type: "string", width: 220, render: (row) => <span className="font-mono text-[11.5px] text-slate-500">{row.key}</span> },
@@ -245,7 +249,8 @@ export default function CatalogsPage() {
           </ITFlex>
           <div className="mt-3">
             <ITDataTable
-              key={tab}
+              // La tabla pide sus filas al montarse: se remonta cuando llegan o cambian los datos.
+              key={tableKey}
               columns={columns as unknown as Column<Record<string, unknown>>[]}
               fetchData={fetchRows as never}
               showViewToggle={false}

@@ -26,7 +26,6 @@ export default function PayrollPage() {
       noPadding
       horizontalPadding={"px-0"}
       maxWidth="7xl"
-      actions={<WeeklyAttendanceFilters fx={fx} />}
       breadcrumbs={[
         { label: t("common:breadcrumbs.home"), onClick: () => navigate("/") },
         { label: t("common:nav.hr"), onClick: () => navigate("/employees") },
@@ -34,6 +33,9 @@ export default function PayrollPage() {
       ]}
       backAction={() => goBack("/employees")}
     >
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <WeeklyAttendanceFilters fx={fx} />
+      </div>
       <WeeklyAttendancePanel fx={fx} />
     </ITPage>
   );

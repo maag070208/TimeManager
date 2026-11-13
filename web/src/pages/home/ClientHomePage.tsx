@@ -3,6 +3,7 @@ import { LuHouse } from "react-icons/lu";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import type { RootState } from "@app/store";
+import { useTenantTimezone } from "@entities/user";
 import { ClientOverview } from "@features/home/client-overview";
 import { useClientContext } from "@features/tenant/tenant-switcher";
 
@@ -12,7 +13,8 @@ export default function ClientHomePage() {
   const user = useSelector((s: RootState) => s.auth.user);
   const { client } = useClientContext();
   const firstName = (user?.name ?? user?.username ?? "").split(" ")[0];
-  const today = new Date().toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" });
+  const timezone = useTenantTimezone();
+  const today = new Date().toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long", timeZone: timezone });
 
   return (
     <ITPage

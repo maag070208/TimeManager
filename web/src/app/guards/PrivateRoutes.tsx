@@ -295,7 +295,7 @@ export default function PrivateRoutes() {
           image: user.photoUrl
             ? `${API_CONSTANTS.BASE_URL}${user.photoUrl}`
             : blobatarDataUri(user.name ?? user.username),
-          label: tt("nav.accountMenu"),
+          label: tt("nav.accountMenu", { name: user.name ?? user.username }),
           // La tarjeta lleva a la cuenta de la persona (si puede editarla).
           onClick: (permissions?.["users.edit"] ?? "NONE") !== "NONE" ? () => navigate(`/employees/${user.id}/account`) : undefined,
         }

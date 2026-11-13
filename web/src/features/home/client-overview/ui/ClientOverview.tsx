@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ITBadget, ITButton, ITCard, ITSkeleton, ITText } from "@axzydev/axzy_ui_system";
-import { useCan } from "@entities/user";
+import { useCan, useTenantTimezone } from "@entities/user";
 import { LuArrowRight, LuCalendarClock, LuCalendarDays, LuCircleCheck, LuCircle, LuClock3, LuFolderOpen, LuSettings2, LuUsersRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -47,10 +47,11 @@ export default function ClientOverview() {
   const tr = dyn(t);
   const navigate = useNavigate();
   const fx = useClientOverview();
+  const timezone = useTenantTimezone();
   const canTimeClockView = useCan("time_clock.view");
   const shortDate = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(i18n.language, { day: "numeric", month: "short" });
-  const timeOf = (iso: string) => new Date(iso).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit", hour12: false });
-  const today = new Date().toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" });
+  const timeOf = (iso: string) => new Date(iso).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone });
+  const today = new Date().toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long", timeZone: timezone });
 
   if (!fx.hasAny) {
     return (
