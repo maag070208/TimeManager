@@ -53,6 +53,8 @@ export default function TeleworkAdminPage() {
   const [policyForm, setPolicyForm] = useState({
     teleworkPolicy: "",
     disconnectPolicy: "",
+    equipmentPolicy: "",
+    returnToOfficePolicy: "",
     privacyNotice: "",
   });
   const [registrations, setRegistrations] = useState<TeleworkRegistration[]>([]);
@@ -86,6 +88,8 @@ export default function TeleworkAdminPage() {
       setPolicyForm({
         teleworkPolicy: policyData.teleworkPolicy ?? "",
         disconnectPolicy: policyData.disconnectPolicy ?? "",
+        equipmentPolicy: policyData.equipmentPolicy ?? "",
+        returnToOfficePolicy: policyData.returnToOfficePolicy ?? "",
         privacyNotice: policyData.privacyNotice ?? "",
       });
       setRegistrations(regs);
@@ -188,6 +192,8 @@ export default function TeleworkAdminPage() {
                   {[
                     { label: t("telework.policyTitle"), text: policyForm.teleworkPolicy },
                     { label: t("telework.disconnectTitle"), text: policyForm.disconnectPolicy },
+                    { label: t("telework.equipmentTitle"), text: policyForm.equipmentPolicy },
+                    { label: t("telework.returnTitle"), text: policyForm.returnToOfficePolicy },
                     { label: t("telework.privacyTitle"), text: policyForm.privacyNotice },
                   ].map((item) => (
                     <div key={item.label} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
@@ -290,6 +296,8 @@ export default function TeleworkAdminPage() {
               <div className="flex flex-col gap-3">
                 <ITTextarea name="teleworkPolicy" label={t("telework.policyTitle")} value={policyForm.teleworkPolicy} onChange={(value) => setPolicyForm((form) => ({ ...form, teleworkPolicy: value }))} rows={6} />
                 <ITTextarea name="disconnectPolicy" label={t("telework.disconnectTitle")} value={policyForm.disconnectPolicy} onChange={(value) => setPolicyForm((form) => ({ ...form, disconnectPolicy: value }))} rows={5} />
+                <ITTextarea name="equipmentPolicy" label={t("telework.equipmentTitle")} value={policyForm.equipmentPolicy} onChange={(value) => setPolicyForm((form) => ({ ...form, equipmentPolicy: value }))} rows={4} />
+                <ITTextarea name="returnToOfficePolicy" label={t("telework.returnTitle")} value={policyForm.returnToOfficePolicy} onChange={(value) => setPolicyForm((form) => ({ ...form, returnToOfficePolicy: value }))} rows={4} />
                 <ITTextarea name="privacyNotice" label={t("telework.privacyTitle")} value={policyForm.privacyNotice} onChange={(value) => setPolicyForm((form) => ({ ...form, privacyNotice: value }))} rows={6} />
                 <div className="flex justify-end gap-2">
                   <ITButton variant="outlined" color="secondary" size="sm" className="tm-row-button" onClick={() => setPolicyOpen(false)}>Cancelar</ITButton>

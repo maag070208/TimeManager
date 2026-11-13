@@ -262,6 +262,21 @@ export interface StpsExportResult {
   body: string;
   sha256: string;
   rowCount: number;
+  /** Sello encadenado: liga este export con el anterior del cliente. */
+  seal?: { sequence: number; seal: string; previousSeal: string | null };
+}
+
+export interface ExportSealRow {
+  sequence: number;
+  period: string;
+  date: string;
+  format: string;
+  sha256: string;
+  previousSeal: string | null;
+  seal: string;
+  createdAt: string;
+  /** `false` si el sello no corresponde a sus datos o al sello anterior. */
+  valid: boolean;
 }
 
 // ── F2-07 marcaje remoto ────────────────────────────────────────────────────
@@ -305,6 +320,8 @@ export type OutOfHoursChannel = "CALL" | "MESSAGE" | "EMAIL" | "OTHER";
 export interface TeleworkPolicyTexts {
   teleworkPolicy: string | null;
   disconnectPolicy: string | null;
+  equipmentPolicy: string | null;
+  returnToOfficePolicy: string | null;
   privacyNotice: string | null;
   policyVersion: number;
   privacyNoticeVersion: number;
@@ -314,6 +331,8 @@ export interface TeleworkPolicyTexts {
 export interface TeleworkPolicyUpdateInput {
   teleworkPolicy?: string | null;
   disconnectPolicy?: string | null;
+  equipmentPolicy?: string | null;
+  returnToOfficePolicy?: string | null;
   privacyNotice?: string | null;
 }
 

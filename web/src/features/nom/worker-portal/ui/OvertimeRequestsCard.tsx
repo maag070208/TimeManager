@@ -43,8 +43,10 @@ export const OvertimeRequestsCard = ({ className, tr, wc }: Props) => (
                     disabled={wc.busy !== null}
                     onClick={() => void wc.decideRequest(request.id, true)}
                   >
-                    <LuCheck size={13} className="mr-1" />
-                    {tr("requests.accept")}
+                    <span className="inline-flex items-center justify-center gap-1.5">
+                      <LuCheck size={13} />
+                      {tr("requests.accept")}
+                    </span>
                   </ITButton>
                   <ITButton
                     variant="outlined"
@@ -54,8 +56,10 @@ export const OvertimeRequestsCard = ({ className, tr, wc }: Props) => (
                     disabled={wc.busy !== null}
                     onClick={() => void wc.decideRequest(request.id, false)}
                   >
-                    <LuX size={13} className="mr-1" />
-                    {tr("requests.reject")}
+                    <span className="inline-flex items-center justify-center gap-1.5">
+                      <LuX size={13} />
+                      {tr("requests.reject")}
+                    </span>
                   </ITButton>
                 </div>
               )}

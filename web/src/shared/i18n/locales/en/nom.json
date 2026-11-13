@@ -64,7 +64,8 @@
   "discrepancy": {
     "reason": "Discrepancy reason",
     "send": "Send to HR",
-    "reasonMin": "Write at least 5 characters."
+    "reasonMin": "Write at least 5 characters.",
+    "correctTime": "What time was it really? (optional)"
   },
   "telework": {
     "title": "My telework",
@@ -88,7 +89,9 @@
     "consentDone": "Policy and notice accepted",
     "checklistOk": "Up to date: completed on {{date}}",
     "checklistNext": "due again on {{date}}",
-    "checklistRefill": "Fill in again"
+    "checklistRefill": "Fill in again",
+    "equipmentTitle": "Equipment and supplies",
+    "returnTitle": "Return to on-site work and family violence"
   },
   "checklist": {
     "yes": "Yes",

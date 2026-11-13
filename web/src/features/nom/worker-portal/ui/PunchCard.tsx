@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { ITBadget, ITButton, ITCard, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { LuCalendarCheck, LuCheck, LuClock, LuCoffee, LuLock, LuLogIn, LuLogOut, LuMapPin, LuUtensils } from "react-icons/lu";
 import type { PunchType, RecordAgreementProposal } from "@entities/nom";
-import { dateLocale } from "@shared/i18n";
+import { useTenantTimezone } from "@entities/user";
+import { dayLabelOf } from "./format";
 import type { PunchStage } from "../model/useMyWorkday";
 
 const PUNCH_ICON: Record<PunchType, ReactNode> = {
@@ -49,6 +50,7 @@ export const PunchCard = ({
   className, tr, clock, status, labels, nextTypes, canPunch, hasClock, appOnly, geoEnabled,
   agreementLocked, proposal, stage, onPunch, onAcceptAndPunch,
 }: PunchCardProps) => {
+  const timezone = useTenantTimezone();
   const primaryNext = nextTypes[0];
   const busy = stage !== null;
   const stageLabel = stage ? tr(`punch.stage.${stage}`) : null;
@@ -65,7 +67,7 @@ export const PunchCard = ({
           <ITFlex direction="column" gap={0.5}>
             <ITText muted className="!text-[11px] font-semibold uppercase tracking-[0.08em]">{tr("punch.today")}</ITText>
             <ITText className="!text-[15px] font-bold">
-              {new Date().toLocaleDateString(dateLocale(), { weekday: "long", day: "numeric", month: "long" })}
+              {dayLabelOf(new Date(), timezone)}
             </ITText>
           </ITFlex>
           <ITBadget color={status.tone as never} size="sm">{status.label}</ITBadget>

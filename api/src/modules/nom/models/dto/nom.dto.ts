@@ -109,6 +109,8 @@ export const TeleworkPolicyDto = z
   .object({
     teleworkPolicy: z.string().max(20000).nullable().optional(),
     disconnectPolicy: z.string().max(20000).nullable().optional(),
+    equipmentPolicy: z.string().max(20000).nullable().optional(),
+    returnToOfficePolicy: z.string().max(20000).nullable().optional(),
     privacyNotice: z.string().max(20000).nullable().optional(),
   })
   .strict();

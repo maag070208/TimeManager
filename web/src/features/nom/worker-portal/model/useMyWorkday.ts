@@ -8,9 +8,8 @@ import {
 } from "@entities/nom";
 import { newId } from "@shared/lib/newId";
 import { usePortalToast } from "./usePortalToast";
-
-const isoDay = (date: Date): string =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+import { useTenantTimezone } from "@entities/user";
+import { todayKeyInTimeZone } from "@shared/utils/dates";
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -33,11 +32,13 @@ export interface PunchOptions {
 
 /** Estado y acciones del portal personal (marcaje, marcajes, teletrabajo). */
 export const useMyWorkday = () => {
-  const today = useMemo(() => isoDay(new Date()), []);
+  // El rango se pide en días del cliente: es como el API corta «hoy».
+  const timezone = useTenantTimezone();
+  const today = useMemo(() => todayKeyInTimeZone(timezone), [timezone]);
   const [from, setFrom] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 13);
-    return isoDay(date);
+    const date = new Date(`${today}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - 13);
+    return date.toISOString().slice(0, 10);
   });
   const [to, setTo] = useState(today);
   const [punches, setPunches] = useState<MyPunch[]>([]);
@@ -143,8 +144,8 @@ export const useMyWorkday = () => {
     }
   };
 
-  const reportDiscrepancy = (punchId: string, reason: string) =>
-    run(() => nomApi.reportDiscrepancy({ punchId, reason })).then((ok) => (ok && done("discrepancy"), ok));
+  const reportDiscrepancy = (punchId: string, reason: string, expectedOccurredAt?: string) =>
+    run(() => nomApi.reportDiscrepancy({ punchId, reason, expectedOccurredAt })).then((ok) => (ok && done("discrepancy"), ok));
 
   const acceptPolicy = () =>
     run(() => {

@@ -1,12 +1,13 @@
 import { Fragment, useMemo, useState } from "react";
-import { ITBadget, ITButton, ITCard, ITDatePicker, ITDialog, ITFlex, ITText, ITTextarea } from "@axzydev/axzy_ui_system";
+import { ITBadget, ITButton, ITCard, ITDatePicker, ITDialog, ITFlex, ITText, ITTextarea, ITTimePicker } from "@axzydev/axzy_ui_system";
 import { LuCalendarCheck, LuMapPin } from "react-icons/lu";
 import { isRemotePunchSource, type MyPunch, type PunchSource, type PunchType } from "@entities/nom";
-import { dateLocale } from "@shared/i18n";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { LocationMap } from "@shared/ui/location-map";
 import type { useMyWorkday } from "../model/useMyWorkday";
-import { dateOf, dateStrToLocal, localToDateStr, sameDay, timeOf, type PortalCardProps } from "./format";
+import { useTenantTimezone } from "@entities/user";
+import { dateOf, dateStrToLocal, dayLabelOf, localToDateStr, sameDay, timeOf as timeIn, zonedIso, type PortalCardProps } from "./format";
+import { dateKeyInTimeZone } from "@shared/utils/dates";
 import { CardHeader } from "./shared";
 
 const SOURCE_LABEL: Record<PunchSource, string> = {
@@ -25,28 +26,33 @@ interface Props extends PortalCardProps {
 /** Mis marcajes: lista por día, ubicación de cada checada y reporte de discrepancia. */
 export const MyPunchesCard = ({ className, tr, fx, labels: PUNCH_LABEL }: Props) => {
   const t = tr;
+  const timezone = useTenantTimezone();
+  const timeOf = (iso: string) => timeIn(iso, timezone);
   const [mapPunch, setMapPunch] = useState<MyPunch | null>(null);
   const [selectedPunch, setSelectedPunch] = useState<string | null>(null);
   const [reason, setReason] = useState("");
+  const [correctTime, setCorrectTime] = useState("");
 
   const punchDays = useMemo(() => {
     const days = new Map<string, MyPunch[]>();
     for (const row of fx.punches) {
-      const key = sameDay(row.occurredAt)
-        ? tr("punch.today")
-        : new Date(row.occurredAt).toLocaleDateString(dateLocale(), { weekday: "long", day: "numeric", month: "short" });
+      const key = sameDay(row.occurredAt, timezone) ? tr("punch.today") : dayLabelOf(new Date(row.occurredAt), timezone, "short");
       const list = days.get(key);
       if (list) list.push(row);
       else days.set(key, [row]);
     }
     return [...days.entries()];
-  }, [fx.punches, tr]);
+  }, [fx.punches, tr, timezone]);
 
   const submitDiscrepancy = async () => {
     if (!selectedPunch || reason.trim().length < 5) return;
-    if (await fx.reportDiscrepancy(selectedPunch, reason.trim())) {
+    const punch = fx.punches.find((row) => row.id === selectedPunch);
+    const expected =
+      punch && correctTime ? zonedIso(dateKeyInTimeZone(new Date(punch.occurredAt), timezone), correctTime, timezone) : undefined;
+    if (await fx.reportDiscrepancy(selectedPunch, reason.trim(), expected)) {
       setSelectedPunch(null);
       setReason("");
+      setCorrectTime("");
     }
   };
 
@@ -121,6 +127,7 @@ export const MyPunchesCard = ({ className, tr, fx, labels: PUNCH_LABEL }: Props)
                       </div>
                       {selectedPunch === row.id && (
                         <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3">
+                          <ITTimePicker name="correctTime" label={t("discrepancy.correctTime")} value={correctTime} onChange={(event) => setCorrectTime(event.target.value)} />
                           <ITTextarea
                             name="reason"
                             label={t("discrepancy.reason")}

@@ -1,6 +1,8 @@
 import { api } from "@shared/api/client";
 import type {
   MeTelework,
+  PunchAdjustment,
+  PunchHistory,
   OvertimeRequestRow,
   LeaveBalance,
   LeaveRequestRow,
@@ -157,6 +159,12 @@ export const nomApi = {
     expectedOccurredAt?: string;
   }) => api.post<{ id: string }>(`${base}/me/discrepancies`, input),
 
+  adjustments: (status?: "PENDING" | "APPROVED" | "REJECTED") =>
+    api.get<PunchAdjustment[]>(`${base}/adjustments`, { params: status ? { status } : undefined }),
+  decideAdjustment: (id: string, approve: boolean, note?: string) =>
+    api.post<PunchAdjustment>(`${base}/adjustments/${id}/${approve ? "approve" : "reject"}`, { note }),
+  punchHistory: (punchId: string) => api.get<PunchHistory>(`${base}/punches/${punchId}/history`),
+
   myTelework: () => api.get<MeTelework>(`${base}/me/telework`),
 
   acceptTeleworkPolicy: (input: { policyVersion: number; privacyNoticeVersion: number }) =>
@@ -173,6 +181,8 @@ export const nomApi = {
   updateTeleworkPolicy: (input: {
     teleworkPolicy?: string | null;
     disconnectPolicy?: string | null;
+    equipmentPolicy?: string | null;
+    returnToOfficePolicy?: string | null;
     privacyNotice?: string | null;
   }) => api.put<TeleworkPolicyTexts>(`${base}/telework/policy`, input),
 

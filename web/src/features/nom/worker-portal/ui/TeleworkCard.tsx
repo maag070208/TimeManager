@@ -46,6 +46,8 @@ export const TeleworkCard = ({ className, tr, fx, checklistDue }: Props) => {
               {[
                 { title: t("telework.policyTitle"), body: telework.policy.teleworkPolicy },
                 { title: t("telework.disconnectTitle"), body: telework.policy.disconnectPolicy },
+                { title: t("telework.equipmentTitle"), body: telework.policy.equipmentPolicy },
+                { title: t("telework.returnTitle"), body: telework.policy.returnToOfficePolicy },
                 { title: t("telework.privacyTitle"), body: telework.policy.privacyNotice },
               ].map((section) => (
                 <details key={section.title} className="rounded-lg bg-slate-50 px-3 py-2">

@@ -92,6 +92,7 @@ model Tenant {
 
   // Configuración NOM por cliente (límites de jornada y retención).
   nomSettings     NomSettings?
+  nomExportSeals  NomExportSeal[]
   payrollSettings PayrollSettings?
   payments        TenantPayment[]
 
@@ -1765,6 +1766,10 @@ model NomSettings {
   teleworkPolicy              String?
   /// Política de desconexión digital (NOM-037 / F2-08).
   disconnectPolicy            String?
+  /// Equipo e insumos que entrega el patrón al teletrabajador (NOM-037).
+  equipmentPolicy             String?
+  /// Retorno a presencial, incluido el mecanismo por violencia familiar (NOM-037).
+  returnToOfficePolicy        String?
   /// Aviso de privacidad editable por cliente (validación legal fuera del sistema).
   privacyNotice               String?
   /// Versiones que el trabajador acepta (consentimiento).
@@ -2207,4 +2212,25 @@ model FingerprintStationConfig {
   updatedAt         DateTime @updatedAt
 
   @@map("fingerprint_station_configs")
+}
+
+/// Cadena de sellos del export STPS: cada export sella su SHA-256 junto con el
+/// sello anterior del cliente. Solo inserción (trigger de BD).
+model NomExportSeal {
+  id            String   @id @default(uuid())
+  tenantId      String   @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sequence      Int
+  period        String
+  date          String
+  format        String
+  schemaVersion String
+  sha256        String
+  previousSeal  String?
+  seal          String
+  createdById   String?
+  createdAt     DateTime
+
+  @@unique([tenantId, sequence])
+  @@map("nom_export_seals")
 }

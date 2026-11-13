@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITCard, ITCheckbox, ITText, ITTextarea, ITToast, ITDatePicker } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
-import { LuCalendarClock, LuFileCheck, LuSignature } from "react-icons/lu";
+import { LuCalendarClock, LuClockAlert, LuFileCheck, LuSignature } from "react-icons/lu";
+import { PunchCorrections } from "@features/nom/punch-corrections";
 import { nomApi } from "@entities/nom";
 import type { DistributionAgreement, RecordAgreementAdmin } from "@entities/nom";
 import { usersApi } from "@entities/user";
@@ -29,7 +30,7 @@ const localToDateStr = (value: Date): string => {
 const METHOD_LABEL: Record<string, string> = { CLOCK: "Reloj", REMOTE: "Web o app", ACCESS: "Control de acceso" };
 const MIN_NOTE = 20;
 
-type Tab = "schedule" | "method";
+type Tab = "schedule" | "method" | "corrections";
 
 export default function WorkdayAgreementsPage() {
   const [tab, setTab] = useState<Tab>("schedule");
@@ -41,6 +42,7 @@ export default function WorkdayAgreementsPage() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [pendingCorrections, setPendingCorrections] = useState(0);
 
   const load = async () => {
     try {
@@ -119,12 +121,18 @@ export default function WorkdayAgreementsPage() {
         items={[
           { id: "schedule", label: `Jornada acordada${pendingAcceptance ? ` (${pendingAcceptance})` : ""}`, icon: <LuCalendarClock size={13} /> },
           { id: "method", label: `Forma de registro${pendingSignature.length ? ` (${pendingSignature.length})` : ""}`, icon: <LuFileCheck size={13} /> },
+          { id: "corrections", label: `Correcciones de checadas${pendingCorrections ? ` (${pendingCorrections})` : ""}`, icon: <LuClockAlert size={13} /> },
         ] as TabBarItem<Tab>[]}
         value={tab}
         onChange={setTab}
       />
       <div className="mt-4 flex flex-col gap-4 pb-12">
         {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}
+
+        {/* Montada siempre: su contador de pendientes vive en la pestaña. */}
+        <div className={tab === "corrections" ? "flex flex-col gap-4" : "hidden"}>
+          <PunchCorrections onPendingChange={setPendingCorrections} onDone={setToast} />
+        </div>
 
         {tab === "schedule" && (
           <>

@@ -578,7 +578,15 @@ export class NomController {
     res.setHeader("Content-Type", result.contentType);
     res.setHeader("Content-Disposition", `attachment; filename="${result.filename}"`);
     res.setHeader("X-Content-SHA256", result.sha256);
+    if (result.seal) {
+      res.setHeader("X-Export-Seal", result.seal.seal);
+      res.setHeader("X-Export-Seal-Sequence", String(result.seal.sequence));
+    }
     res.send(result.body);
+  };
+
+  exportSeals = async (_req: Request, res: Response) => {
+    res.json(await this.exporter.seals(tenantIdOrThrow()));
   };
 
   myPunches = async (req: Request, res: Response) => {

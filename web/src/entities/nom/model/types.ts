@@ -45,6 +45,10 @@ export interface RemotePunchResult {
 export interface TeleworkPolicyTexts {
   teleworkPolicy: string | null;
   disconnectPolicy: string | null;
+  /** Equipo e insumos que entrega la empresa (NOM-037). */
+  equipmentPolicy?: string | null;
+  /** Retorno a presencial, incluido el mecanismo por violencia familiar (NOM-037). */
+  returnToOfficePolicy?: string | null;
   privacyNotice: string | null;
   policyVersion: number;
   privacyNoticeVersion: number;
@@ -216,4 +220,36 @@ export type MyDistributionAgreement = Pick<
 export interface RecordAgreementAdmin extends RecordAgreement {
   userId: string;
   user?: { name: string; employeeNumber: string | null } | null;
+}
+
+/** Corrección de una checada: quién la pidió, por qué y quién la decidió. */
+export interface PunchAdjustment {
+  id: string;
+  punchId: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  reason: string;
+  previousState: Record<string, unknown>;
+  newState: Record<string, unknown>;
+  requestedById: string;
+  requestedByName: string | null;
+  createdAt: string;
+  decidedById: string | null;
+  decidedByName: string | null;
+  decidedAt: string | null;
+  decisionNote: string | null;
+}
+
+export interface PunchAuditEntry {
+  id: string;
+  action: string;
+  userName: string | null;
+  createdAt: string;
+}
+
+/** Historial de una checada: original inmutable, valor vigente, correcciones y bitácora. */
+export interface PunchHistory {
+  punch: { id: string; clockSerial: string; employeeNumber: string; name: string; method: string; occurredAt: string };
+  effective: { occurredAt: string; method: string; appliedAdjustmentIds: string[] };
+  adjustments: PunchAdjustment[];
+  audit: PunchAuditEntry[];
 }

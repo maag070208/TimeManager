@@ -4,6 +4,7 @@ import { ITPage } from "@shared/ui/page";
 import { useTranslation } from "react-i18next";
 import { LuCalendarCheck, LuClock, LuCoffee, LuFileText, LuLaptop, LuLogIn, LuLogOut, LuRefreshCw, LuUtensils } from "react-icons/lu";
 import { isRemotePunchSource, type PunchType } from "@entities/nom";
+import { useTenantTimezone } from "@entities/user";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { BentoKpiGrid, type BentoKpiItem } from "@shared/ui/bento-filter-cards";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
@@ -38,6 +39,7 @@ export default function MyWorkdayPage() {
   const wc = useWorkerCompliance();
   const leave = useMyLeave();
   const [tab, setTab] = useState<Tab>("checada");
+  const timezone = useTenantTimezone();
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function MyWorkdayPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt)), [fx.punches]);
+  const todayPunches = useMemo(() => fx.punches.filter((row) => sameDay(row.occurredAt, timezone)), [fx.punches, timezone]);
   const telework = fx.telework;
   const geoEnabled = telework?.remoteGeolocationEnabled ?? true;
   const lunchEnabled = telework?.lunchPunchEnabled ?? true;
@@ -96,7 +98,7 @@ export default function MyWorkdayPage() {
   const primaryNext = nextTypes[0];
   const timeByType = (type: PunchType): string | null => {
     const row = [...remoteToday].reverse().find((punch) => punch.type === type);
-    return row ? timeOf(row.occurredAt) : null;
+    return row ? timeOf(row.occurredAt, timezone) : null;
   };
   const statusLabel: Record<string, string> = {
     none: todayPunches.length > 0 && hasClock ? tr("punch.status.clockOnly") : tr("punch.status.none"),
@@ -183,7 +185,7 @@ export default function MyWorkdayPage() {
             <PunchCard
               className={show("checada", "lg:col-span-7")}
               tr={tr}
-              clock={timeOf(now.toISOString())}
+              clock={timeOf(now.toISOString(), timezone)}
               status={{ label: statusLabel[lastType ?? "none"], tone: statusTone }}
               labels={PUNCH_LABEL}
               nextTypes={nextTypes}

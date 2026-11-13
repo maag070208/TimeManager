@@ -168,6 +168,8 @@ export class NomSettingsService {
     const policy: TeleworkPolicyTexts = {
       teleworkPolicy: settings?.teleworkPolicy ?? null,
       disconnectPolicy: settings?.disconnectPolicy ?? null,
+      equipmentPolicy: settings?.equipmentPolicy ?? null,
+      returnToOfficePolicy: settings?.returnToOfficePolicy ?? null,
       privacyNotice: settings?.privacyNotice ?? null,
       policyVersion: settings?.policyVersion ?? 1,
       privacyNoticeVersion: settings?.privacyNoticeVersion ?? 1,
@@ -333,7 +335,9 @@ export class NomSettingsService {
 
     const policyChanged =
       (input.teleworkPolicy !== undefined && input.teleworkPolicy !== (current?.teleworkPolicy ?? null)) ||
-      (input.disconnectPolicy !== undefined && input.disconnectPolicy !== (current?.disconnectPolicy ?? null));
+      (input.disconnectPolicy !== undefined && input.disconnectPolicy !== (current?.disconnectPolicy ?? null)) ||
+      (input.equipmentPolicy !== undefined && input.equipmentPolicy !== (current?.equipmentPolicy ?? null)) ||
+      (input.returnToOfficePolicy !== undefined && input.returnToOfficePolicy !== (current?.returnToOfficePolicy ?? null));
     const privacyChanged =
       input.privacyNotice !== undefined && input.privacyNotice !== (current?.privacyNotice ?? null);
 
@@ -347,6 +351,8 @@ export class NomSettingsService {
         tenantId,
         teleworkPolicy: input.teleworkPolicy ?? null,
         disconnectPolicy: input.disconnectPolicy ?? null,
+        equipmentPolicy: input.equipmentPolicy ?? null,
+        returnToOfficePolicy: input.returnToOfficePolicy ?? null,
         privacyNotice: input.privacyNotice ?? null,
         policyVersion: nextPolicyVersion,
         privacyNoticeVersion: nextPrivacyVersion,
@@ -356,6 +362,8 @@ export class NomSettingsService {
       update: {
         ...(input.teleworkPolicy !== undefined ? { teleworkPolicy: input.teleworkPolicy } : {}),
         ...(input.disconnectPolicy !== undefined ? { disconnectPolicy: input.disconnectPolicy } : {}),
+        ...(input.equipmentPolicy !== undefined ? { equipmentPolicy: input.equipmentPolicy } : {}),
+        ...(input.returnToOfficePolicy !== undefined ? { returnToOfficePolicy: input.returnToOfficePolicy } : {}),
         ...(input.privacyNotice !== undefined ? { privacyNotice: input.privacyNotice } : {}),
         policyVersion: nextPolicyVersion,
         privacyNoticeVersion: nextPrivacyVersion,

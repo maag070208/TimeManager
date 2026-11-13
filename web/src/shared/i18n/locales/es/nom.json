@@ -64,7 +64,8 @@
   "discrepancy": {
     "reason": "Motivo de la discrepancia",
     "send": "Enviar a RH",
-    "reasonMin": "Escribe al menos 5 caracteres."
+    "reasonMin": "Escribe al menos 5 caracteres.",
+    "correctTime": "¿Qué hora fue en realidad? (opcional)"
   },
   "telework": {
     "title": "Mi teletrabajo",
@@ -88,7 +89,9 @@
     "consentDone": "Política y aviso aceptados",
     "checklistOk": "Al día: lo llenaste el {{date}}",
     "checklistNext": "toca de nuevo el {{date}}",
-    "checklistRefill": "Volver a llenar"
+    "checklistRefill": "Volver a llenar",
+    "equipmentTitle": "Equipo e insumos",
+    "returnTitle": "Retorno a presencial y violencia familiar"
   },
   "checklist": {
     "yes": "Sí",

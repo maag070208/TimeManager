@@ -236,6 +236,8 @@ export class TeleworkComplianceService {
           select: {
             teleworkPolicy: true,
             disconnectPolicy: true,
+            equipmentPolicy: true,
+            returnToOfficePolicy: true,
             privacyNotice: true,
             policyVersion: true,
             privacyNoticeVersion: true,

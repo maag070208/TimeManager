@@ -24,7 +24,7 @@ técnico, no una certificación legal. Validar con asesor cuando se publiquen.
 | 7 | Conexión directa con nómina | **Parcial** | Hay pre-nómina/cierres y export; falta que OT/retardos/incidencias **aprobadas** viajen al periodo de nómina sin captura manual. |
 | 8 | Protección de datos personales (LFPDPPP 20/03/2025) | **Parcial** | Roles por permiso, foto/archivos privados (token/presignado), Ably por token, credenciales de reloj cifradas, **aviso de privacidad editable por cliente con consentimiento versionado**, geolocalización limitada al instante del marcaje y marcajes remotos en export sin coordenadas. Faltan: cifrado de datos sensibles en BD, retención legal validada y aviso validado por legal/cliente. |
 | 9 | Checklist y condiciones del lugar de teletrabajo | **Implementado (técnico)** | Checklist inicial y periódico de 8 puntos por persona (`TeleworkChecklist`), domicilio en el registro de teletrabajo y validación de la Comisión: con resultado `NO_APTO` el API rechaza la checada desde ese lugar. Falta validación legal del contenido. |
-| 10 | Equipo y violencia familiar (política de retorno a presencial) | **Pendiente** | Documentos/plantillas por cliente (no bloquea el registro de jornada). |
+| 10 | Equipo y violencia familiar (política de retorno a presencial) | **Implementado (técnico)** | Textos editables por cliente (`equipmentPolicy`, `returnToOfficePolicy`) versionados con la política de teletrabajo. Falta validación legal del contenido. |
 
 ## Implementación F2-01..04 (registro electrónico de jornada)
 
@@ -40,7 +40,7 @@ técnico, no una certificación legal. Validar con asesor cuando se publiquen.
 | Portal del trabajador | ✅ Implementado | `/mi-jornada`: marcajes, marcaje remoto, discrepancia y teletrabajo | — |
 | Marcaje remoto (home office/campo) | ✅ Implementado | `POST /nom/me/punch` + `RemotePunch` append-only + `/mi-jornada` | Validar política de uso con cliente |
 | NOM-037 teletrabajo | ✅ Implementado (técnico) | Registro, política/desconexión, checklist 8 puntos, desconexión (contactos) y aviso de privacidad versionado | Validación legal del texto/política |
-| Sello encadenado por lote | 🟡 Parcial | Hash del export + inmutabilidad DB | Encadenado/firma por lote |
+| Sello encadenado por lote | ✅ Implementado | `nom_export_seals` + `GET /nom/export/seals` | Firma electrónica si la autoridad la exige |
 | Aviso de privacidad / consentimientos | 🟡 Modelo+texto editable | `nom_settings.privacyNotice` versionado y aceptación del trabajador | Validación legal del texto por cliente |
 
 Módulo técnico: [modules/nom.md](modules/nom.md). Regresión: `api/tests/integration/nom.flow.test.ts` (8 casos) + unit `api/src/modules/nom/services/nom.logic.test.ts` (4 casos).
@@ -105,11 +105,16 @@ Pendiente de la autoridad: formato/plazo/ámbito STPS y validación legal (§8 d
 
 Se cruzó esta tabla con el código. Correcciones al documento: el checklist del lugar de teletrabajo (requisito 9) ya estaba implementado y el layout vigente del export es `v2`.
 
-Lo que sigue sin existir en el sistema:
+Cerrado el mismo día (migración `20261215000000_nom_export_seals_and_policies`):
 
-- **Pantalla web del historial de una checada**: el API lo expone (`GET /nom/punches/:id/history`), la web no lo muestra.
-- **Sello encadenado por lote** del export: hoy hay un SHA-256 por export, sin encadenar con el anterior.
-- **Cifrado en la base** de datos sensibles (geolocalización, domicilio de teletrabajo).
-- **Plantillas de equipo y de retorno a presencial por violencia familiar** (requisito 10).
+- **Correcciones de checadas en la web**: RH revisa, aprueba o rechaza con nota lo que reporta el personal en `/hr/jornada-acuerdos` → «Correcciones de checadas», con el historial de cada checada (original, valor vigente y bitácora). El trabajador puede proponer la hora correcta al reportar.
+- **Sello encadenado del export**: cada export STPS guarda en `nom_export_seals` (solo inserción) su SHA-256 sellado junto con el sello anterior del cliente; `GET /nom/export/seals` devuelve la cadena verificada y el export responde `X-Export-Seal` y `X-Export-Seal-Sequence`.
+- **Domicilio de teletrabajo cifrado** en la base (AES-256-GCM, `sealText`/`openText`); la bitácora ya no guarda el domicilio, solo si cambió.
+- **Políticas de equipo y de retorno a presencial por violencia familiar** (requisito 10): textos editables por cliente en `/teletrabajo`, versionados con la política y visibles para el trabajador.
+
+Sigue pendiente:
+
+- **Cifrado de la geolocalización**: las coordenadas siguen en claro; `remote_punches` es de solo inserción, así que cifrarlas pide una migración con ventana y decisión sobre los marcajes ya guardados.
+- **Validación legal** de los textos y formato oficial de la STPS.
 
 Nuevo desde esta revisión: el acuerdo de método de registro se exige antes de checar también en la pantalla (web y app), no solo en el API (`remoteAgreementRequired` / `remoteAgreementPending` en `GET /nom/me/telework`).

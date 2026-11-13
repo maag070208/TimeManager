@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { openText, sealText } from "@core/utils/crypto";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { formatDateTime, systemLanguage, t } from "@core/i18n";
@@ -84,7 +85,7 @@ export class TeleworkService {
       employeeNumber: row.user?.employeeNumber ?? null,
       mode: row.mode,
       status: row.status,
-      homeAddress: row.homeAddress,
+      homeAddress: openText(row.homeAddress),
       startedAt: row.startedAt.toISOString(),
       endedAt: row.endedAt?.toISOString() ?? null,
       consentAcceptedAt: row.consentAcceptedAt?.toISOString() ?? null,
@@ -189,7 +190,7 @@ export class TeleworkService {
           data: {
             mode: input.mode ?? existing.mode,
             status: "ACTIVE",
-            homeAddress: input.homeAddress ?? existing.homeAddress,
+            homeAddress: input.homeAddress !== undefined ? sealText(input.homeAddress) : existing.homeAddress,
             notes: input.notes ?? existing.notes,
             startedAt,
             endedAt: null,
@@ -201,7 +202,7 @@ export class TeleworkService {
             userId: input.userId,
             mode: input.mode ?? "REMOTO",
             status: "ACTIVE",
-            homeAddress: input.homeAddress ?? null,
+            homeAddress: sealText(input.homeAddress),
             notes: input.notes ?? null,
             startedAt,
             createdById: actor.id,
@@ -249,7 +250,7 @@ export class TeleworkService {
       data: {
         ...(input.mode !== undefined ? { mode: input.mode } : {}),
         ...(input.status !== undefined ? { status: input.status } : {}),
-        ...(input.homeAddress !== undefined ? { homeAddress: input.homeAddress } : {}),
+        ...(input.homeAddress !== undefined ? { homeAddress: sealText(input.homeAddress) } : {}),
         ...(input.notes !== undefined ? { notes: input.notes } : {}),
         ...(endedAt !== undefined ? { endedAt } : {}),
       },
@@ -265,13 +266,13 @@ export class TeleworkService {
       previousState: {
         mode: existing.mode,
         status: existing.status,
-        homeAddress: existing.homeAddress,
         endedAt: existing.endedAt?.toISOString() ?? null,
       },
       newState: {
         mode: row.mode,
         status: row.status,
-        homeAddress: row.homeAddress,
+        // El domicilio es dato sensible: la bitácora solo dice si cambió.
+        homeAddressChanged: input.homeAddress !== undefined,
         endedAt: row.endedAt?.toISOString() ?? null,
       },
     });

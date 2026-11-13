@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
+import { tenantTransaction } from "@core/tenancy";
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { assertDateKey, isReportPeriod, localDateKey } from "@core/utils/timezone";
 import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/adjusted-punches";
 import type {
+  ExportSealRow,
   StpsExportParams,
   StpsExportResult,
   StpsRemotePunchRow,
@@ -14,6 +16,12 @@ import type { WeeklyOvertimeService } from "./weekly-overtime.service";
 import type { AuditLogger } from "@modules/users/services/user.service";
 
 const SCHEMA_VERSION = "stps-registro-jornada-v2";
+
+/** Sello de un export: SHA-256 de su folio, su hash, el sello anterior y la hora. */
+export const sealOf = (input: { sequence: number; sha256: string; previousSeal: string | null; createdAt: string }): string =>
+  createHash("sha256")
+    .update([input.sequence, input.sha256, input.previousSeal ?? "GENESIS", input.createdAt].join("|"))
+    .digest("hex");
 
 const csvCell = (value: string | number | boolean | null): string => {
   if (value === null) return "";
@@ -39,15 +47,74 @@ export class StpsExportService {
 
   /** Exporta y deja constancia en la bitácora: el archivo lleva marcajes y ubicación. */
   async export(tenantId: string, params: StpsExportParams): Promise<StpsExportResult> {
-    const result = await this.build(tenantId, params);
+    const built = await this.build(tenantId, params);
+    const seal = await this.sealExport(tenantId, params, built.sha256);
+    const result: StpsExportResult = { ...built, seal };
     await this.audit?.({
       action: "STPS_EXPORT_DOWNLOADED",
       entityType: "StpsExport",
       entityId: tenantId,
       userId: params.actorId ?? undefined,
-      metadata: { period: params.period, date: params.date, format: params.format, filename: result.filename, sha256: result.sha256 },
+      metadata: { period: params.period, date: params.date, format: params.format, filename: result.filename, sha256: result.sha256, sealSequence: seal?.sequence, seal: seal?.seal },
     });
     return result;
+  }
+
+  /**
+   * Sello encadenado (integridad por lote): cada export sella su SHA-256 junto
+   * con el sello anterior del cliente, así que borrar o alterar un export
+   * rompe la cadena. El candado por cliente evita dos sellos con el mismo folio.
+   */
+  private async sealExport(tenantId: string, params: StpsExportParams, sha256: string) {
+    if (typeof (this.db as { $queryRawUnsafe?: unknown }).$queryRawUnsafe !== "function") return undefined;
+    return tenantTransaction(this.db, async (tx) => {
+      await tx.$executeRawUnsafe("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", `stps-seal:${tenantId}`);
+      const last = await tx.nomExportSeal.findFirst({ where: { tenantId }, orderBy: { sequence: "desc" } });
+      const sequence = (last?.sequence ?? 0) + 1;
+      const previousSeal = last?.seal ?? null;
+      const createdAt = new Date();
+      const seal = sealOf({ sequence, sha256, previousSeal, createdAt: createdAt.toISOString() });
+      await tx.nomExportSeal.create({
+        data: {
+          tenantId,
+          sequence,
+          period: params.period,
+          date: params.date,
+          format: params.format ?? "csv",
+          schemaVersion: SCHEMA_VERSION,
+          sha256,
+          previousSeal,
+          seal,
+          createdById: params.actorId ?? null,
+          createdAt,
+        },
+      });
+      return { sequence, seal, previousSeal };
+    });
+  }
+
+  /** Cadena de sellos del cliente con su verificación, del más reciente al más viejo. */
+  async seals(tenantId: string): Promise<ExportSealRow[]> {
+    const rows = await this.db.nomExportSeal.findMany({ where: { tenantId }, orderBy: { sequence: "asc" } });
+    let previous: string | null = null;
+    const checked = rows.map((row) => {
+      const valid =
+        row.previousSeal === previous &&
+        row.seal === sealOf({ sequence: row.sequence, sha256: row.sha256, previousSeal: row.previousSeal, createdAt: row.createdAt.toISOString() });
+      previous = row.seal;
+      return {
+        sequence: row.sequence,
+        period: row.period,
+        date: row.date,
+        format: row.format,
+        sha256: row.sha256,
+        previousSeal: row.previousSeal,
+        seal: row.seal,
+        createdAt: row.createdAt.toISOString(),
+        valid,
+      };
+    });
+    return checked.reverse();
   }
 
   private async build(tenantId: string, params: StpsExportParams): Promise<StpsExportResult> {

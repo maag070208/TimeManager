@@ -85,8 +85,10 @@ export const RecordCard = ({ className, tr, wc }: Props) => {
               ) : (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <ITButton variant="filled" color="primary" className="w-full" disabled={wc.busy !== null} onClick={() => void wc.acknowledge(true)}>
-                    <LuCheck size={14} className="mr-1" />
-                    {tr("record.ackAccept")}
+                    <span className="inline-flex items-center justify-center gap-1.5">
+                      <LuCheck size={14} />
+                      {tr("record.ackAccept")}
+                    </span>
                   </ITButton>
                   <ITButton variant="outlined" color="secondary" className="w-full" disabled={wc.busy !== null} onClick={() => setReportingWeek(true)}>
                     {tr("record.ackDiscrepancy")}

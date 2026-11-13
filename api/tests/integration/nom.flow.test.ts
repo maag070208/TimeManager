@@ -533,6 +533,24 @@ describe("Export formal y autoservicio de configuración", () => {
     assert.ok(csvExport.text.includes("extraDoble,extraTriple,excedenteIlegal"));
     assert.ok(csvExport.text.includes("# marcajes remotos (sin reloj físico; hora del servidor)"));
     assert.ok(csvExport.text.includes("19.4326") === false, "no filtra coordenadas al CSV");
+
+    // Sello encadenado: cada export queda ligado al anterior del cliente.
+    assert.equal(jsonExport.headers.get("x-export-seal-sequence"), "1");
+    assert.equal(csvExport.headers.get("x-export-seal-sequence"), "2");
+    const seals = await api("GET", "/nom/export/seals", { token: hr.token });
+    expectStatus(seals, 200, "cadena de sellos");
+    const chain = seals.body as Array<{ sequence: number; seal: string; previousSeal: string | null; sha256: string; valid: boolean }>;
+    assert.equal(chain.length, 2);
+    assert.ok(chain.every((row) => row.valid), "la cadena verifica");
+    assert.equal(chain[0].previousSeal, chain[1].seal, "el segundo sello incluye al primero");
+    assert.equal(chain[1].previousSeal, null);
+    assert.equal(chain[1].sha256, jsonExport.body?.sha256);
+    assert.equal(chain[0].seal, csvExport.headers.get("x-export-seal"));
+    const sealDb = await prismaClient();
+    await assert.rejects(
+      sealDb.$executeRawUnsafe(`UPDATE "nom_export_seals" SET "sha256" = 'x' WHERE "tenantId" = $1`, tenant.id),
+      "los sellos no se pueden modificar"
+    );
     assert.match(
       String(csvExport.headers.get("content-disposition")),
       /attachment; filename="registro-jornada_/
@@ -871,10 +889,14 @@ describe("F2-08 NOM-037 teletrabajo", () => {
           "Política de teletrabajo: horario y distribución; desconexión digital; " +
           "riesgos ergonómicos; equipo de trabajo; lactancia; reversibilidad a presencial.",
         disconnectPolicy: "Desconexión digital fuera de la jornada laboral.",
+        equipmentPolicy: "La empresa entrega laptop y silla ergonómica.",
+        returnToOfficePolicy: "Retorno a presencial por violencia familiar: aviso confidencial a RH.",
         privacyNotice: "Aviso de privacidad: datos de jornada y ubicación solo al marcar.",
       },
     });
     expectStatus(updatedPolicy, 200, "política actualizada");
+    assert.equal(updatedPolicy.body?.equipmentPolicy, "La empresa entrega laptop y silla ergonómica.");
+    assert.match(String(updatedPolicy.body?.returnToOfficePolicy), /violencia familiar/);
 
     const template = await api("GET", "/nom/telework/policy/template", { token: hr.token });
     expectStatus(template, 200, "plantilla de política NOM-037");
@@ -895,6 +917,12 @@ describe("F2-08 NOM-037 teletrabajo", () => {
     });
     expectStatus(registration, 201, "alta de teletrabajo");
     assert.equal(registration.body?.status, "ACTIVE");
+    // El domicilio se lee en claro por el API pero se guarda cifrado.
+    assert.equal(registration.body?.homeAddress, "Calle Falsa 123");
+    const addressDb = await prismaClient();
+    const stored = await addressDb.teleworkRegistration.findUnique({ where: { id: registration.body.id }, select: { homeAddress: true } });
+    assert.ok(stored?.homeAddress?.startsWith("enc:"), "domicilio cifrado en la base");
+    assert.ok(!stored?.homeAddress?.includes("Calle Falsa"));
 
     const duplicate = await api("POST", "/nom/telework/registrations", {
       token: hr.token,

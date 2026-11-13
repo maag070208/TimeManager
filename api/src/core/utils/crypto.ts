@@ -112,3 +112,15 @@ export const decryptSecret = (payload: string, options: SecretKeyOptions = {}): 
     throw new SecretDecryptionError();
   }
 };
+
+const SEALED_PREFIX = "enc:";
+
+/** Cifra un dato personal sensible para guardarlo en la base; `null`/vacío se queda igual. */
+export const sealText = (plain: string | null | undefined): string | null =>
+  plain ? `${SEALED_PREFIX}${encryptSecret(plain)}` : null;
+
+/** Lee un dato guardado con `sealText`; un valor anterior al cifrado se devuelve tal cual. */
+export const openText = (stored: string | null | undefined): string | null => {
+  if (!stored) return null;
+  return stored.startsWith(SEALED_PREFIX) ? decryptSecret(stored.slice(SEALED_PREFIX.length)) : stored;
+};

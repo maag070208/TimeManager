@@ -131,6 +131,7 @@ export const createNomRouter = (controller: NomController): Router => {
 
   // Export formal del registro de jornada (requisito 4 del checklist LFT 2027).
   router.get("/export/stps", canRead, asyncHandler(controller.exportStps));
+  router.get("/export/seals", canRead, asyncHandler(controller.exportSeals));
 
   return router;
 };
