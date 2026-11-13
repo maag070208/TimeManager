@@ -54,7 +54,7 @@ fun appModules(apiUrl: String, platform: Module): List<Module> = listOf(
         viewModel { LoginViewModel(get()) }
         viewModel { ChangePasswordViewModel(get()) }
         viewModel { HomeViewModel(get()) }
-        viewModel { MyWorkdayViewModel(get(), get()) }
+        viewModel { MyWorkdayViewModel(get(), get(), get()) }
         viewModel { WorkerPortalViewModel(get(), get<SessionRepository>()::today) }
         viewModel { NotificationsViewModel(get(), get()) }
         viewModel { OvertimeApprovalViewModel(get(), get<SessionRepository>()::today) }

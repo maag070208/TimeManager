@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient, type PunchAdjustmentStatus } from "@prisma/client";
+import { tenantCalendar } from "@core/utils/tenant-timezone";
 import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/adjusted-punches";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
@@ -321,15 +322,17 @@ export class PunchAdjustmentsService {
   // ── Flujo del trabajador (consulta de sus marcajes y discrepancias) ──────
 
   private async employeeNumbersOf(userId: string): Promise<{ numbers: string[]; user: { id: string; name: string; employeeNumber: string | null; tenantId: string | null } }> {
-    const user = await this.db.user.findUnique({
-      where: { id: userId },
-      select: { id: true, name: true, employeeNumber: true, tenantId: true },
-    });
+    const [user, links] = await Promise.all([
+      this.db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, employeeNumber: true, tenantId: true },
+      }),
+      this.db.timeClockEmployee.findMany({
+        where: { userId },
+        select: { employeeNumber: true },
+      }),
+    ]);
     if (!user) throw new HttpError(404, "USER_NOT_FOUND");
-    const links = await this.db.timeClockEmployee.findMany({
-      where: { userId },
-      select: { employeeNumber: true },
-    });
     const numbers = [
       ...(user.employeeNumber ? [user.employeeNumber] : []),
       ...links.map((link) => link.employeeNumber),
@@ -339,8 +342,7 @@ export class PunchAdjustmentsService {
 
   private async timezoneOf(tenantId: string | null): Promise<string> {
     if (!tenantId) return "America/Mexico_City";
-    const tenant = await this.db.tenant.findUnique({ where: { id: tenantId }, select: { timezone: true } });
-    return tenant?.timezone ?? "America/Mexico_City";
+    return (await tenantCalendar(tenantId, this.db as never)).timezone ?? "America/Mexico_City";
   }
 
   /** Marcajes propios del trabajador (reloj + eventos de acceso). */
@@ -357,7 +359,7 @@ export class PunchAdjustmentsService {
     const to = localDayRange(toKey, timezone).end;
     const limit = params.limit ?? 200;
 
-    const [rawPunches, events] = await Promise.all([
+    const [rawPunches, events, rawRemote] = await Promise.all([
       numbers.length
         ? this.db.timeClockPunch.findMany({
             where: { employeeNumber: { in: numbers }, occurredAt: { gte: from, lt: to } },
@@ -377,13 +379,13 @@ export class PunchAdjustmentsService {
         take: limit,
         select: { id: true, occurredAt: true, method: true, type: true },
       }),
+      this.db.remotePunch.findMany({
+        where: { userId, occurredAt: { gte: from, lt: to } },
+        orderBy: { occurredAt: "desc" },
+        take: limit,
+        select: { id: true, occurredAt: true, type: true, source: true, workMode: true, latitude: true, longitude: true },
+      }),
     ]);
-    const rawRemote = await this.db.remotePunch.findMany({
-      where: { userId, occurredAt: { gte: from, lt: to } },
-      orderBy: { occurredAt: "desc" },
-      take: limit,
-      select: { id: true, occurredAt: true, type: true, source: true, workMode: true, latitude: true, longitude: true },
-    });
 
     // El trabajador ve la hora vigente: la original más las correcciones aprobadas.
     const [clockFixes, remoteFixes] = await Promise.all([

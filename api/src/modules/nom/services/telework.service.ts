@@ -383,7 +383,13 @@ export class TeleworkService {
     const config = await this.settings.resolve(user.tenantId);
     const channels = (user.tenant?.punchChannels ?? ["WEB", "APP"]) as Array<"WEB" | "APP" | "CLOCK">;
     const remoteEnabled = config.remotePunchEnabled && (channels.includes("WEB") || channels.includes("APP"));
-    const registration = await this.activeRegistrationOf(userId);
+    const [registration, agreement] = await Promise.all([
+      this.activeRegistrationOf(userId),
+      config.blockRemoteWithoutAgreement
+        ? this.db.workRecordAgreement.findUnique({ where: { userId }, select: { methods: true, acceptedAt: true } })
+        : null,
+    ]);
+    const agreedMethods = Array.isArray(agreement?.methods) ? (agreement.methods as string[]) : [];
     const lastChecklist = registration?.checklists?.[0]
       ? await this.db.teleworkChecklist.findFirst({
           where: { userId },
@@ -408,6 +414,8 @@ export class TeleworkService {
       remoteGeolocationEnabled: config.remoteGeolocationEnabled,
       lunchPunchEnabled: config.lunchPunchEnabled,
       remoteAgreementRequired: config.blockRemoteWithoutAgreement,
+      remoteAgreementPending:
+        config.blockRemoteWithoutAgreement && (!agreement?.acceptedAt || !agreedMethods.includes("REMOTE")),
       checklistTemplate: this.checklistTemplate(),
       lastChecklist: lastChecklist ? this.toChecklistDto(lastChecklist) : null,
       nextPeriodicDueAt: registration

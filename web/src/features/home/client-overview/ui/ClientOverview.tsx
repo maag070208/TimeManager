@@ -49,6 +49,7 @@ export default function ClientOverview() {
   const fx = useClientOverview();
   const canTimeClockView = useCan("time_clock.view");
   const shortDate = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(i18n.language, { day: "numeric", month: "short" });
+  const timeOf = (iso: string) => new Date(iso).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit", hour12: false });
   const today = new Date().toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" });
 
   if (!fx.hasAny) {
@@ -69,7 +70,9 @@ export default function ClientOverview() {
   const attendanceTo = canTimeClockView ? (fx.hasClock ? "/hr/time-clock" : "/hr/time-clock/entries-exits") : "/mi-jornada";
   const seeAll = (to: string) => (
     <ITButton variant="text" color="primary" size="sm" onClick={() => navigate(to)}>
-      {t("client.seeAll")} <LuArrowRight size={12} />
+      <span className="inline-flex items-center gap-1 whitespace-nowrap">
+        {t("client.seeAll")} <LuArrowRight size={12} />
+      </span>
     </ITButton>
   );
 
@@ -90,7 +93,7 @@ export default function ClientOverview() {
       { id: "records", label: t("client.records.complete"), value: `${fx.records.summary.complete}/${fx.records.summary.employees}`, caption: `${fx.records.summary.missingRequired} sin documento`, icon: <LuFolderOpen size={14} />, tone: "info" as const },
     ] : []),
     ...(fx.setup ? [
-      { id: "setup", label: "Pendientes", value: (fx.hasClock ? fx.setup.unlinkedClockNumbers + fx.setup.personalWithoutClock : 0) + fx.setup.personalWithoutSchedule, caption: fx.hasClock ? "relojes / horarios" : "horarios", icon: <LuSettings2 size={14} />, tone: "warning" as const },
+      { id: "setup", label: "Por configurar", value: (fx.hasClock ? fx.setup.unlinkedClockNumbers + fx.setup.personalWithoutClock : 0) + fx.setup.personalWithoutSchedule, caption: fx.hasClock ? "sin reloj o sin horario" : "personas sin horario", icon: <LuSettings2 size={14} />, tone: "warning" as const },
     ] : []),
   ];
 
@@ -155,7 +158,7 @@ export default function ClientOverview() {
             </div>
           )}
 
-          {quickActions.length > 0 && (
+          {pendingSteps > 0 && quickActions.length > 0 && (
             <div className="relative mt-4 flex flex-wrap gap-1.5 border-t border-slate-200/50 pt-3">
               {quickActions.map((action) => (
                 <button key={action.label} type="button" onClick={() => navigate(action.to)} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100/80 px-2.5 py-1.5 text-[11.5px] font-semibold text-slate-700 transition hover:bg-slate-100">
@@ -226,18 +229,35 @@ export default function ClientOverview() {
           <PanelCard className="lg:col-span-7" icon={<LuClock3 size={16} />} title={t("client.attendance.title")} actions={seeAll(attendanceTo)}>
             <Block value={fx.attendance}>
               {(a) => {
-                const late = a.rows.filter((r) => r.status === "LATE").sort((x, y) => y.lateMin - x.lateMin).slice(0, 5);
-                return late.length === 0 ? (
-                  <ITText className="block rounded-xl bg-emerald-50/60 px-3 py-4 text-center !text-[12.5px] text-emerald-800">{t("client.attendance.noLate")}</ITText>
+                // Lo que RH necesita atender hoy: primero quien no ha llegado, luego los retardos.
+                const pending = [
+                  ...a.rows.filter((r) => r.status === "NOT_ARRIVED").sort((x, y) => (x.scheduledStartAt ?? "").localeCompare(y.scheduledStartAt ?? "")),
+                  ...a.rows.filter((r) => r.status === "LATE").sort((x, y) => y.lateMin - x.lateMin),
+                ];
+                const shown = pending.slice(0, 6);
+                return pending.length === 0 ? (
+                  <ITText className="block rounded-xl bg-emerald-50/60 px-3 py-4 text-center !text-[12.5px] text-emerald-800">{t("client.attendance.allOnTime")}</ITText>
                 ) : (
-                  <ul className="divide-y divide-slate-100">
-                    {late.map((r) => (
-                      <li key={r.userId} className="flex items-center justify-between gap-3 py-2.5 text-[12.5px]">
-                        <span className="min-w-0 truncate"><span className="font-semibold text-slate-800">{r.name}</span>{r.departmentName ? <span className="text-slate-500"> · {r.departmentName}</span> : null}</span>
-                        <ITBadget color="warning" size="sm">{t("client.attendance.lateMin", { min: r.lateMin })}</ITBadget>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <ul className="divide-y divide-slate-100">
+                      {shown.map((r) => (
+                        <li key={r.userId} className="flex items-center justify-between gap-3 py-2.5 text-[12.5px]">
+                          <span className="min-w-0 truncate"><span className="font-semibold text-slate-800">{r.name}</span>{r.departmentName ? <span className="text-slate-500"> · {r.departmentName}</span> : null}</span>
+                          {r.status === "LATE" ? (
+                            <ITBadget color="warning" size="sm">{t("client.attendance.lateMin", { min: r.lateMin })}</ITBadget>
+                          ) : (
+                            <span className="flex shrink-0 items-center gap-2">
+                              {r.scheduledStartAt && <span className="tabular-nums text-slate-500">{t("client.attendance.dueAt", { time: timeOf(r.scheduledStartAt) })}</span>}
+                              <ITBadget color="danger" size="sm">{t("client.attendance.notArrived")}</ITBadget>
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    {pending.length > shown.length && (
+                      <ITText className="mt-2 block !text-[11.5px] text-slate-500">{t("client.attendance.more", { count: pending.length - shown.length })}</ITText>
+                    )}
+                  </>
                 );
               }}
             </Block>

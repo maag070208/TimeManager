@@ -39,6 +39,9 @@ data class MyWorkdayState(
     val canPunch: Boolean = true,
     /** Canales de checada del cliente (`WEB`/`APP`/`CLOCK`); vacío si el API no los manda. */
     val punchChannels: List<String> = emptyList(),
+    /** Falta aceptar el acuerdo de método de registro: el botón acepta y checa en un toque. */
+    val agreementPending: Boolean = false,
+    val agreementProposal: RecordProposal? = null,
     val busy: Boolean = false,
     val notice: String? = null,
     val error: String? = null,
@@ -92,7 +95,11 @@ fun punchReadOnlyNotice(channels: List<String>): PunchReadOnlyNotice = when {
  * Portal del trabajador: checar con o sin red, con la ubicación del momento,
  * y ver sus marcajes. Las reglas viven en el API; aquí solo se muestran.
  */
-class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore) : ViewModel() {
+class MyWorkdayViewModel(
+    private val api: NomApi,
+    private val store: SecureStore,
+    private val worker: WorkerApi,
+) : ViewModel() {
     private val _state = MutableStateFlow(MyWorkdayState())
     val state: StateFlow<MyWorkdayState> = _state.asStateFlow()
 
@@ -124,6 +131,8 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
                     .sortedByDescending { it.occurredAt }
                 val today = history.filter { dayOf(it.occurredAt) == todayKey.toString() }.sortedBy { it.occurredAt }
                 val settings = runCatching { api.punchSettings() }.getOrNull()
+                val agreementPending = settings?.remoteAgreementPending == true
+                val proposal = if (agreementPending) runCatching { worker.recordProposal() }.getOrNull() else null
                 _state.update {
                     it.copy(
                         loading = false,
@@ -132,6 +141,8 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
                         geoEnabled = settings?.remoteGeolocationEnabled ?: it.geoEnabled,
                         lunchEnabled = settings?.lunchPunchEnabled ?: it.lunchEnabled,
                         canPunch = settings?.canPunchFromApp ?: it.canPunch,
+                        agreementPending = settings?.remoteAgreementPending ?: it.agreementPending,
+                        agreementProposal = proposal ?: it.agreementProposal,
                         punchChannels = settings?.punchChannels?.takeIf { channels -> channels.isNotEmpty() } ?: it.punchChannels,
                         pending = q.pending(),
                         error = rejected.firstOrNull()?.let { e -> "Una checada guardada sin red no se aceptó: ${e.message}" },
@@ -148,6 +159,23 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
     fun onShareLocation(value: Boolean) = _state.update { it.copy(shareLocation = value) }
     fun dismiss() = _state.update { it.copy(notice = null, error = null) }
 
+    /** Un toque: acepta el acuerdo de método y registra el siguiente paso. */
+    fun acceptAgreementAndPunch(location: LocationProvider) {
+        val s = _state.value
+        val proposal = s.agreementProposal ?: return
+        if (s.busy) return
+        _state.update { it.copy(busy = true, notice = null, error = null) }
+        viewModelScope.launch {
+            try {
+                worker.acceptRecordAgreement(proposal)
+                _state.update { it.copy(busy = false, agreementPending = false) }
+                _state.value.next.firstOrNull()?.let { punch(it, location) }
+            } catch (e: ApiException) {
+                _state.update { it.copy(busy = false, error = e.message) }
+            }
+        }
+    }
+
     fun punch(type: PunchType, location: LocationProvider) {
         val q = queue ?: return
         val s = _state.value
@@ -155,6 +183,10 @@ class MyWorkdayViewModel(private val api: NomApi, private val store: SecureStore
         // El canal APP está apagado: ni se pide ubicación ni se encola nada.
         if (!s.canPunch) {
             _state.update { it.copy(error = "La checada desde la app no está habilitada para tu empresa.") }
+            return
+        }
+        if (s.agreementPending) {
+            _state.update { it.copy(error = "Antes de checar, acepta el acuerdo de método de registro.") }
             return
         }
         _state.update { it.copy(busy = true, notice = null, error = null) }

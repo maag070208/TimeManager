@@ -99,19 +99,17 @@ export class TimeClockSummaryService {
 
   /** Padrón visto desde la base (sin tocar el reloj). */
   private async rosterFacts(): Promise<RosterFacts> {
-    const lastRun = await this.db.timeClockRosterRun.findFirst({ orderBy: { startedAt: "desc" }, select: { suspicious: true } });
-    const pendingRemovals = await this.db.timeClockEmployee.count({
-      where: { status: "PENDING_REMOVAL", user: { active: true } },
-    });
-    const reappeared = await this.db.timeClockEmployee.count({
-      where: { reappearedAt: { not: null }, user: { active: false } },
-    });
-    const rosterNumbers = await this.db.timeClockRosterEntry.findMany({
-      where: { clock: { countsAttendance: true, url: { not: null } } },
-      select: { employeeNumber: true },
-      distinct: ["employeeNumber"],
-    });
-    const linked = await this.db.timeClockEmployee.findMany({ select: { employeeNumber: true } });
+    const [lastRun, pendingRemovals, reappeared, rosterNumbers, linked] = await Promise.all([
+      this.db.timeClockRosterRun.findFirst({ orderBy: { startedAt: "desc" }, select: { suspicious: true } }),
+      this.db.timeClockEmployee.count({ where: { status: "PENDING_REMOVAL", user: { active: true } } }),
+      this.db.timeClockEmployee.count({ where: { reappearedAt: { not: null }, user: { active: false } } }),
+      this.db.timeClockRosterEntry.findMany({
+        where: { clock: { countsAttendance: true, url: { not: null } } },
+        select: { employeeNumber: true },
+        distinct: ["employeeNumber"],
+      }),
+      this.db.timeClockEmployee.findMany({ select: { employeeNumber: true } }),
+    ]);
     const linkedSet = new Set(linked.map((l) => l.employeeNumber));
     return {
       suspicious: lastRun?.suspicious ?? false,
@@ -127,21 +125,22 @@ export class TimeClockSummaryService {
     // "Hoy" del cliente (F1B-04), no la zona del servidor.
     const tz = (await tenantTimezone()) ?? resolveTimezone(null);
     const dayStart = startOfLocalDay(localDateKey(now, tz), tz);
-    const clocks = await this.db.timeClock.findMany({
-      where: { url: { not: null } },
-      select: {
-        serialNumber: true,
-        name: true,
-        url: true,
-        username: true,
-        passwordEncrypted: true,
-        countsAttendance: true,
-        syncedAt: true,
-      },
-      orderBy: { createdAt: "asc" },
-    });
-
-    const roster = await this.rosterFacts();
+    const [clocks, roster] = await Promise.all([
+      this.db.timeClock.findMany({
+        where: { url: { not: null } },
+        select: {
+          serialNumber: true,
+          name: true,
+          url: true,
+          username: true,
+          passwordEncrypted: true,
+          countsAttendance: true,
+          syncedAt: true,
+        },
+        orderBy: { createdAt: "asc" },
+      }),
+      this.rosterFacts(),
+    ]);
     // Lecturas en paralelo por reloj (F1C-05): antes cada dashboard esperaba la
     // lectura de red + 2 consultas del reloj anterior, en serie.
     const rows = await Promise.all(

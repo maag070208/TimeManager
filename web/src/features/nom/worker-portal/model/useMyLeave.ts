@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { nomApi } from "@entities/nom";
 import type { LeaveBalance, LeaveRequestRow, LeaveType } from "@entities/nom";
+import { usePortalToast } from "./usePortalToast";
 
 /** Vacaciones/permisos del trabajador: saldo, tipos, solicitudes y acciones. */
 export const useMyLeave = () => {
@@ -10,6 +11,7 @@ export const useMyLeave = () => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const done = usePortalToast();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,7 +63,12 @@ export const useMyLeave = () => {
     request: (input: { typeId: string; startDate: string; endDate: string; reason?: string }) =>
       run(async () => {
         await nomApi.createLeaveRequest(input);
+        done("leaveRequested");
       }),
-    cancel: (id: string) => run(async () => void (await nomApi.cancelLeaveRequest(id))),
+    cancel: (id: string) =>
+      run(async () => {
+        await nomApi.cancelLeaveRequest(id);
+        done("leaveCancelled");
+      }),
   };
 };

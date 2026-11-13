@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { tenantCalendar } from "@core/utils/tenant-timezone";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import type { AuditLogger } from "@modules/users/services/user.service";
@@ -58,14 +59,16 @@ export class LeaveService {
     private readonly notifications?: NotificationPort
   ) {}
 
+  /** Clientes cuyos tipos por defecto ya se sembraron en este proceso. */
+  private readonly seededTenants = new Set<string>();
+
   private async ensureTypes(tenantId: string) {
-    for (const type of DEFAULT_LEAVE_TYPES) {
-      await this.db.leaveType.upsert({
-        where: { tenantId_key: { tenantId, key: type.key } },
-        create: { tenantId, ...type },
-        update: {},
-      });
-    }
+    if (this.seededTenants.has(tenantId)) return;
+    await this.db.leaveType.createMany({
+      data: DEFAULT_LEAVE_TYPES.map((type) => ({ tenantId, ...type })),
+      skipDuplicates: true,
+    });
+    this.seededTenants.add(tenantId);
   }
 
   async listTypes(tenantId: string, includeInactive = false) {
@@ -152,24 +155,26 @@ export class LeaveService {
 
   /** Saldo de vacaciones de la persona para el año indicado. */
   async balance(tenantId: string, userId: string, year: number) {
-    const user = await this.db.user.findFirst({
-      where: { id: userId, tenantId },
-      select: { id: true, hireDate: true },
-    });
+    const [user, requests] = await Promise.all([
+      this.db.user.findFirst({
+        where: { id: userId, tenantId },
+        select: { id: true, hireDate: true },
+      }),
+      this.db.leaveRequest.findMany({
+        where: {
+          tenantId,
+          userId,
+          type: { kind: "VACATION" },
+          // Cada solicitud cuenta una sola vez, en el año en que empieza.
+          startDate: { gte: toUtcDate(`${year}-01-01`), lte: toUtcDate(`${year}-12-31`) },
+        },
+        select: { days: true, status: true, startDate: true, endDate: true },
+      }),
+    ]);
     if (!user) throw new HttpError(404, "USER_NOT_FOUND");
     const entitlement = user.hireDate
       ? vacationEntitlementDays(user.hireDate, new Date(Date.UTC(year, 11, 31)))
       : 0;
-    const requests = await this.db.leaveRequest.findMany({
-      where: {
-        tenantId,
-        userId,
-        type: { kind: "VACATION" },
-        // Cada solicitud cuenta una sola vez, en el año en que empieza.
-        startDate: { gte: toUtcDate(`${year}-01-01`), lte: toUtcDate(`${year}-12-31`) },
-      },
-      select: { days: true, status: true, startDate: true, endDate: true },
-    });
     const approved = requests.filter((row) => row.status === "APPROVED").reduce((sum, row) => sum + row.days, 0);
     const pending = requests.filter((row) => row.status === "PENDING").reduce((sum, row) => sum + row.days, 0);
     return {
@@ -218,38 +223,38 @@ export class LeaveService {
     const start = toUtcDate(input.startDate);
     const end = toUtcDate(input.endDate);
     if (end < start) throw new HttpError(400, "INVALID_LEAVE_RANGE");
-    const holidays = (await this.holidays?.between(tenantId, input.startDate, input.endDate)) ?? new Set<string>();
+    const year = Number(input.startDate.slice(0, 4));
+    // Lecturas independientes en un solo viaje; las reglas se evalúan después en su orden.
+    const [holidays, type, calendar, overlap, balance] = await Promise.all([
+      this.holidays?.between(tenantId, input.startDate, input.endDate) ?? new Set<string>(),
+      this.db.leaveType.findFirst({ where: { id: input.typeId, tenantId, active: true } }),
+      tenantCalendar(tenantId, this.db as never),
+      this.db.leaveRequest.findFirst({
+        where: {
+          tenantId,
+          userId,
+          status: { in: ["PENDING", "APPROVED"] },
+          startDate: { lte: end },
+          endDate: { gte: start },
+        },
+        select: { id: true },
+      }),
+      this.balance(tenantId, userId, year).catch(() => null),
+    ]);
     const days = businessDays(start, end, holidays);
     if (days <= 0) throw new HttpError(400, "INVALID_LEAVE_RANGE");
-
-    const type = await this.db.leaveType.findFirst({
-      where: { id: input.typeId, tenantId, active: true },
-    });
     if (!type) throw new HttpError(404, "LEAVE_TYPE_NOT_FOUND");
 
     // Solo una incapacidad se registra hacia atrás; lo demás se pide con anticipación.
-    const tenant = await this.db.tenant.findUnique({ where: { id: tenantId }, select: { timezone: true } });
-    const today = localDateKey(new Date(), tenant?.timezone ?? "America/Mexico_City");
+    const today = localDateKey(new Date(), calendar.timezone ?? "America/Mexico_City");
     if (type.kind !== "SICK_LEAVE" && input.startDate < today) throw new HttpError(400, "LEAVE_IN_PAST");
-
-    const overlap = await this.db.leaveRequest.findFirst({
-      where: {
-        tenantId,
-        userId,
-        status: { in: ["PENDING", "APPROVED"] },
-        startDate: { lte: end },
-        endDate: { gte: start },
-      },
-    });
     if (overlap) throw new HttpError(409, "LEAVE_OVERLAP");
 
     if (type.kind === "VACATION") {
       // Las vacaciones se ganan al cumplir el año (art. 76 LFT), no antes.
-      const user = await this.db.user.findFirst({ where: { id: userId, tenantId }, select: { hireDate: true } });
-      if (!user?.hireDate || completedYears(user.hireDate, start) < 1) {
+      if (!balance?.hireDate || completedYears(toUtcDate(balance.hireDate), start) < 1) {
         throw new HttpError(400, "VACATION_NOT_YET_EARNED");
       }
-      const balance = await this.balance(tenantId, userId, Number(input.startDate.slice(0, 4)));
       if (days > balance.requestableDays) {
         throw new HttpError(400, "INSUFFICIENT_VACATION_DAYS", {
           requested: days,

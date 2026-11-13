@@ -7,6 +7,7 @@ import {
   type TeleworkChecklistKind,
 } from "@entities/nom";
 import { newId } from "@shared/lib/newId";
+import { usePortalToast } from "./usePortalToast";
 
 const isoDay = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -43,6 +44,7 @@ export const useMyWorkday = () => {
   const [telework, setTelework] = useState<MeTelework | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const done = usePortalToast();
   const [punchStage, setPunchStage] = useState<PunchStage | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Id de idempotencia pendiente por tipo: se reutiliza mientras el servidor no
@@ -142,7 +144,7 @@ export const useMyWorkday = () => {
   };
 
   const reportDiscrepancy = (punchId: string, reason: string) =>
-    run(() => nomApi.reportDiscrepancy({ punchId, reason }));
+    run(() => nomApi.reportDiscrepancy({ punchId, reason })).then((ok) => (ok && done("discrepancy"), ok));
 
   const acceptPolicy = () =>
     run(() => {
@@ -154,7 +156,7 @@ export const useMyWorkday = () => {
     });
 
   const submitChecklist = (kind: TeleworkChecklistKind, answers: Record<string, "YES" | "NO">) =>
-    run(() => nomApi.submitTeleworkChecklist({ kind, answers }));
+    run(() => nomApi.submitTeleworkChecklist({ kind, answers })).then((ok) => (ok && done("checklist"), ok));
 
   return {
     from,

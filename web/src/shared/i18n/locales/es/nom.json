@@ -63,7 +63,8 @@
   "sourceRemote": "Remoto",
   "discrepancy": {
     "reason": "Motivo de la discrepancia",
-    "send": "Enviar a RH"
+    "send": "Enviar a RH",
+    "reasonMin": "Escribe al menos 5 caracteres."
   },
   "telework": {
     "title": "Mi teletrabajo",
@@ -211,7 +212,8 @@
       "APPROVED": "Aprobada",
       "REJECTED": "Rechazada",
       "CANCELLED": "Cancelada"
-    }
+    },
+    "cancel": "Cancelar solicitud"
   },
   "agreements": {
     "methodTitle": "Antes de empezar: así se registra tu jornada",
@@ -228,5 +230,17 @@
     }
   },
   "sourceWeb": "Web",
-  "sourceApp": "App"
+  "sourceApp": "App",
+  "done": {
+    "agreement": "Aceptaste el método de registro.",
+    "scheduleAgreement": "Aceptaste el acuerdo de jornada.",
+    "weekConfirmed": "Confirmaste tu semana.",
+    "weekDiscrepancy": "Enviamos tu discrepancia a Recursos Humanos.",
+    "overtimeAccepted": "Aceptaste las horas extra.",
+    "overtimeRejected": "Rechazaste las horas extra.",
+    "discrepancy": "Enviamos tu reporte a Recursos Humanos.",
+    "checklist": "Guardamos tu checklist.",
+    "leaveRequested": "Enviamos tu solicitud a Recursos Humanos.",
+    "leaveCancelled": "Cancelaste la solicitud."
+  }
 }

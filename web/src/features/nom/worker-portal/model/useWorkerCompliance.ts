@@ -6,6 +6,7 @@ import type {
   RecordAgreement,
   WorkRecordAcknowledgment,
 } from "@entities/nom";
+import { usePortalToast } from "./usePortalToast";
 
 const toKey = (date: Date): string => date.toISOString().slice(0, 10);
 
@@ -34,7 +35,7 @@ export const useWorkerCompliance = () => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const done = usePortalToast();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -88,7 +89,7 @@ export const useWorkerCompliance = () => {
           correctionRules: "Toda corrección pasa por ajuste documentado y aprobado",
         })
       );
-      setNotice("Método de registro aceptado.");
+      done("agreement");
       return true;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo completar la acción.");
@@ -101,18 +102,19 @@ export const useWorkerCompliance = () => {
   const acceptScheduleAgreement = (id: string) =>
     run(`schedule-${id}`, async () => {
       await nomApi.acceptDistributionAgreement(id);
-      setNotice("Acuerdo de jornada aceptado.");
+      done("scheduleAgreement");
     });
 
   const acknowledge = (accept: boolean, note?: string) =>
     run(accept ? "ack" : "discrepancy", async () => {
       await nomApi.acknowledgeRecord({ ...currentWeek(), accept, note: note ?? null });
-      setNotice(accept ? "Semana confirmada." : "Discrepancia enviada.");
+      done(accept ? "weekConfirmed" : "weekDiscrepancy");
     });
 
   const decideRequest = (id: string, accept: boolean) =>
     run(`request-${id}`, async () => {
       await nomApi.decideOvertimeRequest(id, { accept });
+      done(accept ? "overtimeAccepted" : "overtimeRejected");
     });
 
   /** Conformidad ya respondida de la semana en curso, si existe: no se vuelve a pedir. */
@@ -129,8 +131,6 @@ export const useWorkerCompliance = () => {
     loading,
     busy,
     error,
-    notice,
-    dismissNotice: () => setNotice(null),
     acceptAgreement,
     acceptScheduleAgreement,
     acknowledge,

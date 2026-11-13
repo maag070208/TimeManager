@@ -238,7 +238,10 @@
       "onSite": "{{count}} on site now",
       "latest": "Late today",
       "noLate": "Nobody was late today.",
-      "lateMin": "{{min}} min"
+      "lateMin": "{{min}} min",
+      "allOnTime": "Everyone arrived on time today.",
+      "dueAt": "Starts {{time}}",
+      "more": "and {{count}} more"
     },
     "people": {
       "title": "Staff",

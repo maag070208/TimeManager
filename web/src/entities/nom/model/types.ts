@@ -101,6 +101,8 @@ export interface MeTelework {
   lunchPunchEnabled: boolean;
   /** Sin acuerdo de método aceptado que incluya REMOTE, el API rechaza la checada. */
   remoteAgreementRequired?: boolean;
+  /** Lo exige el cliente y esta persona aún no lo acepta (lo usa la app móvil). */
+  remoteAgreementPending?: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklist | null;
   nextPeriodicDueAt: string | null;

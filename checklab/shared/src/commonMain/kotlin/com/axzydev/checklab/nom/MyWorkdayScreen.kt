@@ -174,6 +174,44 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
                     Text(readOnly.detail, color = Brand.Muted, fontSize = 13.sp)
                 }
             }
+        } else if (state.agreementPending) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Brand.AmberSoft)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text("UN PASO ANTES DE CHECAR", color = Brand.AmberInk, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("Así se registra tu jornada", color = Brand.Ink, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                state.agreementProposal?.let { Text(it.text, color = Brand.Ink, fontSize = 13.sp) }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Brand.Navy)
+                        .clickable(enabled = !state.busy && state.agreementProposal != null, role = Role.Button) {
+                            viewModel.acceptAgreementAndPunch(location)
+                        }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        when {
+                            state.busy -> "Guardando tu aceptación…"
+                            primary != null -> "Acepto y registro mi ${primary.label.lowercase()}"
+                            else -> "Entendido, acepto"
+                        },
+                        modifier = Modifier.weight(1f),
+                        color = Brand.Paper,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(clock, color = Brand.Paper, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                }
+            }
         } else if (primary == null) {
             Row(
                 Modifier
@@ -217,7 +255,7 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
             Text(clock, color = Brand.Ink, fontSize = 22.sp, fontWeight = FontWeight.Black)
         }
 
-        if (state.canPunch) state.next.drop(1).forEach { other ->
+        if (state.canPunch && !state.agreementPending) state.next.drop(1).forEach { other ->
             Text(
                 "o ${other.action.replaceFirstChar { it.lowercase() }} sin salir a comer",
                 modifier = Modifier
@@ -249,7 +287,7 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
             }
         }
 
-        if (!compact && state.canPunch) CheckOptions(state, viewModel)
+        if (!compact && state.canPunch && !state.agreementPending) CheckOptions(state, viewModel)
     }
 }
 

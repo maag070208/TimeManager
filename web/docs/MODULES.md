@@ -99,6 +99,11 @@ Los roles viven en BD (tabla `roles`) y la UI se gobierna por permisos (`useCan`
 - `pages/nom/*`, `features/nom`
 - El trabajador consulta sus marcajes y jornada, reporta discrepancias y registra
   su teletrabajo (NOM/LFT 2027). Endpoints: `/nom/*`.
+- `/mi-jornada` es `pages/nom/MyWorkdayPage.tsx` (arma el estado del día) más una tarjeta por
+  bloque en `features/nom/worker-portal/ui`: `PunchCard` (checar), `MyPunchesCard` (marcajes y
+  discrepancia), `TeleworkCard`, `OvertimeRequestsCard`, `RecordCard` (acuerdo y conformidad
+  semanal), `LeaveCard` y `PendingAgreements`. Los hooks viven en `model/`; cada acción confirma
+  con `usePortalToast`.
 
 ### 4. Personal (cuentas + expedientes)
 - Rutas: `/employees`, `/employees/:id`, `/employees/:id/account`,

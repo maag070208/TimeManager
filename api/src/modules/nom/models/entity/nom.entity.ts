@@ -396,6 +396,8 @@ export interface MyTelework {
   lunchPunchEnabled: boolean;
   /** El cliente exige acuerdo de método con REMOTE aceptado antes de checar remoto. */
   remoteAgreementRequired: boolean;
+  /** Lo exige el cliente y la persona aún no acepta un acuerdo con REMOTE: no puede checar remoto. */
+  remoteAgreementPending: boolean;
   checklistTemplate: { version: number; items: string[] };
   lastChecklist: TeleworkChecklistDto | null;
   nextPeriodicDueAt: string | null;

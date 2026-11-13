@@ -55,28 +55,20 @@ export class StpsExportService {
       throw new HttpError(400, "INVALID_REPORT_PERIOD");
     }
     assertDateKey(params.date, "INVALID_REPORT_DATE");
-    const { days, range } = await this.calculator.computeOvertimeDays({
+    const computedDays = await this.calculator.computeOvertimeDays({
       page: 1,
       limit: 100000,
       filters: { period: params.period, date: params.date },
       sort: undefined,
     });
+    const { days, range } = computedDays;
 
-    // Asegura el ledger semanal del periodo para exportar las bolsas.
-    // Cada semana es independiente (su propia fila de ledger): se calculan en paralelo.
-    if (this.weekly) {
-      const weekKeys: string[] = [];
-      for (
-        let cursor = new Date(range.start.getTime());
-        cursor.getTime() < range.end.getTime();
-        cursor = new Date(cursor.getTime() + 7 * 24 * 60 * 60 * 1000)
-      ) {
-        weekKeys.push(localDateKey(cursor, range.timezone));
-      }
-      const weekly = this.weekly;
-      await Promise.all(weekKeys.map((week) => weekly.computeWeek(tenantId, week)));
-    }
-
+    type ArchivedPunch = {
+      occurredAt: Date;
+      employeeNumber: string | null;
+      name: string | null;
+      method: string;
+    };
     type LedgerDay = {
       date: string;
       doubleMin: number;
@@ -89,8 +81,24 @@ export class StpsExportService {
     };
     const buckets = new Map<string, LedgerDay>();
     const minorByDay = new Map<string, boolean>();
-    if (this.weekly) {
-      const ledgers = await this.db.weeklyOvertimeLedger.findMany({
+    // Las bolsas semanales y el detalle de marcajes solo dependen del rango:
+    // se leen en paralelo en lugar de un viaje tras otro.
+    const loadLedgers = async () => {
+      const weekly = this.weekly;
+      if (!weekly) return [];
+      // Asegura el ledger semanal del periodo; cada semana es su propia fila.
+      const weekKeys: string[] = [];
+      for (
+        let cursor = new Date(range.start.getTime());
+        cursor.getTime() < range.end.getTime();
+        cursor = new Date(cursor.getTime() + 7 * 24 * 60 * 60 * 1000)
+      ) {
+        weekKeys.push(localDateKey(cursor, range.timezone));
+      }
+      // Export semanal: el cálculo diario ya está hecho arriba, no se repite.
+      const computed = params.period === "WEEK" && weekKeys.length === 1 ? computedDays : undefined;
+      await Promise.all(weekKeys.map((week) => weekly.refreshWeek(tenantId, week, computed)));
+      return this.db.weeklyOvertimeLedger.findMany({
         where: {
           tenantId,
           weekStart: {
@@ -100,11 +108,63 @@ export class StpsExportService {
         },
         select: { userId: true, days: true, minor: true },
       });
-      for (const ledger of ledgers) {
-        for (const day of ledger.days as unknown as LedgerDay[]) {
-          buckets.set(`${ledger.userId}|${day.date}`, day);
-          minorByDay.set(`${ledger.userId}|${day.date}`, ledger.minor);
-        }
+    };
+    const hasArchive = typeof (this.db as { $queryRawUnsafe?: unknown }).$queryRawUnsafe === "function";
+    const loadClock = async () => {
+      // Detalle de marcajes (RJ-06): reloj vigente, con ajustes aprobados.
+      const clockPunches = await this.db.timeClockPunch.findMany({
+        where: { occurredAt: { gte: range.start, lt: range.end } },
+        orderBy: [{ occurredAt: "asc" }, { serialNo: "asc" }],
+        select: { id: true, employeeNumber: true, name: true, method: true, occurredAt: true },
+      });
+      return applyApprovedAdjustments(
+        clockPunches,
+        await loadApprovedAdjustments(this.db, clockPunches.map((punch) => punch.id))
+      );
+    };
+    const [ledgers, tenant, remote, archivedPunchesRaw, archivedRemoteRaw, effectiveClock, links] = await Promise.all([
+      loadLedgers(),
+      this.db.tenant.findUnique({
+        where: { id: tenantId },
+        select: { id: true, name: true, slug: true, timezone: true },
+      }),
+      // Marcajes remotos (F2-07): también son registro de jornada y viajan en el export.
+      this.db.remotePunch.findMany({
+        where: { tenantId, occurredAt: { gte: range.start, lt: range.end } },
+        orderBy: { occurredAt: "asc" },
+        include: { user: { select: { name: true, employeeNumber: true } } },
+      }),
+      // R-02: el export también lee las tablas de archivo (art. 804).
+      hasArchive
+        ? this.db.$queryRawUnsafe<ArchivedPunch[]>(
+            `SELECT "occurredAt", "employeeNumber", "name", "method"
+         FROM "nom_archived_time_clock_punches"
+         WHERE "tenantId" = $1 AND "occurredAt" >= $2 AND "occurredAt" < $3
+         ORDER BY "occurredAt" ASC`,
+            tenantId,
+            range.start,
+            range.end
+          )
+        : [],
+      hasArchive
+        ? this.db.$queryRawUnsafe<Array<{ occurredAt: Date; userId: string; type: string; workMode: string }>>(
+            `SELECT "occurredAt", "userId", "type", "workMode"
+         FROM "nom_archived_remote_punches"
+         WHERE "tenantId" = $1 AND "occurredAt" >= $2 AND "occurredAt" < $3
+         ORDER BY "occurredAt" ASC`,
+            tenantId,
+            range.start,
+            range.end
+          )
+        : [],
+      loadClock(),
+      this.db.timeClockEmployee.findMany({ select: { employeeNumber: true, userId: true } }),
+    ]);
+    if (!tenant) throw new HttpError(404, "TENANT_NOT_FOUND");
+    for (const ledger of ledgers) {
+      for (const day of ledger.days as unknown as LedgerDay[]) {
+        buckets.set(`${ledger.userId}|${day.date}`, day);
+        minorByDay.set(`${ledger.userId}|${day.date}`, ledger.minor);
       }
     }
 
@@ -140,68 +200,19 @@ export class StpsExportService {
           (a.employeeNumber ?? a.name).localeCompare(b.employeeNumber ?? b.name)
       );
 
-    const tenant = await this.db.tenant.findUnique({
-      where: { id: tenantId },
-      select: { id: true, name: true, slug: true, timezone: true },
-    });
-    if (!tenant) throw new HttpError(404, "TENANT_NOT_FOUND");
-
-    // Marcajes remotos (F2-07): también son registro de jornada y viajan en el export.
-    const remote = await this.db.remotePunch.findMany({
-      where: { tenantId, occurredAt: { gte: range.start, lt: range.end } },
-      orderBy: { occurredAt: "asc" },
-      include: { user: { select: { name: true, employeeNumber: true } } },
-    });
-    // R-02: el export también lee las tablas de archivo (art. 804).
-    type ArchivedPunch = {
-      occurredAt: Date;
-      employeeNumber: string | null;
-      name: string | null;
-      method: string;
-    };
-    let archivedPunchRows: ArchivedPunch[] = [];
-    let archivedRemoteRows: Array<{
-      occurredAt: Date;
-      userId: string;
-      type: string;
-      workMode: string;
-      employeeNumber?: string | null;
-      name?: string | null;
-    }> = [];
-    if (typeof (this.db as { $queryRawUnsafe?: unknown }).$queryRawUnsafe === "function") {
-      archivedPunchRows = await this.db.$queryRawUnsafe<ArchivedPunch[]>(
-        `SELECT "occurredAt", "employeeNumber", "name", "method"
-         FROM "nom_archived_time_clock_punches"
-         WHERE "tenantId" = $1 AND "occurredAt" >= $2 AND "occurredAt" < $3
-         ORDER BY "occurredAt" ASC`,
-        tenantId,
-        range.start,
-        range.end
-      );
-      archivedRemoteRows = await this.db.$queryRawUnsafe<
-        Array<{ occurredAt: Date; userId: string; type: string; workMode: string }>
-      >(
-        `SELECT "occurredAt", "userId", "type", "workMode"
-         FROM "nom_archived_remote_punches"
-         WHERE "tenantId" = $1 AND "occurredAt" >= $2 AND "occurredAt" < $3
-         ORDER BY "occurredAt" ASC`,
-        tenantId,
-        range.start,
-        range.end
-      );
-      const names = archivedRemoteRows.length
-        ? await this.db.user.findMany({
-            where: { id: { in: [...new Set(archivedRemoteRows.map((row) => row.userId))] } },
-            select: { id: true, name: true, employeeNumber: true },
-          })
-        : [];
-      const byId = new Map(names.map((row) => [row.id, row]));
-      archivedRemoteRows = archivedRemoteRows.map((row) => ({
-        ...row,
-        employeeNumber: byId.get(row.userId)?.employeeNumber ?? null,
-        name: byId.get(row.userId)?.name ?? null,
-      }));
-    }
+    const archivedPunchRows = archivedPunchesRaw;
+    const archivedNames = archivedRemoteRaw.length
+      ? await this.db.user.findMany({
+          where: { id: { in: [...new Set(archivedRemoteRaw.map((row) => row.userId))] } },
+          select: { id: true, name: true, employeeNumber: true },
+        })
+      : [];
+    const archivedById = new Map(archivedNames.map((row) => [row.id, row]));
+    const archivedRemoteRows = archivedRemoteRaw.map((row) => ({
+      ...row,
+      employeeNumber: archivedById.get(row.userId)?.employeeNumber ?? null,
+      name: archivedById.get(row.userId)?.name ?? null,
+    }));
 
     const remoteRows: StpsRemotePunchRow[] = remote.map((punch) => ({
       date: localDateKey(punch.occurredAt, range.timezone),
@@ -229,20 +240,6 @@ export class StpsExportService {
         workMode: row.workMode,
       })),
     };
-    // Detalle de marcajes (RJ-06): reloj vigente (con ajustes aprobados) + remoto + archivo.
-    const clockPunches = await this.db.timeClockPunch.findMany({
-      where: { occurredAt: { gte: range.start, lt: range.end } },
-      orderBy: [{ occurredAt: "asc" }, { serialNo: "asc" }],
-      select: { id: true, employeeNumber: true, name: true, method: true, occurredAt: true },
-    });
-    const clockAdjustments = await loadApprovedAdjustments(
-      this.db,
-      clockPunches.map((punch) => punch.id)
-    );
-    const effectiveClock = applyApprovedAdjustments(clockPunches, clockAdjustments);
-    const links = await this.db.timeClockEmployee.findMany({
-      select: { employeeNumber: true, userId: true },
-    });
     const userByNumber = new Map(links.map((link) => [link.employeeNumber, link.userId]));
     type DetailPunch = {
       occurredAt: string;

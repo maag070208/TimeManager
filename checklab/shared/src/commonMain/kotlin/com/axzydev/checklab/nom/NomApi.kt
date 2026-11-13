@@ -69,6 +69,8 @@ data class PunchSettings(
     val punchChannels: List<String> = emptyList(),
     val remoteGeolocationEnabled: Boolean = true,
     val lunchPunchEnabled: Boolean = true,
+    /** El cliente exige el acuerdo de método y la persona aún no lo acepta: el API rechaza la checada. */
+    val remoteAgreementPending: Boolean = false,
 ) {
     /**
      * Si esta app puede registrar checadas: manda el canal APP, no `canPunchRemote`

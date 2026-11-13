@@ -48,36 +48,58 @@ export class WeeklyOvertimeService {
 
   /** Calcula (o recalcula si sigue DRAFT) la semana y devuelve los ledgers. */
   async computeWeek(tenantId: string, date: string): Promise<unknown[]> {
-    const { days, range } = await this.calculator.computeOvertimeDays({
-      page: 1,
-      limit: 100000,
-      filters: { period: "WEEK", date },
-      sort: undefined,
-    });
+    return this.list(tenantId, await this.refreshWeek(tenantId, date));
+  }
+
+  /**
+   * Recalcula los ledgers DRAFT de la semana y devuelve su llave de inicio.
+   * `computed` evita repetir el cálculo diario cuando el llamador ya lo tiene
+   * para esa misma semana (export STPS semanal).
+   */
+  async refreshWeek(
+    tenantId: string,
+    date: string,
+    computed?: Awaited<ReturnType<WorkdayCalculator["computeOvertimeDays"]>>
+  ): Promise<string> {
+    const { days, range } =
+      computed ??
+      (await this.calculator.computeOvertimeDays({
+        page: 1,
+        limit: 100000,
+        filters: { period: "WEEK", date },
+        sort: undefined,
+      }));
     const weekStartKey = localDateKey(range.start, range.timezone);
     const weekStart = toUtcDate(weekStartKey);
-    const users = await this.usersById([...new Set(days.map((day) => day.userId))]);
-    const agreementUsers = new Set<string>();
-    if (days.length > 0) {
-      const agreements = await this.db.workdayDistributionAgreement.findMany({
+    const userIds = [...new Set(days.map((day) => day.userId))];
+    if (userIds.length === 0) return weekStartKey;
+    const [users, agreements, holidayDates, existingRows] = await Promise.all([
+      this.usersById(userIds),
+      this.db.workdayDistributionAgreement.findMany({
         where: {
           tenantId,
-          userId: { in: [...new Set(days.map((day) => day.userId))] },
+          userId: { in: userIds },
           acceptedAt: { not: null },
           effectiveFrom: { lte: range.end },
           OR: [{ effectiveTo: null }, { effectiveTo: { gte: range.start } }],
         },
         select: { userId: true },
-      });
-      for (const agreement of agreements) if (agreement.userId) agreementUsers.add(agreement.userId);
-    }
-    const holidayDates = this.holidays
-      ? await this.holidays.between(
-          tenantId,
-          localDateKey(range.start, range.timezone),
-          localDateKey(new Date(range.end.getTime() - 1), range.timezone)
-        )
-      : new Set<string>();
+      }),
+      this.holidays
+        ? this.holidays.between(
+            tenantId,
+            localDateKey(range.start, range.timezone),
+            localDateKey(new Date(range.end.getTime() - 1), range.timezone)
+          )
+        : new Set<string>(),
+      this.db.weeklyOvertimeLedger.findMany({
+        where: { tenantId, weekStart, userId: { in: userIds } },
+        select: { id: true, userId: true, status: true },
+      }),
+    ]);
+    const agreementUsers = new Set<string>();
+    for (const agreement of agreements) if (agreement.userId) agreementUsers.add(agreement.userId);
+    const existingByUser = new Map(existingRows.map((row) => [row.userId, row]));
 
     const byUser = new Map<string, ScheduleOvertimeDay[]>();
     for (const day of days) {
@@ -86,10 +108,9 @@ export class WeeklyOvertimeService {
       else byUser.set(day.userId, [day]);
     }
 
+    const writes: Array<Promise<unknown>> = [];
     for (const [userId, personDays] of byUser) {
-      const existing = await this.db.weeklyOvertimeLedger.findUnique({
-        where: { tenantId_userId_weekStart: { tenantId, userId, weekStart } },
-      });
+      const existing = existingByUser.get(userId);
       if (existing && existing.status !== "DRAFT") continue;
 
       const birthDate = users.get(userId)?.birthDate ?? null;
@@ -127,16 +148,15 @@ export class WeeklyOvertimeService {
         engineVersion: result.engineVersion,
       };
 
-      if (existing) {
-        await this.db.weeklyOvertimeLedger.update({ where: { id: existing.id }, data });
-      } else {
-        await this.db.weeklyOvertimeLedger.create({
-          data: { tenantId, userId, weekStart, ...data },
-        });
-      }
+      writes.push(
+        existing
+          ? this.db.weeklyOvertimeLedger.update({ where: { id: existing.id }, data })
+          : this.db.weeklyOvertimeLedger.create({ data: { tenantId, userId, weekStart, ...data } })
+      );
     }
-
-    return this.list(tenantId, weekStartKey);
+    // Una fila por persona: las escrituras no dependen entre sí.
+    await Promise.all(writes);
+    return weekStartKey;
   }
 
   async list(tenantId: string, weekStartKey?: string): Promise<unknown[]> {

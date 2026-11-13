@@ -63,7 +63,8 @@
   "sourceRemote": "Remote",
   "discrepancy": {
     "reason": "Discrepancy reason",
-    "send": "Send to HR"
+    "send": "Send to HR",
+    "reasonMin": "Write at least 5 characters."
   },
   "telework": {
     "title": "My telework",
@@ -211,7 +212,8 @@
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
       "CANCELLED": "Cancelled"
-    }
+    },
+    "cancel": "Cancel request"
   },
   "agreements": {
     "methodTitle": "Before you start: how your workday is recorded",
@@ -228,5 +230,17 @@
     }
   },
   "sourceWeb": "Web",
-  "sourceApp": "App"
+  "sourceApp": "App",
+  "done": {
+    "agreement": "You accepted the recording method.",
+    "scheduleAgreement": "You accepted the workday agreement.",
+    "weekConfirmed": "You confirmed your week.",
+    "weekDiscrepancy": "We sent your discrepancy to HR.",
+    "overtimeAccepted": "You accepted the overtime.",
+    "overtimeRejected": "You declined the overtime.",
+    "discrepancy": "We sent your report to HR.",
+    "checklist": "We saved your checklist.",
+    "leaveRequested": "We sent your request to HR.",
+    "leaveCancelled": "You cancelled the request."
+  }
 }

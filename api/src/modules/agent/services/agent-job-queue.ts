@@ -73,23 +73,26 @@ export class TableAgentJobQueue implements AgentJobQueue {
       take: limit,
     });
 
-    const claimed: AgentJobRecord[] = [];
-    for (const candidate of candidates) {
-      // Compare-and-set: dos agentes pueden haber visto el mismo PENDING.
-      const result = await this.db.agentJob.updateMany({
-        where: { id: candidate.id, status: "PENDING", availableAt: { lte: now } },
-        data: {
-          status: "RUNNING",
-          agentId,
-          claimedAt: now,
-          attempts: { increment: 1 },
-        },
-      });
-      if (result.count !== 1) continue;
-      const job = await this.db.agentJob.findUniqueOrThrow({ where: { id: candidate.id } });
-      claimed.push(toJobRecord(job));
-    }
-    return claimed;
+    // Compare-and-set por trabajo: dos agentes pueden haber visto el mismo
+    // PENDING. Cada intento es independiente, así que van en paralelo.
+    const won = await Promise.all(
+      candidates.map(async (candidate) => {
+        const result = await this.db.agentJob.updateMany({
+          where: { id: candidate.id, status: "PENDING", availableAt: { lte: now } },
+          data: {
+            status: "RUNNING",
+            agentId,
+            claimedAt: now,
+            attempts: { increment: 1 },
+          },
+        });
+        return result.count === 1 ? candidate.id : null;
+      })
+    );
+    const ids = won.filter((id): id is string => id !== null);
+    if (ids.length === 0) return [];
+    const jobs = await this.db.agentJob.findMany({ where: { id: { in: ids } }, orderBy: { createdAt: "asc" } });
+    return jobs.map(toJobRecord);
   }
 
   async complete(id: string, result: unknown): Promise<AgentJobRecord> {
