@@ -129,7 +129,13 @@ private fun PolicyText(policy: TeleworkPolicy) {
         fontSize = 14.sp,
     )
     if (open) {
-        listOf("Política de teletrabajo" to policy.teleworkPolicy, "Desconexión digital" to policy.disconnectPolicy, "Aviso de privacidad" to policy.privacyNotice)
+        listOf(
+            "Política de teletrabajo" to policy.teleworkPolicy,
+            "Desconexión digital" to policy.disconnectPolicy,
+            "Equipo y gastos" to policy.equipmentPolicy,
+            "Retorno a presencial por violencia familiar" to policy.returnToOfficePolicy,
+            "Aviso de privacidad" to policy.privacyNotice,
+        )
             .forEach { (title, body) ->
                 if (!body.isNullOrBlank()) {
                     Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp)

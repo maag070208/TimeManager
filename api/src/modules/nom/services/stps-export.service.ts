@@ -288,7 +288,7 @@ export class StpsExportService {
       type: punch.type,
       workMode: punch.workMode,
       occurredAt: punch.occurredAt.toISOString(),
-      hasGeolocation: punch.latitude !== null && punch.longitude !== null,
+      hasGeolocation: punch.location !== null || (punch.latitude !== null && punch.longitude !== null),
     }));
 
     const generatedAt = new Date().toISOString();

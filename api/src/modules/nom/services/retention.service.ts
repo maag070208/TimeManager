@@ -16,7 +16,7 @@ export const LEGAL_RETENTION_MONTHS = 12;
 const PUNCH_COLUMNS = `"id", "tenantId", "clockSerial", "serialNo", "employeeNumber", "name", "method", "minor", "occurredAt", "createdAt"`;
 const ACCESS_EVENT_COLUMNS = `"id", "tenantId", "type", "occurredAt", "deviceTimestamp", "employeeId", "employeeNameSnapshot", "employeeNumberSnapshot", "guardId", "siteId", "latitude", "longitude", "gpsAccuracyMeters", "locationSource", "method", "credentialVersion", "scannedPayloadHash", "clientEventId", "deviceId", "deviceCode", "notes", "voidedAt", "voidedById", "voidReason", "createdAt"`;
 const ADJUSTMENT_COLUMNS = `"id", "tenantId", "targetType", "targetId", "punchId", "remotePunchId", "requestedById", "reason", "previousState", "newState", "status", "decidedById", "decidedAt", "decisionNote", "createdAt"`;
-const REMOTE_PUNCH_COLUMNS = `"id", "tenantId", "userId", "type", "workMode", "occurredAt", "clientReportedAt", "latitude", "longitude", "gpsAccuracyMeters", "note", "clientEventId", "createdAt"`;
+const REMOTE_PUNCH_COLUMNS = `"id", "tenantId", "userId", "type", "workMode", "occurredAt", "clientReportedAt", "latitude", "longitude", "gpsAccuracyMeters", "location", "note", "clientEventId", "createdAt"`;
 
 /** `now` menos `months` meses, en UTC (corte de retención), sin desbordar el día. */
 export const retentionCutoff = (now: Date, months: number): Date => {

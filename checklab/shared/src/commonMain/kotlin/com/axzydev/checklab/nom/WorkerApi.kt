@@ -28,6 +28,8 @@ data class TeleworkPolicy(
     val teleworkPolicy: String? = null,
     val disconnectPolicy: String? = null,
     val privacyNotice: String? = null,
+    val equipmentPolicy: String? = null,
+    val returnToOfficePolicy: String? = null,
     val policyVersion: Int = 1,
     val privacyNoticeVersion: Int = 1,
 )

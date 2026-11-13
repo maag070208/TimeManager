@@ -413,6 +413,9 @@ private fun History(state: MyWorkdayState, viewModel: MyWorkdayViewModel) {
 @Composable
 private fun DiscrepancyDialog(punch: MyPunch, viewModel: MyWorkdayViewModel, onClose: () -> Unit) {
     var reason by remember { mutableStateOf("") }
+    var expectedTime by remember { mutableStateOf("") }
+    val expectedIso = viewModel.expectedInstant(punch.occurredAt, expectedTime)
+    val timeInvalid = expectedTime.isNotBlank() && expectedIso == null
     AlertDialog(
         onDismissRequest = onClose,
         title = { Text("Reportar discrepancia") },
@@ -424,12 +427,14 @@ private fun DiscrepancyDialog(punch: MyPunch, viewModel: MyWorkdayViewModel, onC
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Field(reason, { reason = it }, "¿Qué pasó?")
+                Field(expectedTime, { expectedTime = it }, "Hora correcta (HH:mm, opcional)")
+                if (timeInvalid) Text("Escribe la hora como HH:mm, por ejemplo 08:05.", color = Brand.Rose, fontSize = 12.sp)
                 Text("La checada original no cambia: RH revisa tu reporte y, si procede, registra un ajuste.", color = Brand.Muted, fontSize = 12.sp)
             }
         },
         confirmButton = {
-            val ready = reason.trim().length >= 5
-            TextButton(onClick = { viewModel.reportDiscrepancy(punch.id, reason, onClose) }, enabled = ready) {
+            val ready = reason.trim().length >= 5 && !timeInvalid
+            TextButton(onClick = { viewModel.reportDiscrepancy(punch.id, reason, expectedIso, onClose) }, enabled = ready) {
                 Text("Enviar a RH", color = if (ready) Brand.MintInk else Brand.LineStrong, fontWeight = FontWeight.Bold)
             }
         },

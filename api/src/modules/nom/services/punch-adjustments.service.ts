@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient, type PunchAdjustmentStatus } from "@prisma/client";
+import { openLocation } from "./punch-location";
 import { tenantCalendar } from "@core/utils/tenant-timezone";
 import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/adjusted-punches";
 import { prismaClient } from "@core/config/database";
@@ -383,7 +384,7 @@ export class PunchAdjustmentsService {
         where: { userId, occurredAt: { gte: from, lt: to } },
         orderBy: { occurredAt: "desc" },
         take: limit,
-        select: { id: true, occurredAt: true, type: true, source: true, workMode: true, latitude: true, longitude: true },
+        select: { id: true, occurredAt: true, type: true, source: true, workMode: true, latitude: true, longitude: true, location: true },
       }),
     ]);
 
@@ -423,8 +424,8 @@ export class PunchAdjustmentsService {
         occurredAt: punch.occurredAt.toISOString(),
         method: punch.workMode,
         clockSerial: null,
-        latitude: punch.latitude,
-        longitude: punch.longitude,
+        latitude: openLocation(punch)?.latitude ?? null,
+        longitude: openLocation(punch)?.longitude ?? null,
       })),
     ];
     merged.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));

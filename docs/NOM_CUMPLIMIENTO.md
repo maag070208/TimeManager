@@ -22,7 +22,7 @@ técnico, no una certificación legal. Validar con asesor cuando se publiquen.
 | 5 | Límites de jornada y horas extra configurables + alertas | **Implementado (técnico)** | `nom_settings` por cliente: 12 h/día (720 min) y tope semanal por año (`weeklyLimitForYear`: 48 h 2026, 46 h 2027, 44 h 2028, 42 h 2029, 40 h 2030+), override por `sys_config`/cliente. Barrido horario + `WorkdayLimitAlert` + aviso a RH (campanita y correo). `POST /nom/alerts/scan` para corrida manual. |
 | 6 | Desconexión y horarios (NOM-037 teletrabajo) | **Implementado (técnico)** | Registro de teletrabajadores por cliente, política de teletrabajo/desconexión y aviso de privacidad editables con versiones y consentimiento, checklist inicial/periódico del lugar (8 puntos) y registro de comunicaciones fuera de jornada con aviso in-app (`/nom/telework/*`, pantalla `/teletrabajo`). Falta validación legal del contenido y horarios por colaborador (schedules ya los soporta). |
 | 7 | Conexión directa con nómina | **Parcial** | Hay pre-nómina/cierres y export; falta que OT/retardos/incidencias **aprobadas** viajen al periodo de nómina sin captura manual. |
-| 8 | Protección de datos personales (LFPDPPP 20/03/2025) | **Parcial** | Roles por permiso, foto/archivos privados (token/presignado), Ably por token, credenciales de reloj cifradas, **aviso de privacidad editable por cliente con consentimiento versionado**, geolocalización limitada al instante del marcaje y marcajes remotos en export sin coordenadas. Faltan: cifrado de datos sensibles en BD, retención legal validada y aviso validado por legal/cliente. |
+| 8 | Protección de datos personales (LFPDPPP 20/03/2025) | **Parcial** | Roles por permiso, foto/archivos privados (token/presignado), Ably por token, credenciales de reloj cifradas, **aviso de privacidad editable por cliente con consentimiento versionado**, geolocalización limitada al instante del marcaje, **cifrada en BD** junto con el domicilio de teletrabajo, y marcajes remotos en export sin coordenadas. Faltan: retención legal validada y aviso validado por legal/cliente. |
 | 9 | Checklist y condiciones del lugar de teletrabajo | **Implementado (técnico)** | Checklist inicial y periódico de 8 puntos por persona (`TeleworkChecklist`), domicilio en el registro de teletrabajo y validación de la Comisión: con resultado `NO_APTO` el API rechaza la checada desde ese lugar. Falta validación legal del contenido. |
 | 10 | Equipo y violencia familiar (política de retorno a presencial) | **Implementado (técnico)** | Textos editables por cliente (`equipmentPolicy`, `returnToOfficePolicy`) versionados con la política de teletrabajo. Falta validación legal del contenido. |
 
@@ -112,9 +112,10 @@ Cerrado el mismo día (migración `20261215000000_nom_export_seals_and_policies`
 - **Domicilio de teletrabajo cifrado** en la base (AES-256-GCM, `sealText`/`openText`); la bitácora ya no guarda el domicilio, solo si cambió.
 - **Políticas de equipo y de retorno a presencial por violencia familiar** (requisito 10): textos editables por cliente en `/teletrabajo`, versionados con la política y visibles para el trabajador.
 
+- **Geolocalización cifrada** (migración `20261216000000_remote_punch_location_sealed`): las coordenadas del marcaje remoto van en `remote_punches.location` con AES-256-GCM; los marcajes anteriores se migran con `scripts/nom-seal-locations.ts` (único `UPDATE` que admite el trigger append-only, bajo `app.nom_location_seal`).
+
 Sigue pendiente:
 
-- **Cifrado de la geolocalización**: las coordenadas siguen en claro; `remote_punches` es de solo inserción, así que cifrarlas pide una migración con ventana y decisión sobre los marcajes ya guardados.
 - **Validación legal** de los textos y formato oficial de la STPS.
 
 Nuevo desde esta revisión: el acuerdo de método de registro se exige antes de checar también en la pantalla (web y app), no solo en el API (`remoteAgreementRequired` / `remoteAgreementPending` en `GET /nom/me/telework`).

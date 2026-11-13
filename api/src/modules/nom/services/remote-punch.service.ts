@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
+import { openLocation, sealLocation } from "./punch-location";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { tenantTransaction } from "@core/tenancy";
@@ -37,6 +38,7 @@ export class RemotePunchService {
   ) {}
 
   private toDto(row: Row): RemotePunchDto {
+    const location = openLocation(row);
     return {
       id: row.id,
       type: row.type,
@@ -44,8 +46,8 @@ export class RemotePunchService {
       workMode: row.workMode,
       occurredAt: row.occurredAt.toISOString(),
       clientReportedAt: row.clientReportedAt?.toISOString() ?? null,
-      latitude: row.latitude,
-      longitude: row.longitude,
+      latitude: location?.latitude ?? null,
+      longitude: location?.longitude ?? null,
       note: row.note,
       createdAt: row.createdAt.toISOString(),
     };
@@ -136,7 +138,7 @@ export class RemotePunchService {
           type: row.type,
           workMode: row.workMode,
           occurredAt: row.occurredAt.toISOString(),
-          hasGeolocation: row.latitude !== null,
+          hasGeolocation: row.location !== null,
         },
         metadata: {
           employeeId: userId,
@@ -228,9 +230,7 @@ export class RemotePunchService {
             workMode: input.workMode ?? "REMOTO",
             occurredAt: new Date(),
             clientReportedAt,
-            latitude: input.latitude ?? null,
-            longitude: input.longitude ?? null,
-            gpsAccuracyMeters: input.gpsAccuracyMeters ?? null,
+            location: sealLocation(input),
             note: input.note ?? null,
             clientEventId: input.clientEventId,
           },

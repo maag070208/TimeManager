@@ -1925,9 +1925,12 @@ model RemotePunch {
   occurredAt        DateTime          @default(now())
   /// Hora reportada por el cliente, solo auditoría (reintentos offline).
   clientReportedAt  DateTime?
+  /// Coordenadas en claro de marcajes anteriores al cifrado; el API ya no las escribe.
   latitude          Float?
   longitude         Float?
   gpsAccuracyMeters Float?
+  /// Geolocalización cifrada (`sealText` de `{latitude, longitude, accuracy}`).
+  location          String?
   note              String?
   /// Idempotencia del cliente: un reintento de red no duplica el marcaje.
   clientEventId     String?           @unique

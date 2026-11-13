@@ -48,7 +48,7 @@ data class PunchResult(val created: Boolean, val punch: RemotePunch)
 data class RemotePunch(val id: String, val type: PunchType, val occurredAt: String)
 
 @Serializable
-data class DiscrepancyRequest(val punchId: String, val reason: String)
+data class DiscrepancyRequest(val punchId: String, val reason: String, val expectedOccurredAt: String? = null)
 
 @Serializable
 data class IdResult(val id: String)
@@ -106,8 +106,8 @@ class NomApi(private val client: HttpClient) {
 
     suspend fun punchSettings(): PunchSettings = apiCall { client.get("nom/me/telework") }
 
-    suspend fun reportDiscrepancy(punchId: String, reason: String): IdResult =
-        apiCall { client.post("nom/me/discrepancies") { setBody(DiscrepancyRequest(punchId, reason)) } }
+    suspend fun reportDiscrepancy(punchId: String, reason: String, expectedOccurredAt: String? = null): IdResult =
+        apiCall { client.post("nom/me/discrepancies") { setBody(DiscrepancyRequest(punchId, reason, expectedOccurredAt)) } }
 }
 
 /**

@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
@@ -224,14 +227,26 @@ class MyWorkdayViewModel(
         }
     }
 
-    fun reportDiscrepancy(punchId: String, reason: String, onDone: () -> Unit) {
+    /** `HH:mm` propuesto por la persona → instante ISO del mismo día del marcaje, en la zona del cliente. */
+    fun expectedInstant(punchIso: String, time: String): String? {
+        val match = Regex("""^(\d{1,2}):(\d{2})$""").find(time.trim()) ?: return null
+        val hour = match.groupValues[1].toInt()
+        val minute = match.groupValues[2].toInt()
+        if (hour > 23 || minute > 59) return null
+        return runCatching {
+            val day = Instant.parse(punchIso).toLocalDateTime(timezone).date
+            LocalDateTime(day, LocalTime(hour, minute)).toInstant(timezone).toString()
+        }.getOrNull()
+    }
+
+    fun reportDiscrepancy(punchId: String, reason: String, expectedOccurredAt: String? = null, onDone: () -> Unit) {
         if (reason.trim().length < 5) {
             _state.update { it.copy(error = "Explica el motivo con al menos 5 caracteres.") }
             return
         }
         viewModelScope.launch {
             try {
-                api.reportDiscrepancy(punchId, reason.trim())
+                api.reportDiscrepancy(punchId, reason.trim(), expectedOccurredAt)
                 _state.update { it.copy(notice = "Discrepancia enviada a Recursos Humanos.", error = null) }
                 onDone()
             } catch (e: ApiException) {
