@@ -22,7 +22,8 @@
     "workers": "ts-node -r tsconfig-paths/register src/workers/index.ts",
     "workers:prod": "node dist/src/workers/index.js",
     "qa:bots": "ts-node -r tsconfig-paths/register qa/run.ts",
-    "qa:bots:local": "node qa/run-local.mjs"
+    "qa:bots:local": "node qa/run-local.mjs",
+    "qa:simular": "node --require ts-node/register/transpile-only --require tsconfig-paths/register scripts/simulate-week.ts"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"

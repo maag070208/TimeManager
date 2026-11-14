@@ -240,7 +240,7 @@ export default function ClientOverview() {
                   <ITText className="block rounded-xl bg-emerald-50/60 px-3 py-4 text-center !text-[12.5px] text-emerald-800">{t("client.attendance.allOnTime")}</ITText>
                 ) : (
                   <>
-                    <ul className="divide-y divide-slate-100">
+                    <ul className="tm-rows">
                       {shown.map((r) => (
                         <li key={r.userId} className="flex items-center justify-between gap-3 py-2.5 text-[12.5px]">
                           <span className="min-w-0 truncate"><span className="font-semibold text-slate-800">{r.name}</span>{r.departmentName ? <span className="text-slate-500"> · {r.departmentName}</span> : null}</span>
@@ -323,7 +323,7 @@ export default function ClientOverview() {
                 return dates.length === 0 ? (
                   <ITText className="block py-3 text-center !text-[12.5px] text-slate-500">{t("client.people.none")}</ITText>
                 ) : (
-                  <ul className="divide-y divide-slate-100">
+                  <ul className="tm-rows">
                     {dates.map((d) => (
                       <li key={d.key} className="flex items-center justify-between gap-3 py-2.5 text-[12.5px]">
                         <span className="min-w-0 truncate font-semibold text-slate-800">{d.name}</span>

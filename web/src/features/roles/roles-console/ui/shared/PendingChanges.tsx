@@ -94,7 +94,7 @@ export function ChangesReviewDialog({ isOpen, changes, catalog, peopleOf, saving
                 {t("changes.roleImpact", { count: list.length, people: peopleOf(role) })}
               </ITText>
             </div>
-            <ul className="divide-y divide-slate-100">
+            <ul className="tm-rows">
               {list.map((change) => {
                 const added = change.from === "NONE";
                 const removed = change.scope === "NONE";

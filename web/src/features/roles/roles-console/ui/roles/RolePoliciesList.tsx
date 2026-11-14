@@ -67,7 +67,7 @@ export default function RolePoliciesList({ role, policies, hasPermission, onTest
                 </button>
               </ITFlex>
             </div>
-            <ol className="divide-y divide-slate-100">
+            <ol className="tm-rows">
               {rules.map((policy, index) => (
                 <li key={policy.id} className={`flex items-start gap-2 px-3 py-1.5 ${policy.active ? "" : "opacity-50"}`}>
                   <ITText as="span" className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-500">

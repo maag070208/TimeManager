@@ -28,6 +28,7 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
   - Tests unitarios: `pnpm test:unit` (node:test + ts-node, `src/**/*.test.ts`, sin BD)
   - Tests de integración de flujos: `pnpm db:test:up` (Postgres 16 local en Docker, puerto 55433) y `pnpm test:integration` (API real; el arnés rechaza cualquier BD que no sea local `tm_test*`)
   - Bots de QA (flujos completos con admin, RH y 6 empleados contra un API local): `pnpm qa:bots` con el API `api-qa` de `.claude/launch.json` y la base local `tm_qa` (ver `api/qa/README.md`)
+  - Personas de prueba y simulador de semana: fichas en `bots/` (quién es cada bot y qué flujos recorre); `pnpm --filter timemanager-api qa:simular -- --tenant=<slug> --weeks=2` llena de entradas y salidas la semana de un cliente en la base de `api/.env`
   - Aislamiento entre clientes: `TENANCY_CHECK_DATABASE_URL=<BD de prueba> pnpm tenancy-check` (nunca contra la nube)
 
 ### Reglas de base de datos

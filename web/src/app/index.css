@@ -540,6 +540,12 @@ aside.w-\[72px\] > div[class*="rounded-[26px]"] [role="button"] > div {
 }
 
 
+/* Filas de una lista con separador suave. Va sin capa a propósito: el
+   design system carga su propio Tailwind en una capa que gana a la de la app,
+   y `border-b` + `last:border-b-0` o `divide-*` terminan en una línea oscura. */
+.tm-rows > * + * { border-top: 1px solid #eef1f5; }
+.dark .tm-rows > * + *, [data-theme="dark"] .tm-rows > * + * { border-top-color: rgba(148, 163, 184, 0.16); }
+
 /* Card de contexto grande: misma familia que las KPI, con ola inversa. */
 .tm-hero-card {
   position: relative;

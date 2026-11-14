@@ -77,7 +77,7 @@ export default function PayrollReviewDialog({
         </ITButton>
       </ITFlex>
 
-      <div className="max-h-[52vh] overflow-y-auto">
+      <div className="tm-rows max-h-[52vh] overflow-y-auto">
         {departments.length === 0 ? (
           <ITText className="block py-6 text-center text-slate-500 !text-[12.5px]">{t("reviewDialog.empty")}</ITText>
         ) : (
@@ -89,7 +89,7 @@ export default function PayrollReviewDialog({
                 align="center"
                 justify="between"
                 gap={3}
-                className="min-h-[46px] border-b border-slate-100 py-2 last:border-b-0"
+                className="min-h-[46px] py-2"
               >
                 <ITCheckbox
                   checked={done}

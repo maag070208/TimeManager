@@ -120,7 +120,7 @@ export default function PoliciesPanel({ policies, onTest, notify }: Props) {
             </ITText>
           </div>
 
-          <ol className="divide-y divide-slate-100">
+          <ol className="tm-rows">
             {rules.map((policy, index) => (
               <li
                 key={policy.id}

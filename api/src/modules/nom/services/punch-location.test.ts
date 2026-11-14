@@ -5,7 +5,7 @@ import { openLocation, sealLocation } from "./punch-location";
 test("[NOM-GEO] sealLocation cifra y openLocation recupera las coordenadas", () => {
   const sealed = sealLocation({ latitude: 19.4326, longitude: -99.1332, gpsAccuracyMeters: 12 });
   assert.ok(sealed?.startsWith("enc:"));
-  assert.ok(!sealed.includes("19.4326"));
+  assert.ok(!sealed?.includes("19.4326"));
   assert.deepEqual(openLocation({ location: sealed }), { latitude: 19.4326, longitude: -99.1332, gpsAccuracyMeters: 12 });
 });
 

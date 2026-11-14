@@ -310,7 +310,7 @@ export default function EmployeeRecordsBoard({ fx }: Props) {
                 <div className="text-[13px] font-bold" style={{ color: "color-mix(in srgb, var(--color-warning) 42%, var(--color-text-default))" }}>
                   {t("records.detail.required", { done: done(sel.requiredDocuments), total: sel.requiredDocuments.length })}
                 </div>
-                <div className="mt-1 divide-y divide-slate-100">
+                <div className="tm-rows mt-1">
                   {sel.requiredDocuments.map((d) => {
                     const file = fx.documentOf(d.id);
                     return (
