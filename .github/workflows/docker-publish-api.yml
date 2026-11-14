@@ -1,7 +1,7 @@
-name: Docker publish
+name: Docker publish API
 
-# Publica las imágenes de la API y la web en Docker Hub cuando se sube a main
-# (o a mano desde la pestaña Actions). Requiere los secretos del repo:
+# Publica la imagen de la API en Docker Hub al subir a main (o a mano desde
+# Actions). Requiere los secretos del repo:
 #   DOCKERHUB_USERNAME  usuario de Docker Hub
 #   DOCKERHUB_TOKEN     access token de Docker Hub (no la contraseña)
 
@@ -14,24 +14,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: docker-publish-${{ github.ref }}
+  group: docker-publish-api-${{ github.ref }}
   cancel-in-progress: true
-
-env:
-  REGISTRY_NAMESPACE: axzydev
 
 jobs:
   publish:
-    name: ${{ matrix.image }}
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: axzy_checklab_api
-            dockerfile: api/Dockerfile
-          - image: axzy_checklab_web
-            dockerfile: web/Dockerfile
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +33,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY_NAMESPACE }}/${{ matrix.image }}
+          images: axzydev/axzy_checklab_api
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=short
@@ -53,9 +41,9 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ${{ matrix.dockerfile }}
+          file: api/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
