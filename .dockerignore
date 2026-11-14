@@ -1,0 +1,21 @@
+# Contexto de build: el monorepo entero, pero sin secretos ni artefactos locales.
+# Los Dockerfile copian solo lo que necesitan; esto evita que un .env o una
+# credencial de prueba entren a una capa aunque algún COPY sea amplio.
+
+**/.git
+**/node_modules
+**/dist
+**/coverage
+
+# Secretos y configuración local (el de ejemplo sí puede entrar).
+**/.env
+**/.env.*
+!**/.env.example
+
+# Credenciales de los bots de QA y sus reportes.
+api/qa/out
+
+# Apps nativas y artefactos que no van en ninguna imagen.
+checklab
+docs
+bots
