@@ -1,0 +1,62 @@
+name: Deploy web (FTP)
+
+# Compila la web y la sube por FTP al hosting de Hostinger al llegar a main
+# (o a mano desde Actions). Requiere:
+#   Secretos:  FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+#   Variable:  VITE_API_URL  (URL pública de la API, p. ej. https://…/api/v1)
+# La URL se fija al compilar: si cambia la API, se vuelve a desplegar.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Comprobar VITE_API_URL
+        run: |
+          if [ -z "${VITE_API_URL}" ]; then
+            echo "Falta la variable VITE_API_URL en el repo (Settings → Variables)."
+            exit 1
+          fi
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+
+      - name: Compilar web
+        run: pnpm --filter timemanager-web run build:prod
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+
+      - name: Subir por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
+          local-dir: web/dist/
+          server-dir: public_html/
