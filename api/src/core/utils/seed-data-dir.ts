@@ -13,6 +13,8 @@ export function resolveSeedDataDir(baseDir: string): string {
   const candidates = [
     path.join(baseDir, "seed-data"),
     path.join(baseDir, "..", "..", "prisma", "seed-data"),
+    // Imagen de producción: el proceso corre en /repo/api y `prisma/` se copia ahí.
+    path.join(process.cwd(), "prisma", "seed-data"),
   ];
   const dir = candidates.find((c) => fs.existsSync(c));
   if (!dir) {
