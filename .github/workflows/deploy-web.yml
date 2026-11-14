@@ -2,7 +2,7 @@ name: Deploy web (FTP)
 
 # Compila la web y la sube por FTP al hosting de Hostinger al llegar a main
 # (o a mano desde Actions). Requiere:
-#   Secretos:  FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+#   Secretos:  FTP_SERVER, FTP_USERNAME, FTP_PASSWORD (conexión FTPS)
 #   Variable:  VITE_API_URL  (URL pública de la API, p. ej. https://…/api/v1)
 # La URL se fija al compilar: si cambia la API, se vuelve a desplegar.
 
@@ -56,7 +56,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
           port: 21
           local-dir: web/dist/
           server-dir: public_html/
