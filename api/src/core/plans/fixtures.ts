@@ -9,8 +9,10 @@ import { resolveSeedDataDir } from "../utils/seed-data-dir";
  * inserta la migración `20261107000100_plans`. Se resuelven en runtime para no
  * tocar el disco al importar el módulo.
  */
-const dataDir = (): string =>
-  resolveSeedDataDir(path.join(__dirname, "..", "..", "..", "prisma"));
+const plansFile = (): string => {
+  const dir = resolveSeedDataDir(path.join(__dirname, "..", "..", "..", "prisma"), "plans.json");
+  return path.join(dir, "plans.json");
+};
 
 export interface PlanFixtureRow {
   id: string;
@@ -28,7 +30,7 @@ const isPositiveInt = (value: unknown): value is number =>
 
 /** Planes de arranque normalizados desde `plans.json`. **Puro.** */
 export const loadPlansFixture = (): PlanFixtureRow[] => {
-  const raw = JSON.parse(fs.readFileSync(path.join(dataDir(), "plans.json"), "utf-8"));
+  const raw = JSON.parse(fs.readFileSync(plansFile(), "utf-8"));
   if (!Array.isArray(raw)) return [];
   const rows: PlanFixtureRow[] = [];
   for (const row of raw as Array<Record<string, unknown>>) {

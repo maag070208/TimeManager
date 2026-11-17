@@ -21,11 +21,8 @@ import { loadPermissionsFromDb } from "./matrix";
  * real). Se resuelven en runtime para no tocar el disco al importar el módulo.
  */
 
-const dataDir = (): string =>
-  resolveSeedDataDir(path.join(__dirname, "..", "..", "..", "prisma"));
-
 const readFixture = (name: string): unknown => {
-  const file = path.join(dataDir(), `${name}.json`);
+  const file = path.join(resolveSeedDataDir(path.join(__dirname, "..", "..", "..", "prisma"), `${name}.json`), `${name}.json`);
   return JSON.parse(fs.readFileSync(file, "utf-8"));
 };
 
