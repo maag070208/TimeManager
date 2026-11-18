@@ -14,6 +14,7 @@ import { usersApi, type User } from "@entities/user";
 import { useDepartmentOptions } from "@entities/department";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { makeClientTableFetch } from "@shared/api/clientTable";
+import { errorMessage } from "@shared/api/errors";
 
 type AssignView = "assigned" | "pending" | "all";
 interface Row { id: string; name: string; employeeNumber: string | null; jobTitle?: string; department: string | null; departmentId: string | null; isAssigned: boolean; currentPosition: string | null }
@@ -52,7 +53,7 @@ export default function AssignPayrollPositionPage() {
         return nextPositions.find((item) => item.active)?.id ?? "";
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo cargar la asignación.");
+      setError(errorMessage(cause, "No se pudo cargar la asignación."));
     } finally {
       setLoading(false);
     }
@@ -147,7 +148,7 @@ export default function AssignPayrollPositionPage() {
       await load();
       setReloadToken((value) => value + 1);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo asignar el personal.");
+      setError(errorMessage(cause, "No se pudo asignar el personal."));
     } finally { setSaving(false); }
   };
 

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { dashboardApi, type RecordGapsRow } from "@entities/dashboard";
 import { personalApi, type EmployeeDocument } from "@entities/hr";
 import { dyn } from "@shared/i18n/dyn";
+import { errorMessage } from "@shared/api/errors";
 
 /** Estado del expediente: falta algún obligatorio, falta algo más, o completo. */
 export type RecordStatus = "REQUIRED" | "INCOMPLETE" | "COMPLETE";
@@ -46,7 +47,7 @@ export const useEmployeeRecords = () => {
         setRows(res.rows);
         setError(null);
       })
-      .catch((e: unknown) => active && setError(e instanceof Error ? e.message : String(e)))
+      .catch((e: unknown) => active && setError(errorMessage(e)))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -104,7 +105,7 @@ export const useEmployeeRecords = () => {
       loadDocuments(selected.userId);
       setReloadKey((k) => k + 1);
     } catch (e) {
-      setToast({ message: e instanceof Error ? e.message : t("records.detail.uploadError"), type: "error" });
+      setToast({ message: errorMessage(e, t("records.detail.uploadError")), type: "error" });
     } finally {
       setUploading(null);
     }
@@ -116,7 +117,7 @@ export const useEmployeeRecords = () => {
       const res = await dashboardApi.notifyMissingRecords(row.userId);
       setToast({ message: t(res.emailed ? "records.notifiedEmail" : "records.notified", { name: row.name }), type: "success" });
     } catch (e) {
-      setToast({ message: e instanceof Error ? e.message : t("records.notifyError"), type: "error" });
+      setToast({ message: errorMessage(e, t("records.notifyError")), type: "error" });
     } finally {
       setNotifying(null);
     }
@@ -131,7 +132,7 @@ export const useEmployeeRecords = () => {
       const res = await dashboardApi.notifyMissingRecordsBulk(pendingVisible.map((r) => r.userId));
       setToast({ message: t("records.notifyPendingDone", { notified: res.notified, emailed: res.emailed }), type: "success" });
     } catch (e) {
-      setToast({ message: e instanceof Error ? e.message : t("records.notifyError"), type: "error" });
+      setToast({ message: errorMessage(e, t("records.notifyError")), type: "error" });
     } finally {
       setBulkSending(false);
       setBulkOpen(false);

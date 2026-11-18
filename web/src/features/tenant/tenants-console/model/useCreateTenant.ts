@@ -3,6 +3,7 @@ import { planApi, type Plan } from "@entities/plan";
 import { tenantApi, type TenantCreated } from "@entities/tenant";
 import { DEFAULT_PUNCH_CHANNELS, type PunchChannel } from "@shared/lib/punch-channels";
 import { generatePassword, isCommonUsername, isValidSlug, MX_TIMEZONES, slugify } from "./slug";
+import { errorMessage } from "@shared/api/errors";
 
 interface Form {
   name: string;
@@ -153,7 +154,7 @@ export const useCreateTenant = () => {
         })
       );
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : String(err));
+      setApiError(errorMessage(err));
     } finally {
       setSaving(false);
     }

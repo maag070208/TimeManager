@@ -10,6 +10,7 @@ import {
 import { fileName } from "@shared/i18n";
 import { dateAtNoonFromKey } from "@shared/utils/dates";
 import { useTenantTodayKey } from "@entities/user";
+import { errorMessage } from "@shared/api/errors";
 
 /** Refresco del estado mientras corre una sincronización o una importación. */
 const STATUS_POLL_MS = 5_000;
@@ -116,7 +117,7 @@ export const useTimeClock = () => {
     try {
       setStatus(await timeClockApi.status());
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("errors.status"));
+      setError(errorMessage(e, t("errors.status")));
     }
   }, [t]);
 
@@ -263,7 +264,7 @@ export const useTimeClock = () => {
       const importJob = await timeClockApi.startImport({ from, to });
       setStatus((s) => (s ? { ...s, importJob } : s));
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("errors.import"));
+      setError(errorMessage(e, t("errors.import")));
     } finally {
       setStarting(false);
     }
@@ -338,7 +339,7 @@ export const useTimeClock = () => {
       link.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("errors.export"));
+      setError(errorMessage(e, t("errors.export")));
     } finally {
       setExporting(false);
     }

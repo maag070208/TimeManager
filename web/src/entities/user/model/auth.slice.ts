@@ -7,6 +7,7 @@ import { authApi } from "../api/userApi";
 import type { AuthMe, AuthUser } from "../model/types";
 import i18n from "@shared/i18n";
 import { setSelectedTenant } from "@shared/api/tenant";
+import { errorMessage } from "@shared/api/errors";
 
 interface State {
   token: string | null;
@@ -59,7 +60,7 @@ export const loginThunk = createAsyncThunk(
       // pueda distinguir ACCOUNT_DEACTIVATED vs INVALID_CREDENTIALS.
       return rejectWithValue({
         code: e?.code,
-        message: e?.message,
+        message: errorMessage(e),
         details: e?.details,
         status: e?.status,
       });

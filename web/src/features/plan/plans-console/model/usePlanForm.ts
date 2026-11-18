@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { planApi, type Plan } from "@entities/plan";
+import { errorMessage } from "@shared/api/errors";
 
 interface Form {
   name: string;
@@ -62,7 +63,7 @@ export const usePlanForm = (plan: Plan | null, onSaved: () => void) => {
       else await planApi.create(payload);
       onSaved();
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : String(err));
+      setApiError(errorMessage(err));
     } finally {
       setSaving(false);
     }

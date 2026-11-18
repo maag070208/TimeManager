@@ -9,6 +9,7 @@ import { HelpTip } from "@shared/ui/help-tip";
 import type { PayrollIsrBracket, PayrollImssRate, PayrollSettings } from "@entities/payroll";
 import PayrollPositionsPanel from "@features/payroll/payroll-positions/ui/PayrollPositionsPanel";
 import { TabBar } from "@shared/ui/tab-bar";
+import { errorMessage, UserMessageError } from "@shared/api/errors";
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -37,7 +38,7 @@ export default function PayrollSettingsPage() {
     payrollApi
       .settings()
       .then((settings) => setForm(fromSettings(settings)))
-      .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."));
+      .catch((cause) => setError(errorMessage(cause, "No se pudo cargar la configuración.")));
   }, []);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -54,14 +55,14 @@ export default function PayrollSettingsPage() {
         isrBrackets = JSON.parse(form.isrBracketsText) as PayrollIsrBracket[];
         imssRates = JSON.parse(form.imssRatesText) as PayrollImssRate[];
       } catch {
-        throw new Error("Las tablas ISR/IMSS deben ser JSON válido.");
+        throw new UserMessageError("Las tablas ISR/IMSS deben tener un formato válido.");
       }
       const { isrBracketsText: _a, imssRatesText: _b, ...settings } = form;
       const saved = await payrollApi.updateSettings({ ...settings, isrBrackets, imssRates });
       setForm(fromSettings(saved));
       setToast("Configuración de nómina guardada.");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
+      setError(errorMessage(cause, "No se pudo guardar."));
     } finally {
       setSaving(false);
     }
@@ -81,7 +82,7 @@ export default function PayrollSettingsPage() {
         })
       );
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo calcular.");
+      setError(errorMessage(cause, "No se pudo calcular."));
     }
   };
 

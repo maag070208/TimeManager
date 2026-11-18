@@ -11,6 +11,7 @@ import { nomApi, type NomConfigDto } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
 import SettingsHelpDialog from "./SettingsHelpDialog";
 import { TabBar } from "@shared/ui/tab-bar";
+import { errorMessage } from "@shared/api/errors";
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
@@ -68,7 +69,7 @@ export default function GeneralSettingsPage() {
           lunchPunchEnabled: next.lunchPunchEnabled ?? true,
         });
       })
-      .catch((cause) => setError(cause instanceof Error ? cause.message : "No se pudo cargar la configuración."))
+      .catch((cause) => setError(errorMessage(cause, "No se pudo cargar la configuración.")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -85,7 +86,7 @@ export default function GeneralSettingsPage() {
       );
       setConfirmArchive(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo archivar.");
+      setError(errorMessage(cause, "No se pudo archivar."));
     } finally {
       setArchiving(false);
     }
@@ -114,7 +115,7 @@ export default function GeneralSettingsPage() {
       await dispatch(meThunk()).unwrap().catch(() => undefined);
       setToast("Configuración guardada.");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
+      setError(errorMessage(cause, "No se pudo guardar."));
     } finally {
       setSaving(false);
     }

@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import App from "./App";
 import TenantHashRouter from "./TenantHashRouter";
+import { ErrorBoundary } from "@shared/ui/error-boundary";
 import "@app/index.css";
 
 if (!localStorage.getItem("it-theme-dark-mode")) {
@@ -44,9 +45,11 @@ createRoot(document.getElementById("root")!).render(
     <Provider store={store}>
       <ITThemeProvider theme={customTheme} showFab={false} density={0.80} appearance="bento">
         <ToastProvider>
-          <TenantHashRouter>
-            <App />
-          </TenantHashRouter>
+          <ErrorBoundary>
+            <TenantHashRouter>
+              <App />
+            </TenantHashRouter>
+          </ErrorBoundary>
         </ToastProvider>
       </ITThemeProvider>
     </Provider>

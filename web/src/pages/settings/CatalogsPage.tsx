@@ -14,6 +14,7 @@ import { nomApi, type LeaveType } from "@entities/nom";
 import { personalApi, type DocumentType } from "@entities/hr";
 import { departmentsApi, type Department } from "@entities/department";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
+import { errorMessage } from "@shared/api/errors";
 
 type CatalogKey = "leave" | "documents" | "departments" | "positions";
 
@@ -70,7 +71,7 @@ export default function CatalogsPage() {
       setPositions(nextPositions);
       setJobTitles([...new Set(nextPositions.map((position) => position.jobTitle?.trim()).filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b)));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron cargar los catálogos.");
+      setError(errorMessage(cause, "No se pudieron cargar los catálogos."));
     }
   }, []);
 
@@ -122,7 +123,7 @@ export default function CatalogsPage() {
       setEditing(null);
       await load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar el catálogo.");
+      setError(errorMessage(cause, "No se pudo guardar el catálogo."));
     } finally {
       setSaving(false);
     }
@@ -141,7 +142,7 @@ export default function CatalogsPage() {
       setRemoving(null);
       await load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo dar de baja.");
+      setError(errorMessage(cause, "No se pudo dar de baja."));
     } finally {
       setSaving(false);
     }

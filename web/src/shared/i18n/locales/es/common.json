@@ -84,10 +84,18 @@
     "kitchenCostCenterSpending": "gasto_centro_costo"
   },
   "errors": {
-    "network": "Error de red o del servidor",
+    "network": "No hay conexión con CheckLab. Intenta de nuevo.",
     "load": "Error al cargar",
     "save": "Error al guardar",
-    "report": "Error al generar el reporte"
+    "report": "Error al generar el reporte",
+    "support": {
+      "AX-10": "No hay conexión con CheckLab. Revisa tu internet e intenta de nuevo; si sigue pasando, comparte este código con soporte.",
+      "AX-11": "CheckLab tardó demasiado en responder. Intenta de nuevo; si sigue pasando, comparte este código con soporte.",
+      "AX-12": "CheckLab no está disponible en este momento. Intenta de nuevo en unos minutos; si sigue pasando, comparte este código con soporte.",
+      "AX-13": "Algo salió mal al leer la respuesta. Intenta de nuevo; si sigue pasando, comparte este código con soporte.",
+      "AX-14": "Algo salió mal en esta pantalla. Recarga la página e intenta de nuevo; si sigue pasando, comparte este código con soporte."
+    },
+    "reload": "Recargar"
   },
   "labels": {
     "unassigned": "Sin asignar",

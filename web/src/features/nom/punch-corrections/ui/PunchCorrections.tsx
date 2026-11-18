@@ -6,6 +6,7 @@ import { useTenantTimezone } from "@entities/user";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { TicState } from "@shared/ui/tic";
+import { errorMessage } from "@shared/api/errors";
 
 const STATUS: Record<PunchAdjustment["status"], { label: string; color: "warning" | "success" | "danger" }> = {
   PENDING: { label: "Por revisar", color: "warning" },
@@ -60,7 +61,7 @@ export const PunchCorrections = ({ onPendingChange, onDone }: Props) => {
       onPendingChange?.(next.filter((row) => row.status === "PENDING").length);
     } catch (cause) {
       setRows([]);
-      setError(cause instanceof Error ? cause.message : "No se pudieron cargar las correcciones.");
+      setError(errorMessage(cause, "No se pudieron cargar las correcciones."));
     }
   }, [onPendingChange]);
 
@@ -78,7 +79,7 @@ export const PunchCorrections = ({ onPendingChange, onDone }: Props) => {
       onDone(approve ? "Corrección aprobada." : "Corrección rechazada.");
       await load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar la decisión.");
+      setError(errorMessage(cause, "No se pudo guardar la decisión."));
     } finally {
       setBusy(null);
     }
@@ -90,7 +91,7 @@ export const PunchCorrections = ({ onPendingChange, onDone }: Props) => {
       setHistory(await nomApi.punchHistory(punchId));
     } catch (cause) {
       setHistory(null);
-      setError(cause instanceof Error ? cause.message : "No se pudo cargar el historial.");
+      setError(errorMessage(cause, "No se pudo cargar el historial."));
     }
   };
 

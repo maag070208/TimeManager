@@ -27,6 +27,7 @@ import { PUNCH_CHANNELS as PUNCH_CHANNEL_IDS, PUNCH_CHANNEL_HINT_KEY, PUNCH_CHAN
 import { TENANT_MODULES, type TenantModuleDefinition } from "@shared/lib/tenant-modules";
 import { ITPage } from "@shared/ui/page";
 import { TabBar } from "@shared/ui/tab-bar";
+import { errorMessage } from "@shared/api/errors";
 
 const money = (value: number) => value.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
 const dateLabel = (iso: string | null) =>
@@ -102,7 +103,7 @@ export default function TenantDetailPage() {
       setTenant(nextTenant);
       setPayments(nextPayments);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo cargar el cliente.");
+      setError(errorMessage(cause, "No se pudo cargar el cliente."));
     }
   }, [id]);
 
@@ -149,7 +150,7 @@ export default function TenantDetailPage() {
       addLog(next.includes(moduleId) ? "Módulo apagado" : "Módulo activado", label);
       setToast(next.includes(moduleId) ? "Módulo apagado para el cliente." : "Módulo activado.");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo cambiar el módulo.");
+      setError(errorMessage(cause, "No se pudo cambiar el módulo."));
     } finally {
       setBusy(null);
     }
@@ -175,7 +176,7 @@ export default function TenantDetailPage() {
       addLog(next.includes(channel) ? "Canal de checada activado" : "Canal de checada apagado", label);
       setToast(t(next.includes(channel) ? "platform.channels.enabled" : "platform.channels.disabled", { channel: label }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t("platform.channels.error"));
+      setError(errorMessage(cause, t("platform.channels.error")));
     } finally {
       setBusy(null);
     }
@@ -192,7 +193,7 @@ export default function TenantDetailPage() {
       setForm((prev) => ({ ...prev, amount: "" }));
       await load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo registrar el cargo.");
+      setError(errorMessage(cause, "No se pudo registrar el cargo."));
     } finally {
       setBusy(null);
     }
@@ -206,7 +207,7 @@ export default function TenantDetailPage() {
       setToast("Pago registrado.");
       await load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo registrar el pago.");
+      setError(errorMessage(cause, "No se pudo registrar el pago."));
     } finally {
       setBusy(null);
     }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ITDataTableFetchParams } from "@axzydev/axzy_ui_system";
 import { departmentsApi, type Department } from "@entities/department";
+import { errorMessage } from "@shared/api/errors";
 
 export const useDepartmentsCrud = () => {
   const [newDept, setNewDept] = useState("");
@@ -21,7 +22,7 @@ export const useDepartmentsCrud = () => {
       setCreateOpen(false);
       reload();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
   };
 
@@ -38,7 +39,7 @@ export const useDepartmentsCrud = () => {
       setEditName("");
       reload();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
       setDeptToEdit(null);
     }
   };
@@ -49,7 +50,7 @@ export const useDepartmentsCrud = () => {
       await departmentsApi.remove(deptToDelete.id);
       reload();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
     setDeptToDelete(null);
   };

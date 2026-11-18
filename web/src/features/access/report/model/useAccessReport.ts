@@ -23,6 +23,7 @@ import { periodRangeOf, shiftPeriod, toDateInput } from "@shared/lib/reportPerio
 import { dateAtNoonFromKey } from "@shared/utils/dates";
 import { useTenantTodayKey } from "@entities/user";
 import { fileName, type FileNameKey, dateLocale } from "@shared/i18n";
+import { errorMessage } from "@shared/api/errors";
 
 /** Firma del generador de PDF, inyectado por la página (widgets → features por DI). */
 export type DownloadAccessReportPdf = (
@@ -140,7 +141,7 @@ export const useAccessReport = ({ download, source = ACCESS_SOURCE }: Options) =
         setError(null);
         return { data: res.data as unknown as Record<string, unknown>[], total: res.total };
       } catch (e) {
-        setError(e instanceof Error ? e.message : t("errors.load"));
+        setError(errorMessage(e, t("errors.load")));
         return { data: [], total: 0 };
       }
     },
@@ -170,7 +171,7 @@ export const useAccessReport = ({ download, source = ACCESS_SOURCE }: Options) =
         timezone: res.summary.range.timezone || BROWSER_TIMEZONE,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("errors.load"));
+      setError(errorMessage(e, t("errors.load")));
     } finally {
       setExporting(false);
     }
@@ -217,7 +218,7 @@ export const useAccessReport = ({ download, source = ACCESS_SOURCE }: Options) =
       link.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("errors.load"));
+      setError(errorMessage(e, t("errors.load")));
     } finally {
       setExporting(false);
     }

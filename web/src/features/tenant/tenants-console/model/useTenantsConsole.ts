@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { tenantApi, type Tenant } from "@entities/tenant";
 import { useCan } from "@entities/user";
+import { errorMessage } from "@shared/api/errors";
 
 export type TenantFilter = "all" | "ACTIVE" | "SUSPENDED";
 
@@ -22,7 +23,7 @@ export const useTenantsConsole = () => {
         setTenants(rows);
         setError(null);
       })
-      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e: unknown) => alive && setError(errorMessage(e)));
     return () => {
       alive = false;
     };

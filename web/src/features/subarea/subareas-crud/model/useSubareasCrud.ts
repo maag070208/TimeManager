@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ITDataTableFetchParams } from "@axzydev/axzy_ui_system";
 import { departmentsApi, type Department } from "@entities/department";
 import { subareaApi, type Subarea } from "@entities/subarea";
+import { errorMessage } from "@shared/api/errors";
 
 export const useSubareasCrud = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -35,7 +36,7 @@ export const useSubareasCrud = () => {
       setCreateOpen(false);
       reload();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
   };
 
@@ -52,7 +53,7 @@ export const useSubareasCrud = () => {
       setEditName("");
       reload();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
       setSubareaToEdit(null);
     }
   };
@@ -62,7 +63,7 @@ export const useSubareasCrud = () => {
       await subareaApi.update(s.id, { active: true });
       reload();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
   };
 
@@ -72,7 +73,7 @@ export const useSubareasCrud = () => {
       await subareaApi.remove(subareaToDelete.id);
       reload();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
     setSubareaToDelete(null);
   };

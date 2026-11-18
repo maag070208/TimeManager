@@ -8,6 +8,7 @@ import {
   type TimeClockInspectOverview,
   type TimeClockInspectUsers,
 } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 export type InspectTab = "overview" | "users" | "cards" | "events";
 
@@ -54,7 +55,7 @@ export const useTimeClockInspect = (controlledSerial?: string, initialTab: Inspe
             : timeClockApi.inspectEvents(serial, days).then(setEvents);
     request
       .catch((e: unknown) => {
-        const message = e instanceof Error ? e.message : String(e);
+        const message = errorMessage(e);
         setError(t("inspect.errors.read", { detail: message }));
       })
       .finally(() => setLoading(false));

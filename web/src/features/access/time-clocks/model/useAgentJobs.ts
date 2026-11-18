@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 import { agentApi, type AgentJob, type PanelJobType } from "@entities/agent";
 import { useCan } from "@entities/user";
 import type { TimeClockDevice } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 const messageOf = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
+  errorMessage(error);
 
 const isActive = (job: AgentJob): boolean => job.status === "PENDING" || job.status === "RUNNING";
 

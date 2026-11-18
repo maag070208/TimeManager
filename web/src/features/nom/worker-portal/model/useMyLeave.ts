@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { nomApi } from "@entities/nom";
 import type { LeaveBalance, LeaveRequestRow, LeaveType } from "@entities/nom";
 import { usePortalToast } from "./usePortalToast";
+import { errorMessage } from "@shared/api/errors";
 
 /** Vacaciones/permisos del trabajador: saldo, tipos, solicitudes y acciones. */
 export const useMyLeave = () => {
@@ -27,7 +28,7 @@ export const useMyLeave = () => {
       setTypes(nextTypes);
       setRequests(nextRequests);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron cargar tus vacaciones.");
+      setError(errorMessage(cause, "No se pudieron cargar tus vacaciones."));
     } finally {
       setLoading(false);
     }
@@ -45,7 +46,7 @@ export const useMyLeave = () => {
       await load();
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo completar la acción.");
+      setError(errorMessage(cause, "No se pudo completar la acción."));
       return false;
     } finally {
       setBusy(false);

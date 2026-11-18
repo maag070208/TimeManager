@@ -26,9 +26,10 @@ import { HelpTip } from "@shared/ui/help-tip";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { TabBar } from "@shared/ui/tab-bar";
 import { TicState } from "@shared/ui/tic";
+import { errorMessage } from "@shared/api/errors";
 
 const messageOf = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
+  errorMessage(error);
 
 const dateOf = (iso: string): string =>
   new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });

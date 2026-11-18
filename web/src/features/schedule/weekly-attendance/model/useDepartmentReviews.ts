@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { scheduleApi, type PayrollReviewState } from "@entities/schedule";
+import { errorMessage } from "@shared/api/errors";
 
 /**
  * La revisión por departamento y el cierre de la pre-nómina, ya en el API
@@ -37,7 +38,7 @@ export const useDepartmentReviews = (weekKey: string | null) => {
     setError(null);
     action()
       .then(setState)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err: unknown) => setError(errorMessage(err)))
       .finally(() => setBusy(false));
   }, []);
 

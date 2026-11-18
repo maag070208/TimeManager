@@ -861,7 +861,7 @@
       "register": "Registrar dedo {{finger}}",
       "cancel": "Cancelar",
       "errors": {
-        "details": "Ver detalle técnico",
+        "details": "Ver detalle",
         "stationRejected": {
           "title": "La estación no aceptó la captura",
           "hint": "Revisa que la estación esté en su pantalla principal, sin otra captura en curso, y vuelve a intentar."

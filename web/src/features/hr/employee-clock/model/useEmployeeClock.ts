@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { timeClockApi, type EmployeeClockStatus } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 /** Estado del alta de una persona en cada reloj. Se lee al entrar; el alta escribe solo en el reloj de prueba (lo decide la API). */
 export const useEmployeeClock = (userId: string | undefined, enabled: boolean) => {
@@ -14,7 +15,7 @@ export const useEmployeeClock = (userId: string | undefined, enabled: boolean) =
     timeClockApi
       .employeeClockStatus(userId)
       .then(setStatus)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+      .catch((e: unknown) => setError(errorMessage(e)))
       .finally(() => setLoading(false));
   }, [userId, enabled]);
 
@@ -30,7 +31,7 @@ export const useEmployeeClock = (userId: string | undefined, enabled: boolean) =
       load();
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorMessage(e));
       return false;
     }
   };

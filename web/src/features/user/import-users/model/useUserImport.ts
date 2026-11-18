@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { usersApi } from "@entities/user";
+import { errorMessage } from "@shared/api/errors";
 
 export interface ImportResult {
   created: number;
@@ -29,7 +30,7 @@ export const useUserImport = () => {
       anchor.remove();
       URL.revokeObjectURL(url);
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     } finally {
       setDownloadingTemplate(false);
     }
@@ -46,7 +47,7 @@ export const useUserImport = () => {
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     } finally {
       setUploading(false);
     }

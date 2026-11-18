@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ITButton, ITDialog, ITInput, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
 import { timeClockApi, type TimeClockPersonDetail } from "@entities/time-clock";
 import { HelpTip } from "@shared/ui/help-tip";
+import { errorMessage } from "@shared/api/errors";
 
 interface Props {
   clockSerial: string;
@@ -38,7 +39,7 @@ function PersonDetailBody({ clockSerial, employeeNumber, editable = false, onCha
     timeClockApi
       .personDetail(clockSerial, employeeNumber)
       .then(setDetail)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : t("person.errors.read")));
+      .catch((e: unknown) => setError(errorMessage(e, t("person.errors.read"))));
   }, [clockSerial, employeeNumber, t]);
 
   useEffect(() => {
@@ -70,7 +71,7 @@ function PersonDetailBody({ clockSerial, employeeNumber, editable = false, onCha
       loadDetail();
       onChanged?.();
     } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : failMessage);
+      setError(errorMessage(e, failMessage));
     } finally {
       setBusy(false);
     }

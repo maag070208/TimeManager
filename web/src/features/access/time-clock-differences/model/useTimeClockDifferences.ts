@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { timeClockApi, type TimeClockEmployee } from "@entities/time-clock";
 import { usersApi, useCan, type User } from "@entities/user";
+import { errorMessage } from "@shared/api/errors";
 
 /** Compara sin acentos ni mayúsculas: el nombre del reloj viene en mayúsculas. */
 const norm = (s: string): string =>
@@ -57,12 +58,12 @@ export const useTimeClockDifferences = () => {
       }
       setClock(filas);
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("differences.errors.load"));
+      setError(errorMessage(e, t("differences.errors.load")));
     }
     try {
       setPeople(await usersApi.employees());
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("differences.errors.people"));
+      setError(errorMessage(e, t("differences.errors.people")));
     }
     setLoading(false);
   }, [t]);
@@ -127,7 +128,7 @@ export const useTimeClockDifferences = () => {
       cancelar();
       await cargar();
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("differences.errors.save"));
+      setError(errorMessage(e, t("differences.errors.save")));
     } finally {
       setSaving(false);
     }
@@ -143,7 +144,7 @@ export const useTimeClockDifferences = () => {
       cancelar();
       await cargar();
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("differences.errors.save"));
+      setError(errorMessage(e, t("differences.errors.save")));
     } finally {
       setSaving(false);
     }

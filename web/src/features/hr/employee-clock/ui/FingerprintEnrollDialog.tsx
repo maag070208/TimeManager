@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { FaCheck, FaFingerprint, FaSpinner } from "react-icons/fa";
 import { ITButton, ITDialog, ITFlex, ITText, ITStack } from "@axzydev/axzy_ui_system";
 import { timeClockApi, type FingerprintCapture } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 type Phase = "capturing" | "captured" | "applying" | "done";
 
@@ -13,8 +14,8 @@ interface FriendlyError {
 }
 
 const toFriendlyError = (e: unknown, fallback: string): FriendlyError => {
-  const err = e as { code?: string; message?: string };
-  return { code: err?.code, message: err?.message || fallback };
+  const err = e as { code?: string };
+  return { code: err?.code, message: errorMessage(e, fallback) };
 };
 
 interface Props {

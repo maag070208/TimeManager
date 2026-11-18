@@ -861,7 +861,7 @@
       "register": "Register finger {{finger}}",
       "cancel": "Cancel",
       "errors": {
-        "details": "View technical detail",
+        "details": "See details",
         "stationRejected": {
           "title": "The station did not accept the capture",
           "hint": "Check that the station is on its home screen, with no other capture in progress, and try again."

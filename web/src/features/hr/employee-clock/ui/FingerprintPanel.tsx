@@ -4,6 +4,7 @@ import { FaCheck, FaFingerprint } from "react-icons/fa";
 import { ITButton, ITFlex, ITText, ITStack } from "@axzydev/axzy_ui_system";
 import { timeClockApi, type FingerprintStatus } from "@entities/time-clock";
 import FingerprintEnrollDialog from "./FingerprintEnrollDialog";
+import { errorMessage } from "@shared/api/errors";
 
 const MAX_FINGERS = 10;
 
@@ -37,7 +38,7 @@ export default function FingerprintPanel({ userId, userName, number, serial, clo
         setStatus(s);
         setSelected((current) => (current && !s.fingerIds.includes(current) ? current : null));
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : t("employeeClock.fingerprint.error")));
+      .catch((e: unknown) => setError(errorMessage(e, t("employeeClock.fingerprint.error"))));
 
   useEffect(() => {
     setDone(null);

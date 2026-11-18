@@ -60,6 +60,7 @@ Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la r
 - **QA tras cambios**: `tsc` (build), `lint` y pruebas unitarias del módulo tocado.
 - **No correr E2E salvo que el usuario lo pida explícitamente.**
 - Sin comentarios en código salvo casos no obvios (convención del repo).
+- **Errores:** nada técnico llega a la persona. Los errores técnicos llevan un código de soporte `[AX-NN]` con mensaje amable (diccionario en `docs/CODIGOS_DE_ERROR.md`); en la web se muestran con `errorMessage(error, respaldo)` de `@shared/api/errors`, nunca con `error.message`.
 - Correos: plantillas en `api/src/core/services/email-templates.ts`, siempre por la cola (`enqueueEmail`/`enqueueNotificationEmail`), nunca `sendEmail` desde un request. Detalle en `docs/modules/email.md`.
 - Relojes: la URL de cada reloj vive en la BD (alta desde la web); el `.env` solo trae `TIME_CLOCK_USER/PASS` y la estación de huellas. `CHECADOR_URL` ya no se usa.
 - Sensibilidad de datos: marcajes, geolocalización y biometría son datos personales sensibles — cifrado, acceso por rol, consentimiento (ver sección 5 de `docs/RH_MODULO_STANDALONE.md`).

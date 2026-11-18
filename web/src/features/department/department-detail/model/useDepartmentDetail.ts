@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { departmentsApi, type Department, type Subarea } from "@entities/department";
 import { subareaApi } from "@entities/subarea";
+import { errorMessage } from "@shared/api/errors";
 
 export const useDepartmentDetail = (id?: string, onDeleted?: () => void) => {
   const [dept, setDept] = useState<Department | null>(null);
@@ -17,7 +18,7 @@ export const useDepartmentDetail = (id?: string, onDeleted?: () => void) => {
     try {
       setDept(await departmentsApi.get(id));
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
   }, [id]);
 
@@ -32,7 +33,7 @@ export const useDepartmentDetail = (id?: string, onDeleted?: () => void) => {
       setNewSubarea("");
       await load();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
   };
 
@@ -49,7 +50,7 @@ export const useDepartmentDetail = (id?: string, onDeleted?: () => void) => {
       setEditSubareaName("");
       await load();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
       setSubareaToEdit(null);
     }
   };
@@ -59,7 +60,7 @@ export const useDepartmentDetail = (id?: string, onDeleted?: () => void) => {
       await subareaApi.update(s.id, { active: true });
       await load();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
     }
   };
 
@@ -70,7 +71,7 @@ export const useDepartmentDetail = (id?: string, onDeleted?: () => void) => {
       setSubareaToDelete(null);
       await load();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
       setSubareaToDelete(null);
     }
   };
@@ -82,7 +83,7 @@ export const useDepartmentDetail = (id?: string, onDeleted?: () => void) => {
       await departmentsApi.remove(dept.id);
       onDeleted?.();
     } catch (e: any) {
-      setError(e.message);
+      setError(errorMessage(e));
       setDeptToDelete(false);
     } finally {
       setDeleting(false);

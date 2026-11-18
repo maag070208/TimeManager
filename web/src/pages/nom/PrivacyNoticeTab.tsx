@@ -4,6 +4,7 @@ import { LuFileText, LuPenLine, LuShieldCheck, LuUpload } from "react-icons/lu";
 import { nomApi, type PrivacyConsentSummary } from "@entities/nom";
 import { TicState } from "@shared/ui/tic";
 import { PersonCard, SolidAction, TopicGuide } from "./agreements-parts";
+import { errorMessage } from "@shared/api/errors";
 
 const COLOR = "#7c3aed";
 const MIN_TEXT = 200;
@@ -33,7 +34,7 @@ export default function PrivacyNoticeTab({ summary, onSaved, onError }: Props) {
       const { template } = await nomApi.privacyTemplate();
       setDraft(template);
     } catch (cause) {
-      onError(cause instanceof Error ? cause.message : "No se pudo cargar la plantilla.");
+      onError(errorMessage(cause, "No se pudo cargar la plantilla."));
     } finally {
       setBusy(false);
     }
@@ -47,7 +48,7 @@ export default function PrivacyNoticeTab({ summary, onSaved, onError }: Props) {
       setDraft(null);
       onSaved(notice ? "Aviso actualizado. Todo el personal debe aceptarlo de nuevo." : "Aviso publicado. Cada persona lo verá en Mi jornada.");
     } catch (cause) {
-      onError(cause instanceof Error ? cause.message : "No se pudo guardar el aviso.");
+      onError(errorMessage(cause, "No se pudo guardar el aviso."));
     } finally {
       setBusy(false);
     }

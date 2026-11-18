@@ -84,10 +84,18 @@
     "kitchenCostCenterSpending": "cost_center_spending"
   },
   "errors": {
-    "network": "Network or server error",
+    "network": "There is no connection with CheckLab. Try again.",
     "load": "Error loading",
     "save": "Error saving",
-    "report": "Error generating the report"
+    "report": "Error generating the report",
+    "support": {
+      "AX-10": "There is no connection with CheckLab. Check your internet and try again; if it keeps happening, share this code with support.",
+      "AX-11": "CheckLab took too long to respond. Try again; if it keeps happening, share this code with support.",
+      "AX-12": "CheckLab is not available right now. Try again in a few minutes; if it keeps happening, share this code with support.",
+      "AX-13": "Something went wrong reading the response. Try again; if it keeps happening, share this code with support.",
+      "AX-14": "Something went wrong on this screen. Reload the page and try again; if it keeps happening, share this code with support."
+    },
+    "reload": "Reload"
   },
   "labels": {
     "unassigned": "Unassigned",

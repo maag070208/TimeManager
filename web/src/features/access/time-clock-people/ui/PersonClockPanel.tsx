@@ -10,6 +10,7 @@ import { ITButton, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
 import type { Column } from "@axzydev/axzy_ui_system";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { errorMessage } from "@shared/api/errors";
 
 interface Props {
   clockSerial: string;
@@ -39,7 +40,7 @@ export default function PersonClockPanel({ clockSerial, employeeNumber, editable
         setDetail(d);
         setError(null);
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : t("employeeClock.summary.error")));
+      .catch((e: unknown) => setError(errorMessage(e, t("employeeClock.summary.error"))));
   }, [clockSerial, employeeNumber, t]);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function PersonClockPanel({ clockSerial, employeeNumber, editable
       load();
       onChanged?.();
     } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : failMessage);
+      setError(errorMessage(e, failMessage));
     } finally {
       setBusy(false);
     }

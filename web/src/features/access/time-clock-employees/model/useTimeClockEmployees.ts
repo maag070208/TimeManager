@@ -8,6 +8,7 @@ import {
   type TimeClockEmployeesSummary,
 } from "@entities/time-clock";
 import { usersApi, useCan, type User } from "@entities/user";
+import { errorMessage } from "@shared/api/errors";
 
 /**
  * Empleados del reloj y su vínculo con los usuarios del sistema: tabla
@@ -92,7 +93,7 @@ export const useTimeClockEmployees = () => {
         setTarget(null);
         setReloadKey((k) => k + 1);
       } catch (e) {
-        setError(e instanceof Error ? e.message : t("employees.errors.save"));
+        setError(errorMessage(e, t("employees.errors.save")));
       } finally {
         setSaving(false);
         setSavingNumber(null);
@@ -127,7 +128,7 @@ export const useTimeClockEmployees = () => {
         setToast(t("employees.toasts.unlinked", { number: row.employeeNumber }));
         setReloadKey((k) => k + 1);
       } catch (e) {
-        setError(e instanceof Error ? e.message : t("employees.errors.save"));
+        setError(errorMessage(e, t("employees.errors.save")));
       } finally {
         setSavingNumber(null);
       }
@@ -143,7 +144,7 @@ export const useTimeClockEmployees = () => {
       setToast(t("employees.toasts.suggested", { count: linkedCount }));
       setReloadKey((k) => k + 1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("employees.errors.save"));
+      setError(errorMessage(e, t("employees.errors.save")));
     } finally {
       setSaving(false);
     }

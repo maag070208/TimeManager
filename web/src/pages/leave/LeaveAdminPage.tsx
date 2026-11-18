@@ -8,6 +8,7 @@ import type { LeaveRequestRow } from "@entities/nom";
 import { HelpTip } from "@shared/ui/help-tip";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { TicState } from "@shared/ui/tic";
+import { errorMessage } from "@shared/api/errors";
 
 const dateLabel = (iso: string): string =>
   new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-MX", {
@@ -36,7 +37,7 @@ export default function LeaveAdminPage() {
     try {
       setRequests(await nomApi.leaveRequests());
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron cargar las solicitudes.");
+      setError(errorMessage(cause, "No se pudieron cargar las solicitudes."));
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ export default function LeaveAdminPage() {
       setToast(approve ? "Solicitud aprobada." : "Solicitud rechazada.");
       await load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo decidir.");
+      setError(errorMessage(cause, "No se pudo decidir."));
     } finally {
       setBusy(null);
     }

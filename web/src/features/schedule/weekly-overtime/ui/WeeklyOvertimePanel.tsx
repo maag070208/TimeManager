@@ -9,6 +9,7 @@ import { HelpTip } from "@shared/ui/help-tip";
 import { RowAction } from "@shared/ui/row-action";
 import { TicState } from "@shared/ui/tic";
 import { scheduleApi, type WeeklyOvertimeRow } from "@entities/schedule";
+import { errorMessage } from "@shared/api/errors";
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
@@ -59,7 +60,7 @@ export default function WeeklyOvertimePanel({ canApprove }: { canApprove: boolea
     try {
       setRows(await scheduleApi.weeklyOvertime(target));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t("weekly.loadError"));
+      setError(errorMessage(cause, t("weekly.loadError")));
     } finally {
       setLoading(false);
     }
@@ -77,7 +78,7 @@ export default function WeeklyOvertimePanel({ canApprove }: { canApprove: boolea
       await load(date);
     } catch (cause) {
       setToast({
-        message: cause instanceof Error ? cause.message : t("weekly.confirmOk"),
+        message: errorMessage(cause, t("weekly.confirmError")),
         type: "error",
       });
     } finally {

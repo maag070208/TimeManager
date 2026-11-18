@@ -7,6 +7,7 @@ import {
   type TimeClockStatus,
   type FingerprintStationInfo,
 } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 /** Refresco del estado mientras algún reloj sincroniza. */
 const STATUS_POLL_MS = 5_000;
@@ -18,7 +19,7 @@ export interface ClockConfig {
   error: string | null;
 }
 
-const messageOf = (e: unknown, fallback: string): string => (e instanceof Error ? e.message : fallback);
+const messageOf = (e: unknown, fallback: string): string => errorMessage(e, fallback);
 
 /**
  * Relojes dados de alta: su sincronización (se refresca sola mientras alguno

@@ -11,6 +11,7 @@ import { describeClockSync, timeClockApi } from "@entities/time-clock";
 import { showToast } from "@app/toast/toast.slice";
 import type { AppDispatch, RootState } from "@app/store";
 import { getSelectedTenant } from "@shared/api/tenant";
+import { errorMessage } from "@shared/api/errors";
 
 export const ROLE_GUIDANCE: Record<
   UserRole,
@@ -458,7 +459,7 @@ export const useUserForm = (userId?: string) => {
       return { ok: true };
     } catch (e: any) {
       const code: unknown = e?.code;
-      const msg: string = e?.message ?? i18n.t("common:errors.save");
+      const msg: string = errorMessage(e, i18n.t("common:errors.save"));
       // Duplicados que manda la API → error inline en el campo (en su paso) + toast.
       if (code === "EMAIL_TAKEN" || code === "USERNAME_TAKEN" || code === "EMPLOYEE_NUMBER_TAKEN") {
         const field: keyof UserFormValues =

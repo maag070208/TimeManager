@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { agentApi, type AgentAdmin } from "@entities/agent";
 import type { Tenant } from "@entities/tenant";
+import { errorMessage } from "@shared/api/errors";
 
 const messageOf = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
+  errorMessage(error);
 
 /**
  * Agentes del cliente en la consola de plataforma (F3-12): listar, crear

@@ -10,6 +10,7 @@ import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { formatDateTime } from "@shared/utils/dates";
 import { useCan } from "@entities/user";
 import EmployeePunchHistory from "./EmployeePunchHistory";
+import { errorMessage } from "@shared/api/errors";
 
 /** Tarjeta de una sección de actividad: `PanelCard` con ícono y conteo; cuerpo con altura máxima. */
 function Card({ icon, title, count, tone, children }: { icon: React.ReactNode; title: string; count: number; tone: "sky" | "lavender"; children: React.ReactNode }) {
@@ -37,7 +38,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
     personalApi
       .overview(userId)
       .then((d) => !cancelled && setData(d))
-      .catch((e: unknown) => !cancelled && setError(e instanceof Error ? e.message : t("detail.activity.error")));
+      .catch((e: unknown) => !cancelled && setError(errorMessage(e, t("detail.activity.error"))));
     return () => {
       cancelled = true;
     };

@@ -16,6 +16,7 @@ import { HelpTip } from "@shared/ui/help-tip";
 import { PanelCard } from "@shared/ui/panel-card";
 import { RowAction } from "@shared/ui/row-action";
 import { TicState } from "@shared/ui/tic";
+import { errorMessage } from "@shared/api/errors";
 
 export default function DocumentCatalogPage() {
   const { t: tt } = useTranslation(["employees", "common"]);
@@ -82,7 +83,7 @@ export default function DocumentCatalogPage() {
       close();
       setReloadKey((k) => k + 1);
     } catch (e: any) {
-      setError(e.message ?? tt("catalog.saveError"));
+      setError(errorMessage(e, tt("catalog.saveError")));
     }
   };
 
@@ -92,7 +93,7 @@ export default function DocumentCatalogPage() {
       await personalApi.updateDocumentType(type.id, { required: !type.required });
       setReloadKey((k) => k + 1);
     } catch (e: any) {
-      setError(e.message ?? tt("catalog.saveError"));
+      setError(errorMessage(e, tt("catalog.saveError")));
     }
   };
 
@@ -103,7 +104,7 @@ export default function DocumentCatalogPage() {
       setStatusTarget(null);
       setReloadKey((k) => k + 1);
     } catch (e: any) {
-      setError(e.message ?? tt("catalog.saveError"));
+      setError(errorMessage(e, tt("catalog.saveError")));
     }
   };
 
@@ -114,7 +115,7 @@ export default function DocumentCatalogPage() {
       await personalApi.removeDocumentType(toDelete.id);
       setReloadKey((k) => k + 1);
     } catch (e: any) {
-      setError(e.message ?? tt("catalog.deleteError"));
+      setError(errorMessage(e, tt("catalog.deleteError")));
     } finally {
       setToDelete(null);
     }

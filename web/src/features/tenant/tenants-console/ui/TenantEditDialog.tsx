@@ -4,6 +4,7 @@ import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { tenantApi, type Tenant } from "@entities/tenant";
 import { tenantHost } from "@shared/api/tenant";
 import { isValidSlug, MX_TIMEZONES } from "../model/slug";
+import { errorMessage } from "@shared/api/errors";
 
 interface Props {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export default function TenantEditDialog({ isOpen, tenant, onClose, onSaved }: P
       onSaved(await tenantApi.update(tenant.id, changes));
       onClose();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar el cliente.");
+      setError(errorMessage(cause, "No se pudo guardar el cliente."));
     } finally {
       setSaving(false);
     }

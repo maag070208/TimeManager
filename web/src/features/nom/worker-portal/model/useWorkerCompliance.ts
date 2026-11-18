@@ -8,6 +8,7 @@ import type {
   WorkRecordAcknowledgment,
 } from "@entities/nom";
 import { usePortalToast } from "./usePortalToast";
+import { errorMessage } from "@shared/api/errors";
 
 const toKey = (date: Date): string => date.toISOString().slice(0, 10);
 
@@ -58,7 +59,7 @@ export const useWorkerCompliance = () => {
       setRequests(nextRequests);
       setScheduleAgreements(nextScheduleAgreements);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo cargar tu registro.");
+      setError(errorMessage(cause, "No se pudo cargar tu registro."));
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export const useWorkerCompliance = () => {
       await action();
       await load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo completar la acción.");
+      setError(errorMessage(cause, "No se pudo completar la acción."));
     } finally {
       setBusy(null);
     }
@@ -96,7 +97,7 @@ export const useWorkerCompliance = () => {
       done("agreement");
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo completar la acción.");
+      setError(errorMessage(cause, "No se pudo completar la acción."));
       return false;
     } finally {
       setBusy(null);
@@ -131,7 +132,7 @@ export const useWorkerCompliance = () => {
       done("privacy");
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar tu aceptación.");
+      setError(errorMessage(cause, "No se pudo guardar tu aceptación."));
       await load();
       return false;
     } finally {

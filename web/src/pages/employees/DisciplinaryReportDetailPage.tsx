@@ -20,6 +20,7 @@ import { DisciplinaryReportPreview, downloadDisciplinaryReportPdf } from "@widge
 import { i18n } from "@shared/i18n";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
+import { errorMessage } from "@shared/api/errors";
 
 export default function DisciplinaryReportDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,7 +39,7 @@ export default function DisciplinaryReportDetailPage() {
       .disciplinaryReport(id)
       .then(setDisciplinaryReport)
       .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : i18n.t("employees:disciplinary.loadError"))
+        setError(errorMessage(err, i18n.t("employees:disciplinary.loadError")))
       )
       .finally(() => setLoading(false));
   }, [id]);

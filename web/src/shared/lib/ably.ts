@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as Ably from "ably";
 import { api } from "@shared/api/client";
+import { errorMessage } from "@shared/api/errors";
 
 /**
  * Notificaciones en vivo por Ably (F1C-02 + F1B-05). El navegador no recibe la
@@ -50,7 +51,7 @@ const getAblyClient = (clientId?: string): Ably.Realtime | null => {
         void requestTokenRequest().then(
           (tokenRequest) => callback(null, tokenRequest),
           (error: unknown) =>
-            callback(error instanceof Error ? error.message : String(error), null)
+            callback(errorMessage(error), null)
         );
       },
     });

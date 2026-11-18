@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { scheduleApi, type PayrollClosureRow } from "@entities/schedule";
 import { useCan } from "@entities/user";
+import { errorMessage } from "@shared/api/errors";
 
 /**
  * Historial de pre-nóminas cerradas (`GET /schedules/payroll/closures`): cada
@@ -22,7 +23,7 @@ export const usePayrollHistory = () => {
     scheduleApi
       .payrollClosures()
       .then(setRows)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : t("history.loadError")))
+      .catch((err: unknown) => setError(errorMessage(err, t("history.loadError"))))
       .finally(() => setLoading(false));
   }, [t]);
 
@@ -37,7 +38,7 @@ export const usePayrollHistory = () => {
         await scheduleApi.payrollReopen(weekStart);
         load();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("history.reopenError"));
+        setError(errorMessage(err, t("history.reopenError")));
       } finally {
         setBusyWeek(null);
       }

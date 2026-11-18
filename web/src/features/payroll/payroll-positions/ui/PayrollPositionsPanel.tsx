@@ -8,6 +8,7 @@ import { HelpTip } from "@shared/ui/help-tip";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { useNavigate } from "react-router-dom";
 import { RowAction } from "@shared/ui/row-action";
+import { errorMessage } from "@shared/api/errors";
 
 type Filter = "all" | "active" | "inactive";
 const money = (value: number) => value.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
@@ -31,7 +32,7 @@ export default function PayrollPositionsPanel() {
       setPositions(nextPositions);
       setJobTitles([...new Set(nextPositions.map((position) => position.jobTitle?.trim()).filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b)));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron cargar los perfiles de nómina.");
+      setError(errorMessage(cause, "No se pudieron cargar los perfiles de nómina."));
     }
   };
 
@@ -57,7 +58,7 @@ export default function PayrollPositionsPanel() {
       await load();
       setReloadToken((value) => value + 1);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar el perfil.");
+      setError(errorMessage(cause, "No se pudo guardar el perfil."));
     } finally { setSaving(false); }
   };
   const confirmToggleActive = async () => {
@@ -69,7 +70,7 @@ export default function PayrollPositionsPanel() {
       setStatusTarget(null);
       await load();
       setReloadToken((value) => value + 1);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo actualizar el perfil."); }
+    } catch (cause) { setError(errorMessage(cause, "No se pudo actualizar el perfil.")); }
     finally { setSaving(false); }
   };
   const visible = positions.filter((position) => filter === "all" || (filter === "active" ? position.active : !position.active));

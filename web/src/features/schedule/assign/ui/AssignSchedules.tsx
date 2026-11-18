@@ -24,6 +24,7 @@ import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { TicState } from "@shared/ui/tic";
 import { DialogHeader } from "@shared/ui/dialog-header";
+import { errorMessage } from "@shared/api/errors";
 
 const toDateInput = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -72,7 +73,7 @@ export default function AssignSchedules() {
         setEmployees(u);
         if (h[0]) setScheduleId(h[0].id);
       })
-      .catch((e: Error) => setError(e.message))
+      .catch((e: Error) => setError(errorMessage(e)))
       .finally(() => setLoading(false));
   }, []);
 
@@ -172,7 +173,7 @@ export default function AssignSchedules() {
       loadAssigned(scheduleId);
       loadAllAssignments();
     } catch (e) {
-      setError((e as Error).message ?? t("assign.error"));
+      setError(errorMessage(e, t("assign.error")));
     } finally {
       setSaving(false);
     }
@@ -201,7 +202,7 @@ export default function AssignSchedules() {
       setToRemove(new Set());
       loadAssigned(scheduleId);
     } catch (e) {
-      setError((e as Error).message ?? t("assign.removeError"));
+      setError(errorMessage(e, t("assign.removeError")));
     } finally {
       setSaving(false);
     }

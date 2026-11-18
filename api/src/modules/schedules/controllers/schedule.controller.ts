@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { HttpError } from "@core/middlewares/error.middleware";
 import { parseTableParams, paginatedTable } from "@core/utils/table";
 import { ScheduleService } from "../services/schedule.service";
 import type { WeeklyAttendanceService } from "../services/weekly-attendance.service";
@@ -69,8 +70,7 @@ export class ScheduleController {
   legalTransition = async (req: Request, res: Response): Promise<void> => {
     const targetYear = Number(req.query.year) || new Date().getUTCFullYear() + 1;
     if (!Number.isInteger(targetYear) || targetYear < 2000 || targetYear > 2100) {
-      res.status(400).json({ code: "INVALID_REPORT_DATE" });
-      return;
+      throw new HttpError(400, "INVALID_REPORT_DATE", { value: String(req.query.year ?? "") });
     }
     res.json(await this.service.legalTransition(targetYear));
   };

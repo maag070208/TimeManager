@@ -4,6 +4,7 @@ import { personalApi, type DisciplinaryReason } from "@entities/hr";
 import type { User } from "@entities/user";
 import { usersApi } from "@entities/user";
 import { i18n } from "@shared/i18n";
+import { errorMessage } from "@shared/api/errors";
 
 /** Motivos que admite el API (`DisciplinaryReason`), en el orden del formulario. */
 export const DISCIPLINARY_REASONS: DisciplinaryReason[] = [
@@ -158,7 +159,7 @@ export const useDisciplinaryReports = () => {
       return null;
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : i18n.t("employees:disciplinary.deleteError");
+        errorMessage(err, i18n.t("employees:disciplinary.deleteError"));
       setError(message);
       return message;
     }

@@ -12,6 +12,7 @@ import type {
 } from "@entities/hr";
 import { useCan, useHasPunchChannel, usersApi } from "@entities/user";
 import { describeClockSync, timeClockApi } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 /** Baja o alta en los relojes. Un fallo del reloj no revierte la baja o el alta de la persona en el sistema. */
 const clockSync = async (run: () => Promise<{ results: Parameters<typeof describeClockSync>[0] }>, action: "baja" | "alta") => {
@@ -60,7 +61,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
       setGenders(genders);
       setBloodTypes(bloods);
     } catch (e: any) {
-      setError(e.message ?? i18n.t("employees:detail.loadError"));
+      setError(errorMessage(e, i18n.t("employees:detail.loadError")));
     } finally {
       setLoading(false);
     }
@@ -77,7 +78,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
       const { photoUrl } = await personalApi.uploadPhoto(id, file);
       setProfile((p) => (p ? { ...p, photoUrl } : p));
     } catch (e: any) {
-      setError(e.message ?? i18n.t("employees:detail.photoUploadError"));
+      setError(errorMessage(e, i18n.t("employees:detail.photoUploadError")));
     }
   };
 
@@ -89,7 +90,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
       setDocuments((current) => [doc, ...current]);
       return true;
     } catch (e: any) {
-      setError(e.message ?? i18n.t("employees:detail.documentUploadError"));
+      setError(errorMessage(e, i18n.t("employees:detail.documentUploadError")));
       return false;
     }
   };
@@ -101,7 +102,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
       await personalApi.removeDocument(id, docId);
       setDocuments((current) => current.filter((d) => d.id !== docId));
     } catch (e: any) {
-      setError(e.message ?? i18n.t("employees:detail.documentDeleteError"));
+      setError(errorMessage(e, i18n.t("employees:detail.documentDeleteError")));
     }
   };
 
@@ -116,7 +117,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
       setEditOpen(false);
       return true;
     } catch (e: any) {
-      setError(e.message ?? i18n.t("employees:detail.saveError"));
+      setError(errorMessage(e, i18n.t("employees:detail.saveError")));
       return false;
     } finally {
       setSaving(false);
@@ -140,7 +141,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
           : p
       );
     } catch (e: any) {
-      setError(e.message ?? i18n.t("employees:detail.deactivateError"));
+      setError(errorMessage(e, i18n.t("employees:detail.deactivateError")));
     } finally {
       setDeactivateOpen(false);
     }
@@ -154,7 +155,7 @@ export const useEmployeeDetail = (id: string | undefined) => {
       setClockNotice(canWriteClock && hasClock ? await clockSync(() => timeClockApi.employeeClockAltaAll(id), "alta") : null);
       setProfile((p) => (p ? { ...p, active: true } : p));
     } catch (e: any) {
-      setError(e.message ?? i18n.t("employees:detail.reactivateError"));
+      setError(errorMessage(e, i18n.t("employees:detail.reactivateError")));
     }
   };
 

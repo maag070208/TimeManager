@@ -122,6 +122,7 @@
     "confirmedStatus": "Confirmada",
     "closed": "Cerrada",
     "confirmOk": "Semana confirmada y congelada.",
+    "confirmError": "No se pudo confirmar la semana.",
     "loadError": "No se pudo calcular la semana."
   }
 }

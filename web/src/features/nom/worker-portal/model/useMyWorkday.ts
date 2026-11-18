@@ -11,9 +11,10 @@ import { newId } from "@shared/lib/newId";
 import { usePortalToast } from "./usePortalToast";
 import { useTenantTimezone } from "@entities/user";
 import { todayKeyInTimeZone } from "@shared/utils/dates";
+import { errorMessage } from "@shared/api/errors";
 
 const messageOf = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
+  errorMessage(error);
 
 /** Etapa visible de una checada en curso. */
 export type PunchStage = "locating" | "sending";

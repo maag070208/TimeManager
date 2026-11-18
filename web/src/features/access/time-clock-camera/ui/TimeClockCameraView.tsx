@@ -6,6 +6,7 @@ import { timeClockApi, type TimeClockCamera } from "@entities/time-clock";
 import { ITText, ITStack } from "@axzydev/axzy_ui_system";
 import type { Column } from "@axzydev/axzy_ui_system";
 import { makeClientTableFetch } from "@shared/api/clientTable";
+import { errorMessage } from "@shared/api/errors";
 
 /** Cámara de la terminal: reproduce el video si el navegador puede; si es RTSP, informa la ruta sin credenciales. */
 export default function TimeClockCameraView({ clockSerial }: { clockSerial: string }) {
@@ -19,7 +20,7 @@ export default function TimeClockCameraView({ clockSerial }: { clockSerial: stri
     timeClockApi
       .inspectCamera(clockSerial)
       .then(setCamera)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : t("camera.errors.read")));
+      .catch((e: unknown) => setError(errorMessage(e, t("camera.errors.read"))));
   }, [clockSerial, t]);
 
   const fetchData = useMemo(

@@ -15,6 +15,7 @@ import { useTenantTodayKey } from "@entities/user";
 import { formatDateTime, formatMinutesAsHhMm } from "@shared/utils/dates";
 import { fileName } from "@shared/i18n";
 import type { DownloadOvertimePdf } from "./types";
+import { errorMessage } from "@shared/api/errors";
 
 export type Period = ReportPeriod;
 /** Pestaña de la tabla = filtro de estatus (`ALL` = todas). */
@@ -131,7 +132,7 @@ export const useOvertimeApproval = ({
         setError(null);
         return { data: res.data as unknown as Record<string, unknown>[], total: res.total };
       } catch (e) {
-        setError(e instanceof Error ? e.message : t("toast.error"));
+        setError(errorMessage(e, t("toast.error")));
         return { data: [], total: 0 };
       }
     },
@@ -201,7 +202,7 @@ export const useOvertimeApproval = ({
         setReloadKey((k) => k + 1);
         return true;
       } catch (e) {
-        setToast({ message: (e as Error).message || t("toast.error"), type: "error" });
+        setToast({ message: errorMessage(e, t("toast.error")), type: "error" });
         return false;
       } finally {
         setSaving(false);
@@ -286,7 +287,7 @@ export const useOvertimeApproval = ({
         canApprove,
       });
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorMessage(e));
     } finally {
       setExportingPdf(false);
     }
@@ -339,7 +340,7 @@ export const useOvertimeApproval = ({
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorMessage(e));
     } finally {
       setExportingCsv(false);
     }

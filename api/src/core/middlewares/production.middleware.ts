@@ -28,7 +28,7 @@ const rateLimitHandler = (_req: Request, res: Response): void => {
   res.status(429).json({
     error: "TooManyRequests",
     code: "TOO_MANY_REQUESTS",
-    message: "Demasiadas peticiones; intenta de nuevo más tarde",
+    message: "Hiciste muchas acciones seguidas. Espera un momento e intenta de nuevo.",
   });
 };
 

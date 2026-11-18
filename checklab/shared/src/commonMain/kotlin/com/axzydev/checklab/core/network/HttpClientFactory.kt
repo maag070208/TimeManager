@@ -76,18 +76,26 @@ fun createHttpClient(baseUrl: String, tokens: TokenProvider, engine: HttpClientE
     return client
 }
 
-/** Convierte una respuesta fallida en [ApiException] con el código del API. */
+/** Convierte una respuesta fallida en [ApiException]: el texto del API, o un código AX si la respuesta no es del API. */
 suspend fun HttpResponse.throwIfError(): HttpResponse {
     if (status.isSuccess()) return this
     val body = runCatching { ApiJson.decodeFromString<ApiErrorBody>(bodyAsText()) }.getOrNull()
-    throw ApiException(
-        status = status.value,
-        code = body?.code ?: "HTTP_${status.value}",
-        message = body?.message ?: "El servidor respondió ${status.value}.",
-    )
+    if (body != null && !body.message.isNullOrBlank()) {
+        throw ApiException(status.value, body.code ?: "HTTP_${status.value}", body.message, body.supportCode)
+    }
+    val supportCode = if (status.value in 502..504) SupportCode.UNAVAILABLE else SupportCode.UNEXPECTED
+    throw ApiException(status.value, "HTTP_${status.value}", SupportCode.message(supportCode), supportCode)
 }
 
-/** Ejecuta una llamada y traduce fallas de red a [ApiException] (`status = 0`). */
+/** Falla sin respuesta del servidor: AX-11 si se agotó el tiempo, AX-10 si no hubo conexión. */
+@PublishedApi
+internal fun networkFailure(e: Exception): ApiException {
+    val timeout = e::class.simpleName.orEmpty().contains("Timeout")
+    val supportCode = if (timeout) SupportCode.TIMEOUT else SupportCode.NO_CONNECTION
+    return ApiException(0, ApiException.NETWORK, SupportCode.message(supportCode), supportCode)
+}
+
+/** Ejecuta una llamada y traduce fallas de red o respuestas ilegibles a [ApiException]. */
 suspend inline fun <reified T> apiCall(block: () -> HttpResponse): T {
     val response = try {
         block()
@@ -96,10 +104,16 @@ suspend inline fun <reified T> apiCall(block: () -> HttpResponse): T {
     } catch (e: ApiException) {
         throw e
     } catch (e: Exception) {
-        throw ApiException(0, ApiException.NETWORK, "No hay conexión con el servidor.")
+        throw networkFailure(e)
     }
     response.throwIfError()
-    return response.body()
+    return try {
+        response.body()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        throw ApiException(response.status.value, ApiException.UNEXPECTED_RESPONSE, SupportCode.message(SupportCode.UNEXPECTED), SupportCode.UNEXPECTED)
+    }
 }
 
 /** Igual que [apiCall] para respuestas sin cuerpo (204). */
@@ -108,8 +122,10 @@ suspend inline fun apiCallUnit(block: () -> HttpResponse) {
         block()
     } catch (e: CancellationException) {
         throw e
+    } catch (e: ApiException) {
+        throw e
     } catch (e: Exception) {
-        throw ApiException(0, ApiException.NETWORK, "No hay conexión con el servidor.")
+        throw networkFailure(e)
     }
     response.throwIfError()
 }

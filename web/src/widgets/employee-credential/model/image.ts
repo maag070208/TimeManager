@@ -4,6 +4,7 @@ import { CREDENTIAL_DPI, CREDENTIAL_H_PX, CREDENTIAL_W_PX } from "./cardSpec";
 import { drawCredential } from "./renderCredential";
 import { setPngDpi } from "./pngDpi";
 import { fileName, i18n } from "@shared/i18n";
+import { UserMessageError } from "@shared/api/errors";
 
 export interface CredentialImageInput {
   profile: PersonalProfile;
@@ -33,7 +34,7 @@ export const credentialDataUrl = async (input: CredentialImageInput): Promise<st
   canvas.height = CREDENTIAL_H_PX;
   const ctx = canvas.getContext("2d");
   if (!ctx) {
-    throw new Error(i18n.t("employees:credential.renderError"));
+    throw new UserMessageError(i18n.t("employees:credential.renderError"));
   }
 
   await drawCredential(ctx, { ...input, year: new Date().getFullYear() });

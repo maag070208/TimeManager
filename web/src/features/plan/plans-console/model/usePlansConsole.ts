@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { planApi, type Plan } from "@entities/plan";
 import { useCan } from "@entities/user";
+import { errorMessage } from "@shared/api/errors";
 
 /** Consola de planes: catálogo completo (bajas incluidas), alta/edición y baja/reactivación. */
 export const usePlansConsole = () => {
@@ -22,7 +23,7 @@ export const usePlansConsole = () => {
         setPlans(rows);
         setError(null);
       })
-      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e: unknown) => alive && setError(errorMessage(e)));
     return () => {
       alive = false;
     };
@@ -52,7 +53,7 @@ export const usePlansConsole = () => {
       setStatusTarget(null);
       reload();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorMessage(e));
     } finally {
       setSavingStatus(false);
     }

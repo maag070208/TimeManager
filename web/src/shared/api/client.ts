@@ -13,20 +13,7 @@ import {
 } from "./session";
 import i18n from "@shared/i18n/config";
 import { getSelectedTenant, setSelectedTenant } from "./tenant";
-
-class ApiError extends Error {
-  public readonly code?: string;
-  constructor(
-    public status: number,
-    msg: string,
-    public details?: unknown,
-    code?: string
-  ) {
-    super(msg);
-    this.name = "ApiError";
-    this.code = code;
-  }
-}
+import { toApiError } from "./errors";
 
 /* ---------------------------------------------------------
    1. Axios Instance
@@ -135,18 +122,10 @@ axiosInstance.interceptors.response.use(
 );
 
 /* ---------------------------------------------------------
-   4. Central Error (payload del backend: { error, message, details })
+   4. Central Error (payload del backend: { error, code, message, supportCode? })
 --------------------------------------------------------- */
-const handleError = (error: any): never => {
-  if (error instanceof ApiError) throw error;
-
-  const data = error?.response?.data as
-    | { message?: string; details?: unknown; code?: string }
-    | undefined;
-  const status = error?.response?.status ?? 0;
-  const message =
-    data?.message ?? error?.message ?? i18n.t("common:errors.network");
-  throw new ApiError(status, message, data, data?.code);
+const handleError = (error: unknown): never => {
+  throw toApiError(error);
 };
 
 /* ---------------------------------------------------------

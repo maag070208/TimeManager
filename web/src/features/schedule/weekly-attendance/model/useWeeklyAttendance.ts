@@ -20,6 +20,7 @@ import { useDepartmentOptions } from "@entities/department";
 import { useWeekStartDay } from "@entities/sys-config";
 import { useDebouncedValue } from "@shared/lib/useDebouncedValue";
 import { detailFields, summaryFields } from "./fields";
+import { errorMessage } from "@shared/api/errors";
 
 /** Genera el PDF (lo inyecta la página desde el widget de reportes). */
 export type DownloadWeeklyAttendancePdf = (payload: WeeklyAttendancePdfPayload) => Promise<void>;
@@ -87,7 +88,7 @@ export const useWeeklyAttendance = ({ downloadPdf }: { downloadPdf: DownloadWeek
         setReport(res);
         setReportVersion((v) => v + 1);
       })
-      .catch((e: unknown) => active && setError(e instanceof Error ? e.message : t("loadError")))
+      .catch((e: unknown) => active && setError(errorMessage(e, t("loadError"))))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -134,7 +135,7 @@ export const useWeeklyAttendance = ({ downloadPdf }: { downloadPdf: DownloadWeek
         : applyClientTableParams<WeeklyAttendanceRow>(report.rows, tableParams, summaryFields);
       await downloadPdf({ report, mode, rows, meta: { departmentName } });
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("common:errors.report"));
+      setError(errorMessage(e, t("common:errors.report")));
     } finally {
       setExporting(false);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { planApi } from "@entities/plan";
 import { tenantApi, type Tenant } from "@entities/tenant";
+import { errorMessage } from "@shared/api/errors";
 
 /** Resumen de plan que necesita la ficha del cliente (incluye el que está dado de baja). */
 export interface PlanOption {
@@ -41,7 +42,7 @@ export const usePlanAssign = (tenant: Tenant | null, onSaved: () => void) => {
         }
         setPlans(options);
       })
-      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : String(e)));
+      .catch((e: unknown) => alive && setError(errorMessage(e)));
     return () => {
       alive = false;
     };
@@ -55,7 +56,7 @@ export const usePlanAssign = (tenant: Tenant | null, onSaved: () => void) => {
       await tenantApi.update(tenant.id, { planId: planId || null });
       onSaved();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorMessage(e));
     } finally {
       setSaving(false);
     }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { timeClockApi, type TimeClockSummary } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 /** Estado del reloj para el dashboard. Se actualiza solo al entrar o al pedirlo (sin sondeo). */
 export const useTimeClockDashboard = () => {
@@ -13,7 +14,7 @@ export const useTimeClockDashboard = () => {
     timeClockApi
       .summary()
       .then(setData)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+      .catch((e: unknown) => setError(errorMessage(e)))
       .finally(() => setLoading(false));
   }, []);
 

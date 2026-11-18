@@ -20,6 +20,7 @@ import { DAY_INITIALS, dayMinutes, daysWorked, restDays, suggestedName, weeklyMi
 import { i18n } from "@shared/i18n";
 import { useGoBack } from "@shared/lib/useGoBack";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { errorMessage } from "@shared/api/errors";
 
 const DEFAULT_START = "08:00";
 const DEFAULT_END = "16:00";
@@ -191,7 +192,7 @@ export default function ScheduleForm({ id }: { id?: string }) {
           }),
         });
       })
-      .catch((e: Error) => setError(e.message))
+      .catch((e: Error) => setError(errorMessage(e)))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -229,7 +230,7 @@ export default function ScheduleForm({ id }: { id?: string }) {
       setToast(t("save"));
       setTimeout(() => goBack("/schedules"), 500);
     } catch (e) {
-      setError((e as Error).message ?? t("saveError"));
+      setError(errorMessage(e, t("saveError")));
     } finally {
       setSaving(false);
     }

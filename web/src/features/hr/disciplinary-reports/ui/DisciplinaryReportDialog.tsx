@@ -16,6 +16,7 @@ import { usePeopleOptions } from "@entities/user";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { HelpTip } from "@shared/ui/help-tip";
 import { DISCIPLINARY_REASONS } from "../model/useDisciplinaryReports";
+import { errorMessage } from "@shared/api/errors";
 
 interface Props {
   isOpen: boolean;
@@ -70,7 +71,7 @@ export default function DisciplinaryReportDialog({ isOpen, onClose, onCreated }:
       onCreated();
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorMessage(err));
     } finally {
       setSaving(false);
     }

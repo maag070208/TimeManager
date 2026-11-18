@@ -24,6 +24,7 @@ import PrivacyNoticeTab from "./PrivacyNoticeTab";
 import { usersApi } from "@entities/user";
 import { PersonCard, SolidAction, TopicCard, TopicGuide } from "./agreements-parts";
 import { TicState } from "@shared/ui/tic";
+import { errorMessage } from "@shared/api/errors";
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const dayOf = (iso: string) => new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium", timeZone: "UTC" });
@@ -74,7 +75,7 @@ export default function WorkdayAgreementsPage() {
       setRecordAgreements(nextRecords);
       setEmployees((people ?? []).filter((row) => row.active).map((row) => ({ id: row.id, name: row.name, employeeNumber: row.employeeNumber })));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron cargar los acuerdos.");
+      setError(errorMessage(cause, "No se pudieron cargar los acuerdos."));
     } finally {
       setLoading(false);
     }
@@ -104,7 +105,7 @@ export default function WorkdayAgreementsPage() {
       await load();
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
+      setError(errorMessage(cause, "No se pudo guardar."));
       return false;
     } finally {
       setBusy(null);
@@ -121,7 +122,7 @@ export default function WorkdayAgreementsPage() {
         signed += 1;
       }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo firmar.");
+      setError(errorMessage(cause, "No se pudo firmar."));
     } finally {
       if (signed > 0) setToast(signed === 1 ? "Firmado." : `${signed} firmados.`);
       await load();

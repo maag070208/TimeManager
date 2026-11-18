@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { FaCheck, FaSyncAlt } from "react-icons/fa";
 import { ITAlert, ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { timeClockApi, type UnifiedPeople } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 /** Personas de todos los relojes en una sola tabla: una columna por reloj, solo lectura. */
 export default function UnifiedPeopleView() {
@@ -19,7 +20,7 @@ export default function UnifiedPeopleView() {
     timeClockApi
       .peopleUnified()
       .then(setData)
-      .catch((e: any) => setError(e?.message ?? t("dashboard.unified.empty")))
+      .catch((e: any) => setError(errorMessage(e, t("dashboard.unified.empty"))))
       .finally(() => setLoading(false));
   };
 

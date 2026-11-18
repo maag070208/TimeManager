@@ -7,8 +7,9 @@ import {
   type TimeClockDevice,
   type TimeClockPeopleList,
 } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
-const messageOf = (e: unknown, fallback: string): string => (e instanceof Error && e.message ? e.message : fallback);
+const messageOf = (e: unknown, fallback: string): string => errorMessage(e, fallback);
 
 /**
  * Personas y tarjetas de un reloj. Cada acción ESCRIBE en el reloj a través de

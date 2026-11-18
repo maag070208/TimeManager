@@ -18,6 +18,7 @@ import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { LocationMap } from "@shared/ui/location-map";
 import { dateKeyInTimeZone, formatDateTime, formatTimeInTZ } from "@shared/utils/dates";
 import { i18n } from "@shared/i18n";
+import { errorMessage } from "@shared/api/errors";
 
 const RANGES = [7, 14, 30, 90] as const;
 type RangeDays = (typeof RANGES)[number];
@@ -65,7 +66,7 @@ export default function EmployeePunchHistory({ userId }: { userId: string }) {
     personalApi
       .punchHistory(userId, { from, to })
       .then((res) => !cancelled && setPunches(res.punches))
-      .catch((e: unknown) => !cancelled && setError(e instanceof Error ? e.message : t("detail.activity.history.error" as never)));
+      .catch((e: unknown) => !cancelled && setError(errorMessage(e, t("detail.activity.history.error" as never))));
     return () => {
       cancelled = true;
     };

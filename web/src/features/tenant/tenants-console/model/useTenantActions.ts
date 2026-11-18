@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { tenantApi, type Tenant } from "@entities/tenant";
 import { setSelectedTenant } from "@shared/api/tenant";
+import { errorMessage } from "@shared/api/errors";
 
 /** Acciones sobre un cliente: operarlo como soporte (auditado) y suspender/reactivar con confirmación. */
 export const useTenantActions = (onStatusChanged: (tenant: Tenant) => void) => {
@@ -19,7 +20,7 @@ export const useTenantActions = (onStatusChanged: (tenant: Tenant) => void) => {
       setSelectedTenant({ id: tenant.id, name: tenant.name, slug: tenant.slug, punchChannels: tenant.punchChannels, timezone: tenant.timezone });
       window.location.assign(path);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorMessage(cause));
     }
   };
 
@@ -31,7 +32,7 @@ export const useTenantActions = (onStatusChanged: (tenant: Tenant) => void) => {
       setStatusTarget(null);
       onStatusChanged(updated);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorMessage(cause));
     } finally {
       setSavingStatus(false);
     }

@@ -4,6 +4,7 @@ import { FaFingerprint } from "react-icons/fa";
 import { ITAlert, ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { timeClockApi, type FingerprintStationInfo, type FingerprintStationTest } from "@entities/time-clock";
+import { errorMessage } from "@shared/api/errors";
 
 const FINGERS = Array.from({ length: 10 }, (_, i) => i + 1);
 
@@ -27,7 +28,7 @@ export default function FingerprintReaderPanel() {
     try {
       setResult(await timeClockApi.fingerprintStationTest(fingerNo));
     } catch (e: any) {
-      setError(e?.message ?? t("dashboard.reader.error"));
+      setError(errorMessage(e, t("dashboard.reader.error")));
     } finally {
       setBusy(false);
     }

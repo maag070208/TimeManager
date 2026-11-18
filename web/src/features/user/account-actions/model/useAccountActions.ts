@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { usersApi, useCan } from "@entities/user";
 import { describeClockSync, timeClockApi } from "@entities/time-clock";
 import { i18n } from "@shared/i18n";
+import { errorMessage } from "@shared/api/errors";
 
 /** Lo mínimo de una persona para actuar sobre su cuenta (sirve para `User` y `PersonalProfile`). */
 export interface AccountTarget {
@@ -49,7 +50,7 @@ export const useAccountActions = (onChanged: () => void) => {
   const [toast, setToast] = useState<{ message: string; type: "error" | "success" } | null>(null);
 
   const fail = (e: unknown, fallback: string) =>
-    setToast({ message: (e instanceof Error && e.message) || t(fallback as never), type: "error" });
+    setToast({ message: errorMessage(e, t(fallback as never)), type: "error" });
 
   const deactivate = async (reason: string) => {
     const target = toDeactivate;
