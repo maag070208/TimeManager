@@ -612,6 +612,93 @@ describe("Export formal y autoservicio de configuración", () => {
   });
 });
 
+describe("Aviso de privacidad para todo el personal", () => {
+  test("sin aceptarlo la checada no guarda ubicación; aceptado sí; un aviso nuevo se vuelve a pedir", async () => {
+    const admin = await clientSession("CLIENT_ADMIN");
+    const worker = await clientSession("CLIENT_STAFF", { tenant: admin.tenant! });
+    expectStatus(
+      await api("PUT", "/nom/config", { token: admin.token, body: { blockRemoteWithoutAgreement: false } }),
+      200,
+      "sin exigir acuerdo"
+    );
+    const geo = { latitude: 19.4326, longitude: -99.1332, gpsAccuracyMeters: 10 };
+
+    const empty = await api("GET", "/nom/me/privacy", { token: worker.token });
+    expectStatus(empty, 200, "aviso sin publicar");
+    assert.equal(empty.body?.notice, null);
+    expectError(
+      await api("POST", "/nom/me/privacy/accept", { token: worker.token, body: { version: 1 } }),
+      409,
+      "PRIVACY_NOTICE_NOT_SET",
+      "no se acepta un aviso que no existe"
+    );
+
+    const template = await api("GET", "/nom/privacy/template", { token: admin.token });
+    expectStatus(template, 200, "plantilla");
+    assert.match(String(template.body?.template), /Secretaría Anticorrupción/);
+
+    const published = await api("PUT", "/nom/telework/policy", {
+      token: admin.token,
+      body: { privacyNotice: "Aviso de privacidad de prueba: usamos tu huella y tu ubicación al checar." },
+    });
+    expectStatus(published, 200, "publicar aviso");
+
+    const pending = await api("GET", "/nom/me/privacy", { token: worker.token });
+    assert.equal(pending.body?.accepted, false);
+    const version = pending.body?.version as number;
+    assert.ok(version >= 1);
+
+    const noConsent = await api("POST", "/nom/me/punch", {
+      token: worker.token,
+      body: { type: "ENTRY", clientEventId: randomUUID(), ...geo },
+    });
+    expectStatus(noConsent, 201, "sin aviso aceptado la checada sí se registra");
+    assert.equal(noConsent.body?.punch?.latitude, null, "pero sin ubicación");
+
+    const accepted = await api("POST", "/nom/me/privacy/accept", { token: worker.token, body: { version } });
+    expectStatus(accepted, 200, "aceptar aviso");
+    assert.equal(accepted.body?.accepted, true);
+    expectStatus(
+      await api("POST", "/nom/me/privacy/accept", { token: worker.token, body: { version } }),
+      200,
+      "aceptar dos veces no duplica"
+    );
+    const db = await prismaClient();
+    const consents = await db.privacyConsent.findMany({ where: { userId: worker.user.id } });
+    assert.equal(consents.length, 1, "una sola constancia por versión");
+    assert.equal(consents[0].tenantId, admin.tenant!.id, "la constancia queda en el cliente correcto");
+    assert.equal(consents[0].textHash.length, 64);
+
+    const withConsent = await api("POST", "/nom/me/punch", {
+      token: worker.token,
+      body: { type: "LUNCH_START", clientEventId: randomUUID(), ...geo },
+    });
+    expectStatus(withConsent, 201, "checada con aviso aceptado");
+    assert.ok(withConsent.body?.punch?.latitude != null, "ahora sí guarda ubicación");
+
+    const summary = await api("GET", "/nom/privacy/consents", { token: admin.token });
+    expectStatus(summary, 200, "resumen para RH");
+    const row = (summary.body?.people as Array<{ userId: string; acceptedAt: string | null }>).find((p) => p.userId === worker.user.id);
+    assert.ok(row?.acceptedAt, "RH ve que la persona aceptó");
+    assert.ok((summary.body?.accepted as number) >= 1);
+
+    const changed = await api("PUT", "/nom/telework/policy", {
+      token: admin.token,
+      body: { privacyNotice: "Aviso de privacidad de prueba, versión con cambios." },
+    });
+    expectStatus(changed, 200, "cambiar aviso");
+    const again = await api("GET", "/nom/me/privacy", { token: worker.token });
+    assert.equal(again.body?.version, version + 1, "cambiar el texto sube la versión");
+    assert.equal(again.body?.accepted, false, "el aviso nuevo se vuelve a pedir");
+    expectError(
+      await api("POST", "/nom/me/privacy/accept", { token: worker.token, body: { version } }),
+      409,
+      "PRIVACY_NOTICE_VERSION_CHANGED",
+      "no se acepta una versión vieja"
+    );
+  });
+});
+
 describe("F2-07 marcaje remoto (home office/campo)", () => {
   test("con la ubicación apagada la checada web no guarda coordenadas", async () => {
     const admin = await clientSession("CLIENT_ADMIN");

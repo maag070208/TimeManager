@@ -17,6 +17,7 @@ import type {
   TeleworkRegistrationUpdateInput,
 } from "../models/entity/nom.entity";
 import type { NomSettingsService } from "./nom-settings.service";
+import { privacyTextHash } from "./privacy-notice.service";
 
 /**
  * Plantilla del checklist del lugar de teletrabajo (NOM-037). Las claves se
@@ -457,6 +458,19 @@ export class TeleworkService {
       },
       include: { user: { select: { name: true, email: true, employeeNumber: true } } },
     });
+
+    // El aviso de privacidad aceptado aquí vale para todo el portal: no se vuelve a pedir.
+    if (config.policy.privacyNotice) {
+      await this.db.privacyConsent.upsert({
+        where: { userId_version: { userId, version: versions.privacyNoticeVersion } },
+        create: {
+          userId,
+          version: versions.privacyNoticeVersion,
+          textHash: privacyTextHash(config.policy.privacyNotice, versions.privacyNoticeVersion),
+        },
+        update: {},
+      });
+    }
 
     await this.audit?.({
       action: "TELEWORK_CONSENT_ACCEPTED",

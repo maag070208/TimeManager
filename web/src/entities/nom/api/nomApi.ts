@@ -1,5 +1,7 @@
 import { api } from "@shared/api/client";
 import type {
+  MyPrivacyNotice,
+  PrivacyConsentSummary,
   MeTelework,
   PunchAdjustment,
   PunchHistory,
@@ -161,6 +163,11 @@ export const nomApi = {
 
   reportMissingPunch: (input: { type: PunchType; occurredAt: string; reason: string }) =>
     api.post<PunchAdjustment>(`${base}/me/missing-punches`, input),
+
+  myPrivacy: () => api.get<MyPrivacyNotice>(`${base}/me/privacy`),
+  acceptPrivacy: (version: number) => api.post<MyPrivacyNotice>(`${base}/me/privacy/accept`, { version }),
+  privacyConsents: () => api.get<PrivacyConsentSummary>(`${base}/privacy/consents`),
+  privacyTemplate: () => api.get<{ template: string }>(`${base}/privacy/template`),
 
   myDiscrepancies: () => api.get<PunchAdjustment[]>(`${base}/me/discrepancies`),
 

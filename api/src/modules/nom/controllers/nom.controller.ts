@@ -11,6 +11,7 @@ import {
   DistributionAgreementCreateDto,
   DiscrepancyCreateDto,
   MissingPunchCreateDto,
+  PrivacyAcceptDto,
   NomSettingsUpdateDto,
   OutOfHoursContactDto,
   PunchQueryDto,
@@ -23,6 +24,7 @@ import {
 } from "../models/dto/nom.dto";
 import type { NomSettingsService } from "../services/nom-settings.service";
 import type { PunchAdjustmentsService } from "../services/punch-adjustments.service";
+import type { PrivacyNoticeService } from "../services/privacy-notice.service";
 import type { WorkdayAlertsService } from "../services/workday-alerts.service";
 import type { RetentionService } from "../services/retention.service";
 import type { StpsExportService } from "../services/stps-export.service";
@@ -71,8 +73,29 @@ export class NomController {
     private readonly overtimeRequests: OvertimeRequestService,
     private readonly teleworkCompliance: TeleworkComplianceService,
     private readonly leave: LeaveService,
-    private readonly distribution: DistributionAgreementService
+    private readonly distribution: DistributionAgreementService,
+    private readonly privacy: PrivacyNoticeService
   ) {}
+
+  // ── Aviso de privacidad del cliente (todo el personal) ────────────────────
+
+  myPrivacy = async (req: Request, res: Response) => {
+    res.json(await this.privacy.mine(req.user!.id));
+  };
+
+  acceptPrivacy = async (req: Request, res: Response) => {
+    const { version } = PrivacyAcceptDto.parse(req.body);
+    res.json(await this.privacy.accept(req.user!.id, version, req.ip ?? null, req.user!.username));
+  };
+
+  privacySummary = async (_req: Request, res: Response) => {
+    res.json(await this.privacy.summary(tenantIdOrThrow()));
+  };
+
+  privacyTemplate = async (_req: Request, res: Response) => {
+    const { privacyNoticeTemplate } = await import("../services/nom-settings.service");
+    res.json({ template: privacyNoticeTemplate() });
+  };
 
   getConfig = async (_req: Request, res: Response) => {
     res.json(await this.settings.resolve(tenantIdOrThrow()));

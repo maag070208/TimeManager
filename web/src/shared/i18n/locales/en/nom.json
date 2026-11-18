@@ -243,7 +243,8 @@
     "discrepancy": "We sent your report to HR.",
     "checklist": "We saved your checklist.",
     "leaveRequested": "We sent your request to HR.",
-    "leaveCancelled": "You cancelled the request."
+    "leaveCancelled": "You cancelled the request.",
+    "privacy": "Privacy notice accepted."
   },
   "corrections": {
     "title": "My fix requests",
@@ -271,5 +272,13 @@
     "fix": "A time is wrong",
     "missing": "I forgot to punch",
     "whichPunch": "Which punch?"
+  },
+  "privacy": {
+    "title": "Your company's privacy notice",
+    "lead": "Before punching, read how your company uses your data: your punches and, if applicable, your fingerprint or face and your location when you punch.",
+    "check": "I read the notice and consent to the use of my personal data, including sensitive data.",
+    "accept": "Accept notice",
+    "noLocation": "If you don't accept it you can still punch, but your location is not saved.",
+    "version": "Version {{version}}"
   }
 }

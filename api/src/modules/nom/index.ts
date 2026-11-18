@@ -4,6 +4,7 @@ import type { AuditLogger } from "@modules/users/services/user.service";
 import type { NotificationPort } from "@modules/notifications";
 import { NomSettingsService } from "./services/nom-settings.service";
 import { PunchAdjustmentsService } from "./services/punch-adjustments.service";
+import { PrivacyNoticeService } from "./services/privacy-notice.service";
 import { WorkdayAlertsService, type WorkdayCalculator } from "./services/workday-alerts.service";
 import { RetentionService } from "./services/retention.service";
 import { StpsExportService } from "./services/stps-export.service";
@@ -67,6 +68,7 @@ export const createNomModule = (deps: NomModuleDeps) => {
   const teleworkCompliance = new TeleworkComplianceService(prismaClient, deps.audit);
   const leave = new LeaveService(prismaClient, deps.audit, holidays, deps.notifications);
   const distribution = new DistributionAgreementService(prismaClient, deps.audit);
+  const privacy = new PrivacyNoticeService(settings, prismaClient, deps.audit);
   const weeklyOvertime = new WeeklyOvertimeService(
     prismaClient,
     deps.calculator,
@@ -88,7 +90,8 @@ export const createNomModule = (deps: NomModuleDeps) => {
     overtimeRequests,
     teleworkCompliance,
     leave,
-    distribution
+    distribution,
+    privacy
   );
   return {
     router: createNomRouter(controller),

@@ -232,6 +232,8 @@ export const en: Messages = {
     MISSING_PUNCH_OUT_OF_RANGE: "You can only request punches from the last 31 days that already happened",
     MISSING_PUNCH_ALREADY_REQUESTED: "You already requested that punch for that day; HR is reviewing it",
     MISSING_PUNCH_INVALID: "The missing punch request is incomplete",
+    PRIVACY_NOTICE_NOT_SET: "Your company has not published its privacy notice yet",
+    PRIVACY_NOTICE_VERSION_CHANGED: "The privacy notice changed while you were reading it; check the new version",
     INVALID_ADJUSTMENT_REASON: "The reason must be between 5 and 500 characters",
     INVALID_ADJUSTMENT_DATE: "The proposed time is not a valid date",
     INVALID_WORKDAY_LIMIT: "The daily limit must be between {{min}} and {{max}} minutes",

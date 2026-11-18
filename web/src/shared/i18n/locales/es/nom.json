@@ -243,7 +243,8 @@
     "discrepancy": "Enviamos tu reporte a Recursos Humanos.",
     "checklist": "Guardamos tu checklist.",
     "leaveRequested": "Enviamos tu solicitud a Recursos Humanos.",
-    "leaveCancelled": "Cancelaste la solicitud."
+    "leaveCancelled": "Cancelaste la solicitud.",
+    "privacy": "Aviso de privacidad aceptado."
   },
   "corrections": {
     "title": "Mis correcciones",
@@ -271,5 +272,13 @@
     "fix": "Una hora está mal",
     "missing": "Me faltó checar",
     "whichPunch": "¿Cuál checada?"
+  },
+  "privacy": {
+    "title": "Aviso de privacidad de tu empresa",
+    "lead": "Antes de checar, lee cómo usa tu empresa tus datos: tus checadas y, si aplica, tu huella o rostro y la ubicación al checar.",
+    "check": "Leí el aviso y doy mi consentimiento para el uso de mis datos personales, incluidos los sensibles.",
+    "accept": "Aceptar aviso",
+    "noLocation": "Si no lo aceptas puedes checar igual, pero tu ubicación no se guarda.",
+    "version": "Versión {{version}}"
   }
 }

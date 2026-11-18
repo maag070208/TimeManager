@@ -255,3 +255,22 @@ export interface PunchHistory {
   adjustments: PunchAdjustment[];
   audit: PunchAuditEntry[];
 }
+
+/** Aviso de privacidad del cliente visto por la persona (`GET /nom/me/privacy`). */
+export interface MyPrivacyNotice {
+  /** `null`: el cliente aún no publica su aviso. */
+  notice: string | null;
+  version: number;
+  accepted: boolean;
+  acceptedAt: string | null;
+}
+
+/** Quién aceptó la versión vigente del aviso (`GET /nom/privacy/consents`). */
+export interface PrivacyConsentSummary {
+  notice: string | null;
+  version: number;
+  updatedAt: string | null;
+  accepted: number;
+  pending: number;
+  people: Array<{ userId: string; name: string; employeeNumber: string | null; acceptedAt: string | null }>;
+}

@@ -85,6 +85,8 @@ export const MissingPunchCreateDto = z
   })
   .strict();
 
+export const PrivacyAcceptDto = z.object({ version: z.number().int().min(1) }).strict();
+
 export const PunchQueryDto = z
   .object({
     from: z

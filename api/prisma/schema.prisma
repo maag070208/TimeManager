@@ -228,6 +228,7 @@ model User {
   role                   String                     @default("EMPLOYEE")
   roleRef                Role                       @relation(fields: [role], references: [key])
   extraRoles             UserRole[]
+  privacyConsents        PrivacyConsent[]           @relation("PrivacyConsentUser")
   permissionGrants       UserPermission[]           @relation("UserPermissionGrants")
   permissionsGranted     UserPermission[]           @relation("UserPermissionGrantedBy")
   policiesCreated        Policy[]                   @relation("PolicyCreatedBy")
@@ -2238,4 +2239,23 @@ model NomExportSeal {
 
   @@unique([tenantId, sequence])
   @@map("nom_export_seals")
+}
+
+/// Aceptación del aviso de privacidad del cliente por cada persona, una por versión.
+/// Es la constancia del consentimiento expreso para datos sensibles (biometría y
+/// ubicación): no se edita; un aviso nuevo genera una aceptación nueva.
+model PrivacyConsent {
+  id         String   @id @default(uuid())
+  tenantId   String   @default(dbgenerated("current_setting('app.tenant_id'::text, true)"))
+  userId     String
+  user       User     @relation("PrivacyConsentUser", fields: [userId], references: [id], onDelete: Cascade)
+  version    Int
+  /// SHA-256 del texto aceptado + versión: prueba de qué leyó la persona.
+  textHash   String
+  acceptedAt DateTime @default(now())
+  acceptedIp String?
+
+  @@unique([userId, version])
+  @@index([tenantId])
+  @@map("privacy_consents")
 }

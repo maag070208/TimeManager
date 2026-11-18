@@ -46,6 +46,28 @@ Facilidades de lactancia conforme a la LFT (dos reposos o reducción de jornada)
 ## 6. Reversibilidad a presencial
 Procedimiento y plazos para solicitar el regreso al centro de trabajo.`;
 
+/**
+ * Plantilla del aviso de privacidad para el personal (LFPDPPP, DOF 20-mar-2025).
+ * RH llena lo que va entre corchetes; el texto y su validez legal son del cliente.
+ */
+export const privacyNoticeTemplate = (): string => `Aviso de privacidad para el personal de [Razón social del empleador]
+
+1. Responsable. [Razón social], con domicilio en [domicilio], es responsable de tus datos personales. Contacto de privacidad: [correo] · [teléfono].
+
+2. Datos que tratamos. Identificación y contacto (nombre, número de empleado, puesto, departamento); relación laboral (horario, entradas y salidas, comida, retardos, faltas, horas extra, vacaciones, permisos y expediente). Datos sensibles, solo si aplican a tu forma de registro: huella o rostro que guarda el reloj checador para identificarte, y la ubicación de tu teléfono solo en el momento de checar desde la web o la app (no hay rastreo continuo).
+
+3. Para qué los usamos. Llevar el registro de tu jornada como exige la Ley Federal del Trabajo, calcular la pre-nómina, administrar vacaciones, permisos y correcciones de checadas, y cumplir obligaciones laborales, fiscales y de seguridad social.
+
+4. Consentimiento. Al aceptar este aviso das tu consentimiento expreso para el uso de tu biometría y de tu ubicación al checar. Si no lo aceptas, puedes registrar tu jornada por [medio alterno] y tus checadas web o app se guardan sin ubicación.
+
+5. Con quién los compartimos. Con CheckLab, que opera el sistema de registro por nuestro encargo y bajo contrato; con [despacho de nómina], y con autoridades cuando la ley lo exija.
+
+6. Tus derechos. Puedes acceder, rectificar, cancelar u oponerte al uso de tus datos y revocar tu consentimiento escribiendo a [correo]. Respondemos en un máximo de 20 días hábiles. Algunos datos, como el registro de jornada, debemos conservarlos por ley. Si no estás conforme, puedes acudir a la Secretaría Anticorrupción y Buen Gobierno.
+
+7. Conservación. El registro de jornada se conserva [plazo]. La biometría se borra del reloj al terminar la relación de trabajo.
+
+8. Cambios. Te avisaremos en Mi jornada y te pediremos aceptar de nuevo si cambia el uso de tus datos sensibles.`;
+
 /** Claves globales de `sys_config` que sirven de default de plataforma. */
 export const NOM_WORKDAY_LIMIT_CONFIG_KEY = "NOM_WORKDAY_LIMIT_MINUTES";
 export const NOM_WEEKLY_LIMIT_CONFIG_KEY = "NOM_WEEKLY_LIMIT_MINUTES";

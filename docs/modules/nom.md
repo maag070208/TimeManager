@@ -24,7 +24,7 @@ Módulo transversal de cumplimiento para el **registro electrónico de jornada**
 | Alertas | `GET /alerts`, `POST /alerts/scan` |
 | Retención | `GET /retention`, `POST /retention/archive` (`dryRun` opcional) |
 | Export | `GET /export/stps?period=MONTH&date=YYYY-MM-DD&format=csv\|json` |
-| Autoservicio | `GET /me/punches`, `POST /me/punch` (marcaje remoto), `GET /me/discrepancies`, `POST /me/discrepancies`, `POST /me/missing-punches`, `GET /me/telework`, `POST /me/telework/accept`, `POST /me/telework/checklist` (solo sesión) |
+| Autoservicio | `GET /me/punches`, `POST /me/punch` (marcaje remoto), `GET /me/discrepancies`, `POST /me/discrepancies`, `POST /me/missing-punches`, `GET /me/privacy`, `POST /me/privacy/accept`, `GET /me/telework`, `POST /me/telework/accept`, `POST /me/telework/checklist` (solo sesión) |
 | Teletrabajo (NOM-037) | `GET/PUT /telework/policy`, `GET/POST /telework/registrations`, `PATCH /telework/registrations/:id`, `GET /telework/checklists`, `GET/POST /telework/out-of-hours-contacts` |
 
 Permisos: lectura con `time_clock.view` (el export también con `payroll.view`), escritura con `time_clock.write`. Las rutas `/me/*` solo exigen `authenticate` (el trabajador no necesita permisos de RH).
@@ -250,3 +250,13 @@ firma patronal de los acuerdos de método; el botón de archivado de retención 
 - **App**: reutiliza el mismo endpoint y tipos de checada; solo manda el header del canal y su `clientEventId`.
 - **Mezcla**: el reporte de reloj arma un solo timeline por persona y día (checadas del reloj como toggle, marcajes web/app por tipo, dedupe de duplicados a < 5 min cuando participa el reloj). La sesión lleva `source` `CLOCK`/`WEB`/`APP`/`MIXED`.
 - Todas las fuentes se muestran juntas en Mi jornada y en el reporte de asistencia; asistencia semanal, pre-nómina y horas extra leen ese mismo reporte (sin volver a leer `remote_punches`).
+
+## Aviso de privacidad para todo el personal
+
+- **Qué es:** el aviso de privacidad del cliente (`nom_settings.privacyNotice`, versionado) ahora lo acepta **todo** el personal, no solo quien está en teletrabajo. Es el consentimiento expreso que pide la LFPDPPP para datos sensibles (biometría del reloj y ubicación al checar).
+- **Modelo:** `PrivacyConsent` (`privacy_consents`): una fila por persona y versión, con `textHash` (SHA-256 del texto + versión), fecha e IP. No se edita: un aviso nuevo genera una aceptación nueva. RLS por cliente. Migración `20261218000000_privacy_consents` (incluye backfill de quienes ya aceptaron en teletrabajo).
+- **Endpoints:** `GET /me/privacy` (aviso vigente y si la persona lo aceptó), `POST /me/privacy/accept { version }` (`409 PRIVACY_NOTICE_NOT_SET` sin aviso, `409 PRIVACY_NOTICE_VERSION_CHANGED` si el texto cambió). RH: `GET /privacy/consents` (quién aceptó la versión vigente) y `GET /privacy/template` (plantilla base con datos entre corchetes). El texto se guarda con `PUT /telework/policy { privacyNotice }`, que sube la versión si cambia.
+- **Efecto en la checada:** si el cliente publicó aviso y la persona no aceptó la versión vigente, la checada web/app **se registra sin ubicación** (`RemotePunchService`). Aceptar el consentimiento de teletrabajo también registra la aceptación del aviso.
+- **Web:** Mi jornada muestra el aviso primero en «Antes de checar» (leer, marcar y aceptar). RH lo publica y ve quién falta en Acuerdos con el personal › Aviso de privacidad.
+- **Pendiente:** la app móvil aún no muestra el aviso (sus checadas ya se guardan sin ubicación mientras no se acepte en la web).
+

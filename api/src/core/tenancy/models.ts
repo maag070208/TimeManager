@@ -35,6 +35,7 @@ export const TENANT_MODELS: ReadonlySet<string> = new Set([
   "OvertimeApproval",
   "WeeklyOvertimeLedger",
   "Holiday",
+  "PrivacyConsent",
   "WorkRecordAgreement",
   "WorkRecordAgreementVersion",
   "WorkRecordAcknowledgment",

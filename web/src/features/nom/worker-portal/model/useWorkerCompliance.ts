@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { nomApi } from "@entities/nom";
 import type {
   MyDistributionAgreement,
+  MyPrivacyNotice,
   OvertimeRequestRow,
   RecordAgreement,
   WorkRecordAcknowledgment,
@@ -32,6 +33,7 @@ export const useWorkerCompliance = () => {
   const [acknowledgments, setAcknowledgments] = useState<WorkRecordAcknowledgment[]>([]);
   const [scheduleAgreements, setScheduleAgreements] = useState<MyDistributionAgreement[]>([]);
   const [requests, setRequests] = useState<OvertimeRequestRow[]>([]);
+  const [privacy, setPrivacy] = useState<MyPrivacyNotice | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,13 +43,15 @@ export const useWorkerCompliance = () => {
     setLoading(true);
     setError(null);
     try {
-      const [nextProposal, nextAgreement, nextAcknowledgments, nextRequests, nextScheduleAgreements] = await Promise.all([
+      const [nextProposal, nextAgreement, nextAcknowledgments, nextRequests, nextScheduleAgreements, nextPrivacy] = await Promise.all([
         nomApi.recordProposal(),
         nomApi.myRecordAgreement(),
         nomApi.myRecordAcknowledgments(),
         nomApi.myOvertimeRequests(),
         nomApi.myDistributionAgreements(),
+        nomApi.myPrivacy(),
       ]);
+      setPrivacy(nextPrivacy);
       setProposal(nextProposal);
       setAgreement(nextAgreement);
       setAcknowledgments(nextAcknowledgments);
@@ -117,6 +121,24 @@ export const useWorkerCompliance = () => {
       done(accept ? "overtimeAccepted" : "overtimeRejected");
     });
 
+  /** Acepta la versión del aviso que la persona leyó; la respuesta ya trae el estado nuevo. */
+  const acceptPrivacy = async (): Promise<boolean> => {
+    if (!privacy) return false;
+    setBusy("privacy");
+    setError(null);
+    try {
+      setPrivacy(await nomApi.acceptPrivacy(privacy.version));
+      done("privacy");
+      return true;
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo guardar tu aceptación.");
+      await load();
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  };
+
   /** Conformidad ya respondida de la semana en curso, si existe: no se vuelve a pedir. */
   const weekStart = currentWeek().periodStart;
   const weekAck = acknowledgments.find((row) => row.periodStart.slice(0, 10) === weekStart && row.status !== "PENDING") ?? null;
@@ -128,11 +150,13 @@ export const useWorkerCompliance = () => {
     acknowledgments,
     requests,
     scheduleAgreements,
+    privacy,
     loading,
     busy,
     error,
     acceptAgreement,
     acceptScheduleAgreement,
+    acceptPrivacy,
     acknowledge,
     decideRequest,
     refresh: load,

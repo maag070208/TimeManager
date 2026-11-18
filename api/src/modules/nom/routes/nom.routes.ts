@@ -25,6 +25,8 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/me/discrepancies", asyncHandler(controller.myDiscrepancies));
   router.post("/me/discrepancies", asyncHandler(controller.reportDiscrepancy));
   router.post("/me/missing-punches", asyncHandler(controller.reportMissingPunch));
+  router.get("/me/privacy", asyncHandler(controller.myPrivacy));
+  router.post("/me/privacy/accept", asyncHandler(controller.acceptPrivacy));
 
   // NOM-037: estado de teletrabajo del propio trabajador, aceptación de
   // política/aviso y checklist del lugar de trabajo.
@@ -43,6 +45,10 @@ export const createNomRouter = (controller: NomController): Router => {
   router.get("/telework/checklists", canRead, asyncHandler(controller.listTeleworkChecklists));
   router.get("/telework/out-of-hours-contacts", canRead, asyncHandler(controller.listOutOfHoursContacts));
   router.post("/telework/out-of-hours-contacts", canWrite, asyncHandler(controller.registerOutOfHoursContact));
+
+  // Aviso de privacidad del cliente: quién lo aceptó y plantilla base.
+  router.get("/privacy/consents", canRead, asyncHandler(controller.privacySummary));
+  router.get("/privacy/template", canRead, asyncHandler(controller.privacyTemplate));
 
   // Configuración NOM del cliente (límites legales + retención).
   router.get("/config", canRead, asyncHandler(controller.getConfig));

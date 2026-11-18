@@ -230,6 +230,8 @@ export const es = {
     MISSING_PUNCH_OUT_OF_RANGE: "Solo puedes pedir checadas de los últimos 31 días y que ya hayan pasado",
     MISSING_PUNCH_ALREADY_REQUESTED: "Ya pediste esa checada para ese día; RH la está revisando",
     MISSING_PUNCH_INVALID: "La solicitud de checada olvidada está incompleta",
+    PRIVACY_NOTICE_NOT_SET: "Tu empresa aún no publica su aviso de privacidad",
+    PRIVACY_NOTICE_VERSION_CHANGED: "El aviso de privacidad cambió mientras lo leías; revisa la versión nueva",
     INVALID_ADJUSTMENT_REASON: "El motivo debe tener entre 5 y 500 caracteres",
     INVALID_ADJUSTMENT_DATE: "La hora propuesta no es una fecha válida",
     INVALID_WORKDAY_LIMIT: "El límite diario debe estar entre {{min}} y {{max}} minutos",

@@ -10,6 +10,7 @@ import type { RemotePunchDto, RemotePunchInput } from "../models/entity/nom.enti
 import type { RemotePunchSource } from "@prisma/client";
 import { assertPunchSequence } from "./punch-sequence";
 import type { NomSettingsService } from "./nom-settings.service";
+import { hasCurrentPrivacyConsent } from "./privacy-notice.service";
 
 type Row = Prisma.RemotePunchGetPayload<Record<string, never>>;
 
@@ -90,8 +91,10 @@ export class RemotePunchService {
       throw new HttpError(403, "PUNCH_CHANNEL_DISABLED");
     }
     if (!config.remotePunchEnabled) throw new HttpError(403, "REMOTE_PUNCH_DISABLED");
-    // Ubicación apagada por el cliente: se descarta aunque el dispositivo la mande.
-    if (!config.remoteGeolocationEnabled) {
+    // Ubicación apagada por el cliente, o la persona no ha aceptado el aviso de
+    // privacidad vigente (consentimiento expreso para datos sensibles): se
+    // descarta aunque el dispositivo la mande. La checada sí se registra.
+    if (!config.remoteGeolocationEnabled || !(await hasCurrentPrivacyConsent(this.db, user.id, config.policy))) {
       input = { ...input, latitude: undefined, longitude: undefined, gpsAccuracyMeters: undefined };
     }
 
