@@ -13,7 +13,7 @@ permite (mismos permisos que la web) y cada ruta vuelve a validar el permiso.
 
 | Paquete (`shared/commonMain`) | Pantallas |
 |---|---|
-| `nom/` | Mi checada (GPS puntual, cola offline cifrada con `clientEventId`), mis marcajes, discrepancias; Mi jornada: teletrabajo, constancia y horas extra, vacaciones y permisos |
+| `nom/` | Mi checada (GPS puntual, cola offline cifrada con `clientEventId`, aviso de privacidad del cliente por aceptar), mis marcajes, discrepancias; Mi jornada: teletrabajo, constancia y horas extra, vacaciones y permisos |
 | `approvals/` | Notificaciones, aprobación de tiempo extra, decisión de vacaciones y permisos |
 | `people/` | Personal (alta, baja, reactivar, ficha), expedientes, departamentos, actas administrativas |
 | `schedules/` | Horarios (editor semanal) y asignación |

@@ -57,6 +57,22 @@ data class TeleworkAccept(val policyVersion: Int, val privacyNoticeVersion: Int)
 @Serializable
 data class ChecklistSubmit(val kind: String, val answers: Map<String, String>)
 
+// ── Aviso de privacidad (todo el personal) ───────────────────────────────
+
+@Serializable
+data class MyPrivacyNotice(
+    /** `null`: el cliente aún no publica su aviso. */
+    val notice: String? = null,
+    val version: Int = 1,
+    val accepted: Boolean = false,
+    val acceptedAt: String? = null,
+) {
+    val pending: Boolean get() = !notice.isNullOrBlank() && !accepted
+}
+
+@Serializable
+data class PrivacyAccept(val version: Int)
+
 // ── Registro de jornada ───────────────────────────────────────────────────
 
 @Serializable
@@ -149,6 +165,10 @@ class WorkerApi(private val client: HttpClient) {
         apiCall { client.post("nom/me/telework/accept") { setBody(TeleworkAccept(policy.policyVersion, policy.privacyNoticeVersion)) } }
     suspend fun submitChecklist(kind: String, answers: Map<String, String>): JsonObject =
         apiCall { client.post("nom/me/telework/checklist") { setBody(ChecklistSubmit(kind, answers)) } }
+
+    suspend fun myPrivacy(): MyPrivacyNotice = apiCall { client.get("nom/me/privacy") }
+    suspend fun acceptPrivacy(version: Int): MyPrivacyNotice =
+        apiCall { client.post("nom/me/privacy/accept") { setBody(PrivacyAccept(version)) } }
 
     /** `null` mientras la persona no ha firmado el acuerdo (el API responde `null`). */
     suspend fun recordAgreement(): RecordAgreement? {

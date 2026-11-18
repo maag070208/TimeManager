@@ -17,7 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -56,6 +61,7 @@ import com.axzydev.checklab.design.Lucide
 import com.axzydev.checklab.design.LucideIcon
 import com.axzydev.checklab.design.Notice
 import com.axzydev.checklab.design.Pill
+import com.axzydev.checklab.design.PrimaryButton
 import kotlinx.coroutines.delay
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -102,6 +108,8 @@ fun ColumnScope.CheckPanel(me: Me, viewModel: MyWorkdayViewModel, compact: Boole
         CardSkeleton(Modifier.fillMaxWidth())
         return
     }
+
+    if (state.privacyPending) PrivacyNoticeCard(state, viewModel)
 
     val last = state.todayTypes.lastOrNull()
     val status = when (last) {
@@ -320,13 +328,72 @@ private fun CheckOptions(state: MyWorkdayState, viewModel: MyWorkdayViewModel) {
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
             Text("Compartir ubicación en este marcaje", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-            Text("Solo se guarda en la checada; no hay rastreo continuo.", color = Brand.Muted, fontSize = 12.sp)
+            Text(
+                if (state.privacyPending) "Acepta el aviso de privacidad para que se guarde tu ubicación."
+                else "Solo se guarda en la checada; no hay rastreo continuo.",
+                color = if (state.privacyPending) Brand.AmberInk else Brand.Muted,
+                fontSize = 12.sp,
+            )
         }
         Switch(
             checked = state.shareLocation,
             onCheckedChange = viewModel::onShareLocation,
             colors = SwitchDefaults.colors(checkedTrackColor = Brand.MintInk),
         )
+    }
+}
+
+private val Lavender = Color(0xFF6D28D9)
+private val LavenderSoft = Color(0x147C3AED)
+
+/** Aviso del cliente por aceptar: se lee aquí mismo, se marca que se leyó y se acepta. */
+@Composable
+private fun PrivacyNoticeCard(state: MyWorkdayState, viewModel: MyWorkdayViewModel) {
+    val privacy = state.privacy ?: return
+    var read by remember(privacy.version) { mutableStateOf(false) }
+    BentoCard(Modifier.fillMaxWidth(), tint = LavenderSoft) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Lucide.ShieldCheck, Lavender, size = 18.dp)
+            Spacer(Modifier.width(8.dp))
+            Eyebrow("Aviso de privacidad de tu empresa", color = Lavender)
+        }
+        Text(
+            "Antes de checar, lee cómo usa tu empresa tus datos: tus checadas y, si aplica, tu huella o rostro y la ubicación al checar.",
+            color = Brand.Ink,
+            fontSize = 14.sp,
+        )
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(max = 260.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Brand.Surface)
+                .border(1.dp, Color(0xFFE9D5FF), RoundedCornerShape(14.dp))
+                .verticalScroll(rememberScrollState())
+                .padding(14.dp)
+                .semantics { contentDescription = "Texto del aviso de privacidad" },
+        ) {
+            Text(privacy.notice.orEmpty(), color = Brand.Ink, fontSize = 13.sp, lineHeight = 19.sp)
+        }
+        Text("Versión ${privacy.version}", color = Brand.Muted, fontSize = 11.sp)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .toggleable(value = read, role = Role.Checkbox, onValueChange = { read = it }),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = read, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = Lavender))
+            Spacer(Modifier.width(4.dp))
+            Text(
+                "Leí el aviso y doy mi consentimiento para el uso de mis datos personales, incluidos los sensibles.",
+                color = Brand.Ink,
+                fontSize = 13.sp,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        PrimaryButton("Aceptar aviso", viewModel::acceptPrivacy, busy = state.busy, enabled = read)
+        Text("Si no lo aceptas puedes checar igual, pero tu ubicación no se guarda.", color = Brand.Muted, fontSize = 12.sp)
     }
 }
 

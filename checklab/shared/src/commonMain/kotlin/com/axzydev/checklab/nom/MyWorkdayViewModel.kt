@@ -7,6 +7,7 @@ import com.axzydev.checklab.core.location.LocationProvider
 import com.axzydev.checklab.core.location.LocationResult
 import com.axzydev.checklab.core.network.ApiException
 import com.axzydev.checklab.core.storage.SecureStore
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,6 +46,8 @@ data class MyWorkdayState(
     /** Falta aceptar el acuerdo de método de registro: el botón acepta y checa en un toque. */
     val agreementPending: Boolean = false,
     val agreementProposal: RecordProposal? = null,
+    /** Aviso de privacidad del cliente; `null` mientras no llega o si el API no lo trae. */
+    val privacy: MyPrivacyNotice? = null,
     val busy: Boolean = false,
     val notice: String? = null,
     val error: String? = null,
@@ -56,6 +59,12 @@ data class MyWorkdayState(
     val next: List<PunchType> get() = nextPunchTypes(todayTypes, lunchEnabled)
 
     fun timeOf(type: PunchType): MyPunch? = today.lastOrNull { it.source == "REMOTE" && it.type == type }
+
+    /** Falta aceptar el aviso vigente: la checada sigue, pero sin ubicación. */
+    val privacyPending: Boolean get() = privacy?.pending == true
+
+    /** Solo se pide la ubicación si el cliente la usa, la persona la comparte y ya aceptó el aviso. */
+    val asksLocation: Boolean get() = geoEnabled && shareLocation && !privacyPending
 
     val lastLocated: MyPunch? get() = history.firstOrNull { it.latitude != null && it.longitude != null }
 
@@ -133,7 +142,10 @@ class MyWorkdayViewModel(
                 val history = api.myPunches(from = from.toString(), to = todayKey.toString(), limit = 300)
                     .sortedByDescending { it.occurredAt }
                 val today = history.filter { dayOf(it.occurredAt) == todayKey.toString() }.sortedBy { it.occurredAt }
-                val settings = runCatching { api.punchSettings() }.getOrNull()
+                val settingsCall = async { runCatching { api.punchSettings() }.getOrNull() }
+                val privacyCall = async { runCatching { worker.myPrivacy() }.getOrNull() }
+                val settings = settingsCall.await()
+                val privacy = privacyCall.await()
                 val agreementPending = settings?.remoteAgreementPending == true
                 val proposal = if (agreementPending) runCatching { worker.recordProposal() }.getOrNull() else null
                 _state.update {
@@ -146,6 +158,7 @@ class MyWorkdayViewModel(
                         canPunch = settings?.canPunchFromApp ?: it.canPunch,
                         agreementPending = settings?.remoteAgreementPending ?: it.agreementPending,
                         agreementProposal = proposal ?: it.agreementProposal,
+                        privacy = privacy ?: it.privacy,
                         punchChannels = settings?.punchChannels?.takeIf { channels -> channels.isNotEmpty() } ?: it.punchChannels,
                         pending = q.pending(),
                         error = rejected.firstOrNull()?.let { e -> "Una checada guardada sin red no se aceptó: ${e.message}" },
@@ -161,6 +174,25 @@ class MyWorkdayViewModel(
     fun onNote(value: String) = _state.update { it.copy(note = value.take(500)) }
     fun onShareLocation(value: Boolean) = _state.update { it.copy(shareLocation = value) }
     fun dismiss() = _state.update { it.copy(notice = null, error = null) }
+
+    /** Acepta la versión del aviso que la persona leyó; si cambió mientras tanto, recarga el texto nuevo. */
+    fun acceptPrivacy() {
+        val s = _state.value
+        val privacy = s.privacy ?: return
+        if (s.busy || !privacy.pending) return
+        _state.update { it.copy(busy = true, notice = null, error = null) }
+        viewModelScope.launch {
+            try {
+                val updated = worker.acceptPrivacy(privacy.version)
+                _state.update { it.copy(privacy = updated, notice = "Aceptaste el aviso de privacidad.") }
+            } catch (e: ApiException) {
+                _state.update { it.copy(error = e.message) }
+                if (!e.isNetwork) refresh()
+            } finally {
+                _state.update { it.copy(busy = false) }
+            }
+        }
+    }
 
     /** Un toque: acepta el acuerdo de método y registra el siguiente paso. */
     fun acceptAgreementAndPunch(location: LocationProvider) {
@@ -196,7 +228,10 @@ class MyWorkdayViewModel(
         viewModelScope.launch {
             try {
                 var locationNote: String? = null
-                val fix = if (s.geoEnabled && s.shareLocation) {
+                if (s.geoEnabled && s.shareLocation && s.privacyPending) {
+                    locationNote = "sin ubicación (falta aceptar el aviso de privacidad)"
+                }
+                val fix = if (s.asksLocation) {
                     when (val r = location.current()) {
                         is LocationResult.Found -> r.fix
                         LocationResult.Denied -> null.also { locationNote = "sin ubicación (no diste permiso)" }

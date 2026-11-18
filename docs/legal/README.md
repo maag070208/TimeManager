@@ -26,5 +26,5 @@ Marco: Ley Federal de Protección de Datos Personales en Posesión de los Partic
 
 1. **No hay dónde leerlos.** Faltan las páginas públicas de términos y aviso de privacidad, y sus enlaces en la landing, el login y la app móvil. Las tiendas de apps (Google Play y App Store) exigen la URL de la política de privacidad para publicar la app.
 2. **El cliente no acepta los términos al darse de alta.** El alta de clientes no registra la aceptación de los términos ni del acuerdo de datos (versión, fecha y quién aceptó).
-3. ~~El personal que checa en reloj nunca ve un aviso de privacidad.~~ **Resuelto (18-nov-2026):** todo el personal acepta el aviso del cliente en Mi jornada antes de checar, con constancia por versión; sin aceptarlo, la checada web/app se guarda sin ubicación. Falta mostrarlo en la app móvil. Ver `docs/modules/nom.md`.
+3. ~~El personal que checa en reloj nunca ve un aviso de privacidad.~~ **Resuelto (18-nov-2026):** todo el personal acepta el aviso del cliente en Mi jornada antes de checar, con constancia por versión; sin aceptarlo, la checada web/app se guarda sin ubicación. La app móvil lo muestra en su panel de checada. Ver `docs/modules/nom.md`.
 4. ~~No hay plantilla en el sistema.~~ **Resuelto:** RH carga la plantilla desde Acuerdos con el personal › Aviso de privacidad y llena lo que va entre corchetes.
