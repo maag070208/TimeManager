@@ -23,6 +23,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 COPY web ./web
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+# Railway pasa el commit como build arg si el Dockerfile lo declara; la web lo
+# muestra en «Acerca de CheckLab» y en el login.
+ARG RAILWAY_GIT_COMMIT_SHA
+ENV RAILWAY_GIT_COMMIT_SHA=$RAILWAY_GIT_COMMIT_SHA
 RUN pnpm --filter timemanager-web run build:prod
 
 

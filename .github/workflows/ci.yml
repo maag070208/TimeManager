@@ -26,6 +26,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm version:check
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm --filter timemanager-api test:unit

@@ -2,11 +2,24 @@ import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import path from "path";
+import { execSync } from "node:child_process";
 import pkg from "./package.json";
+
+/** Commit del build: Railway lo inyecta; en local se lee de git. Vacío si no hay ninguno. */
+const commit = (): string => {
+  const fromEnv = process.env.RAILWAY_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT;
+  if (fromEnv) return fromEnv.slice(0, 7);
+  try {
+    return execSync("git rev-parse --short=7 HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return "";
+  }
+};
 
 export default defineConfig(({ mode }) => ({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_COMMIT__: JSON.stringify(commit()),
   },
   plugins: [tailwindcss(), react()],
   // Cada cliente entra por su subdominio: acme.localhost:5006 en local.

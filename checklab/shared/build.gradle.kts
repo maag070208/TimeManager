@@ -8,6 +8,29 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
+/** `AppVersion` para Android e iOS desde `gradle.properties` (lo escribe `pnpm version:set`). */
+val generateAppVersion = tasks.register("generateAppVersion") {
+    val output = layout.buildDirectory.dir("generated/appVersion/kotlin")
+    inputs.property("version", providers.gradleProperty("checklab.version"))
+    inputs.property("build", providers.gradleProperty("checklab.versionCode"))
+    outputs.dir(output)
+    doLast {
+        val target = output.get().file("com/axzydev/checklab/AppVersion.kt").asFile
+        target.parentFile.mkdirs()
+        target.writeText(
+            """
+            |package com.axzydev.checklab
+            |
+            |/** Generado por `generateAppVersion`; no editar. */
+            |object AppVersion {
+            |    const val VERSION = "${inputs.properties["version"]}"
+            |    const val BUILD = ${inputs.properties["build"]}
+            |}
+            |""".trimMargin(),
+        )
+    }
+}
+
 kotlin {
     listOf(
         iosArm64(),
@@ -38,6 +61,7 @@ kotlin {
         }
     }
     sourceSets {
+        commonMain.get().kotlin.srcDir(generateAppVersion)
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)

@@ -12,7 +12,7 @@ docs/  Documentación del producto (índice en docs/README.md)
 
 La documentación vive en `docs/` y se mantiene junto con el código: `docs/modules/<modulo>.md` es la ficha de cada módulo de `api/src/modules/` (alcance, endpoints, modelos, permisos, notas multi-tenant); si un módulo cambia, su ficha se actualiza en el mismo cambio. `docs/SAAS_PLAN.md` es el plan de escalamiento a SaaS multi-cliente; decisiones pendientes marcadas **[ABIERTA]**.
 
-Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la raíz, paquetes `api` (`timemanager-api`) y `web` (`timemanager-web`), **un solo `pnpm-lock.yaml`**. `pnpm install` siempre desde la raíz. Scripts raíz: `pnpm dev` (ambos), `pnpm dev:api`, `pnpm dev:web`, `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm seed`. Los Dockerfiles se construyen desde la raíz: `docker build -f api/Dockerfile .`.
+Monorepo con **pnpm workspaces**: `package.json` y `pnpm-workspace.yaml` en la raíz, paquetes `api` (`timemanager-api`) y `web` (`timemanager-web`), **un solo `pnpm-lock.yaml`**. `pnpm install` siempre desde la raíz. Una sola versión para API, web y app (`pnpm version:set X.Y.Z`, ver `docs/VERSIONES.md`). Scripts raíz: `pnpm dev` (ambos), `pnpm dev:api`, `pnpm dev:web`, `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm seed`. Los Dockerfiles se construyen desde la raíz: `docker build -f api/Dockerfile .`.
 
 ## API (`api/`)
 

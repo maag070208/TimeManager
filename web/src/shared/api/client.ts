@@ -35,6 +35,8 @@ axiosInstance.interceptors.request.use(
     }
     // Los mensajes de la API vienen en el idioma de la interfaz.
     config.headers["Accept-Language"] = i18n.language;
+    // Soporte ve en el log qué versión de la web hizo la petición.
+    config.headers["X-Client-Version"] = `web/${__APP_VERSION__}`;
     // Personal de plataforma operando sobre un cliente elegido.
     const tenant = getSelectedTenant();
     if (tenant) config.headers["X-Tenant-Id"] = tenant.id;

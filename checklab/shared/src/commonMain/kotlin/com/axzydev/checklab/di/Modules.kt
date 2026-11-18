@@ -51,6 +51,7 @@ fun appModules(apiUrl: String, platform: Module): List<Module> = listOf(
         single { com.axzydev.checklab.clocks.ClocksApi(get()) }
         single { com.axzydev.checklab.clocks.AttendanceApi(get()) }
         single { com.axzydev.checklab.settings.SettingsApi(get()) }
+        single { com.axzydev.checklab.core.network.SystemApi(get()) }
         viewModel { LoginViewModel(get()) }
         viewModel { ChangePasswordViewModel(get()) }
         viewModel { HomeViewModel(get()) }
@@ -59,7 +60,7 @@ fun appModules(apiUrl: String, platform: Module): List<Module> = listOf(
         viewModel { NotificationsViewModel(get(), get()) }
         viewModel { OvertimeApprovalViewModel(get(), get<SessionRepository>()::today) }
         viewModel { LeaveApprovalViewModel(get()) }
-        viewModel { ProfileViewModel(get()) }
+        viewModel { ProfileViewModel(get(), get()) }
         viewModel { PeopleViewModel(get()) }
         viewModel { EmployeeViewModel(get()) }
         viewModel { RecordsViewModel(get()) }

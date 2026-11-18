@@ -60,7 +60,8 @@
     "peopleGroup": "Personal",
     "staffList": "Empleados",
     "attendanceGroup": "Asistencia",
-    "schedulesGroup": "Horarios y nómina"
+    "schedulesGroup": "Horarios y nómina",
+    "about": "Acerca de CheckLab"
   },
   "files": {
     "access": "accesos",
@@ -159,5 +160,17 @@
   "loading": "Cargando…",
   "page": {
     "description": "Consulta y administra la información de {{title}}."
+  },
+  "about": {
+    "title": "Acerca de CheckLab",
+    "lead": "Versión de cada parte del sistema. Si soporte te la pide, comparte esta pantalla.",
+    "web": "Web",
+    "api": "Servidor (API)",
+    "app": "App móvil",
+    "appHint": "Se ve en la app, en Mi perfil.",
+    "commit": "build {{commit}}",
+    "unknown": "No disponible",
+    "mismatch": "La web y el servidor tienen versiones distintas. Recarga la página; si sigue igual, avísale a soporte.",
+    "close": "Cerrar"
   }
 }

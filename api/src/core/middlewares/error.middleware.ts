@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Prisma } from "@prisma/client";
 import { logger } from "../utils/logger";
+import { clientVersionOf } from "../config/version";
 import { ZodError } from "zod";
 import {
   currentLanguage,
@@ -122,7 +123,8 @@ const send = (
 
 /** Línea de log de un error técnico: el código de soporte primero para buscarlo. */
 const logTechnical = (req: Request, code: ErrorCode, detail: string): void => {
-  logger.error(`[${SUPPORT_CODES[code] ?? code}] ${req.method} ${req.path} → ${detail}`);
+  const client = clientVersionOf(req.headers["x-client-version"]);
+  logger.error(`[${SUPPORT_CODES[code] ?? code}] ${req.method} ${req.path}${client ? ` (${client})` : ""} → ${detail}`);
 };
 
 export const notFoundMiddleware = (req: Request, res: Response, _next: NextFunction): void => {

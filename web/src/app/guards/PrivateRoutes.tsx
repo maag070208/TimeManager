@@ -21,6 +21,7 @@ import { setTenantBrand } from "@shared/lib/tenantBrand";
 import { setDefaultTimeZone } from "@shared/utils/dates";
 import logoUrl from "@shared/assets/brand/checklab-logo-for-light-bg.svg";
 import symbolUrl from "@shared/assets/brand/checklab-symbol-for-light-bg.svg";
+import { AboutDialog } from "@features/about/app-versions";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 /** Navegar desde el menú reinicia la memoria de migajas. */
@@ -45,6 +46,7 @@ export default function PrivateRoutes() {
   const { channels: punchChannels } = usePunchChannels();
   const unreadCount = useSelector((s: RootState) => s.notifications.unreadCount);
   const [toast, setToast] = useState<string | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const { platformWithoutClient } = useClientContext();
   const tenantTimezone = user?.tenant?.timezone ?? getSelectedTenant()?.timezone;
   useEffect(() => {
@@ -341,6 +343,7 @@ export default function PrivateRoutes() {
                 : tt("nav.notifications"),
             onClick: () => navigate("/notifications"),
           },
+          { label: tt("nav.about"), onClick: () => setAboutOpen(true) },
           { label: tt("nav.logout"), onClick: handleLogout },
         ],
       }
@@ -354,6 +357,7 @@ export default function PrivateRoutes() {
           <Outlet />
         </Suspense>
       </ITLayout>
+      <AboutDialog isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
       {toast && (
         <ITToast
           message={toast}

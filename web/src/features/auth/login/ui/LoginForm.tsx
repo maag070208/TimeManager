@@ -193,7 +193,7 @@ export default function LoginForm({
 
           <footer className="login-muted mt-8 flex items-center justify-between text-[11.5px]">
             <ITText as="span">{tt("login.footer")}</ITText>
-            <ITText as="span" className="font-medium">v{__APP_VERSION__}</ITText>
+            <ITText as="span" className="font-medium">v{__APP_VERSION__}{__APP_COMMIT__ ? ` · ${__APP_COMMIT__}` : ""}</ITText>
           </footer>
           <div className="mt-6 text-center">
             <Link to="/landing" className="login-muted text-[12px] font-semibold underline-offset-4 hover:underline">

@@ -28,8 +28,9 @@ android {
         applicationId = "com.axzydev.checklab"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        // Una sola versión para API, web y app: `pnpm version:set` (docs/VERSIONES.md).
+        versionCode = providers.gradleProperty("checklab.versionCode").get().toInt()
+        versionName = providers.gradleProperty("checklab.version").get()
         // URL del API por build. Emulador: 10.0.2.2 es el localhost de la Mac.
         // Teléfono físico: -Pchecklab.apiUrl=http://<ip-de-la-mac>:4021/api/v1
         val apiUrl = (project.findProperty("checklab.apiUrl") as String?) ?: "http://10.0.2.2:4021/api/v1"

@@ -30,6 +30,7 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 - Las fichas marcan el estado del módulo frente al SaaS: **núcleo RH** (entra al producto), **soporte** (necesario pero transversal) o **pendiente SaaS** (requiere trabajo de aislamiento por cliente).
 - Los requisitos normativos marcados "por validar" en `RH_MODULO_STANDALONE.md` no se dan por cerrados hasta confirmarlos contra el DOF / STPS.
 - [Códigos de error para soporte (AX)](CODIGOS_DE_ERROR.md)
+- [Versiones de API, web y app](VERSIONES.md)
 - [Matriz QA integral](QA_MATRIX.md)
 - [Pruebas de flujos completos](PRUEBAS_FLUJOS.md)
 - [Revisión legal de acuerdos](LEGAL_REVISION_ACUERDOS.md)

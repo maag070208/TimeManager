@@ -16,3 +16,5 @@ declare module "*.css" {
 }
 
 declare const __APP_VERSION__: string;
+/** Commit corto del build; vacío si no se pudo saber. */
+declare const __APP_COMMIT__: string;

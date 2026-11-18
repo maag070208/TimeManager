@@ -1,5 +1,7 @@
 package com.axzydev.checklab.auth
 
+import com.axzydev.checklab.core.network.SystemApi
+import com.axzydev.checklab.AppVersion
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -56,11 +58,20 @@ data class ProfileState(
     val busy: Boolean = false,
     val notice: String? = null,
     val error: String? = null,
+    /** Versión del servidor; `null` mientras llega o si no se pudo leer. */
+    val apiVersion: String? = null,
 )
 
-class ProfileViewModel(private val session: SessionRepository) : ViewModel() {
+class ProfileViewModel(private val session: SessionRepository, private val system: SystemApi) : ViewModel() {
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val health = runCatching { system.health() }.getOrNull()
+            _state.update { it.copy(apiVersion = health?.version?.let { v -> "v$v" + (health.commit?.let { c -> " · $c" } ?: "") }) }
+        }
+    }
 
     fun onCurrent(v: String) = _state.update { it.copy(current = v, error = null, notice = null) }
     fun onNext(v: String) = _state.update { it.copy(next = v, error = null, notice = null) }
@@ -160,6 +171,13 @@ fun ColumnScope.ProfileContent(me: Me, vm: ProfileViewModel = koinViewModel()) {
         InfoRow("Usuario", me.username)
         me.email?.let { InfoRow("Correo", it) }
         InfoRow("Rol", me.roles.ifEmpty { listOf(me.role) }.joinToString(", ") { ROLE_NAMES[it] ?: it })
+    }
+
+    BentoCard(Modifier.fillMaxWidth()) {
+        Eyebrow("Acerca de CheckLab")
+        InfoRow("App", "v${AppVersion.VERSION} (build ${AppVersion.BUILD})")
+        InfoRow("Servidor", state.apiVersion ?: "No disponible")
+        Text("Si soporte te la pide, comparte esta tarjeta.", color = Brand.Muted, fontSize = 12.sp)
     }
 
     BentoCard(Modifier.fillMaxWidth()) {

@@ -1,5 +1,6 @@
 package com.axzydev.checklab.core.network
 
+import com.axzydev.checklab.AppVersion
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -54,6 +55,8 @@ fun createHttpClient(baseUrl: String, tokens: TokenProvider, engine: HttpClientE
         defaultRequest {
             url(baseUrl.trimEnd('/') + "/")
             contentType(ContentType.Application.Json)
+            // Soporte ve en el log qué versión de la app hizo la petición.
+            header("X-Client-Version", "app/${AppVersion.VERSION} (${AppVersion.BUILD})")
         }
     }
     val client = if (engine != null) HttpClient(engine, config) else HttpClient(config)

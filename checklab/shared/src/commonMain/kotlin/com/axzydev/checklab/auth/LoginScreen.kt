@@ -424,7 +424,7 @@ private fun Footer() {
     Spacer(Modifier.height(28.dp))
     Row(Modifier.fillMaxWidth()) {
         Text("CheckLab · Control de asistencia", color = LoginColors.Muted, fontSize = 12.5.sp, modifier = Modifier.weight(1f))
-        Text("v1.0", color = LoginColors.Muted, fontSize = 12.5.sp, fontWeight = FontWeight.Medium)
+        Text("v${com.axzydev.checklab.AppVersion.VERSION}", color = LoginColors.Muted, fontSize = 12.5.sp, fontWeight = FontWeight.Medium)
     }
 }
 

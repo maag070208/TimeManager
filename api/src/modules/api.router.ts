@@ -26,6 +26,7 @@ import { registerPath } from "@core/swagger/registry";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { PhotoTokenError, assertPhotoToken } from "@core/utils/security";
+import { API_COMMIT, API_VERSION } from "@core/config/version";
 
 const authRouter = createAuthModule();
 const { departmentRouter, subareaRouter } = createDepartmentModule();
@@ -150,7 +151,8 @@ apiRouter.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     service: "timemanager-api",
-    version: "1.0.0",
+    version: API_VERSION,
+    commit: API_COMMIT,
     uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
     ts: new Date().toISOString(),
   });

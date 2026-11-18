@@ -60,7 +60,8 @@
     "peopleGroup": "People",
     "staffList": "Employees",
     "attendanceGroup": "Attendance",
-    "schedulesGroup": "Schedules & payroll"
+    "schedulesGroup": "Schedules & payroll",
+    "about": "About CheckLab"
   },
   "files": {
     "access": "access",
@@ -159,5 +160,17 @@
   "loading": "Loading…",
   "page": {
     "description": "View and manage the information for {{title}}."
+  },
+  "about": {
+    "title": "About CheckLab",
+    "lead": "Version of each part of the system. If support asks for it, share this screen.",
+    "web": "Web",
+    "api": "Server (API)",
+    "app": "Mobile app",
+    "appHint": "Shown in the app, under My profile.",
+    "commit": "build {{commit}}",
+    "unknown": "Not available",
+    "mismatch": "The web and the server have different versions. Reload the page; if it stays the same, let support know.",
+    "close": "Close"
   }
 }
