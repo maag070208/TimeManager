@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ITButton } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { useTranslation } from "react-i18next";
-import { LuCalendarCheck, LuClock, LuCoffee, LuFileText, LuLaptop, LuLogIn, LuLogOut, LuRefreshCw, LuUtensils } from "react-icons/lu";
+import { LuCalendarCheck, LuClock, LuFileText, LuLaptop, LuRefreshCw } from "react-icons/lu";
 import { isRemotePunchSource, type PunchType } from "@entities/nom";
 import { useTenantTimezone } from "@entities/user";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
-import { BentoKpiGrid, type BentoKpiItem } from "@shared/ui/bento-filter-cards";
 import { TabBar, type TabBarItem } from "@shared/ui/tab-bar";
 import {
   ErrorNote,
@@ -117,7 +116,7 @@ export default function MyWorkdayPage() {
 
   return (
     <ITPage
-      className="m-0! min-w-full! p-0! px-8! pb-12!"
+      className="m-0! min-w-full! p-0! px-4! sm:px-8! pb-12!"
       noPadding
       title={t("title")}
       description={t("description")}
@@ -153,24 +152,6 @@ export default function MyWorkdayPage() {
       )}
       <PendingAgreements tr={tr} wc={wc} hideMethod={agreementLocked && tab === "checada"} />
 
-      <div className={tab === "checada" ? "" : "hidden"}>
-        <BentoKpiGrid
-          items={(
-            [
-              { id: "entry", type: "ENTRY", icon: <LuLogIn size={14} />, tone: "success" },
-              { id: "lunch-start", type: "LUNCH_START", icon: <LuUtensils size={14} />, tone: "warning" },
-              { id: "lunch-end", type: "LUNCH_END", icon: <LuCoffee size={14} />, tone: "info" },
-              { id: "exit", type: "EXIT", icon: <LuLogOut size={14} />, tone: "neutral" },
-            ] as const
-          )
-            .filter((step) => lunchEnabled || (step.type !== "LUNCH_START" && step.type !== "LUNCH_END"))
-            .map((step): BentoKpiItem => {
-              const time = timeByType(step.type);
-              return { id: step.id, label: PUNCH_LABEL[step.type], value: time ?? "—", caption: time ? "Registrada" : "Pendiente", icon: step.icon, tone: step.tone };
-            })}
-        />
-      </div>
-
       <div className="mt-4 grid grid-cols-1 items-start gap-4 pb-12 lg:grid-cols-12">
         {fx.error && (
           <div className="lg:col-span-12">
@@ -188,6 +169,9 @@ export default function MyWorkdayPage() {
               clock={timeOf(now.toISOString(), timezone)}
               status={{ label: statusLabel[lastType ?? "none"], tone: statusTone }}
               labels={PUNCH_LABEL}
+              steps={(["ENTRY", "LUNCH_START", "LUNCH_END", "EXIT"] as const)
+                .filter((type) => lunchEnabled || (type !== "LUNCH_START" && type !== "LUNCH_END"))
+                .map((type) => ({ type, time: timeByType(type) }))}
               nextTypes={nextTypes}
               canPunch={canPunch}
               hasClock={hasClock}

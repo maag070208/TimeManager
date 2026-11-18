@@ -77,6 +77,14 @@ export const DiscrepancyCreateDto = z
   })
   .strict();
 
+export const MissingPunchCreateDto = z
+  .object({
+    type: z.enum(["ENTRY", "LUNCH_START", "LUNCH_END", "EXIT"]),
+    occurredAt: isoDate,
+    reason: z.string().trim().min(5).max(500),
+  })
+  .strict();
+
 export const PunchQueryDto = z
   .object({
     from: z

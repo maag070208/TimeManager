@@ -159,6 +159,11 @@ export const nomApi = {
     expectedOccurredAt?: string;
   }) => api.post<{ id: string }>(`${base}/me/discrepancies`, input),
 
+  reportMissingPunch: (input: { type: PunchType; occurredAt: string; reason: string }) =>
+    api.post<PunchAdjustment>(`${base}/me/missing-punches`, input),
+
+  myDiscrepancies: () => api.get<PunchAdjustment[]>(`${base}/me/discrepancies`),
+
   adjustments: (status?: "PENDING" | "APPROVED" | "REJECTED") =>
     api.get<PunchAdjustment[]>(`${base}/adjustments`, { params: status ? { status } : undefined }),
   decideAdjustment: (id: string, approve: boolean, note?: string) =>

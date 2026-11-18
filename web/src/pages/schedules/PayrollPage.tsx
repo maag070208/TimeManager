@@ -28,7 +28,7 @@ export default function PayrollPage() {
       maxWidth="7xl"
       breadcrumbs={[
         { label: t("common:breadcrumbs.home"), onClick: () => navigate("/") },
-        { label: t("common:nav.hr"), onClick: () => navigate("/employees") },
+        { label: t("common:nav.schedulesGroup"), onClick: () => navigate("/schedules") },
         { label: t("title") },
       ]}
       backAction={() => goBack("/employees")}

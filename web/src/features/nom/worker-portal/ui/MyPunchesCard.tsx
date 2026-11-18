@@ -1,14 +1,20 @@
-import { Fragment, useMemo, useState } from "react";
-import { ITBadget, ITButton, ITCard, ITDatePicker, ITDialog, ITFlex, ITText, ITTextarea, ITTimePicker } from "@axzydev/axzy_ui_system";
-import { LuCalendarCheck, LuMapPin } from "react-icons/lu";
-import { isRemotePunchSource, type MyPunch, type PunchSource, type PunchType } from "@entities/nom";
+import { Fragment, useMemo, useState, type ReactNode } from "react";
+import { ITBadget, ITButton, ITCard, ITDatePicker, ITDialog, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { LuCalendarCheck, LuCircleCheck, LuCircleX, LuHourglass, LuMapPin, LuPencil } from "react-icons/lu";
+import { isRemotePunchSource, type MyPunch, type PunchAdjustment, type PunchSource, type PunchType } from "@entities/nom";
 import { DialogHeader } from "@shared/ui/dialog-header";
 import { LocationMap } from "@shared/ui/location-map";
 import type { useMyWorkday } from "../model/useMyWorkday";
 import { useTenantTimezone } from "@entities/user";
-import { dateOf, dateStrToLocal, dayLabelOf, localToDateStr, sameDay, timeOf as timeIn, zonedIso, type PortalCardProps } from "./format";
-import { dateKeyInTimeZone } from "@shared/utils/dates";
+import { dateOf, dateStrToLocal, dayLabelOf, localToDateStr, sameDay, timeOf as timeIn, type PortalCardProps } from "./format";
+import { CorrectionRequestForm } from "./CorrectionRequestForm";
 import { CardHeader } from "./shared";
+
+const CORRECTION_STYLE: Record<PunchAdjustment["status"], { bg: string; fg: string; icon: ReactNode }> = {
+  PENDING: { bg: "#fffbeb", fg: "#b45309", icon: <LuHourglass size={11} /> },
+  APPROVED: { bg: "#ecfdf5", fg: "#047857", icon: <LuCircleCheck size={11} /> },
+  REJECTED: { bg: "#fff1f2", fg: "#be123c", icon: <LuCircleX size={11} /> },
+};
 
 const SOURCE_LABEL: Record<PunchSource, string> = {
   CLOCK: "sourceClock",
@@ -23,15 +29,13 @@ interface Props extends PortalCardProps {
   labels: Record<PunchType, string>;
 }
 
-/** Mis marcajes: lista por día, ubicación de cada checada y reporte de discrepancia. */
+/** Mis marcajes: lista por día, ubicación de cada checada y una sola entrada para pedir correcciones. */
 export const MyPunchesCard = ({ className, tr, fx, labels: PUNCH_LABEL }: Props) => {
   const t = tr;
   const timezone = useTenantTimezone();
   const timeOf = (iso: string) => timeIn(iso, timezone);
   const [mapPunch, setMapPunch] = useState<MyPunch | null>(null);
-  const [selectedPunch, setSelectedPunch] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
-  const [correctTime, setCorrectTime] = useState("");
+  const [requesting, setRequesting] = useState(false);
 
   const punchDays = useMemo(() => {
     const days = new Map<string, MyPunch[]>();
@@ -44,23 +48,23 @@ export const MyPunchesCard = ({ className, tr, fx, labels: PUNCH_LABEL }: Props)
     return [...days.entries()];
   }, [fx.punches, tr, timezone]);
 
-  const submitDiscrepancy = async () => {
-    if (!selectedPunch || reason.trim().length < 5) return;
-    const punch = fx.punches.find((row) => row.id === selectedPunch);
-    const expected =
-      punch && correctTime ? zonedIso(dateKeyInTimeZone(new Date(punch.occurredAt), timezone), correctTime, timezone) : undefined;
-    if (await fx.reportDiscrepancy(selectedPunch, reason.trim(), expected)) {
-      setSelectedPunch(null);
-      setReason("");
-      setCorrectTime("");
-    }
-  };
-
   return (
     <>
       <ITCard className={`tm-hero-card tm-hero-card--sky ${className ?? ""}`} contentClassName="!p-4 sm:!p-5">
         <ITFlex direction="column" gap={3}>
           <CardHeader icon={<LuCalendarCheck size={16} />} title={t("punches.title")} />
+          {requesting ? (
+            <CorrectionRequestForm tr={tr} fx={fx} labels={PUNCH_LABEL} onClose={() => setRequesting(false)} />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setRequesting(true)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-[13px] font-bold transition hover:brightness-95"
+              style={{ backgroundColor: "#fffbeb", color: "#b45309", border: "1px solid #fde68a" }}
+            >
+              <LuPencil size={14} /> {t("request.open")}
+            </button>
+          )}
           <div className="min-w-0">
             <ITDatePicker
               name="punchesRange"
@@ -108,54 +112,48 @@ export const MyPunchesCard = ({ className, tr, fx, labels: PUNCH_LABEL }: Props)
                               <LuMapPin size={12} />
                             </ITButton>
                           )}
-                          {row.source !== "ACCESS" && (
-                            <ITButton
-                              variant="text"
-                              color="secondary"
-                              size="sm"
-                              className="!h-7 !min-h-7 !border-0 !bg-slate-100 !px-2 !text-[11px] !text-slate-600"
-                              aria-label={`${t("punches.report")} · ${timeOf(row.occurredAt)}`}
-                              onClick={() => {
-                                setSelectedPunch(selectedPunch === row.id ? null : row.id);
-                                setReason("");
-                              }}
-                            >
-                              {t("punches.reportShort")}
-                            </ITButton>
-                          )}
                         </div>
                       </div>
-                      {selectedPunch === row.id && (
-                        <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3">
-                          <ITTimePicker name="correctTime" label={t("discrepancy.correctTime")} value={correctTime} onChange={(event) => setCorrectTime(event.target.value)} />
-                          <ITTextarea
-                            name="reason"
-                            label={t("discrepancy.reason")}
-                            value={reason}
-                            onChange={(value) => setReason(value)}
-                            rows={2}
-                          />
-                          {reason.trim().length < 5 && <ITText muted className="!text-[11px]">{t("discrepancy.reasonMin")}</ITText>}
-                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            <ITButton
-                              variant="filled"
-                              color="primary"
-                              className="w-full"
-                              disabled={fx.busy || reason.trim().length < 5}
-                              onClick={() => void submitDiscrepancy()}
-                            >
-                              {t("discrepancy.send")}
-                            </ITButton>
-                            <ITButton variant="outlined" color="secondary" className="w-full" onClick={() => setSelectedPunch(null)}>
-                              {t("cancel")}
-                            </ITButton>
-                          </div>
-                        </div>
-                      )}
                     </Fragment>
                   ))}
                 </Fragment>
               ))}
+            </div>
+          )}
+
+          {fx.corrections.length > 0 && (
+            <div className="flex flex-col gap-1.5 border-t pt-3" style={{ borderColor: "#eef1f5" }}>
+              <ITText className="!text-[11px] font-semibold uppercase tracking-[0.06em] !text-slate-500">{t("corrections.title")}</ITText>
+              {fx.corrections.slice(0, 5).map((row) => {
+                const style = CORRECTION_STYLE[row.status];
+                const before = typeof row.previousState.occurredAt === "string" ? row.previousState.occurredAt : null;
+                const after = typeof row.newState.occurredAt === "string" ? row.newState.occurredAt : null;
+                const missingType = row.targetType === "MISSING" ? (row.newState.type as PunchType | undefined) : undefined;
+                return (
+                  <div key={row.id} className="flex flex-col gap-1 rounded-xl bg-white/80 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      {missingType && after ? (
+                        <span className="text-[12px] font-bold tabular-nums text-slate-800">
+                          {t("corrections.missingLabel", { type: PUNCH_LABEL[missingType], date: dateOf(after), time: timeOf(after) })}
+                        </span>
+                      ) : (
+                      <span className="text-[12px] font-bold tabular-nums text-slate-800">
+                        {before ? `${dateOf(before)} · ${timeOf(before)}` : "—"}
+                        <span className="font-semibold text-slate-500">
+                          {" · "}
+                          {after && after !== before ? t("corrections.proposed", { time: timeOf(after) }) : t("corrections.noTime")}
+                        </span>
+                      </span>
+                      )}
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ backgroundColor: style.bg, color: style.fg }}>
+                        {style.icon} {t(`corrections.status.${row.status}`)}
+                      </span>
+                    </div>
+                    <span className="line-clamp-2 text-[11.5px] text-slate-500">{row.reason}</span>
+                    {row.decisionNote && <span className="text-[11.5px] text-slate-600">{t("corrections.note", { note: row.decisionNote })}</span>}
+                  </div>
+                );
+              })}
             </div>
           )}
         </ITFlex>

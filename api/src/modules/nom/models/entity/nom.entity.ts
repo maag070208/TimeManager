@@ -101,7 +101,9 @@ export interface AdjustmentDecisionInput {
 
 export interface AdjustmentDto {
   id: string;
-  punchId: string;
+  /** `MISSING`: checada olvidada; `punchId` es el marcaje creado al aprobarse (null mientras tanto). */
+  targetType: "CLOCK" | "REMOTE" | "ACCESS" | "MISSING";
+  punchId: string | null;
   status: PunchAdjustmentStatus;
   reason: string;
   previousState: Record<string, unknown>;

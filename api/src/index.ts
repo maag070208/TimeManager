@@ -68,14 +68,22 @@ if (process.env.NODE_ENV === "test") {
 } else {
   void (async () => {
     // Catálogo y matriz de permisos: la BD manda. Se siembran insert-missing
-    // desde los fixtures (sin pisar ediciones) y se cargan en cache. Si falla,
-    // la API arranca con catálogo/matriz vacíos: todo queda cerrado (fail-closed).
-    try {
-      await seedPermissionsFromFixtures(prismaClient);
-    } catch (error) {
-      logger.error(
-        `Could not load the permission catalog/matrix; the API starts without permissions (everything 403): ${error}`
-      );
+    // desde los fixtures (sin pisar ediciones) y se cargan en cache. No se
+    // escucha hasta tenerlos: con la matriz vacía toda petición respondería 403
+    // (fail-closed) hasta el siguiente reinicio, así que una BD que tarda en
+    // responder se reintenta con espera creciente.
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        await seedPermissionsFromFixtures(prismaClient);
+        if (attempt > 1) logger.info(`[api] permission catalog/matrix loaded on attempt ${attempt}`);
+        break;
+      } catch (error) {
+        const delayMs = Math.min(30_000, 1_000 * 2 ** (attempt - 1));
+        logger.error(
+          `Could not load the permission catalog/matrix (attempt ${attempt}); retrying in ${delayMs / 1000}s: ${error}`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
     listen();
 

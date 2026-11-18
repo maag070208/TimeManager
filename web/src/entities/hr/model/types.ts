@@ -201,3 +201,35 @@ export interface EmployeeOverview {
   documents: Array<{ id: string; name: string; type: string; uploadedAt: string }>;
   punches: Array<{ id: string; occurredAt: string; method: string; clock: string | null; source?: "WEB" | "APP" | "CLOCK" }>;
 }
+
+/** Corrección ligada a una checada (la checada es inmutable; se corrige por ajuste). */
+export interface PunchHistoryAdjustment {
+  id: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | string;
+  reason: string;
+  proposedAt: string | null;
+  decisionNote: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+/** Checada con todo su detalle (`GET /hr/:id/punches`). */
+export interface PunchHistoryEntry {
+  id: string;
+  occurredAt: string;
+  source: "CLOCK" | "WEB" | "APP";
+  type: "ENTRY" | "LUNCH_START" | "LUNCH_END" | "EXIT" | null;
+  method: "FACE" | "FINGERPRINT" | "CARD" | "OTHER" | null;
+  clock: string | null;
+  workMode: "PRESENCIAL" | "HIBRIDO" | "REMOTO" | "CAMPO" | null;
+  location: { latitude: number; longitude: number; gpsAccuracyMeters: number | null } | null;
+  clientReportedAt: string | null;
+  note: string | null;
+  receivedAt: string;
+  adjustments: PunchHistoryAdjustment[];
+}
+
+export interface EmployeePunchHistory {
+  range: { from: string; to: string; timezone: string };
+  punches: PunchHistoryEntry[];
+}

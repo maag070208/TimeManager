@@ -603,6 +603,17 @@ main:has(.fixed.inset-0) {
   z-index: 60 !important;
 }
 
+/* Botón de checada: halo que late para que se note que hay que tocarlo. */
+@keyframes tm-punch-cta {
+  0% { box-shadow: 0 10px 24px -14px var(--tm-cta), 0 0 0 0 color-mix(in srgb, var(--tm-cta) 45%, transparent); }
+  70% { box-shadow: 0 10px 24px -14px var(--tm-cta), 0 0 0 12px color-mix(in srgb, var(--tm-cta) 0%, transparent); }
+  100% { box-shadow: 0 10px 24px -14px var(--tm-cta), 0 0 0 0 color-mix(in srgb, var(--tm-cta) 0%, transparent); }
+}
+.tm-punch-cta { animation: tm-punch-cta 1.8s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tm-punch-cta { animation: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-cta) 30%, transparent); }
+}
+
 /* Avance de la checada: franja que recorre el borde inferior del botón. */
 @keyframes tm-punch-progress {
   from {

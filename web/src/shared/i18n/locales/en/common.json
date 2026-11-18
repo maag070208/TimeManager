@@ -41,7 +41,7 @@
     "accessTimeClockRoster": "Clock roster",
     "clockDashboard": "Clock dashboard",
     "schedules": "Schedules",
-    "schedulesAdmin": "Calendar",
+    "schedulesAdmin": "Schedule calendar",
     "schedulesAssign": "Assign schedules",
     "overtime": "Overtime",
     "weeklyAttendance": "Weekly attendance",
@@ -51,12 +51,16 @@
     "myWorkday": "My workday",
     "telework": "Telework (NOM-037)",
     "generalSettings": "System settings",
-    "leave": "Vacation",
+    "leave": "Leave",
     "workdayAgreements": "Agreements",
-    "payrollSettings": "Payroll",
+    "payrollSettings": "Payroll settings",
     "clients": "Clients",
     "platform": "Platform",
-    "audit": "Audit log"
+    "audit": "Audit log",
+    "peopleGroup": "People",
+    "staffList": "Employees",
+    "attendanceGroup": "Attendance",
+    "schedulesGroup": "Schedules & payroll"
   },
   "files": {
     "access": "access",

@@ -1,8 +1,46 @@
 import type { PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { DEFAULT_TIMEZONE, endOfLocalDay, isValidDateKey, localDateKey, startOfLocalDay } from "@core/utils/timezone";
+import { tenantTimezone } from "@core/utils/tenant-timezone";
+import { openLocation } from "@modules/nom/services/punch-location";
 
 const DAY_MS = 86_400_000;
+const HISTORY_DEFAULT_DAYS = 14;
+const HISTORY_MAX_DAYS = 92;
+
+const ADJUSTMENT_SELECT = {
+  id: true,
+  status: true,
+  reason: true,
+  newState: true,
+  decisionNote: true,
+  createdAt: true,
+  decidedAt: true,
+} as const;
+
+type AdjustmentRow = {
+  id: string;
+  status: string;
+  reason: string;
+  newState: unknown;
+  decisionNote: string | null;
+  createdAt: Date;
+  decidedAt: Date | null;
+};
+
+const adjustmentDto = (row: AdjustmentRow) => {
+  const proposed = (row.newState ?? {}) as { occurredAt?: unknown };
+  return {
+    id: row.id,
+    status: row.status,
+    reason: row.reason,
+    proposedAt: typeof proposed.occurredAt === "string" ? proposed.occurredAt : null,
+    decisionNote: row.decisionNote,
+    createdAt: row.createdAt.toISOString(),
+    decidedAt: row.decidedAt?.toISOString() ?? null,
+  };
+};
 
 const fullName = (user: {
   name: string;
@@ -187,5 +225,106 @@ export class EmployeeOverviewService {
         source: punch.source,
       })),
     };
+  }
+
+  /**
+   * Historial detallado de checadas de una persona en `[from, to]` (días
+   * locales del cliente): reloj, web y app mezclados, con tipo, modalidad,
+   * ubicación descifrada, hora del dispositivo y correcciones. Por defecto los
+   * últimos 14 días; máximo 92.
+   */
+  async punchHistory(userId: string, query: { from?: unknown; to?: unknown }) {
+    const user = await this.db.user.findUnique({ where: { id: userId }, select: { id: true, employeeNumber: true } });
+    if (!user) throw new HttpError(404, "USER_NOT_FOUND");
+
+    const timezone = (await tenantTimezone()) ?? DEFAULT_TIMEZONE;
+    const today = localDateKey(new Date(), timezone);
+    const to = isValidDateKey(query.to) ? query.to : today;
+    const from = isValidDateKey(query.from)
+      ? query.from
+      : localDateKey(new Date(startOfLocalDay(to, timezone).getTime() - (HISTORY_DEFAULT_DAYS - 1) * DAY_MS + DAY_MS / 2), timezone);
+    if (from > to) throw new HttpError(400, "INVALID_RANGE");
+    const start = startOfLocalDay(from, timezone);
+    const end = endOfLocalDay(to, timezone);
+    if (end.getTime() - start.getTime() > HISTORY_MAX_DAYS * DAY_MS) throw new HttpError(400, "PUNCH_HISTORY_RANGE_TOO_LONG");
+
+    const clockLink = await this.db.timeClockEmployee.findFirst({ where: { userId }, select: { employeeNumber: true } });
+    const employeeNumber = clockLink?.employeeNumber ?? user.employeeNumber ?? null;
+
+    const [clockPunches, remotePunches] = await Promise.all([
+      employeeNumber
+        ? this.db.timeClockPunch.findMany({
+            where: { employeeNumber, occurredAt: { gte: start, lt: end } },
+            select: {
+              id: true,
+              occurredAt: true,
+              method: true,
+              clockSerial: true,
+              createdAt: true,
+              adjustments: { select: ADJUSTMENT_SELECT, orderBy: { createdAt: "desc" } },
+            },
+            orderBy: { occurredAt: "desc" },
+          })
+        : [],
+      this.db.remotePunch.findMany({
+        where: { userId, occurredAt: { gte: start, lt: end } },
+        select: {
+          id: true,
+          type: true,
+          source: true,
+          workMode: true,
+          occurredAt: true,
+          clientReportedAt: true,
+          location: true,
+          latitude: true,
+          longitude: true,
+          gpsAccuracyMeters: true,
+          note: true,
+          createdAt: true,
+          adjustments: { select: ADJUSTMENT_SELECT, orderBy: { createdAt: "desc" } },
+        },
+        orderBy: { occurredAt: "desc" },
+      }),
+    ]);
+
+    const serials = [...new Set(clockPunches.map((punch) => punch.clockSerial))];
+    const clocks =
+      serials.length > 0
+        ? await this.db.timeClock.findMany({ where: { serialNumber: { in: serials } }, select: { serialNumber: true, name: true } })
+        : [];
+    const clockName = new Map(clocks.map((clock) => [clock.serialNumber, clock.name]));
+
+    const punches = [
+      ...clockPunches.map((punch) => ({
+        id: punch.id,
+        occurredAt: punch.occurredAt.toISOString(),
+        source: "CLOCK" as const,
+        type: null,
+        method: punch.method as string,
+        clock: clockName.get(punch.clockSerial) ?? punch.clockSerial,
+        workMode: null,
+        location: null,
+        clientReportedAt: null,
+        note: null,
+        receivedAt: punch.createdAt.toISOString(),
+        adjustments: punch.adjustments.map(adjustmentDto),
+      })),
+      ...remotePunches.map((punch) => ({
+        id: punch.id,
+        occurredAt: punch.occurredAt.toISOString(),
+        source: punch.source,
+        type: punch.type,
+        method: null,
+        clock: null,
+        workMode: punch.workMode,
+        location: openLocation(punch),
+        clientReportedAt: punch.clientReportedAt?.toISOString() ?? null,
+        note: punch.note,
+        receivedAt: punch.createdAt.toISOString(),
+        adjustments: punch.adjustments.map(adjustmentDto),
+      })),
+    ].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
+
+    return { range: { from, to, timezone }, punches };
   }
 }

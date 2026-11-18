@@ -38,7 +38,7 @@ export default function TimeClockReportPage() {
       icon={<FaUserClock size={20} />}
       breadcrumbs={[
         { label: t("common:breadcrumbs.home"), onClick: () => navigate("/") },
-        { label: t("common:nav.hr"), onClick: () => navigate("/employees") },
+        { label: t("common:nav.attendanceGroup") },
         { label: t("report.title") },
       ]}
       backAction={() => goBack(hasClock ? "/hr/time-clock" : "/")}

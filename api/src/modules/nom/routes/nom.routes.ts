@@ -24,6 +24,7 @@ export const createNomRouter = (controller: NomController): Router => {
   router.post("/me/punch", asyncHandler(controller.remotePunch));
   router.get("/me/discrepancies", asyncHandler(controller.myDiscrepancies));
   router.post("/me/discrepancies", asyncHandler(controller.reportDiscrepancy));
+  router.post("/me/missing-punches", asyncHandler(controller.reportMissingPunch));
 
   // NOM-037: estado de teletrabajo del propio trabajador, aceptación de
   // política/aviso y checklist del lugar de trabajo.

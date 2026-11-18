@@ -53,19 +53,18 @@
     "entry": "Entrada",
     "exit": "Salida",
     "noType": "Registro",
-    "report": "Reportar discrepancia",
     "clock": "Checada del reloj",
-    "access": "Acceso",
-    "reportShort": "Reportar"
+    "access": "Acceso"
   },
   "sourceClock": "Reloj",
   "sourceAccess": "Acceso",
   "sourceRemote": "Remoto",
   "discrepancy": {
-    "reason": "Motivo de la discrepancia",
+    "reason": "¿Qué pasó?",
     "send": "Enviar a RH",
     "reasonMin": "Escribe al menos 5 caracteres.",
-    "correctTime": "¿Qué hora fue en realidad? (opcional)"
+    "correctTime": "¿Qué hora fue en realidad?",
+    "reasonPlaceholder": "Ej.: Checé tarde porque el sistema no cargaba; llegué a las 8:55."
   },
   "telework": {
     "title": "Mi teletrabajo",
@@ -245,5 +244,32 @@
     "checklist": "Guardamos tu checklist.",
     "leaveRequested": "Enviamos tu solicitud a Recursos Humanos.",
     "leaveCancelled": "Cancelaste la solicitud."
+  },
+  "corrections": {
+    "title": "Mis correcciones",
+    "proposed": "propuse {{time}}",
+    "noTime": "sin hora propuesta",
+    "note": "Nota de RH: {{note}}",
+    "status": {
+      "PENDING": "RH la está revisando",
+      "APPROVED": "Aprobada",
+      "REJECTED": "Rechazada"
+    },
+    "missingLabel": "Faltó: {{type}} {{date}} · {{time}}"
+  },
+  "missing": {
+    "which": "¿Qué checada te faltó?",
+    "day": "Día",
+    "time": "¿A qué hora fue?",
+    "reasonPlaceholder": "Ej.: Salí a las 18:00 y se me olvidó checar la salida."
+  },
+  "request": {
+    "open": "Pedir una corrección",
+    "title": "Pedir una corrección",
+    "hint": "RH la revisa; si la aprueba, se refleja en tus marcajes.",
+    "what": "¿Qué pasó?",
+    "fix": "Una hora está mal",
+    "missing": "Me faltó checar",
+    "whichPunch": "¿Cuál checada?"
   }
 }

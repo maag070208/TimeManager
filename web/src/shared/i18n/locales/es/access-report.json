@@ -79,7 +79,9 @@
     "entry": "Entrada",
     "exit": "Salida",
     "entryToday": "Entrada hoy",
-    "exitToday": "Salida hoy"
+    "exitToday": "Salida hoy",
+    "lunchStart": "Salida a comer",
+    "lunchEnd": "Regreso de comer"
   },
   "state": {
     "withoutExit": "Sin salida",
@@ -133,5 +135,12 @@
     "totalPeople": "Personas",
     "totalHours": "Horas",
     "totalIncidents": "Incidencias"
+  },
+  "viewFilter": {
+    "label": "Filtrando por",
+    "clear": "Quitar filtro",
+    "ON_TIME": "A tiempo",
+    "LATE": "Con retardo",
+    "ABSENT": "Faltas"
   }
 }

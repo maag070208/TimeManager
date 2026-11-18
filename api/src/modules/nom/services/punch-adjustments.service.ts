@@ -1,8 +1,9 @@
-import { Prisma, type PrismaClient, type PunchAdjustmentStatus } from "@prisma/client";
+import { Prisma, type PrismaClient, type PunchAdjustmentStatus, type RemotePunchType } from "@prisma/client";
 import { openLocation } from "./punch-location";
 import { tenantCalendar } from "@core/utils/tenant-timezone";
 import { applyApprovedAdjustments, loadApprovedAdjustments } from "@core/utils/adjusted-punches";
 import { prismaClient } from "@core/config/database";
+import { tenantTransaction } from "@core/tenancy";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { localDayRange, localDateKey } from "@core/utils/timezone";
 import type { AuditLogger } from "@modules/users/services/user.service";
@@ -26,6 +27,17 @@ type AdjustmentRow = Prisma.PunchAdjustmentGetPayload<{
 const adjustmentInclude = {
   requestedBy: { select: { name: true } },
   decidedBy: { select: { name: true } },
+} as const;
+
+const MISSING_PUNCH_NOTE = "Agregada por corrección aprobada (checada olvidada)";
+/** Hasta cuántos días atrás se puede pedir una checada olvidada. */
+export const MISSING_PUNCH_MAX_DAYS = 31;
+
+const ENTITY_OF_TARGET = {
+  CLOCK: "TimeClockPunch",
+  REMOTE: "RemotePunch",
+  ACCESS: "AccessEvent",
+  MISSING: "User",
 } as const;
 
 /**
@@ -81,7 +93,8 @@ export class PunchAdjustmentsService {
   private toDto(row: AdjustmentRow): AdjustmentDto {
     return {
       id: row.id,
-      punchId: row.punchId ?? row.targetId,
+      targetType: row.targetType,
+      punchId: row.targetType === "MISSING" ? row.remotePunchId : (row.punchId ?? row.targetId),
       status: row.status,
       reason: row.reason,
       previousState: row.previousState as Record<string, unknown>,
@@ -290,25 +303,57 @@ export class PunchAdjustmentsService {
     }
 
     const status = decision === "APPROVE" ? "APPROVED" : "REJECTED";
-    const result = await this.db.punchAdjustment.updateMany({
-      where: { id: adjustmentId, status: "PENDING" },
-      data: {
-        status,
-        decidedById: actor.id,
-        decidedAt: new Date(),
-        decisionNote: note ?? null,
-      },
+    const decidedAt = new Date();
+    // Checada olvidada aprobada: el marcaje se inserta en la misma transacción
+    // que la decisión, con id de idempotencia derivado del ajuste.
+    const created = await tenantTransaction(this.db, async (tx) => {
+      const result = await tx.punchAdjustment.updateMany({
+        where: { id: adjustmentId, status: "PENDING" },
+        data: { status, decidedById: actor.id, decidedAt, decisionNote: note ?? null },
+      });
+      if (result.count === 0) throw new HttpError(409, "PUNCH_ADJUSTMENT_ALREADY_DECIDED");
+      if (decision !== "APPROVE" || adjustment.targetType !== "MISSING") return null;
+
+      const state = adjustment.newState as { type?: RemotePunchType; occurredAt?: string };
+      if (!state.type || !state.occurredAt) throw new HttpError(422, "MISSING_PUNCH_INVALID");
+      const registration = await tx.teleworkRegistration.findFirst({
+        where: { userId: adjustment.targetId, status: "ACTIVE" },
+        select: { mode: true },
+      });
+      const punch = await tx.remotePunch.create({
+        data: {
+          userId: adjustment.targetId,
+          type: state.type,
+          workMode: registration?.mode ?? undefined,
+          occurredAt: new Date(state.occurredAt),
+          note: MISSING_PUNCH_NOTE,
+          clientEventId: `adjustment:${adjustmentId}`,
+        },
+      });
+      await tx.punchAdjustment.update({ where: { id: adjustmentId }, data: { remotePunchId: punch.id } });
+      return punch;
     });
-    if (result.count === 0) throw new HttpError(409, "PUNCH_ADJUSTMENT_ALREADY_DECIDED");
 
     const row = await this.db.punchAdjustment.findUniqueOrThrow({
       where: { id: adjustmentId },
       include: adjustmentInclude,
     });
 
+    if (created) {
+      await this.audit?.({
+        action: "REMOTE_PUNCH_RECORDED",
+        entityType: "RemotePunch",
+        entityId: created.id,
+        userId: actor.id,
+        userName: actor.name ?? undefined,
+        newState: { type: created.type, workMode: created.workMode, occurredAt: created.occurredAt.toISOString() },
+        metadata: { employeeId: created.userId, adjustmentId, origin: "MISSING_PUNCH_APPROVED" },
+      });
+    }
+
     await this.audit?.({
       action: decision === "APPROVE" ? "PUNCH_ADJUSTMENT_APPROVED" : "PUNCH_ADJUSTMENT_REJECTED",
-      entityType: adjustment.targetType === "REMOTE" ? "RemotePunch" : "TimeClockPunch",
+      entityType: ENTITY_OF_TARGET[adjustment.targetType],
       entityId: adjustment.targetId,
       userId: actor.id,
       userName: actor.name ?? undefined,
@@ -454,6 +499,63 @@ export class PunchAdjustmentsService {
       { id: user.id, name: user.name },
       "EMPLOYEE"
     );
+  }
+
+  /**
+   * El trabajador pide una checada que nunca se registró. Queda pendiente para
+   * RH; al aprobarse se crea el marcaje (ver `decide`).
+   */
+  async reportMissingPunch(
+    userId: string,
+    input: { type: RemotePunchType; occurredAt: string; reason: string },
+    now: Date = new Date()
+  ): Promise<AdjustmentDto> {
+    const { user } = await this.employeeNumbersOf(userId);
+    const occurredAt = new Date(input.occurredAt);
+    if (Number.isNaN(occurredAt.getTime())) throw new HttpError(400, "INVALID_ADJUSTMENT_DATE");
+    const oldest = now.getTime() - MISSING_PUNCH_MAX_DAYS * 24 * 60 * 60 * 1000;
+    if (occurredAt.getTime() > now.getTime() || occurredAt.getTime() < oldest) {
+      throw new HttpError(400, "MISSING_PUNCH_OUT_OF_RANGE");
+    }
+
+    const timezone = await this.timezoneOf(user.tenantId);
+    const day = localDateKey(occurredAt, timezone);
+    const pending = await this.db.punchAdjustment.findMany({
+      where: { targetType: "MISSING", targetId: userId, status: "PENDING" },
+      select: { newState: true },
+    });
+    const duplicated = pending.some(({ newState }) => {
+      const state = newState as { type?: string; occurredAt?: string };
+      return state.type === input.type && typeof state.occurredAt === "string" && localDateKey(new Date(state.occurredAt), timezone) === day;
+    });
+    if (duplicated) throw new HttpError(409, "MISSING_PUNCH_ALREADY_REQUESTED");
+
+    const previousState = { missing: true, employeeNumber: user.employeeNumber ?? "", name: user.name };
+    const newState = { type: input.type, occurredAt: occurredAt.toISOString() };
+    const row = await this.db.punchAdjustment.create({
+      data: {
+        targetType: "MISSING",
+        targetId: userId,
+        requestedById: userId,
+        reason: input.reason,
+        previousState,
+        newState,
+      },
+      include: adjustmentInclude,
+    });
+
+    await this.audit?.({
+      action: "MISSING_PUNCH_REQUESTED",
+      entityType: "User",
+      entityId: userId,
+      userId,
+      userName: user.name,
+      previousState,
+      newState,
+      metadata: { adjustmentId: row.id, reason: input.reason, source: "EMPLOYEE" },
+    });
+
+    return this.toDto(row);
   }
 
   /** Discrepancias/reportes del propio trabajador con su estado. */

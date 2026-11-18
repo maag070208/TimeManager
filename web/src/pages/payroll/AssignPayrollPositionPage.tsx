@@ -214,7 +214,7 @@ export default function AssignPayrollPositionPage() {
       description="Asigna un puesto de nómina a varias personas a la vez."
       icon={<LuWallet size={20} />}
       backAction={() => goBack("/payroll/settings")}
-      breadcrumbs={[{ label: "Nómina", onClick: () => navigate("/payroll/settings") }, { label: "Asignar personal" }]}
+      breadcrumbs={[{ label: "Ajustes de nómina", onClick: () => navigate("/payroll/settings") }, { label: "Asignar personal" }]}
     >
       <ITFlex direction="column" gap={4}>
         {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}

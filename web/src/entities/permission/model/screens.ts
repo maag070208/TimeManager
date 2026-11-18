@@ -41,6 +41,10 @@ export type NavLabelKey =
   | "nav.schedulesAssign"
   | "nav.overtime"
   | "nav.hr"
+  | "nav.peopleGroup"
+  | "nav.staffList"
+  | "nav.attendanceGroup"
+  | "nav.schedulesGroup"
   | "nav.employees"
   | "nav.hrReports"
   | "nav.employeeRecords"
@@ -100,14 +104,22 @@ const ALL_SCREENS: readonly AppScreen[] = [
   },
   {
     id: "hr",
-    labelKey: "nav.hr",
+    labelKey: "nav.peopleGroup",
     children: [
-      { id: "employees", labelKey: "nav.employees", path: "/employees", excludes: ["/employees/disciplinary-reports", "/employees/records"], requirement: { anyOf: ["hr.records", "users.view"] }, actions: ["users.create", "users.edit", "users.delete"] },
+      { id: "employees", labelKey: "nav.staffList", path: "/employees", excludes: ["/employees/disciplinary-reports", "/employees/records"], requirement: { anyOf: ["hr.records", "users.view"] }, actions: ["users.create", "users.edit", "users.delete"] },
       { id: "employeeRecords", labelKey: "nav.employeeRecords", path: "/employees/records", requirement: { anyOf: ["hr.records"] }, actions: [] },
       { id: "hrReports", labelKey: "nav.hrReports", path: "/employees/disciplinary-reports", requirement: { anyOf: ["hr.records"] }, actions: ["hr.disciplinary_reports"] },
-      { id: "leave", labelKey: "nav.leave", path: "/hr/leave", requirement: { anyOf: ["time_clock.write"] } },
       { id: "workdayAgreements", labelKey: "nav.workdayAgreements", path: "/hr/jornada-acuerdos", requirement: { anyOf: ["time_clock.write"] } },
-      { id: "payrollSettings", labelKey: "nav.payrollSettings", path: "/payroll/settings", requirement: { anyOf: ["payroll.close"] } },
+    ],
+  },
+  {
+    id: "attendance",
+    labelKey: "nav.attendanceGroup",
+    children: [
+      // Asistencias come de las checadas web, app y reloj unificadas: no
+      // depende del canal CLOCK.
+      { id: "accessTimeClockReport", labelKey: "nav.accessTimeClockReport", path: "/hr/time-clock/entries-exits", requirement: { anyOf: ["time_clock.view"] }, actions: [] },
+      { id: "leave", labelKey: "nav.leave", path: "/hr/leave", requirement: { anyOf: ["time_clock.write"] } },
       { id: "telework", labelKey: "nav.telework", path: "/teletrabajo", requirement: { anyOf: ["time_clock.view"] } },
       {
         id: "clockAttendance",
@@ -118,20 +130,17 @@ const ALL_SCREENS: readonly AppScreen[] = [
           { id: "accessTimeClockEmployees", labelKey: "nav.accessTimeClockEmployees", path: "/hr/time-clock/employees", requirement: { anyOf: ["time_clock.view"] }, punchChannel: "CLOCK" },
         ],
       },
-      // El reporte de entradas y salidas ya no depende del reloj: come de las
-      // checadas web, app y reloj unificadas, así que vive fuera de la sección
-      // del checador y se queda aunque el cliente no tenga canal CLOCK.
-      { id: "accessTimeClockReport", labelKey: "nav.accessTimeClockReport", path: "/hr/time-clock/entries-exits", requirement: { anyOf: ["time_clock.view"] }, actions: [] },
-      {
-        id: "schedules",
-        labelKey: "nav.schedules",
-        children: [
-          { id: "schedulesAdmin", labelKey: "nav.schedulesAdmin", path: "/schedules", match: "exact", requirement: { anyOf: ["schedules.view"] } },
-          { id: "schedulesAssign", labelKey: "nav.schedulesAssign", path: "/schedules/assign", requirement: { anyOf: ["schedules.view"] } },
-          { id: "overtime", labelKey: "nav.overtime", path: "/schedules/overtime/approval", requirement: { anyOf: ["overtime.view"] } },
-          { id: "payroll", labelKey: "nav.payroll", path: "/schedules/payroll", requirement: { anyOf: ["payroll.view"] } },
-        ],
-      },
+    ],
+  },
+  {
+    id: "schedules",
+    labelKey: "nav.schedulesGroup",
+    children: [
+      { id: "schedulesAdmin", labelKey: "nav.schedulesAdmin", path: "/schedules", match: "exact", requirement: { anyOf: ["schedules.view"] } },
+      { id: "schedulesAssign", labelKey: "nav.schedulesAssign", path: "/schedules/assign", requirement: { anyOf: ["schedules.view"] } },
+      { id: "overtime", labelKey: "nav.overtime", path: "/schedules/overtime/approval", requirement: { anyOf: ["overtime.view"] } },
+      { id: "payroll", labelKey: "nav.payroll", path: "/schedules/payroll", requirement: { anyOf: ["payroll.view"] } },
+      { id: "payrollSettings", labelKey: "nav.payrollSettings", path: "/payroll/settings", requirement: { anyOf: ["payroll.close"] } },
     ],
   },
   {

@@ -24,13 +24,16 @@ export interface AttendanceSessionSource {
   sessions(params: ITDataTableFetchParams): Promise<AccessReportSessions>;
 }
 
-const VIEWS: readonly PeopleAttendanceView[] = ["ALL", "INCIDENTS", "ON_SITE", "WITHOUT_RECORDS"];
+const VIEWS: readonly PeopleAttendanceView[] = ["ALL", "INCIDENTS", "ON_SITE", "WITHOUT_RECORDS", "ON_TIME", "LATE", "ABSENT"];
 
 const IN_VIEW: Record<PeopleAttendanceView, (row: PeopleAttendanceRow) => boolean> = {
   ALL: () => true,
   INCIDENTS: (r) => r.lateDays + r.absences + r.withoutExit + r.withoutEntry > 0,
   ON_SITE: (r) => r.onSite,
   WITHOUT_RECORDS: (r) => !r.hasRecords,
+  ON_TIME: (r) => r.lateDays === 0 && r.days.some((d) => d.status === "ATTENDED"),
+  LATE: (r) => r.lateDays > 0,
+  ABSENT: (r) => r.absences > 0,
 };
 
 const SORTERS: Record<string, (a: PeopleAttendanceRow, b: PeopleAttendanceRow) => number> = {
@@ -133,12 +136,16 @@ export class PeopleAttendanceService {
       const entries = sessions.flatMap((s) => (s.entryAt ? [s.entryAt] : [])).sort();
       const exits = sessions.flatMap((s) => (s.exitAt ? [s.exitAt] : [])).sort();
       const has = (incident: AccessReportSessionRow["incident"]) => sessions.some((s) => s.incident === incident);
+      const segments = sessions.filter((s) => s.entryAt).sort((a, b) => a.entryAt!.localeCompare(b.entryAt!));
+      const lunch = segments.length >= 2 && segments[0].exitAt ? { start: segments[0].exitAt, end: segments[1].entryAt } : null;
       return {
         date,
         status: dayStatus(date, sessions.length > 0, workday, schedule, at),
         entryAt: entries[0] ?? null,
         // Mientras sigue en sitio no hay salida que mostrar.
         exitAt: open ? null : exits[exits.length - 1] ?? null,
+        lunchStartAt: lunch?.start ?? null,
+        lunchEndAt: lunch?.end ?? null,
         workedMinutes:
           workday.workedMin + (openFor > 0 && openFor < LIVE_ENTRY_MAX_MS ? Math.round(openFor / MS_PER_MINUTE) : 0),
         lateMinutes: workday.lateMin,

@@ -41,7 +41,7 @@
     "accessTimeClockRoster": "Padrón del reloj",
     "clockDashboard": "Dashboard del reloj",
     "schedules": "Horarios",
-    "schedulesAdmin": "Calendario",
+    "schedulesAdmin": "Calendario de horarios",
     "schedulesAssign": "Asignar horarios",
     "overtime": "Tiempo extra",
     "weeklyAttendance": "Asistencia semanal",
@@ -51,12 +51,16 @@
     "myWorkday": "Mi jornada",
     "telework": "Teletrabajo (NOM-037)",
     "generalSettings": "Configuración del sistema",
-    "leave": "Vacaciones",
+    "leave": "Vacaciones y permisos",
     "workdayAgreements": "Acuerdos con el personal",
-    "payrollSettings": "Nómina",
+    "payrollSettings": "Ajustes de nómina",
     "clients": "Clientes",
     "platform": "Plataforma",
-    "audit": "Auditoría"
+    "audit": "Auditoría",
+    "peopleGroup": "Personal",
+    "staffList": "Empleados",
+    "attendanceGroup": "Asistencia",
+    "schedulesGroup": "Horarios y nómina"
   },
   "files": {
     "access": "accesos",

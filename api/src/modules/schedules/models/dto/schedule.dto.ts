@@ -247,7 +247,7 @@ export const PeopleAttendanceQuerySchema = registry.register(
         departmentId: z.string().optional(),
         q: z.string().optional(),
         includeInactive: z.boolean().optional(),
-        view: z.enum(["ALL", "INCIDENTS", "ON_SITE", "WITHOUT_RECORDS"]).optional(),
+        view: z.enum(["ALL", "INCIDENTS", "ON_SITE", "WITHOUT_RECORDS", "ON_TIME", "LATE", "ABSENT"]).optional(),
       })
       .nullish(),
   })

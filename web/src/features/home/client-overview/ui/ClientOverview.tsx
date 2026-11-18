@@ -146,15 +146,30 @@ export default function ClientOverview() {
               )}
               <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
                 {[
-                  { label: t("client.attendance.present"), value: a.counts.PRESENT, color: "text-emerald-600" },
-                  { label: t("client.attendance.late"), value: a.counts.LATE, color: "text-amber-600" },
-                  { label: t("client.attendance.notArrived"), value: a.counts.NOT_ARRIVED, color: "text-rose-500" },
-                ].map((stat) => (
-                  <div key={stat.label} className="rounded-lg bg-slate-50/80 px-2.5 py-2">
-                    <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-slate-500">{stat.label}</span>
-                    <span className={`block text-[20px] font-black tabular-nums ${stat.color}`}>{stat.value}</span>
-                  </div>
-                ))}
+                  { view: "ON_TIME", label: t("client.attendance.present"), value: a.counts.PRESENT, color: "text-emerald-600" },
+                  { view: "LATE", label: t("client.attendance.late"), value: a.counts.LATE, color: "text-amber-600" },
+                  { view: "ABSENT", label: t("client.attendance.notArrived"), value: a.counts.NOT_ARRIVED, color: "text-rose-500" },
+                ].map((stat) =>
+                  canTimeClockView ? (
+                    <button
+                      key={stat.view}
+                      type="button"
+                      onClick={() => navigate(`/hr/time-clock/entries-exits?period=DAY&view=${stat.view}`)}
+                      className="group rounded-lg bg-slate-50/80 px-2.5 py-2 text-left transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
+                    >
+                      <span className="flex items-center justify-between text-[9.5px] font-semibold uppercase tracking-wide text-slate-500">
+                        {stat.label}
+                        <LuArrowRight size={11} className="opacity-0 transition group-hover:opacity-100" />
+                      </span>
+                      <span className={`block text-[20px] font-black tabular-nums ${stat.color}`}>{stat.value}</span>
+                    </button>
+                  ) : (
+                    <div key={stat.view} className="rounded-lg bg-slate-50/80 px-2.5 py-2">
+                      <span className="block text-[9.5px] font-semibold uppercase tracking-wide text-slate-500">{stat.label}</span>
+                      <span className={`block text-[20px] font-black tabular-nums ${stat.color}`}>{stat.value}</span>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}

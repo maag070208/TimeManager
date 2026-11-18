@@ -53,19 +53,18 @@
     "entry": "Entry",
     "exit": "Exit",
     "noType": "Record",
-    "report": "Report discrepancy",
     "clock": "Clock punch",
-    "access": "Access",
-    "reportShort": "Report"
+    "access": "Access"
   },
   "sourceClock": "Clock",
   "sourceAccess": "Access",
   "sourceRemote": "Remote",
   "discrepancy": {
-    "reason": "Discrepancy reason",
+    "reason": "What happened?",
     "send": "Send to HR",
     "reasonMin": "Write at least 5 characters.",
-    "correctTime": "What time was it really? (optional)"
+    "correctTime": "What time was it actually?",
+    "reasonPlaceholder": "E.g.: I punched late because the system was down; I arrived at 8:55."
   },
   "telework": {
     "title": "My telework",
@@ -245,5 +244,32 @@
     "checklist": "We saved your checklist.",
     "leaveRequested": "We sent your request to HR.",
     "leaveCancelled": "You cancelled the request."
+  },
+  "corrections": {
+    "title": "My fix requests",
+    "proposed": "I proposed {{time}}",
+    "noTime": "no time proposed",
+    "note": "HR note: {{note}}",
+    "status": {
+      "PENDING": "HR is reviewing it",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "missingLabel": "Missing: {{type}} {{date}} · {{time}}"
+  },
+  "missing": {
+    "which": "Which punch is missing?",
+    "day": "Day",
+    "time": "What time was it?",
+    "reasonPlaceholder": "E.g.: I left at 6:00 pm and forgot to punch out."
+  },
+  "request": {
+    "open": "Request a correction",
+    "title": "Request a correction",
+    "hint": "HR reviews it; if approved, it shows in your punches.",
+    "what": "What happened?",
+    "fix": "A time is wrong",
+    "missing": "I forgot to punch",
+    "whichPunch": "Which punch?"
   }
 }

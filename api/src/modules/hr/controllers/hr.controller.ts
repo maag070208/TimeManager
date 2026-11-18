@@ -48,6 +48,10 @@ export class PersonalController {
     res.json(await this.overviews.overview(req.params.id));
   };
 
+  punchHistory = async (req: Request, res: Response) => {
+    res.json(await this.overviews.punchHistory(req.params.id, { from: req.query.from, to: req.query.to }));
+  };
+
   getOne = async (req: Request, res: Response) => {
     const data = await this.profiles.getById(req.params.id);
     res.json(personalProfileToDto(data));

@@ -1,6 +1,6 @@
 import { ITLayout, ITPage, ITSidebarProps, ITToast, type ITNavigationItem } from "@axzydev/axzy_ui_system";
 import { Suspense, useEffect, useState, useCallback, type ReactNode } from "react";
-import { LuHouse, LuUsers, LuSettings, LuCalendarCheck, LuBuilding2 } from "react-icons/lu";
+import { LuHouse, LuUsers, LuSettings, LuCalendarCheck, LuBuilding2, LuClock3, LuCalendarDays } from "react-icons/lu";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -16,17 +16,23 @@ import ForcePasswordChange from "./ForcePasswordChange";
 import { PLATFORM_PATHS, TenantSwitcher, useClientContext } from "@features/tenant/tenant-switcher";
 import { getSelectedTenant } from "@shared/api/tenant";
 import { isPathInDisabledModule } from "@shared/lib/tenant-modules";
+import type { TrailState } from "@shared/lib/breadcrumb-trail";
 import { setTenantBrand } from "@shared/lib/tenantBrand";
 import { setDefaultTimeZone } from "@shared/utils/dates";
 import logoUrl from "@shared/assets/brand/checklab-logo-for-light-bg.svg";
 import symbolUrl from "@shared/assets/brand/checklab-symbol-for-light-bg.svg";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
+/** Navegar desde el menú reinicia la memoria de migajas. */
+const MENU_STATE: TrailState = { menu: true };
+
 const NAV_ICONS: Record<string, ReactNode> = {
   start: <LuHouse size={14} />,
   // Portal del trabajador: sin icono quedaba un círculo vacío en el riel.
   myWorkday: <LuCalendarCheck size={14} />,
   hr: <LuUsers size={14} />,
+  attendance: <LuClock3 size={14} />,
+  schedules: <LuCalendarDays size={14} />,
   settings: <LuSettings size={14} />,
 };
 
@@ -200,7 +206,7 @@ export default function PrivateRoutes() {
     id: screen.id,
     label: tt(screen.labelKey),
     action: () => {
-      if (screen.path) navigate(screen.path);
+      if (screen.path) navigate(screen.path, { state: MENU_STATE });
     },
     isActive: isScreenActive(screen),
   });
@@ -216,7 +222,7 @@ export default function PrivateRoutes() {
       id: screen.id,
       label: tt(screen.labelKey),
       icon: NAV_ICONS[screen.id],
-      ...(screen.path ? { action: () => navigate(screen.path!) } : {}),
+      ...(screen.path ? { action: () => navigate(screen.path!, { state: MENU_STATE }) } : {}),
       isActive: isScreenActive(screen),
       ...(children.length > 0
         ? {
@@ -249,7 +255,7 @@ export default function PrivateRoutes() {
     id: "tenants",
     label: tt("nav.clients"),
     icon: <LuBuilding2 size={14} />,
-    action: () => navigate("/tenants"),
+    action: () => navigate("/tenants", { state: MENU_STATE }),
     isActive: location.pathname === "/tenants" || location.pathname.startsWith("/tenants/"),
   };
   const screenItems = pruneDisabledModules(APP_SCREENS)

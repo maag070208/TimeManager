@@ -199,6 +199,9 @@ export interface PeopleAttendanceDay {
   /** Primera entrada y última salida del día. */
   entryAt: string | null;
   exitAt: string | null;
+  /** Comida: la pausa entre el primer tramo del día y el segundo (null si no hubo). */
+  lunchStartAt: string | null;
+  lunchEndAt: string | null;
   /** Sesiones cerradas + lo que lleva la entrada abierta de las últimas 24 h. */
   workedMinutes: number;
   lateMinutes: number;
@@ -229,7 +232,7 @@ export interface PeopleAttendanceRow {
 }
 
 /** Vistas rápidas de la tabla (los chips de la pantalla). */
-export type PeopleAttendanceView = "ALL" | "INCIDENTS" | "ON_SITE" | "WITHOUT_RECORDS";
+export type PeopleAttendanceView = "ALL" | "INCIDENTS" | "ON_SITE" | "WITHOUT_RECORDS" | "ON_TIME" | "LATE" | "ABSENT";
 
 /** Totales de todas las personas del filtro (no dependen de la vista ni de la página). */
 export interface PeopleAttendanceSummary {

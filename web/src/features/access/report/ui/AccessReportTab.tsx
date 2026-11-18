@@ -16,7 +16,7 @@ import {
   type PeopleAttendanceRow,
 } from "@entities/access";
 import { punchTime, workedTime } from "@entities/schedule";
-import { LuClock, LuFileCheck, LuFileX, LuMapPin, LuTriangleAlert } from "react-icons/lu";
+import { LuClock, LuFileCheck, LuFileX, LuMapPin, LuTriangleAlert, LuX } from "react-icons/lu";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { PeriodPicker } from "@shared/ui/period-picker";
 import { PanelCard } from "@shared/ui/panel-card";
@@ -96,7 +96,11 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
       tt(`dayStatus.${day.status}`),
     ];
     if (day.entryAt) {
-      parts.push(`${punchTime(day.entryAt, day.date, tz)}–${punchTime(day.exitAt, day.date, tz)}`);
+      parts.push(
+        day.lunchStartAt
+          ? `${punchTime(day.entryAt, day.date, tz)}–${punchTime(day.lunchStartAt, day.date, tz)}, ${punchTime(day.lunchEndAt, day.date, tz)}–${punchTime(day.exitAt, day.date, tz)}`
+          : `${punchTime(day.entryAt, day.date, tz)}–${punchTime(day.exitAt, day.date, tz)}`
+      );
     }
     if (day.workedMinutes > 0) parts.push(workedTime(day.workedMinutes));
     return parts.join(" · ");
@@ -229,6 +233,22 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
             render: (r: PeopleAttendanceRow) => renderPunch(r.days[focusIndex]?.entryAt, r.days[focusIndex]),
           },
           {
+            key: "focusLunchStart",
+            label: t("focus.lunchStart"),
+            type: "string" as const,
+            width: 110,
+            sortable: false,
+            render: (r: PeopleAttendanceRow) => renderPunch(r.days[focusIndex]?.lunchStartAt, r.days[focusIndex]),
+          },
+          {
+            key: "focusLunchEnd",
+            label: t("focus.lunchEnd"),
+            type: "string" as const,
+            width: 110,
+            sortable: false,
+            render: (r: PeopleAttendanceRow) => renderPunch(r.days[focusIndex]?.lunchEndAt, r.days[focusIndex]),
+          },
+          {
             key: "focusExit",
             label: focusIsToday ? t("focus.exitToday") : t("focus.exit"),
             type: "string" as const,
@@ -288,6 +308,20 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
         </ITAlert>
       )}
 
+      {(view === "ON_TIME" || view === "LATE" || view === "ABSENT") && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[12px] font-semibold text-slate-500">{t("viewFilter.label")}</span>
+          <button
+            type="button"
+            onClick={() => setView("ALL")}
+            className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-[12px] font-bold text-white transition hover:bg-slate-700"
+            title={t("viewFilter.clear")}
+          >
+            {t(`viewFilter.${view}`)} <LuX size={12} />
+          </button>
+        </div>
+      )}
+
       {/* Cifras del periodo como filtros bento: cada tarjeta aplica su vista. */}
       <BentoFilterCards
         items={[
@@ -327,7 +361,7 @@ export default function AccessReportTab({ fx }: { fx: UseAccessReport }) {
             icon: <LuTriangleAlert size={14} />,
           },
         ]}
-        activeId={view === "ON_SITE" ? "onSite" : view === "WITHOUT_RECORDS" ? "withoutRecords" : view === "INCIDENTS" ? "incidents" : "withRecords"}
+        activeId={view === "ON_SITE" ? "onSite" : view === "WITHOUT_RECORDS" ? "withoutRecords" : view === "INCIDENTS" ? "incidents" : view === "ALL" ? "withRecords" : undefined}
         onSelect={(id: string) =>
           setView(
             id === "onSite" ? "ON_SITE" : id === "withoutRecords" ? "WITHOUT_RECORDS" : id === "incidents" ? "INCIDENTS" : "ALL"

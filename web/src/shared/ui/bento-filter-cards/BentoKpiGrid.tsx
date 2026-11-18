@@ -25,9 +25,9 @@ const TONE = {
 } as const;
 
 /** KPIs bento en tarjetas blancas con olas; no son filtros. */
-export default function BentoKpiGrid({ items }: { items: BentoKpiItem[] }) {
+export default function BentoKpiGrid({ items, minItemWidth = 200 }: { items: BentoKpiItem[]; minItemWidth?: number }) {
   return (
-    <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+    <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${minItemWidth}px, 1fr))` }}>
       {items.map((item) => {
         const tone = TONE[item.tone ?? "neutral"];
         return (

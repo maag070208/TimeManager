@@ -13,6 +13,7 @@ import type {
   BloodType,
   DisciplinaryReport,
   DisciplinaryReportCreateInput,
+  EmployeePunchHistory,
 } from "../model/types";
 
 export const personalApi = {
@@ -36,6 +37,8 @@ export const personalApi = {
   },
 
   overview: (id: string) => api.get<EmployeeOverview>(`/hr/${id}/overview`),
+  punchHistory: (id: string, range: { from: string; to: string }) =>
+    api.get<EmployeePunchHistory>(`/hr/${id}/punches`, { params: range }),
   documents: (id: string) => api.get<EmployeeDocument[]>(`/hr/${id}/documents`),
   uploadDocument: (id: string, documentTypeId: string, file: File) => {
     const form = new FormData();

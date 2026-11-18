@@ -24,7 +24,7 @@ Módulo transversal de cumplimiento para el **registro electrónico de jornada**
 | Alertas | `GET /alerts`, `POST /alerts/scan` |
 | Retención | `GET /retention`, `POST /retention/archive` (`dryRun` opcional) |
 | Export | `GET /export/stps?period=MONTH&date=YYYY-MM-DD&format=csv\|json` |
-| Autoservicio | `GET /me/punches`, `POST /me/punch` (marcaje remoto), `GET /me/discrepancies`, `POST /me/discrepancies`, `GET /me/telework`, `POST /me/telework/accept`, `POST /me/telework/checklist` (solo sesión) |
+| Autoservicio | `GET /me/punches`, `POST /me/punch` (marcaje remoto), `GET /me/discrepancies`, `POST /me/discrepancies`, `POST /me/missing-punches`, `GET /me/telework`, `POST /me/telework/accept`, `POST /me/telework/checklist` (solo sesión) |
 | Teletrabajo (NOM-037) | `GET/PUT /telework/policy`, `GET/POST /telework/registrations`, `PATCH /telework/registrations/:id`, `GET /telework/checklists`, `GET/POST /telework/out-of-hours-contacts` |
 
 Permisos: lectura con `time_clock.view` (el export también con `payroll.view`), escritura con `time_clock.write`. Las rutas `/me/*` solo exigen `authenticate` (el trabajador no necesita permisos de RH).
@@ -132,7 +132,8 @@ Corregidas tras la corrida de los bots de QA (`api/qa/`):
 - Marcaje remoto por app/web (home office/campo) — requisito 1 del checklist; hoy solo reloj y módulo access.
 - NOM-037 (teletrabajo): registro de teletrabajadores, política de desconexión y checklist del lugar de trabajo.
 - Pantalla web del historial de ajustes de checada para RH (el trabajador ya tiene portal en `/mi-jornada`).
-- Las correcciones de un **marcaje remoto** aún no tienen ajuste ligado (el ajuste referencia checadas del reloj): por ahora el trabajador reporta la discrepancia a RH y el registro remoto es inmutable; evaluar `PunchAdjustment` polimórfico o tabla de ajuste remoto.
+- **Checada olvidada** (`POST /me/missing-punches`, `{ type, occurredAt, reason }`): el trabajador pide una entrada/salida que nunca se registró. Crea un `PunchAdjustment` con `targetType = MISSING` y `targetId` = la persona; hasta 31 días atrás y nunca a futuro (`400 MISSING_PUNCH_OUT_OF_RANGE`), una sola pendiente por tipo y día (`409 MISSING_PUNCH_ALREADY_REQUESTED`). Al **aprobarla**, en la misma transacción se inserta el `RemotePunch` (canal `WEB`, modalidad del teletrabajo activo, nota «Agregada por corrección aprobada», `clientEventId = adjustment:<id>`) y se enlaza en `remotePunchId`; rechazarla no crea nada. Auditoría: `MISSING_PUNCH_REQUESTED` y `REMOTE_PUNCH_RECORDED` con `origin: MISSING_PUNCH_APPROVED`. Migración `20261217000000_punch_adjustment_missing`.
+- En Mi jornada, «Mis marcajes» tiene una sola entrada, «Pedir una corrección»: pregunta «¿Qué pasó?» («Una hora está mal» → elegir la checada; «Me faltó checar» → tipo, día y hora). Debajo, «Mis correcciones» con el estado de cada solicitud (`GET /me/discrepancies`).
 
 ## Portal del trabajador (UX)
 

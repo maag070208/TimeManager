@@ -76,3 +76,9 @@ Una sola regla para Entradas y salidas, Pre nómina (= asistencia semanal) y Hor
 - **H-02:** `POST /schedules` y `PATCH /schedules/:id` validan la semana contra el tope legal del año (`validateScheduleLegality`): rechazan 400 `SCHEDULE_ILLEGAL` si la semana ordinaria pasa del máximo (48/46/44/42/40 h) o si no hay día de descanso. Devuelven avisos (no bloquean) por jornada diaria arriba del estándar del turno o descanso no declarado.
 - **H-03:** `GET /schedules/legal-transition?year=YYYY` lista los horarios activos que dejan de ser legales en ese año, con minutos semanales, tope legal, infracciones, avisos, jornada diaria máxima y personas asignadas (para ajustar antes del 1-ene sin bajar salario).
 - El tipo de turno del art. 60 (`shiftTypeOf`) se calcula por día y viaja en el cálculo de jornada.
+
+## Vistas de Entradas y salidas
+
+`POST /attendance/time-clock` y `POST /attendance/access` aceptan `filters.view`: `ALL`, `INCIDENTS`, `ON_SITE`, `WITHOUT_RECORDS`, `ON_TIME` (asistió sin retardo en el periodo), `LATE` (algún día con retardo) y `ABSENT` (alguna falta). El inicio del cliente abre la pantalla con `?period=DAY&view=ON_TIME|LATE|ABSENT` desde los recuadros de asistencia de hoy.
+
+Cada día de la fila trae `entryAt`, `lunchStartAt`, `lunchEndAt` y `exitAt`. La comida es la pausa entre el primer y el segundo tramo del día (sale igual de checadas web/app tipificadas que de las del reloj, que se emparejan por alternancia); con un solo tramo queda en `null`.

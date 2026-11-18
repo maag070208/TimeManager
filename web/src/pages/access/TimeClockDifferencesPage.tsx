@@ -22,7 +22,7 @@ export default function TimeClockDifferencesPage() {
       icon={<FaExchangeAlt size={20} />}
       breadcrumbs={[
         { label: t("common:breadcrumbs.home"), onClick: () => navigate("/") },
-        { label: t("common:nav.hr"), onClick: () => navigate("/employees") },
+        { label: t("common:nav.attendanceGroup"), onClick: () => navigate("/hr/time-clock/entries-exits") },
         { label: t("employees.title"), onClick: () => navigate("/hr/time-clock/employees") },
         { label: t("differences.title") },
       ]}

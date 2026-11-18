@@ -17,6 +17,7 @@ Expediente completo del empleado: datos personales y fiscales, foto, documentos,
 | Grupo | Rutas |
 |---|---|
 | Expediente | `POST /query`, `GET /stats`, `GET /:id`, `GET /:id/overview`, `PATCH /:id/profile`, `POST /:id/photo`, `PUT /:id/discounts`, `POST /assignment` |
+| Historial de checadas | `GET /:id/punches?from=&to=` (días locales del cliente; 14 días por defecto, máximo 92). Reloj, web y app mezclados con tipo, modalidad, ubicación descifrada, hora del dispositivo y correcciones. Pide `hr.records` **y** `time_clock.view` porque expone geolocalización |
 | Foto | `GET /:id/photo/raw?token=<firma>` (credencial firmada de corta vida, sin `authenticate`; ver abajo) |
 | Documentos | `GET/POST /:id/documents`, `DELETE /:id/documents/:docId`, `GET /:id/documents/:docId/download` |
 | Catálogos | `GET/POST/PATCH/DELETE /catalogs/document-types|genders|blood-types` (las escrituras exigen `catalogs.manage`, **solo plataforma** desde L-07) |

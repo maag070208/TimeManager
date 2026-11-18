@@ -225,7 +225,9 @@ export interface RecordAgreementAdmin extends RecordAgreement {
 /** Corrección de una checada: quién la pidió, por qué y quién la decidió. */
 export interface PunchAdjustment {
   id: string;
-  punchId: string;
+  /** `MISSING`: checada olvidada; `punchId` es el marcaje creado al aprobarse. */
+  targetType: "CLOCK" | "REMOTE" | "ACCESS" | "MISSING";
+  punchId: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   reason: string;
   previousState: Record<string, unknown>;

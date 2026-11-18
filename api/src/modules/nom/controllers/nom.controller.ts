@@ -10,6 +10,7 @@ import {
   ArchiveDto,
   DistributionAgreementCreateDto,
   DiscrepancyCreateDto,
+  MissingPunchCreateDto,
   NomSettingsUpdateDto,
   OutOfHoursContactDto,
   PunchQueryDto,
@@ -602,6 +603,11 @@ export class NomController {
     const input = DiscrepancyCreateDto.parse(req.body);
     const data = await this.adjustments.reportDiscrepancy(req.user!.id, input);
     res.status(201).json(data);
+  };
+
+  reportMissingPunch = async (req: Request, res: Response) => {
+    const input = MissingPunchCreateDto.parse(req.body);
+    res.status(201).json(await this.adjustments.reportMissingPunch(req.user!.id, input));
   };
 
   // ── F2-07 marcaje remoto ─────────────────────────────────────────────────

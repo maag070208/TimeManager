@@ -3,6 +3,7 @@ import {
   nomApi,
   type MeTelework,
   type MyPunch,
+  type PunchAdjustment,
   type PunchType,
   type TeleworkChecklistKind,
 } from "@entities/nom";
@@ -43,6 +44,7 @@ export const useMyWorkday = () => {
   const [to, setTo] = useState(today);
   const [punches, setPunches] = useState<MyPunch[]>([]);
   const [telework, setTelework] = useState<MeTelework | null>(null);
+  const [corrections, setCorrections] = useState<PunchAdjustment[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const done = usePortalToast();
@@ -58,12 +60,14 @@ export const useMyWorkday = () => {
       setError(null);
     }
     try {
-      const [rows, state] = await Promise.all([
+      const [rows, state, mine] = await Promise.all([
         nomApi.myPunches({ from, to, limit: 200 }),
         nomApi.myTelework(),
+        nomApi.myDiscrepancies(),
       ]);
       setPunches(rows);
       setTelework(state);
+      setCorrections(mine);
     } catch (err) {
       if (!silent) setError(messageOf(err));
     } finally {
@@ -147,6 +151,9 @@ export const useMyWorkday = () => {
   const reportDiscrepancy = (punchId: string, reason: string, expectedOccurredAt?: string) =>
     run(() => nomApi.reportDiscrepancy({ punchId, reason, expectedOccurredAt })).then((ok) => (ok && done("discrepancy"), ok));
 
+  const reportMissingPunch = (type: PunchType, occurredAt: string, reason: string) =>
+    run(() => nomApi.reportMissingPunch({ type, occurredAt, reason })).then((ok) => (ok && done("discrepancy"), ok));
+
   const acceptPolicy = () =>
     run(() => {
       if (!telework) throw new Error("no telework state");
@@ -166,6 +173,7 @@ export const useMyWorkday = () => {
     setTo,
     today,
     punches,
+    corrections,
     telework,
     loading,
     busy,
@@ -174,6 +182,7 @@ export const useMyWorkday = () => {
     refresh: () => load(),
     punch,
     reportDiscrepancy,
+    reportMissingPunch,
     acceptPolicy,
     submitChecklist,
   };

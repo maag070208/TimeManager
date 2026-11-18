@@ -75,6 +75,59 @@
       "empty": {
         "documents": "No tiene documentos cargados.",
         "punches": "Sin checadas registradas."
+      },
+      "history": {
+        "title": "Historial de checadas",
+        "subtitle": "Cada checada con su hora, origen, ubicación y correcciones.",
+        "ranges": {
+          "7": "7 días",
+          "14": "14 días",
+          "30": "30 días",
+          "90": "90 días"
+        },
+        "count_one": "{{count}} checada",
+        "count_other": "{{count}} checadas",
+        "empty": "Sin checadas en este periodo.",
+        "error": "No se pudo cargar el historial",
+        "type": {
+          "ENTRY": "Entrada",
+          "LUNCH_START": "Salida a comer",
+          "LUNCH_END": "Regreso de comer",
+          "EXIT": "Salida",
+          "CLOCK": "Checada en reloj"
+        },
+        "workMode": {
+          "PRESENCIAL": "Presencial",
+          "HIBRIDO": "Híbrido",
+          "REMOTO": "Remoto",
+          "CAMPO": "Campo"
+        },
+        "firstLast": "Primera {{first}} · última {{last}}",
+        "details": {
+          "serverTime": "Hora registrada",
+          "deviceTime": "Hora del dispositivo",
+          "deviceDiff": "{{minutes}} min de diferencia",
+          "received": "Recibida por el sistema",
+          "source": "Origen",
+          "clock": "Reloj",
+          "method": "Método",
+          "workMode": "Modalidad",
+          "location": "Ubicación",
+          "accuracy": "precisión ±{{meters}} m",
+          "noLocation": "Sin ubicación",
+          "note": "Nota",
+          "adjustments": "Correcciones",
+          "proposed": "Propuso {{time}}",
+          "showMap": "Ver mapa",
+          "hideMap": "Ocultar mapa",
+          "mapCaption": "Ubicación guardada al momento de checar."
+        },
+        "withLocation": "Con ubicación",
+        "adjustment": {
+          "PENDING": "Corrección pendiente",
+          "APPROVED": "Corrección aprobada",
+          "REJECTED": "Corrección rechazada"
+        }
       }
     },
     "loadingTitle": "Cargando…",

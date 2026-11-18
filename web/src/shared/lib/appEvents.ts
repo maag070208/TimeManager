@@ -23,7 +23,7 @@ export interface AppEventMap {
    * repite aquí (y no se importa de `entities/access`) porque `shared` no
    * depende de entidades; debe coincidir con `PeopleAttendanceView`.
    */
-  "attendance:view": { view: "ALL" | "INCIDENTS" | "ON_SITE" | "WITHOUT_RECORDS" };
+  "attendance:view": { view: "ALL" | "INCIDENTS" | "ON_SITE" | "WITHOUT_RECORDS" | "ON_TIME" | "LATE" | "ABSENT" };
 }
 
 type Listener<K extends keyof AppEventMap> = (payload: AppEventMap[K]) => void;

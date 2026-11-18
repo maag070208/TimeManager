@@ -13,12 +13,20 @@ const STATUS: Record<PunchAdjustment["status"], { label: string; color: "warning
   REJECTED: { label: "Rechazada", color: "danger" },
 };
 
+const MISSING_LABEL: Record<string, string> = {
+  ENTRY: "Entrada",
+  LUNCH_START: "Salida a comer",
+  LUNCH_END: "Regreso de comer",
+  EXIT: "Salida",
+};
+
 const AUDIT_LABEL: Record<string, string> = {
   REMOTE_PUNCH_RECORDED: "Checada registrada",
   PUNCH_ADJUSTMENT_REQUESTED: "Corrección solicitada",
   PUNCH_ADJUSTMENT_APPROVED: "Corrección aprobada",
   PUNCH_ADJUSTMENT_REJECTED: "Corrección rechazada",
   PUNCH_DISCREPANCY_REPORTED: "Discrepancia reportada",
+  MISSING_PUNCH_REQUESTED: "Checada olvidada solicitada",
 };
 
 interface Props {
@@ -105,16 +113,24 @@ export const PunchCorrections = ({ onPendingChange, onDone }: Props) => {
             {rows.map((row) => {
               const before = row.previousState.occurredAt;
               const after = row.newState.occurredAt;
+              const missingType = row.targetType === "MISSING" ? MISSING_LABEL[String(row.newState.type)] : null;
               return (
                 <div key={row.id} className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-white/70 p-3">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
                       <ITText className="block !text-[13px] font-semibold">{row.requestedByName ?? "—"}</ITText>
                       <ITText muted className="block !text-[12px]">{row.reason}</ITText>
+                      {missingType ? (
+                        <ITText className="block !text-[11.5px] font-semibold !text-amber-700">
+                          Olvidó checar: {missingType} · {when(after)} · pedida el {when(row.createdAt)}
+                          {row.status === "PENDING" && " · al aprobarla se agrega la checada"}
+                        </ITText>
+                      ) : (
                       <ITText muted className="block !text-[11.5px]">
                         Checada: {when(before)}
                         {typeof after === "string" && after !== before ? ` → propone ${when(after)}` : " · sin hora propuesta"} · pedida el {when(row.createdAt)}
                       </ITText>
+                      )}
                       {row.decidedAt && (
                         <ITText muted className="block !text-[11.5px]">
                           {row.decidedByName ?? "—"} · {when(row.decidedAt)}
@@ -146,9 +162,11 @@ export const PunchCorrections = ({ onPendingChange, onDone }: Props) => {
                         <ITButton variant="outlined" color="secondary" size="sm" onClick={() => setRejecting(null)}>Cancelar</ITButton>
                       </>
                     )}
-                    <ITButton variant="text" color="secondary" size="sm" onClick={() => void openHistory(row.punchId)}>
+                    {row.punchId && (
+                    <ITButton variant="text" color="secondary" size="sm" onClick={() => row.punchId && void openHistory(row.punchId)}>
                       <span className="inline-flex items-center gap-1.5"><LuHistory size={13} /> Ver historial</span>
                     </ITButton>
+                    )}
                   </div>
                 </div>
               );

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { onAppEvent } from "@shared/lib/appEvents";
 import type { ITDataTableFetchParams } from "@axzydev/axzy_ui_system";
 import {
@@ -58,6 +59,9 @@ interface Options {
   source?: AccessReportSource;
 }
 
+const URL_PERIODS: readonly AccessReportPeriod[] = ["DAY", "WEEK", "FORTNIGHT", "MONTH"];
+const URL_VIEWS: readonly PeopleAttendanceView[] = ["ALL", "INCIDENTS", "ON_SITE", "WITHOUT_RECORDS", "ON_TIME", "LATE", "ABSENT"];
+
 /** Zona horaria del navegador; el reporte la usa para resolver los límites del día. */
 const BROWSER_TIMEZONE =
   Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Mexico_City";
@@ -73,13 +77,21 @@ export const useAccessReport = ({ download, source = ACCESS_SOURCE }: Options) =
   // El día por defecto es el de HOY del cliente (zona del tenant), no el del
   // navegador: la API resuelve los límites del periodo en esa zona.
   const tenantTodayKey = useTenantTodayKey();
-  const [period, setPeriod] = useState<AccessReportPeriod>("WEEK");
+  // El inicio abre la pantalla filtrada (`?period=DAY&view=LATE`).
+  const [searchParams] = useSearchParams();
+  const urlPeriod = searchParams.get("period");
+  const urlView = searchParams.get("view");
+  const [period, setPeriod] = useState<AccessReportPeriod>(() =>
+    URL_PERIODS.includes(urlPeriod as AccessReportPeriod) ? (urlPeriod as AccessReportPeriod) : "WEEK"
+  );
   const [date, setDate] = useState<Date>(() => dateAtNoonFromKey(tenantTodayKey));
   const [departmentId, setDepartmentId] = useState("");
   const [search, setSearch] = useState("");
   const q = useDebouncedValue(search.trim(), 350);
   const [includeInactive, setIncludeInactive] = useState(false);
-  const [view, setView] = useState<PeopleAttendanceView>("ALL");
+  const [view, setView] = useState<PeopleAttendanceView>(() =>
+    URL_VIEWS.includes(urlView as PeopleAttendanceView) ? (urlView as PeopleAttendanceView) : "ALL"
+  );
 
   // Tic: «Muéstrame solo las incidencias», «¿Quién está en sitio?»…
   // El panel avisa y la tabla se filtra sin que la persona toque las píldoras.

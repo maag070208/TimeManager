@@ -27,7 +27,7 @@ export default function OvertimeApprovalPage() {
       noPadding
       breadcrumbs={[
         { label: t("common:breadcrumbs.home"), onClick: () => navigate("/") },
-        { label: t("common:nav.schedules"), onClick: () => navigate("/schedules") },
+        { label: t("common:nav.schedulesGroup"), onClick: () => navigate("/schedules") },
         { label: t("title") },
       ]}
       backAction={() => goBack("/schedules")}

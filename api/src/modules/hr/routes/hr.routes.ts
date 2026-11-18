@@ -211,6 +211,24 @@ export const createPersonalRouter = (controller: PersonalController): Router => 
 
   registerPath({
     method: "get",
+    path: "/hr/{id}/punches",
+    tags: ["Personal"],
+    summary: "Detailed punch history (clock, web, app) with type, location and adjustments (hr.records + time_clock.view)",
+    security: [{ bearerAuth: [] }],
+    parameters: [
+      { in: "path", name: "id", required: true, schema: { type: "string" } },
+      { in: "query", name: "from", required: false, schema: { type: "string", format: "date" } },
+      { in: "query", name: "to", required: false, schema: { type: "string", format: "date" } },
+    ],
+    responses: {
+      200: { description: "Punch history" },
+      400: { description: "Rango inválido (máximo 92 días)" },
+      404: { description: "No encontrado" },
+    },
+  });
+
+  registerPath({
+    method: "get",
     path: "/hr/{id}",
     tags: ["Personal"],
     summary: "Full employee record (ADMIN/HUMAN_RESOURCES)",
@@ -379,6 +397,8 @@ export const createPersonalRouter = (controller: PersonalController): Router => 
   // Actividad del expediente: documentos/checadas/actas/horario (L-13). Lleva
   // `/:id/` delante, así que no choca con la ruta de detalle.
   router.get("/:id/overview", requiresPermission("hr.records"), asyncHandler(controller.overview));
+  // Historial de checadas con ubicación: dato sensible, pide además ver asistencia.
+  router.get("/:id/punches", requiresPermission("hr.records"), requiresPermission("time_clock.view"), asyncHandler(controller.punchHistory));
 
   // Cartas/actas administrativas. Deben ir antes de "/:id".
   router.post("/disciplinary-reports/query", requiresPermission("hr.disciplinary_reports"), asyncHandler(controller.disciplinaryReportsTable));

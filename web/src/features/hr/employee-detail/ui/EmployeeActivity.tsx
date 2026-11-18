@@ -8,6 +8,8 @@ import { PanelCard } from "@shared/ui/panel-card";
 import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
 import { formatDateTime } from "@shared/utils/dates";
+import { useCan } from "@entities/user";
+import EmployeePunchHistory from "./EmployeePunchHistory";
 
 /** Tarjeta de una sección de actividad: `PanelCard` con ícono y conteo; cuerpo con altura máxima. */
 function Card({ icon, title, count, tone, children }: { icon: React.ReactNode; title: string; count: number; tone: "sky" | "lavender"; children: React.ReactNode }) {
@@ -28,6 +30,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
   const { t } = useTranslation("employees");
   const [data, setData] = useState<EmployeeOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const canSeeHistory = useCan("time_clock.view");
 
   useEffect(() => {
     let cancelled = false;
@@ -81,7 +84,9 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
         </ITText>
       </ITFlex>
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:!grid-cols-2">
+      {canSeeHistory && <EmployeePunchHistory userId={userId} />}
+
+      <div className={`grid grid-cols-1 items-start gap-4 ${canSeeHistory ? "" : "lg:!grid-cols-2"}`}>
         <Card icon={<LuFileText size={15} />} title={t("detail.activity.tabs.documents")} count={documents.length} tone="sky">
           <ul className="flex flex-col gap-1.5">
             {documents.map((document) => (
@@ -96,6 +101,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
           )}
         </Card>
 
+        {!canSeeHistory && (
         <Card icon={<LuFingerprint size={15} />} title={t("detail.activity.tabs.punches")} count={punches.length} tone="lavender">
           <ul className="flex flex-col gap-1.5">
             {punches.map((punch) => (
@@ -112,6 +118,7 @@ export default function EmployeeActivity({ userId }: { userId: string }) {
             <ITEmptyState icon={<LuFingerprint size={18} />} title={t("detail.activity.empty.punches")} className="!py-6" />
           )}
         </Card>
+        )}
       </div>
     </ITStack>
   );
