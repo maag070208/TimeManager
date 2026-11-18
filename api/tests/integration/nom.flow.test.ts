@@ -215,6 +215,60 @@ describe("F2-01/F2-02 flujo del trabajador", () => {
   });
 });
 
+describe("Checada olvidada: el trabajador la pide y RH la agrega", () => {
+  test("pendiente no crea marcaje; aprobada lo crea una sola vez y aparece en sus marcajes", async () => {
+    const approver = await clientSession("HUMAN_RESOURCES");
+    const employee = await createUser({ tenantId: approver.tenant.id, role: "CLIENT_STAFF", email: null });
+    const session = await login({ username: employee.username, tenant: approver.tenant.slug });
+    const occurredAt = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+
+    const requested = await api("POST", "/nom/me/missing-punches", {
+      token: session.token,
+      body: { type: "EXIT", occurredAt, reason: "Salí a la hora y olvidé checar la salida" },
+    });
+    expectStatus(requested, 201, "solicitud de checada olvidada");
+    assert.equal(requested.body?.targetType, "MISSING");
+    assert.equal(requested.body?.punchId, null);
+
+    const db = await prismaClient();
+    assert.equal(await db.remotePunch.count({ where: { userId: employee.id } }), 0, "pendiente no crea marcaje");
+
+    const duplicated = await api("POST", "/nom/me/missing-punches", {
+      token: session.token,
+      body: { type: "EXIT", occurredAt, reason: "Otra vez la misma salida" },
+    });
+    expectError(duplicated, 409, "MISSING_PUNCH_ALREADY_REQUESTED", "misma checada dos veces");
+
+    const future = await api("POST", "/nom/me/missing-punches", {
+      token: session.token,
+      body: { type: "ENTRY", occurredAt: new Date(Date.now() + 3_600_000).toISOString(), reason: "Entrada de mañana" },
+    });
+    expectError(future, 400, "MISSING_PUNCH_OUT_OF_RANGE", "checada a futuro");
+
+    const approved = await api("POST", `/nom/adjustments/${requested.body?.id}/approve`, {
+      token: approver.token,
+      body: { note: "Confirmado con su jefe" },
+    });
+    expectStatus(approved, 200, "aprobación de checada olvidada");
+    assert.equal(approved.body?.status, "APPROVED");
+
+    const created = await db.remotePunch.findMany({ where: { userId: employee.id } });
+    assert.equal(created.length, 1, "se crea exactamente un marcaje");
+    assert.equal(created[0].type, "EXIT");
+    assert.equal(iso(created[0].occurredAt), occurredAt);
+    assert.equal(created[0].tenantId, approver.tenant.id, "el marcaje queda en el cliente correcto");
+    assert.equal(approved.body?.punchId, created[0].id);
+
+    const again = await api("POST", `/nom/adjustments/${requested.body?.id}/approve`, { token: approver.token, body: {} });
+    expectError(again, 409, "PUNCH_ADJUSTMENT_NOT_PENDING", "no se aprueba dos veces");
+
+    const from = new Date(Date.now() - 3 * 86_400_000).toISOString().slice(0, 10);
+    const mine = await api("GET", `/nom/me/punches?from=${from}`, { token: session.token });
+    expectStatus(mine, 200, "marcajes propios");
+    assert.ok((mine.body as Array<{ id: string }>).some((row) => row.id === created[0].id), "la checada agregada aparece");
+  });
+});
+
 describe("F2-03 límites legales y alertas", () => {
   test("config por cliente: default legal, actualización y auditoría", async () => {
     const tenant = await createTenant();

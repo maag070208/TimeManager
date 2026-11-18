@@ -226,9 +226,12 @@ describe("canales de checada del cliente", () => {
     assert.notEqual(boardRow.status, "UNLINKED", "nadie queda sin vínculo sin canal CLOCK");
     assert.equal(board.body?.counts?.UNLINKED, 0, "el conteo de sin vínculo queda en cero");
 
+    // La semana anterior: la actual puede no tener días pasados (hoy = inicio de semana).
+    const lastWeek = new Date(`${today}T12:00:00Z`);
+    lastWeek.setUTCDate(lastWeek.getUTCDate() - 7);
     const weekly = await api("POST", "/schedules/weekly-attendance", {
       token: admin.token,
-      body: { date: today, refresh: true },
+      body: { date: lastWeek.toISOString().slice(0, 10), refresh: true },
     });
     expectStatus(weekly, 200, "reporte semanal");
     const weekRow = (weekly.body?.rows as Array<{ userId: string; linked: boolean; days: Array<{ date: string; status: string }> }>).find(

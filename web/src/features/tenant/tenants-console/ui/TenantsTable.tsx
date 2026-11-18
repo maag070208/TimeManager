@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { ITDataTable, ITText, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITText, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuBlocks, LuClock3, LuExternalLink, LuUsersRound } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -152,7 +153,7 @@ export default function TenantsTable({ rows }: Props) {
   const version = rows.map((row) => `${row.id}:${row.status}:${row.plan?.id ?? ""}:${row.slug}`).join("|");
 
   return (
-    <ITDataTable
+    <DataTable
       showViewToggle={false}
       defaultItemsPerPage={25}
       itemsPerPageOptions={[25, 50, 100]}

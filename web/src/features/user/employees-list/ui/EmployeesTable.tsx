@@ -1,10 +1,5 @@
-import {
-  ITBadget,
-  ITButton,
-  ITDataTable,
-  ITFlex,
-  ITText,
-} from "@axzydev/axzy_ui_system";
+import { ITBadget, ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
 import type {
   Column,
   ITDataTableFetchParams,
@@ -214,7 +209,7 @@ export default function EmployeesTable({
 
   return (
     <>
-      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+      <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         // Otro mosaico del resumen = otra lista: la tabla se remonta.
         key={JSON.stringify(externalFilters ?? {})}
         externalFilters={externalFilters}

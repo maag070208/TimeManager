@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITDataTable, ITDialog, ITInput, ITSearchSelect, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITDialog, ITInput, ITSearchSelect, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuPencil, LuPlus, LuPower, LuPowerOff, LuUserCheck, LuWallet } from "react-icons/lu";
 import { payrollApi, type PayrollPosition } from "@entities/payroll";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
@@ -101,7 +102,7 @@ export default function PayrollPositionsPanel() {
         <ITButton variant="filled" color="primary" size="sm" className="tm-row-button" onClick={openNew}><LuPlus size={14} className="mr-1" /> Nuevo puesto</ITButton>
       </div>
       <BentoFilterCards items={[{ id: "all", label: "Puestos", value: positions.length, caption: `${assigned} personas asignadas` }, { id: "active", label: "Activos", value: positions.filter((position) => position.active).length, caption: "disponibles" }, { id: "inactive", label: "Inactivos", value: positions.filter((position) => !position.active).length, caption: "fuera de uso" }]} activeId={filter} onSelect={(id) => setFilter(id as Filter)} />
-      <ITDataTable key={`${filter}-${reloadToken}`} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50} columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} variant="minimal" onRowClick={(row) => openEdit(row as unknown as PayrollPosition)} />
+      <DataTable key={`${filter}-${reloadToken}`} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50} columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} variant="minimal" onRowClick={(row) => openEdit(row as unknown as PayrollPosition)} />
       <ITDialog isOpen={editing !== null} onClose={() => setEditing(null)} className="max-w-xl">
         <DialogHeader
           icon={<LuWallet size={20} />}

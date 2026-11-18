@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { ITBadget, ITButton, ITCard, ITDataTable, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITBadget, ITButton, ITCard, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import type { Column } from "@axzydev/axzy_ui_system";
 import type { TFunction } from "i18next";
 import { LuCheckCheck, LuEye } from "react-icons/lu";
@@ -141,7 +142,7 @@ export default function DepartmentSummaryCard({ rows, t: translate, isReviewed, 
 
   return (
     <ITCard className="!border-0" contentClassName="!p-0">
-      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+      <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={fetchData as never}
       />

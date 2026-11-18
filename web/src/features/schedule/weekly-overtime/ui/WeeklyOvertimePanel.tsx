@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  ITAlert,
-  ITBadget,
-  ITButton,
-  ITCard,
-  ITDataTable,
-  ITFlex,
-  ITText,
-  ITToast, ITDatePicker, type Column } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITCard, ITFlex, ITText, ITToast, ITDatePicker, type Column } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import { LuCalendarCheck, LuCheck, LuRefreshCw } from "react-icons/lu";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
@@ -168,7 +161,7 @@ export default function WeeklyOvertimePanel({ canApprove }: { canApprove: boolea
         ) : rows.length === 0 ? (
           <TicState kind="empty" size="sm" title="Sin horas extra esta semana" description="Elige otra semana o registra checadas para calcular la clasificación." />
         ) : (
-          <ITDataTable columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50} />
+          <DataTable columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50} />
         )}
 
         {rows.some((row) => row.violations.length > 0) && (

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import {
   ITAlert,
   ITBadget,
@@ -337,7 +338,7 @@ export default function TenantDetailPage() {
       ) : undefined}
     >
       {!tenant || !payments ? (
-        error ? <ITAlert variant="error">{error}</ITAlert> : <ITText muted>Cargando cliente…</ITText>
+        error ? <ITAlert variant="error">{error}</ITAlert> : <ContentSkeleton />
       ) : (
         <div className="flex flex-col gap-4">
           {error && <ITAlert variant="error" dismissible onDismiss={() => setError(null)}>{error}</ITAlert>}

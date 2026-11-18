@@ -1,16 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { DataTable } from "@shared/ui/data-table";
 import { useNavigate } from "react-router-dom";
-import {
-  ITAlert,
-  ITBadget,
-  ITButton,
-  ITCard,
-  ITDataTable,
-  ITFlex,
-  ITGrid,
-  ITInput,
-  ITText,
-} from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITFlex, ITGrid, ITInput, ITText } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { FaFileAlt, FaPlus } from "react-icons/fa";
 import { LuCircleAlert, LuCircleCheck, LuCirclePause, LuFileText, LuPencil, LuPower, LuTrash2 } from "react-icons/lu";
@@ -322,7 +313,7 @@ export default function DocumentCatalogPage() {
         </PanelCard>
       ) : (
         <PanelCard title={tt("catalog.title")} icon={<LuFileText size={15} />} actions={<HelpTip text="Los tipos de documento definen qué se le pide al personal (INE, contrato, comprobante). Marca como obligatorios los indispensables: el tablero de Expedientes avisa a quien no los tenga." />}>
-          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+          <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             columns={columns as any}
             fetchData={fetchData as any}
             reloadTrigger={reloadKey}

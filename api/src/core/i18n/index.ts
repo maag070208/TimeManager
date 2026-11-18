@@ -53,12 +53,6 @@ export const t = (key: MessageKey, params: MessageParams = {}, language?: Langua
   return interpolate(template, params);
 };
 
-type LabelGroup = "ticketStatus" | "ticketPriority" | "assignmentStatus" | "movementType";
-
-/** Etiqueta de un código de catálogo (`label("ticketStatus", "OPEN")`); si no existe, el código tal cual. */
-export const label = (group: LabelGroup, code: string, language?: Language): string =>
-  lookup(catalogs[language ?? currentLanguage()], `${group}.${code}`) ?? code;
-
 /** Traduce el `message` de un issue de zod cuando es un código de `validation`. */
 export const translateValidation = (message: string, language?: Language): string =>
   lookup(catalogs[language ?? currentLanguage()], `validation.${message}`) ?? message;

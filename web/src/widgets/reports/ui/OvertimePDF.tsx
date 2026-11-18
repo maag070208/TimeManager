@@ -1,8 +1,8 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { useTranslation } from "react-i18next";
 import type { OvertimeDayStatus, OvertimePdfPayload } from "@entities/overtime";
-import { PDF_COLORS, pdfTheme } from "@shared/pdf/theme";
-import { formatDateTime, formatMinutesAsHhMm } from "@shared/utils/dates";
+import { PDF_COLORS, pdfTimestamp, pdfTheme } from "@shared/pdf/theme";
+import { formatMinutesAsHhMm } from "@shared/utils/dates";
 import { dyn } from "@shared/i18n/dyn";
 import PdfLetterhead from "@shared/pdf/PdfLetterhead";
 import PdfFooter from "@shared/pdf/PdfFooter";
@@ -33,9 +33,9 @@ const styles = StyleSheet.create({
 // Anchos en puntos (LETTER apaisado ≈ 720 útiles). Deben sumar ≈ 720.
 const COL = {
   employee: 118,
-  department: 86,
+  department: 96,
   day: 52,
-  schedule: 92,
+  schedule: 82,
   extra: 50,
   status: 64,
   decidedBy: 88,
@@ -88,7 +88,7 @@ export default function OvertimePDF({ rows, summary, meta, canApprove }: Overtim
   const { t } = useTranslation("overtime");
   const tt = dyn(t);
   const tz = summary.range.timezone || meta.timezone;
-  const today = formatDateTime(new Date().toISOString());
+  const today = pdfTimestamp(new Date(), tz);
 
   const period = summary.range.period || meta.period;
   const rangeLabel =
@@ -174,11 +174,11 @@ export default function OvertimePDF({ rows, summary, meta, canApprove }: Overtim
               wrap={false}
               style={i % 2 === 0 ? pdfTheme.tableRow : pdfTheme.tableRowAlt}
             >
-              <View style={{ width: COL.employee }}>
+              <View style={{ width: COL.employee, paddingRight: 6 }}>
                 <Text style={pdfTheme.cellDescTitle}>{r.employeeName}</Text>
                 <Text style={pdfTheme.cellDescSub}>{r.employeeNumber ? `#${r.employeeNumber}` : "—"}</Text>
               </View>
-              <View style={{ width: COL.department }}>
+              <View style={{ width: COL.department, paddingRight: 6 }}>
                 <Text style={pdfTheme.cellMuted}>{r.departmentName ?? "—"}</Text>
               </View>
               <View style={{ width: COL.day }}>
@@ -206,7 +206,7 @@ export default function OvertimePDF({ rows, summary, meta, canApprove }: Overtim
                 <Text style={pdfTheme.cell}>{r.decidedByName ?? "—"}</Text>
               </View>
               <View style={{ width: COL.decidedAt }}>
-                <Text style={pdfTheme.cellMuted}>{r.decidedAt ? formatDateTime(r.decidedAt) : "—"}</Text>
+                <Text style={pdfTheme.cellMuted}>{r.decidedAt ? pdfTimestamp(new Date(r.decidedAt), tz) : "—"}</Text>
               </View>
               <View style={{ width: COL.note }}>
                 <Text style={pdfTheme.cellMuted}>{r.note ?? "—"}</Text>

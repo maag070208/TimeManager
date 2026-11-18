@@ -105,12 +105,12 @@
   "exportExcel": "Excel",
   "exporting": "Generating…",
   "pdf": {
-    "title": "Puerto Nuevo · Weekly payroll",
-    "company": "Puerto Nuevo Baja Hotel y Villas",
+    "title": "Weekly pre-payroll",
     "department": "Department",
     "week": "Week",
     "view": "View",
-    "generatedAt": "Generated on {{date}}"
+    "generatedAt": "Generated on {{date}}",
+    "timezone": "Time zone"
   },
   "sheetName": "Payroll",
   "hoursShort": "h",
@@ -208,6 +208,13 @@
       "extra": "{{hours}} h overtime",
       "approved": "{{hours}} h approved",
       "absences": "{{count}} absences"
+    },
+    "pdfTitle": "Pre-payroll closing",
+    "pdf": {
+      "week": "Week",
+      "closedBy": "Closed by",
+      "closedAt": "Closed on",
+      "status": "Status"
     }
   }
 }

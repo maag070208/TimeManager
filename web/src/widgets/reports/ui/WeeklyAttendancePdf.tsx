@@ -12,7 +12,7 @@ import {
   type WeeklyAttendancePdfPayload,
   type WeeklyAttendanceRow,
 } from "@entities/schedule";
-import { PDF_COLORS, pdfTheme } from "@shared/pdf/theme";
+import { PDF_COLORS, pdfDay, pdfTheme, pdfTimestamp } from "@shared/pdf/theme";
 import { dyn } from "@shared/i18n/dyn";
 import PdfLetterhead from "@shared/pdf/PdfLetterhead";
 import PdfFooter from "@shared/pdf/PdfFooter";
@@ -70,8 +70,8 @@ const DETAIL_COL = {
   exit: 60,
   hours: 45,
   extra: 60,
-  missing: 50,
-  shift: 135,
+  missing: 56,
+  shift: 129,
 };
 
 /**
@@ -85,7 +85,7 @@ export default function WeeklyAttendancePdf({ report, mode, rows, meta }: Weekly
   const { days, timezone } = report.range;
   const title = t("pdf.title");
   const department = meta.departmentName ?? t("filters.allDepartments");
-  const week = `${days[0]} — ${days[6]}`;
+  const week = `${pdfDay(days[0])} — ${pdfDay(days[6])}`;
   const groupByDepartment = !meta.departmentName;
 
   const s = report.summary;
@@ -142,7 +142,7 @@ export default function WeeklyAttendancePdf({ report, mode, rows, meta }: Weekly
     <Document title={title} author="CheckLab">
       <Page size="LETTER" orientation="landscape" style={pdfTheme.page}>
         <View fixed>
-          <PdfLetterhead title={title} generatedAt={new Date().toLocaleString("es-MX")} />
+          <PdfLetterhead title={title} generatedAt={pdfTimestamp(new Date(), timezone)} />
         </View>
 
         <View style={pdfTheme.content}>
@@ -169,7 +169,7 @@ export default function WeeklyAttendancePdf({ report, mode, rows, meta }: Weekly
               <Text style={styles.bandValue}>{tt(`view.${mode.toLowerCase()}`)}</Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.bandLabel}>{t("timezone", { tz: timezone }).split(":")[0]}</Text>
+              <Text style={styles.bandLabel}>{t("pdf.timezone")}</Text>
               <Text style={styles.bandValue}>{timezone}</Text>
             </View>
           </View>
@@ -248,7 +248,7 @@ export default function WeeklyAttendancePdf({ report, mode, rows, meta }: Weekly
                 <View style={{ width: DETAIL_COL.missing }}>
                   <Text style={[pdfTheme.tableHeaderText, { textAlign: "right" }]}>{t("columns.missing")}</Text>
                 </View>
-                <View style={{ width: DETAIL_COL.shift }}>
+                <View style={{ width: DETAIL_COL.shift, paddingLeft: 12 }}>
                   <Text style={pdfTheme.tableHeaderText}>{t("columns.shift")}</Text>
                 </View>
               </View>
@@ -299,7 +299,7 @@ export default function WeeklyAttendancePdf({ report, mode, rows, meta }: Weekly
                         {hoursDecimal(day.missingMin)}
                       </Text>
                     </View>
-                    <View style={{ width: DETAIL_COL.shift }}>
+                    <View style={{ width: DETAIL_COL.shift, paddingLeft: 12 }}>
                       <Text style={[pdfTheme.cellMuted, { color: TEXT.muted }]}>{day.shift ?? "—"}</Text>
                     </View>
                   </View>

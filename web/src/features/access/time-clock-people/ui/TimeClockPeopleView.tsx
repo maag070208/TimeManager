@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { DataTable } from "@shared/ui/data-table";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { FaFingerprint, FaIdCard, FaSyncAlt, FaUserCheck, FaUserSlash } from "react-icons/fa";
 import { LuEye, LuUserX } from "react-icons/lu";
-import { ITButton, ITDataTable, ITDialog, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITDialog, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { makeClientTableFetch } from "@shared/api/clientTable";
@@ -247,7 +248,7 @@ export default function TimeClockPeopleView({ clockSerial }: Props) {
       {fx.biometricsError && <ITText role="alert" className="text-sm text-red-600">{fx.biometricsError}</ITText>}
       {fx.toast && <ITText role="status" className="text-sm text-emerald-700" onClick={fx.dismissToast}>{fx.toast}</ITText>}
 
-      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+      <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={
           fetchData as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>

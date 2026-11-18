@@ -165,7 +165,7 @@
     }
   },
   "assignedLabel": "Asignados",
-  "secondHint": "Actívalo en los días con jornada partida (p. ej. camaristas o restaurante).",
+  "secondHint": "Actívalo en los días con jornada partida (p. ej. quien sale varias horas a mediodía y regresa por la tarde).",
   "form": {
     "notFound": "Horario no encontrado",
     "confirmTitle": "Guardar nuevo horario",

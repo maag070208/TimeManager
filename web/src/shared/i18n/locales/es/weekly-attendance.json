@@ -105,12 +105,12 @@
   "exportExcel": "Excel",
   "exporting": "Generando…",
   "pdf": {
-    "title": "Puerto Nuevo · Pre Nómina semanal",
-    "company": "Puerto Nuevo Baja Hotel y Villas",
+    "title": "Pre nómina semanal",
     "department": "Departamento",
     "week": "Semana",
     "view": "Vista",
-    "generatedAt": "Generado el {{date}}"
+    "generatedAt": "Generado el {{date}}",
+    "timezone": "Zona horaria"
   },
   "sheetName": "Nómina",
   "hoursShort": "h",
@@ -208,6 +208,13 @@
       "extra": "{{hours}} h extra",
       "approved": "{{hours}} h aprobadas",
       "absences": "{{count}} faltas"
+    },
+    "pdfTitle": "Cierre de pre-nómina",
+    "pdf": {
+      "week": "Semana",
+      "closedBy": "Cerró",
+      "closedAt": "Fecha de cierre",
+      "status": "Estado"
     }
   }
 }

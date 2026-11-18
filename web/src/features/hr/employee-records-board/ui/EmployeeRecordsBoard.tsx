@@ -1,17 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DataTable } from "@shared/ui/data-table";
 import { useNavigate } from "react-router-dom";
-import {
-  ITAlert,
-  ITBadget,
-  ITCard,
-  ITButton,
-  ITChip,
-  ITDataTable,
-  ITFlex,
-  ITConfirmDialog,
-  ITInput,
-  ITSearchSelect,
-  ITToast, ITText } from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITCard, ITButton, ITChip, ITFlex, ITConfirmDialog, ITInput, ITSearchSelect, ITToast, ITText } from "@axzydev/axzy_ui_system";
 import type { ITDataTableFetchParams } from "@axzydev/axzy_ui_system";
 import { FaBell, FaChevronRight, FaSearch } from "react-icons/fa";
 import { LuCircleAlert, LuCircleCheck, LuCirclePause, LuUsersRound } from "react-icons/lu";
@@ -263,7 +253,7 @@ export default function EmployeeRecordsBoard({ fx }: Props) {
             />
           </div>
 
-          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+          <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             reloadTrigger={tableReload}
             columns={columns as any}
             fetchData={fetchData as any}

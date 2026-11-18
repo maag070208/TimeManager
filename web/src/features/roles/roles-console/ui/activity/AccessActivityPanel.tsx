@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from "react";
-import { ITButton, ITDataTable, ITSegmentedControl, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITButton, ITSegmentedControl, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
 import type { Column, ColumnFilters, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { FaShieldAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
@@ -216,7 +217,7 @@ export default function AccessActivityPanel({
           ]}
         />
       </ITFlex>
-      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+      <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         key={quickFilter}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={

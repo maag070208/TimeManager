@@ -1,7 +1,7 @@
 {
   "list": {
     "title": "Areas",
-    "description": "Sub-locations inside each department (e.g. Kiosk inside A&B)",
+    "description": "Areas inside each department (e.g. Warehouse inside Operations).",
     "breadcrumb": "Areas",
     "new": "New area",
     "create": "Create",

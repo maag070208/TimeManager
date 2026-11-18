@@ -257,7 +257,7 @@
     "description": "Add the time clocks and check their configuration and sync. The system only reads from the clocks.",
     "readOnly": "Read-only: the system connects to the clocks to read their punches and configuration; it never changes anything on them. Only punches (face, fingerprint or card) are read, not door openings.",
     "credentials": "It connects with the clock user and password configured in the API (the same for every clock).",
-    "notConfigured": "The API has no clock user: set CHECADOR_USER and CHECADOR_PASS (or TIME_CLOCK_USER and TIME_CLOCK_PASS) in the server's .env and recreate the container; it cannot connect to any clock.",
+    "notConfigured": "The API has no clock user: set TIME_CLOCK_USER and TIME_CLOCK_PASS in the server .env.",
     "empty": "No time clocks have been added yet.",
     "usage": {
       "countsAttendance": "Counts for entries/exits",

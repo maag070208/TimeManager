@@ -13,6 +13,7 @@ import AccessReportPDF from "../ui/AccessReportPDF";
 import OvertimePDF from "../ui/OvertimePDF";
 import WeeklyAttendancePdf from "../ui/WeeklyAttendancePdf";
 import PayrollClosurePdf from "../ui/PayrollClosurePdf";
+import { pdfTimestamp } from "@shared/pdf/theme";
 
 /** Entradas/salidas del reloj checador: mismo PDF que el de accesos, con su título. */
 export const downloadTimeClockReportPdf = async (
@@ -52,7 +53,7 @@ export const downloadPayrollClosurePdf = async (
   closure: PayrollClosureRow,
   weekLabel: string
 ): Promise<void> => {
-  const generatedAt = new Date().toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  const generatedAt = pdfTimestamp();
   const blob = await pdf(
     createElement(PayrollClosurePdf, { closure, weekLabel, generatedAt }) as any
   ).toBlob();

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { ITAlert, ITBadget, ITButton, ITCard, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { LuChevronDown, LuChevronUp, LuRotateCcw } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
@@ -184,7 +185,7 @@ export default function PayrollHistoryPanel({ fx }: { fx: UsePayrollHistory }) {
   const { t } = useTranslation("weekly-attendance");
 
   if (fx.loading && !fx.rows) {
-    return <div className="p-6 text-center text-[12.5px] text-slate-500">Cargando historial…</div>;
+    return <ContentSkeleton size="sm" className="p-5" />;
   }
   if (fx.error) {
     return (

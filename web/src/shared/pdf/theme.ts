@@ -1,4 +1,29 @@
-import { StyleSheet } from "@react-pdf/renderer";
+import { Font, StyleSheet } from "@react-pdf/renderer";
+
+// Sin guiones de corte: «REG-ISTROS» o «previa-mente» se leen mal en un reporte.
+// La palabra completa baja de renglón.
+Font.registerHyphenationCallback((word) => [word]);
+
+/** «18/11/2026 01:40» en la zona del cliente: la marca «Generado» de todos los PDFs. */
+export const pdfTimestamp = (date: Date = new Date(), timeZone?: string): string => {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
+};
+
+/** «11/11/2026» desde una clave de día `YYYY-MM-DD` (sin conversión de zona). */
+export const pdfDay = (dayKey: string): string => {
+  const [y, m, d] = dayKey.split("-");
+  return d && m && y ? `${d}/${m}/${y}` : dayKey;
+};
 
 // Paleta de marca — el azul viene muestreado directamente del logo de
 // CheckLab, así todos los PDF del sistema se sienten

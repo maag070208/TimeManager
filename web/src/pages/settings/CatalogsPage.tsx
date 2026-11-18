@@ -1,23 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { DataTable } from "@shared/ui/data-table";
 import { newId } from "@shared/lib/newId";
 import { useSearchParams } from "react-router-dom";
-import {
-  ITAlert,
-  ITBadget,
-  ITButton,
-  ITCard,
-  ITConfirmDialog,
-  ITDataTable,
-  ITDialog,
-  ITFlex,
-  ITInput,
-  ITSearchSelect,
-  ITText,
-  ITToast,
-  type Column,
-  type ITDataTableFetchParams,
-  type ITDataTableResponse,
-} from "@axzydev/axzy_ui_system";
+import { ITAlert, ITBadget, ITButton, ITCard, ITConfirmDialog, ITDialog, ITFlex, ITInput, ITSearchSelect, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { TabBar } from "@shared/ui/tab-bar";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
@@ -248,7 +233,7 @@ export default function CatalogsPage() {
             <HelpTip text={tab === "leave" ? "Tipos que el personal puede solicitar. Con goce paga el día; sin goce no." : tab === "documents" ? "Documentos que el expediente puede solicitar. Los obligatorios marcan faltantes." : tab === "departments" ? "Departamentos usados en personas, filtros y reportes." : "Perfiles de salario usados para calcular la pre-nómina."} />
           </ITFlex>
           <div className="mt-3">
-            <ITDataTable
+            <DataTable
               // La tabla pide sus filas al montarse: se remonta cuando llegan o cambian los datos.
               key={tableKey}
               columns={columns as unknown as Column<Record<string, unknown>>[]}

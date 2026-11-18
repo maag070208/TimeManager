@@ -1,5 +1,7 @@
 import { useMemo } from "react";
-import { ITButton, ITDataTable, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { DataTable } from "@shared/ui/data-table";
+import { ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import type { Column } from "@axzydev/axzy_ui_system";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { makeClientTableFetch } from "@shared/api/clientTable";
@@ -89,7 +91,7 @@ export default function TimeClockInspectView({ clockSerial, tabs = ALL_TABS }: P
       )}
 
       {fx.error && <ITText role="alert" className="text-sm text-red-600">{fx.error}</ITText>}
-      {fx.loading && <ITText className="text-sm text-slate-400">{t("inspect.loading")}</ITText>}
+      {fx.loading && <ContentSkeleton size="sm" />}
 
       {fx.tab === "overview" && fx.overview && (
         <div className="grid grid-cols-1 gap-4 md:!grid-cols-2">
@@ -192,7 +194,7 @@ function Table({
       {rows.length === 0 ? (
         <ITText className="text-sm text-slate-400">{empty}</ITText>
       ) : (
-        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+        <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={fetchData as never}
         />

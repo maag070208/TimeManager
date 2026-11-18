@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { DataTable } from "@shared/ui/data-table";
 import { useTranslation } from "react-i18next";
 import { timeClockApi, type TimeClockCamera } from "@entities/time-clock";
-import { ITDataTable, ITText, ITStack } from "@axzydev/axzy_ui_system";
+import { ITText, ITStack } from "@axzydev/axzy_ui_system";
 import type { Column } from "@axzydev/axzy_ui_system";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 
@@ -72,7 +74,7 @@ export default function TimeClockCameraView({ clockSerial }: { clockSerial: stri
   ];
 
   if (error) return <ITText role="alert" className="text-sm text-red-600">{error}</ITText>;
-  if (!camera) return <ITText className="text-sm text-slate-400">{t("camera.loading")}</ITText>;
+  if (!camera) return <ContentSkeleton size="sm" />;
 
   return (
     <ITStack spacing={4}>
@@ -96,7 +98,7 @@ export default function TimeClockCameraView({ clockSerial }: { clockSerial: stri
         </div>
       )}
 
-      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+      <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={fetchData as never}
       />

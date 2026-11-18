@@ -1,3 +1,4 @@
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import {
   ITAlert,
   ITBadget,
@@ -112,9 +113,7 @@ export default function AgentTokenDialog({ isOpen, tenant, onClose }: Props) {
       </ITFlex>
 
       {fx.agents === null ? (
-        <ITText className="block py-4 text-center text-sm text-slate-500">
-          {fx.t("platform.agents.loading")}
-        </ITText>
+        <ContentSkeleton size="sm" />
       ) : fx.agents.length === 0 ? (
         <ITText className="block py-4 text-center text-sm text-slate-500">
           {fx.t("platform.agents.empty")}

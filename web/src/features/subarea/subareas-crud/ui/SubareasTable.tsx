@@ -1,9 +1,5 @@
-import {
-  ITButton,
-  ITDataTable,
-  ITFlex,
-  ITText,
-} from "@axzydev/axzy_ui_system";
+import { ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
 import type {
   ITDataTableFetchParams,
   ITDataTableResponse,
@@ -113,7 +109,7 @@ export default function SubareasTable({
   ];
 
   return (
-    <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+    <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
       columns={columns as any}
       fetchData={
         fetchData as unknown as (

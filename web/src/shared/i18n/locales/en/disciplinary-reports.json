@@ -113,6 +113,7 @@
     "signatureEmployee": "Employee",
     "signatureHead": "Immediate supervisor",
     "signatureRh": "Human Resources",
-    "createdBy": "Filed by"
+    "createdBy": "Filed by",
+    "witness": "Witness"
   }
 }

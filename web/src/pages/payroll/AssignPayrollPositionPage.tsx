@@ -1,19 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ITAlert,
-  ITBadget,
-  ITButton,
-  ITCard,
-  ITCheckbox,
-  ITDataTable,
-  ITFlex,
-  ITInput,
-  ITSearchSelect,
-  ITText,
-  ITToast,
-  type Column,
-  type ITDataTableFetchParams,
-} from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITCard, ITCheckbox, ITFlex, ITInput, ITSearchSelect, ITText, ITToast, type Column, type ITDataTableFetchParams } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { BentoFilterCards } from "@shared/ui/bento-filter-cards";
 import { HelpTip } from "@shared/ui/help-tip";
@@ -249,7 +236,7 @@ export default function AssignPayrollPositionPage() {
           {rows.length === 0 ? (
             <TicState kind="empty" title="Sin personas con estos filtros" description="Cambia el departamento o la búsqueda para ver más personal." />
           ) : (
-            <ITDataTable key={`${positionId}-${reloadToken}-${view}-${departmentId}-${q}`} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+            <DataTable key={`${positionId}-${reloadToken}-${view}-${departmentId}-${q}`} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
               columns={columns as unknown as Column<Record<string, unknown>>[]}
               fetchData={tableFetch as never}
               onRowClick={(row) => togglePick(row as unknown as Row)}

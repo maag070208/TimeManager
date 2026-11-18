@@ -10,6 +10,7 @@ import { formatDate } from "@shared/utils/dates";
 import { useTranslation } from "react-i18next";
 import type { DisciplinaryReport } from "@entities/hr";
 import { LOGO_CHECKLAB_BASE64 } from "@shared/assets/logoCheckLab";
+import { getTenantBrandLogo, getTenantBrandName } from "@shared/lib/tenantBrand";
 
 interface Props {
   disciplinaryReport: DisciplinaryReport;
@@ -33,8 +34,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 4,
   },
-  logoBox: { flexDirection: "row", alignItems: "center" },
-  logo: { width: 80, height: 80 },
+  logoBox: { flexDirection: "column", alignItems: "flex-start" },
+  logo: { width: 64, height: 64, objectFit: "contain" },
+  company: { fontSize: 10, fontFamily: "Helvetica-Bold", marginTop: 4 },
   metaBox: {
     borderWidth: 0.8,
     borderColor: "#000",
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
   signatureRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 30,
+    marginTop: 34,
   },
   signatureBox: { width: 140, alignItems: "center" },
   signatureLine: {
@@ -147,7 +149,8 @@ export default function DisciplinaryReportPdf({ disciplinaryReport }: Props) {
       <Page size="LETTER" style={styles.page}>
         <View style={styles.topHeader}>
           <View style={styles.logoBox}>
-            <Image src={LOGO_CHECKLAB_BASE64} style={styles.logo} />
+            <Image src={getTenantBrandLogo() ?? LOGO_CHECKLAB_BASE64} style={styles.logo} />
+            {getTenantBrandName() && <Text style={styles.company}>{getTenantBrandName()}</Text>}
           </View>
           <View style={styles.metaBox}>
             <View style={styles.metaRow}>
@@ -170,12 +173,13 @@ export default function DisciplinaryReportPdf({ disciplinaryReport }: Props) {
         </View>
 
         <View style={styles.principalBlock}>
-          <Text style={styles.paragraph}>
-            {tt("doc.para1a")}{" "}
-            <Text style={styles.bold}>{employee}</Text>{" "}
-            {tt("doc.para1b")}{" "}
-            <Text style={styles.bold}>{tt(`reasons.${disciplinaryReport.reason}`)}</Text>{" "}
-            {tt("doc.para1c")} <Text style={styles.bold}>{incidentDate}</Text>{" "}
+          <Text style={[styles.paragraph, { textAlign: "left", lineHeight: 1 }]}>
+            {`${tt("doc.para1a")} `}
+            <Text style={styles.bold}>{employee}</Text>
+            {`${tt("doc.para1b")} `}
+            <Text style={styles.bold}>{tt(`reasons.${disciplinaryReport.reason}`)}</Text>
+            {` ${tt("doc.para1c")} `}
+            <Text style={styles.bold}>{incidentDate}</Text>
             {tt("doc.para1d")}
           </Text>
 
@@ -237,6 +241,16 @@ export default function DisciplinaryReportPdf({ disciplinaryReport }: Props) {
             <Text style={styles.signatureName}>{signatureRh}</Text>
             <Text style={styles.signatureLabel}>{tt("doc.signatureRh")}</Text>
           </View>
+        </View>
+
+        <View style={styles.signatureRow}>
+          {[1, 2].map((n) => (
+            <View key={n} style={styles.signatureBox}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureName} />
+              <Text style={styles.signatureLabel}>{tt("doc.witness")} {n}</Text>
+            </View>
+          ))}
         </View>
       </Page>
     </Document>

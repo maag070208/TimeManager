@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { useTranslation } from "react-i18next";
 import { ITButton, ITDialog, ITFlex, ITText, ITStack } from "@axzydev/axzy_ui_system";
 import { useCan } from "@entities/user";
@@ -45,7 +46,7 @@ export default function EmployeeClockCard({
     setTarget(null);
   };
 
-  if (fx.loading && !fx.status) return <ITText className="text-sm text-slate-400">{t("employeeClock.loading")}</ITText>;
+  if (fx.loading && !fx.status) return <ContentSkeleton size="sm" />;
 
   return (
     <ITFlex direction="column" gap={3}>

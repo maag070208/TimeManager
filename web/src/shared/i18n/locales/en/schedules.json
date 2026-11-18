@@ -165,7 +165,7 @@
     }
   },
   "assignedLabel": "Assigned",
-  "secondHint": "Enable it on days with a split shift (e.g. housekeeping or restaurant).",
+  "secondHint": "Turn it on for split-shift days (e.g. someone who leaves for a few hours at midday and comes back in the afternoon).",
   "form": {
     "notFound": "Schedule not found",
     "confirmTitle": "Save new schedule",

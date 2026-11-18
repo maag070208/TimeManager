@@ -1,20 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  ITAlert,
-  ITBadget,
-  ITButton,
-  ITCard,
-  ITDataTable,
-  ITDatePicker,
-  ITDialog,
-  ITFlex,
-  ITInput,
-  ITSearchSelect,
-  ITText,
-  type Column,
-  type ITDataTableFetchParams,
-  type ITDataTableResponse,
-} from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITCard, ITDatePicker, ITDialog, ITFlex, ITInput, ITSearchSelect, ITText, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import { ITPage } from "@shared/ui/page";
 import { LuShieldCheck } from "react-icons/lu";
@@ -119,7 +105,7 @@ export default function AuditLogPage() {
         </ITCard>
 
         <ITCard className="tm-hero-card tm-hero-card--slate" contentClassName="!p-5">
-          <ITDataTable key={tableKey} columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={480} rowHeight={50} onRowClick={(row) => setSelected(row as unknown as AuditLog)} />
+          <DataTable key={tableKey} columns={columns as unknown as Column<Record<string, unknown>>[]} fetchData={fetchData as never} showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={480} rowHeight={50} onRowClick={(row) => setSelected(row as unknown as AuditLog)} />
         </ITCard>
       </div>
 

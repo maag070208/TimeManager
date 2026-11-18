@@ -113,6 +113,7 @@
     "signatureEmployee": "Empleado",
     "signatureHead": "Jefe inmediato",
     "signatureRh": "Recursos Humanos",
-    "createdBy": "Levantada por"
+    "createdBy": "Levantada por",
+    "witness": "Testigo"
   }
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITCard, ITDataTable, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITCard, ITText, ITToast, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { LuCalendarCheck, LuCheck, LuX } from "react-icons/lu";
 import { nomApi } from "@entities/nom";
@@ -25,6 +26,7 @@ const STATUS: Record<LeaveRequestRow["status"], { label: string; color: "success
 /** RH: solicitudes de vacaciones/permisos y tipos configurables. */
 export default function LeaveAdminPage() {
   const [requests, setRequests] = useState<LeaveRequestRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -35,6 +37,8 @@ export default function LeaveAdminPage() {
       setRequests(await nomApi.leaveRequests());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudieron cargar las solicitudes.");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -106,6 +110,7 @@ export default function LeaveAdminPage() {
       title="Vacaciones y permisos"
       description="Solicitudes de vacaciones y permisos del personal del cliente."
       icon={<LuCalendarCheck size={20} />}
+      loading={loading}
     >
       <div className="grid items-start gap-4 pb-12 lg:grid-cols-12">
         {error && (
@@ -179,7 +184,7 @@ export default function LeaveAdminPage() {
               <TicState kind="empty" size="sm" title="Sin historial todavía" description="Las solicitudes aparecerán aquí con su estado y decisión." />
             ) : (
               <div className="mt-3">
-                <ITDataTable
+                <DataTable
                   columns={historyColumns as unknown as Column<Record<string, unknown>>[]}
                   fetchData={fetchHistory as never}
                   showViewToggle={false}

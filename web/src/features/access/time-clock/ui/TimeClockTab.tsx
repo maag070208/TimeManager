@@ -1,15 +1,6 @@
 import { useMemo } from "react";
-import {
-  ITAlert,
-  ITBadget,
-  ITButton,
-  ITDataTable,
-  ITDatePicker,
-  ITFlex,
-  ITInput,
-  ITText,
-  ITToast,
-} from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITDatePicker, ITFlex, ITInput, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import type {
   Column,
   ITDataTableFetchParams,
@@ -310,7 +301,7 @@ export default function TimeClockTab({ fx }: { fx: UseTimeClock }) {
           )
         }
       >
-        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+        <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={
             fetchTableData as unknown as (

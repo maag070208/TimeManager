@@ -1,3 +1,4 @@
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import {
   ITAlert,
   ITBadget,
@@ -216,9 +217,7 @@ export default function ClockDetail({ fx, clock, config, onBack }: Props) {
             <Settings fx={fx} clock={clock} config={config.data} />
           ) : (
             <ITGrid item xs={12}>
-              <ITText className="text-[12px] text-slate-500">
-                {t("clocks.config.loading")}
-              </ITText>
+              <ContentSkeleton size="sm" />
             </ITGrid>
           )}
         </Section>

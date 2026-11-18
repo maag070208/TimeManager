@@ -257,7 +257,7 @@
     "description": "Da de alta los relojes y revisa su configuración y su sincronización. El sistema solo lee de los relojes.",
     "readOnly": "Solo lectura: el sistema se conecta a los relojes para leer sus checadas y su configuración; nunca les cambia nada. De cada reloj solo se leen las checadas (rostro, huella o tarjeta), no las aperturas de puerta.",
     "credentials": "Se conecta con el usuario y la contraseña configurados en la API (los mismos para todos los relojes).",
-    "notConfigured": "La API no tiene el usuario de los relojes: define CHECADOR_USER y CHECADOR_PASS (o TIME_CLOCK_USER y TIME_CLOCK_PASS) en el .env del servidor y recrea el contenedor; no se puede conectar a ninguno.",
+    "notConfigured": "La API no tiene el usuario de los relojes: define TIME_CLOCK_USER y TIME_CLOCK_PASS en el .env del servidor.",
     "empty": "Todavía no hay relojes dados de alta.",
     "usage": {
       "countsAttendance": "Cuenta para entradas/salidas",

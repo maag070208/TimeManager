@@ -89,7 +89,7 @@
     },
     "sistemas": {
       "name": "Sistemas",
-      "idea": "Tickets, técnicos y mantenimiento"
+      "idea": "Sistemas, equipos y soporte"
     },
     "noche": {
       "name": "Noche",
@@ -115,7 +115,7 @@
     },
     "work": {
       "name": "Trabajar",
-      "hint": "Escribe con elacomputador."
+      "hint": "Escribe en la computadora."
     },
     "ok": {
       "name": "Listo",
@@ -187,7 +187,7 @@
     },
     "assigned": {
       "name": "Asignado",
-      "hint": "Ticket asignado."
+      "hint": "Tarea asignada."
     },
     "fixing": {
       "name": "Reparando",
@@ -263,7 +263,7 @@
     "hint": "¿Te ayudo? Estás en {{screen}}",
     "context": "Estás en {{screen}}. {{explain}}",
     "going": "Claro, te llevo a {{screen}}.",
-    "unknown": "No tengo esa respuesta registrada. Puedo llevarte a la pantalla o, si es algo que falla, conviene levantar un ticket.",
+    "unknown": "No tengo esa respuesta registrada. Puedo llevarte a la pantalla o, si algo falla, conviene avisar a soporte.",
     "goTo": "Ir a…",
     "surprise": "Sorpréndeme",
     "greet": "Felicitar",
@@ -271,14 +271,8 @@
     "pause": "Pausa para un café ☕",
     "hello": "¡Hola! ¿En qué te ayudo?",
     "back": "Volver a la ayuda",
-    "ticketTitle": "Nuevo ticket con Tic",
-    "createTicket": "Crear ticket aquí",
-    "agentTicket": "Nuevo ticket",
-    "ticketOffer": "Puedo darte de alta el ticket nuevo yo mismo, sin salir de esta pantalla. ¿Lo hacemos?",
-    "ticketOfferBubble": "¿Un ticket nuevo? Te lo levanto yo aquí mismo.",
     "later": "Ahora no",
     "agentTask": "Crear tarea aquí",
-    "taskOffer": "Puedo darte de alta una tarea de cualquiera de estos tickets, sin salir del tablero. ¿La armamos?",
     "taskOfferBubble": "¿Una tarea nueva? Te la levanto yo aquí mismo.",
     "agentEmployee": "Buscar a una persona",
     "agentEmployeeForm": "Rellenar desde aquí",
@@ -295,7 +289,7 @@
     },
     "navidad": {
       "name": "Navidad",
-      "greeting": "¡Felices fiestas! 🎄 Que todos los tickets lleguen cerrados."
+      "greeting": "¡Felices fiestas! 🎄 Que todas las checadas cuadren."
     },
     "verano": {
       "name": "Verano en Baja",

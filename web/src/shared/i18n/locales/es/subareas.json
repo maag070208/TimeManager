@@ -1,7 +1,7 @@
 {
   "list": {
     "title": "Subáreas",
-    "description": "Sublugares dentro de cada departamento (ej. Kiosco dentro de A&B)",
+    "description": "Áreas dentro de cada departamento (p. ej. Almacén dentro de Operaciones).",
     "breadcrumb": "Subáreas",
     "new": "Nueva subárea",
     "create": "Crear",

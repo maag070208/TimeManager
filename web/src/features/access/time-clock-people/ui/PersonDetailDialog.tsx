@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { useTranslation } from "react-i18next";
 import { ITButton, ITDialog, ITInput, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
 import { timeClockApi, type TimeClockPersonDetail } from "@entities/time-clock";
@@ -78,7 +79,7 @@ function PersonDetailBody({ clockSerial, employeeNumber, editable = false, onCha
   return (
     <ITStack spacing={4}>
       {error && <ITText role="alert" className="text-sm text-red-600">{error}</ITText>}
-      {!detail && !error && <ITText className="text-sm text-slate-400">{t("person.loading")}</ITText>}
+      {!detail && !error && <ContentSkeleton size="sm" />}
       {detail && (
         <div className="grid grid-cols-1 gap-5 md:!grid-cols-[180px_1fr]">
           <ITStack alignItems="center" spacing={2}>

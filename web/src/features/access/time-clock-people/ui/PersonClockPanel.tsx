@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { DataTable } from "@shared/ui/data-table";
 import { useTranslation } from "react-i18next";
 import { FaClock, FaFingerprint, FaIdCard, FaUserCheck } from "react-icons/fa";
 import { LuX } from "react-icons/lu";
 import { dateLocale } from "@shared/i18n/format";
 import { timeClockApi, type TimeClockPersonDetail, type TimeClockPunch } from "@entities/time-clock";
-import { ITButton, ITDataTable, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
+import { ITButton, ITText, ITFlex, ITStack } from "@axzydev/axzy_ui_system";
 import type { Column } from "@axzydev/axzy_ui_system";
 import { makeClientTableFetch } from "@shared/api/clientTable";
 import { BentoKpiGrid } from "@shared/ui/bento-filter-cards";
@@ -116,7 +118,7 @@ export default function PersonClockPanel({ clockSerial, employeeNumber, editable
   ];
 
   if (error && !detail) return <ITText role="alert" className="text-sm text-red-600">{error}</ITText>;
-  if (!detail) return <ITText className="text-sm text-slate-400">{t("employeeClock.summary.loading")}</ITText>;
+  if (!detail) return <ContentSkeleton size="sm" />;
 
   return (
     <ITStack spacing={5}>
@@ -165,7 +167,7 @@ export default function PersonClockPanel({ clockSerial, employeeNumber, editable
               {punches?.length ?? 0}
             </ITText>
           </ITFlex>
-          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+          <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             columns={punchColumns as unknown as Column<Record<string, unknown>>[]}
             fetchData={punchesFetch as never}
           />

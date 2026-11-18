@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { useTranslation } from "react-i18next";
 import { FaCheck, FaSyncAlt } from "react-icons/fa";
 import { ITAlert, ITButton, ITFlex, ITText } from "@axzydev/axzy_ui_system";
@@ -59,7 +60,7 @@ export default function UnifiedPeopleView() {
         className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:border-slate-400"
       />
 
-      {loading && !data && <ITText className="text-sm text-slate-400">{t("dashboard.loading")}</ITText>}
+      {loading && !data && <ContentSkeleton />}
 
       {data && (
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">

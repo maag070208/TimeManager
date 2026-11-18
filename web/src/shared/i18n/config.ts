@@ -1,7 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-import accessEn from "./locales/en/access.json";
 import accessReportEn from "./locales/en/access-report.json";
 import timeClockEn from "./locales/en/time-clock.json";
 import schedulesEn from "./locales/en/schedules.json";
@@ -13,13 +12,9 @@ import disciplinaryReportsEn from "./locales/en/disciplinary-reports.json";
 import commonEn from "./locales/en/common.json";
 import departmentsEn from "./locales/en/departments.json";
 import subareasEn from "./locales/en/subareas.json";
-import deviceTypesEn from "./locales/en/device-types.json";
-import deviceEn from "./locales/en/device.json";
 import employeesEn from "./locales/en/employees.json";
-import dashboardEn from "./locales/en/dashboard.json";
 import notificationsEn from "./locales/en/notifications.json";
 import reportsEn from "./locales/en/reports.json";
-import materialOutputsEn from "./locales/en/material-outputs.json";
 import usersEn from "./locales/en/users.json";
 import catalogEn from "./locales/en/catalog.json";
 import rolesEn from "./locales/en/roles.json";
@@ -28,7 +23,6 @@ import ticEn from "./locales/en/tic.json";
 import homeEn from "./locales/en/home.json";
 import nomEn from "./locales/en/nom.json";
 
-import accessEs from "./locales/es/access.json";
 import accessReportEs from "./locales/es/access-report.json";
 import timeClockEs from "./locales/es/time-clock.json";
 import schedulesEs from "./locales/es/schedules.json";
@@ -40,13 +34,9 @@ import disciplinaryReportsEs from "./locales/es/disciplinary-reports.json";
 import commonEs from "./locales/es/common.json";
 import departmentsEs from "./locales/es/departments.json";
 import subareasEs from "./locales/es/subareas.json";
-import deviceTypesEs from "./locales/es/device-types.json";
-import deviceEs from "./locales/es/device.json";
 import employeesEs from "./locales/es/employees.json";
-import dashboardEs from "./locales/es/dashboard.json";
 import notificationsEs from "./locales/es/notifications.json";
 import reportsEs from "./locales/es/reports.json";
-import materialOutputsEs from "./locales/es/material-outputs.json";
 import usersEs from "./locales/es/users.json";
 import catalogEs from "./locales/es/catalog.json";
 import rolesEs from "./locales/es/roles.json";
@@ -62,23 +52,18 @@ export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
 export const NS_LIST = [
   "common",
-  "device",
-  "device-types",
   "auth",
-  "dashboard",
   "users",
   "employees",
   "departments",
   "subareas",
   "reports",
-  "material-outputs",
   "notifications",
   "audit",
   "catalog",
   "roles",
   "plans",
   "disciplinary-reports",
-  "access",
   "access-report",
   "time-clock",
   "schedules",
@@ -92,23 +77,18 @@ export const NS_LIST = [
 export const resources = {
   en: {
     common: commonEn,
-    device: deviceEn,
-    "device-types": deviceTypesEn,
     auth: authEn,
-    dashboard: dashboardEn,
     "disciplinary-reports": disciplinaryReportsEn,
     users: usersEn,
     employees: employeesEn,
     departments: departmentsEn,
     subareas: subareasEn,
     reports: reportsEn,
-    "material-outputs": materialOutputsEn,
     notifications: notificationsEn,
     audit: auditEn,
     catalog: catalogEn,
     roles: rolesEn,
     plans: plansEn,
-    access: accessEn,
     "access-report": accessReportEn,
     "time-clock": timeClockEn,
     schedules: schedulesEn,
@@ -120,23 +100,18 @@ export const resources = {
   },
   es: {
     common: commonEs,
-    device: deviceEs,
-    "device-types": deviceTypesEs,
     auth: authEs,
-    dashboard: dashboardEs,
     "disciplinary-reports": disciplinaryReportsEs,
     users: usersEs,
     employees: employeesEs,
     departments: departmentsEs,
     subareas: subareasEs,
     reports: reportsEs,
-    "material-outputs": materialOutputsEs,
     notifications: notificationsEs,
     audit: auditEs,
     catalog: catalogEs,
     roles: rolesEs,
     plans: plansEs,
-    access: accessEs,
     "access-report": accessReportEs,
     "time-clock": timeClockEs,
     schedules: schedulesEs,

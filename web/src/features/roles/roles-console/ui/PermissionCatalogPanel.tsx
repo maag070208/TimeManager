@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { ITAlert, ITBadget, ITButton, ITDataTable, ITFlex, ITText, ITToast } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITFlex, ITText, ITToast } from "@axzydev/axzy_ui_system";
 import { FaEdit, FaPlus, FaPowerOff, FaTrashRestore } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { PermissionCatalog } from "@entities/permission";
@@ -246,7 +247,7 @@ export default function PermissionCatalogPanel({ modules, onChanged }: Props) {
         </ITAlert>
       )}
 
-      <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+      <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
         columns={columns as any}
         fetchData={fetchData as any}
         reloadTrigger={reloadKey}

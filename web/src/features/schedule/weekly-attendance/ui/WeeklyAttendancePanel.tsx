@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import {
   ITAlert,
   ITBadget,
@@ -262,7 +263,7 @@ export default function WeeklyAttendancePanel({ fx }: { fx: UseWeeklyAttendance 
 
         <div className=" ">
           {fx.loading && !report ? (
-            <ITText muted className="block px-5 py-8 !text-[12.5px]">Cargando reporte…</ITText>
+            <ContentSkeleton size="sm" className="px-5 py-6" />
           ) : report && report.rows.length > 0 ? (
             <div className={fx.loading ? "opacity-60 transition-opacity" : undefined}>
               <WeeklyAttendanceTable

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
+import { DataTable } from "@shared/ui/data-table";
 import { useTranslation } from "react-i18next";
 import { FaChartArea, FaChartBar, FaClock, FaFingerprint, FaServer, FaSyncAlt, FaUsers, FaVideo, FaChartLine, FaIdCard, FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
-import { ITButton, ITCard, ITDataTable, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
+import { ITButton, ITCard, ITFlex, ITSearchSelect, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { dateLocale } from "@shared/i18n/format";
 import { makeClientTableFetch } from "@shared/api/clientTable";
@@ -295,7 +297,7 @@ function DevicePanel({ clock, onOpenPerson, onReload }: { clock: SummaryClock; o
             <FaClock size={13} /> Sin checadas registradas hoy.
           </div>
         ) : (
-          <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+          <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
             columns={columns as unknown as Column<Record<string, unknown>>[]}
             fetchData={
               fetchPunches as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>
@@ -348,7 +350,7 @@ function PeoplePreview({ serial, onSeeAll, onOpenPerson }: { serial: string; onS
         </ITButton>
       }
     >
-      {loading && <ITText className="text-[11.5px] text-slate-400">{t("dashboard.personnel.loading")}</ITText>}
+      {loading && <ContentSkeleton size="sm" />}
       {error && !loading && (
         <div className="rounded-2xl bg-amber-50/80 px-3 py-3 text-[11.5px] leading-snug text-amber-800">
           <span className="mb-1 flex items-center gap-1.5 font-bold"><FaExclamationTriangle size={12} /> Sin lectura del reloj</span>
@@ -504,7 +506,7 @@ export default function TimeClockDashboardView() {
       </ITCard>
 
       {fx.error && <ITText role="alert" className="text-sm text-red-600">{fx.error}</ITText>}
-      {fx.loading && !fx.data && <ITText className="text-sm text-slate-400">{t("dashboard.loading")}</ITText>}
+      {fx.loading && !fx.data && <ContentSkeleton />}
 
       {fx.data && section === "status" && (
         <Estado

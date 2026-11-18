@@ -1,4 +1,5 @@
 import { ITButton, ITFlex, ITText, ITTextarea } from "@axzydev/axzy_ui_system";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
 import { ProfileAvatar } from "@shared/ui/profile-avatar";
 import { HelpTip } from "@shared/ui/help-tip";
@@ -65,7 +66,7 @@ export default function TimeClockRosterView() {
           {fx.toast}
         </ITText>
       )}
-      {fx.loading && <ITText className="text-sm text-slate-400">{t("roster.loading")}</ITText>}
+      {fx.loading && <ContentSkeleton size="sm" />}
 
       {fx.data && (
         <>

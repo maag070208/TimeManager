@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import { ITAlert, ITBadget, ITButton, ITCard, ITInput, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
 import { ITPage } from "@shared/ui/page";
 import { ITSearchSelect } from "@shared/ui/it-search-select";
@@ -87,7 +88,7 @@ export default function PayrollSettingsPage() {
   if (!form) {
     return (
       <ITPage title="Nómina configurable" icon={<LuWallet size={20} />} maxWidth="7xl">
-        {error ? <ITAlert variant="error">{error}</ITAlert> : <ITText muted>Cargando…</ITText>}
+        {error ? <ITAlert variant="error">{error}</ITAlert> : <ContentSkeleton />}
       </ITPage>
     );
   }

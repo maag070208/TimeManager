@@ -1,8 +1,0 @@
-{
-  "reason": {
-    "DAMAGED": "Damaged",
-    "OBSOLETE": "Obsolete",
-    "LOST": "Lost",
-    "OTHER": "Other"
-  }
-}

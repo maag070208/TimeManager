@@ -1,14 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { DataTable } from "@shared/ui/data-table";
 import { useNavigate } from "react-router-dom";
-import {
-  ITBentoPill,
-  ITConfirmDialog,
-  ITDataTable,
-  ITFlex,
-  ITInput,
-  ITStack,
-  ITText,
-} from "@axzydev/axzy_ui_system";
+import { ITBentoPill, ITConfirmDialog, ITFlex, ITInput, ITStack, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { LuCalendarCheck, LuCalendarDays, LuPencil, LuSearch, LuTrash2, LuUserMinus } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
@@ -316,7 +309,7 @@ export default function SchedulesBoard() {
       </ITFlex>
 
       <div className={flashNew ? "ticket-row-flash" : undefined}>
-        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+        <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={
             fetchData as unknown as (

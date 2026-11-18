@@ -1,4 +1,5 @@
 import { ITSearchSelect } from "@shared/ui/it-search-select";
+import { ContentSkeleton } from "@shared/ui/content-skeleton";
 import {
   ITAlert,
   ITBadget,
@@ -145,7 +146,7 @@ export default function AgentJobsPanel({ clocks }: { clocks: TimeClockDevice[] }
           </ITText>
         </ITFlex>
         {fx.jobs === null ? (
-          <ITText className="block py-2 text-xs text-slate-500">{fx.t("agentJobs.loading")}</ITText>
+          <ContentSkeleton size="sm" />
         ) : fx.jobs.length === 0 ? (
           <ITText className="block py-2 text-xs text-slate-500">{fx.t("agentJobs.empty")}</ITText>
         ) : (

@@ -1,7 +1,7 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { useTranslation } from "react-i18next";
 import type { PayrollClosureRow } from "@entities/schedule";
-import { PDF_COLORS, pdfTheme } from "@shared/pdf/theme";
+import { PDF_COLORS, pdfTheme, pdfTimestamp } from "@shared/pdf/theme";
 import { dyn } from "@shared/i18n/dyn";
 import PdfLetterhead from "@shared/pdf/PdfLetterhead";
 import PdfFooter from "@shared/pdf/PdfFooter";
@@ -86,13 +86,10 @@ export default function PayrollClosurePdf({ closure, weekLabel, generatedAt }: P
   const summary = closure.snapshot?.summary;
 
   const info = [
-    { label: t("history.week"), value: weekLabel },
-    { label: t("history.closedBy"), value: closure.closedBy?.name ?? "—" },
-    {
-      label: t("history.closedAt"),
-      value: new Date(closure.closedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }),
-    },
-    { label: t("history.status"), value: t(closure.closed ? "history.closed" : "history.reopened") },
+    { label: t("history.pdf.week"), value: weekLabel },
+    { label: t("history.pdf.closedBy"), value: closure.closedBy?.name ?? "—" },
+    { label: t("history.pdf.closedAt"), value: pdfTimestamp(new Date(closure.closedAt)) },
+    { label: t("history.pdf.status"), value: t(closure.closed ? "history.closed" : "history.reopened") },
   ];
 
   const header = [
@@ -104,10 +101,13 @@ export default function PayrollClosurePdf({ closure, weekLabel, generatedAt }: P
   ];
 
   return (
-    <Document>
+    <Document title={t("history.pdfTitle")} author="CheckLab">
       <Page size="LETTER" style={pdfTheme.page}>
-        <PdfLetterhead title={t("history.pdfTitle")} generatedAt={generatedAt} />
+        <View fixed>
+          <PdfLetterhead title={t("history.pdfTitle")} generatedAt={generatedAt} />
+        </View>
 
+        <View style={pdfTheme.content}>
         <View style={styles.info}>
           {info.map((item) => (
             <View key={item.label}>
@@ -117,7 +117,7 @@ export default function PayrollClosurePdf({ closure, weekLabel, generatedAt }: P
           ))}
         </View>
 
-        <View style={styles.headerRow}>
+        <View style={styles.headerRow} fixed>
           {header.map((col) => (
             <Text key={col.label} style={[styles.headerCell, { width: col.width, textAlign: col.center ? "center" : "left" }]}>
               {col.label}
@@ -177,6 +177,7 @@ export default function PayrollClosurePdf({ closure, weekLabel, generatedAt }: P
             <Text style={[styles.totalsCell, { width: COL.absences, textAlign: "center" }]}>{summary.absences ?? "—"}</Text>
           </View>
         )}
+        </View>
 
         <PdfFooter />
       </Page>

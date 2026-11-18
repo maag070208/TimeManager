@@ -32,6 +32,7 @@ Documentación viva del producto. Se actualiza junto con el código; si un módu
 - [Matriz QA integral](QA_MATRIX.md)
 - [Pruebas de flujos completos](PRUEBAS_FLUJOS.md)
 - [Revisión legal de acuerdos](LEGAL_REVISION_ACUERDOS.md)
+- [Términos, aviso de privacidad y acuerdo de datos (borradores)](legal/README.md)
 - [Adaptación STPS](STPS_ADAPTACION.md)
 - [Plan de nómina México](PLAN_NOMINA_MEXICO.md)
 - [Módulo payroll](modules/payroll.md)

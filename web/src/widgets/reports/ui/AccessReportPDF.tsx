@@ -6,7 +6,7 @@ import type {
   AccessReportSessionRow,
   AccessReportSummary,
 } from "@entities/access";
-import { PDF_COLORS, pdfTheme, badgeStyleFor } from "@shared/pdf/theme";
+import { PDF_COLORS, pdfDay, pdfTheme, pdfTimestamp, badgeStyleFor } from "@shared/pdf/theme";
 import { formatMinutesAsHhMm, formatTimeInTZ } from "@shared/utils/dates";
 import PdfLetterhead from "@shared/pdf/PdfLetterhead";
 import PdfFooter from "@shared/pdf/PdfFooter";
@@ -105,30 +105,6 @@ const COL = {
 
 const fmtMinutes = formatMinutesAsHhMm;
 
-/** Fecha civil `DD/MM/YYYY` desde una clave `YYYY-MM-DD` (sin conversión de zona). */
-const fmtDayKey = (dayKey: string): string => {
-  const [y, m, d] = dayKey.split("-");
-  return d && m && y ? `${d}/${m}/${y}` : dayKey;
-};
-
-const fmtStamp = (iso: string | null, period: string, tz?: string): string => {
-  if (!iso) return "—";
-  const time = formatTimeInTZ(iso, tz);
-  if (period === "DAY") return time;
-  const d = new Date(iso);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  return `${dd}/${mm} ${time}`;
-};
-
-const fmtDateTime = (iso: string, tz?: string): string => {
-  const d = new Date(iso);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yy = d.getFullYear();
-  return `${dd}/${mm}/${yy} ${formatTimeInTZ(iso, tz)}`;
-};
-
 /** Fecha civil `DD/MM/YYYY` de un instante en la zona horaria efectiva. */
 const fmtDateInTZ = (iso: string, tz?: string): string =>
   new Intl.DateTimeFormat("en-GB", {
@@ -155,7 +131,14 @@ export default function AccessReportPDF({ rows, summary, meta, title }: Props) {
   const { t: tt } = useTranslation(["access-report"]);
   const reportTitle = title ?? tt("pdf.title");
   const tz = summary.range.timezone || meta.timezone;
-  const today = fmtDateTime(new Date().toISOString(), tz);
+  const today = pdfTimestamp(new Date(), tz);
+  /** Hora de la checada; con fecha solo si cae en otro día que el de la fila (cruza medianoche). */
+  const stamp = (iso: string | null, dayKey: string): string => {
+    if (!iso) return "—";
+    const time = formatTimeInTZ(iso, tz);
+    const civil = fmtDateInTZ(iso, tz);
+    return civil === pdfDay(dayKey) ? time : `${civil.slice(0, 5)} ${time}`;
+  };
 
   const rangePeriod = summary.range.period || meta.period;
   const rangeLabel =
@@ -171,13 +154,6 @@ export default function AccessReportPDF({ rows, summary, meta, title }: Props) {
     { label: tt("kpis.incidents"), value: summary.totalIncidents, color: PDF_COLORS.warning, bg: PDF_COLORS.warningBg },
   ];
 
-  const ROWS_PER_PAGE = 22;
-  const pages: AccessReportSessionRow[][] = [];
-  for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
-    pages.push(rows.slice(i, i + ROWS_PER_PAGE));
-  }
-  if (pages.length === 0) pages.push([]);
-
   const renderIncident = (incident: AccessIncidentCode | null) =>
     incident ? (
       <Text style={[badgeStyleFor(INCIDENT_COLOR[incident]), styles.badgeGap]}>
@@ -189,115 +165,97 @@ export default function AccessReportPDF({ rows, summary, meta, title }: Props) {
 
   return (
     <Document title={reportTitle} author="CheckLab">
-      {pages.map((pageRows, pageIdx) => (
-        <Page key={pageIdx} size="LETTER" style={pdfTheme.page}>
-          <PdfLetterhead
-            title={reportTitle}
-            pageIndex={pageIdx}
-            pageCount={pages.length}
-            generatedAt={today}
-          />
+      <Page size="LETTER" style={pdfTheme.page}>
+        <View fixed>
+          <PdfLetterhead title={reportTitle} generatedAt={today} />
+        </View>
 
-          <View style={pdfTheme.content}>
-            {pageIdx === 0 && (
-              <>
-                <View style={pdfTheme.summaryRow}>
-                  {cards.map((c) => (
-                    <View key={c.label} style={[styles.kpiCard, { backgroundColor: c.bg }]}>
-                      <Text style={[styles.kpiValue, { color: c.color }]}>{c.value}</Text>
-                      <Text style={styles.kpiLabel}>{c.label}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <View style={styles.rangeBand}>
-                  <View>
-                    <Text style={styles.rangeBandLabel}>{tt(`periods.${meta.period}`)}</Text>
-                    <Text style={styles.rangeBandValue}>{rangeLabel}</Text>
-                  </View>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <Text style={styles.rangeBandLabel}>{tt("pdf.timezone")}</Text>
-                    <Text style={styles.rangeBandTz}>{summary.range.timezone}</Text>
-                  </View>
-                </View>
-              </>
-            )}
-
-            <View style={pdfTheme.tableHeader} fixed>
-              <View style={{ width: COL.employee }}>
-                <Text style={pdfTheme.tableHeaderText}>{tt("columns.employee")}</Text>
-              </View>
-              <View style={{ width: COL.department }}>
-                <Text style={pdfTheme.tableHeaderText}>{tt("columns.department")}</Text>
-              </View>
-              <View style={{ width: COL.date }}>
-                <Text style={pdfTheme.tableHeaderText}>{tt("columns.date")}</Text>
-              </View>
-              <View style={{ width: COL.entry }}>
-                <Text style={pdfTheme.tableHeaderText}>{tt("columns.entry")}</Text>
-              </View>
-              <View style={{ width: COL.exit }}>
-                <Text style={pdfTheme.tableHeaderText}>{tt("columns.exit")}</Text>
-              </View>
-              <View style={{ width: COL.hours }}>
-                <Text style={pdfTheme.tableHeaderText}>{tt("columns.hours")}</Text>
-              </View>
-              <View style={{ width: COL.incident }}>
-                <Text style={pdfTheme.tableHeaderText}>{tt("columns.incident")}</Text>
-              </View>
-            </View>
-
-            {pageRows.map((r, i) => (
-              <View key={r.id + i} style={i % 2 === 0 ? pdfTheme.tableRow : pdfTheme.tableRowAlt}>
-                <View style={{ width: COL.employee }}>
-                  <Text style={pdfTheme.cellDescTitle}>{r.employeeName}</Text>
-                  <Text style={pdfTheme.cellDescSub}>
-                    {r.employeeNumber ? `#${r.employeeNumber}` : "—"}
-                    {!r.active ? ` · ${tt("status.inactive")}` : ""}
-                  </Text>
-                </View>
-                <View style={{ width: COL.department }}>
-                  <Text style={pdfTheme.cellMuted}>{r.departmentName ?? tt("noDepartment")}</Text>
-                </View>
-                <View style={{ width: COL.date }}>
-                  <Text style={pdfTheme.cell}>{fmtDayKey(r.date)}</Text>
-                </View>
-                <View style={{ width: COL.entry }}>
-                  <Text style={pdfTheme.cell}>{fmtStamp(r.entryAt, meta.period, tz)}</Text>
-                </View>
-                <View style={{ width: COL.exit }}>
-                  <Text style={pdfTheme.cell}>{fmtStamp(r.exitAt, meta.period, tz)}</Text>
-                </View>
-                <View style={{ width: COL.hours }}>
-                  <Text style={pdfTheme.cellBold}>
-                    {r.entryAt && r.exitAt ? fmtMinutes(r.workedMinutes) : "—"}
-                  </Text>
-                </View>
-                <View style={{ width: COL.incident }}>{renderIncident(r.incident)}</View>
+        <View style={pdfTheme.content}>
+          <View style={pdfTheme.summaryRow}>
+            {cards.map((c) => (
+              <View key={c.label} style={[styles.kpiCard, { backgroundColor: c.bg }]}>
+                <Text style={[styles.kpiValue, { color: c.color }]}>{c.value}</Text>
+                <Text style={styles.kpiLabel}>{c.label}</Text>
               </View>
             ))}
-
-            {pageIdx === pages.length - 1 && (
-              <View style={styles.totalsBar}>
-                <View style={styles.totalsItem}>
-                  <Text style={styles.totalsLabel}>{tt("pdf.totalPeople")}</Text>
-                  <Text style={styles.totalsValue}>{summary.peopleTotal}</Text>
-                </View>
-                <View style={styles.totalsItem}>
-                  <Text style={styles.totalsLabel}>{tt("pdf.totalHours")}</Text>
-                  <Text style={styles.totalsValue}>{fmtMinutes(summary.totalWorkedMinutes)}</Text>
-                </View>
-                <View style={styles.totalsItem}>
-                  <Text style={styles.totalsLabel}>{tt("pdf.totalIncidents")}</Text>
-                  <Text style={styles.totalsValue}>{summary.totalIncidents}</Text>
-                </View>
-              </View>
-            )}
           </View>
 
-          <PdfFooter pageIndex={pageIdx} pageCount={pages.length} />
-        </Page>
-      ))}
+          <View style={styles.rangeBand}>
+            <View>
+              <Text style={styles.rangeBandLabel}>{tt(`periods.${meta.period}`)}</Text>
+              <Text style={styles.rangeBandValue}>{rangeLabel}</Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={styles.rangeBandLabel}>{tt("pdf.timezone")}</Text>
+              <Text style={styles.rangeBandTz}>{summary.range.timezone}</Text>
+            </View>
+          </View>
+
+          <View style={pdfTheme.tableHeader} fixed>
+            {(
+              [
+                ["employee", COL.employee],
+                ["department", COL.department],
+                ["date", COL.date],
+                ["entry", COL.entry],
+                ["exit", COL.exit],
+                ["hours", COL.hours],
+                ["incident", COL.incident],
+              ] as const
+            ).map(([key, width]) => (
+              <View key={key} style={{ width, paddingRight: 4 }}>
+                <Text style={pdfTheme.tableHeaderText}>{tt(`columns.${key}`)}</Text>
+              </View>
+            ))}
+          </View>
+
+          {rows.length === 0 && <Text style={[pdfTheme.cellMuted, { paddingVertical: 10 }]}>—</Text>}
+          {rows.map((r, i) => (
+            <View key={r.id + i} wrap={false} style={i % 2 === 0 ? pdfTheme.tableRow : pdfTheme.tableRowAlt}>
+              <View style={{ width: COL.employee, paddingRight: 4 }}>
+                <Text style={pdfTheme.cellDescTitle}>{r.employeeName}</Text>
+                <Text style={pdfTheme.cellDescSub}>
+                  {r.employeeNumber ? `#${r.employeeNumber}` : "—"}
+                  {!r.active ? ` · ${tt("status.inactive")}` : ""}
+                </Text>
+              </View>
+              <View style={{ width: COL.department, paddingRight: 4 }}>
+                <Text style={pdfTheme.cellMuted}>{r.departmentName ?? tt("noDepartment")}</Text>
+              </View>
+              <View style={{ width: COL.date }}>
+                <Text style={pdfTheme.cell}>{pdfDay(r.date)}</Text>
+              </View>
+              <View style={{ width: COL.entry }}>
+                <Text style={pdfTheme.cell}>{stamp(r.entryAt, r.date)}</Text>
+              </View>
+              <View style={{ width: COL.exit }}>
+                <Text style={pdfTheme.cell}>{stamp(r.exitAt, r.date)}</Text>
+              </View>
+              <View style={{ width: COL.hours }}>
+                <Text style={pdfTheme.cellBold}>{r.entryAt && r.exitAt ? fmtMinutes(r.workedMinutes) : "—"}</Text>
+              </View>
+              <View style={{ width: COL.incident }}>{renderIncident(r.incident)}</View>
+            </View>
+          ))}
+
+          <View style={styles.totalsBar} wrap={false}>
+            <View style={styles.totalsItem}>
+              <Text style={styles.totalsLabel}>{tt("pdf.totalPeople")}</Text>
+              <Text style={styles.totalsValue}>{summary.peopleTotal}</Text>
+            </View>
+            <View style={styles.totalsItem}>
+              <Text style={styles.totalsLabel}>{tt("pdf.totalHours")}</Text>
+              <Text style={styles.totalsValue}>{fmtMinutes(summary.totalWorkedMinutes)}</Text>
+            </View>
+            <View style={styles.totalsItem}>
+              <Text style={styles.totalsLabel}>{tt("pdf.totalIncidents")}</Text>
+              <Text style={styles.totalsValue}>{summary.totalIncidents}</Text>
+            </View>
+          </View>
+        </View>
+
+        <PdfFooter />
+      </Page>
     </Document>
   );
 }

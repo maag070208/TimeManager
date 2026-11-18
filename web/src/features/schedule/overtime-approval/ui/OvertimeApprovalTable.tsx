@@ -1,18 +1,6 @@
 import { useMemo } from "react";
-import {
-  ITAlert,
-  ITBadget,
-  ITButton,
-  ITCard,
-  ITCheckbox,
-  ITDataTable,
-  ITDialog,
-  ITFlex,
-  ITInput,
-  ITSearchSelect,
-  ITText,
-  ITTextarea,
-  ITToast } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
+import { ITAlert, ITBadget, ITButton, ITCard, ITCheckbox, ITDialog, ITFlex, ITInput, ITSearchSelect, ITText, ITTextarea, ITToast } from "@axzydev/axzy_ui_system";
 import type { Column } from "@axzydev/axzy_ui_system";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import type { OvertimeDayRow } from "@entities/overtime";
@@ -364,7 +352,7 @@ export default function OvertimeApprovalTable({ fx }: { fx: UseOvertimeApproval 
           </ITFlex>
         )}
 
-        <ITDataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
+        <DataTable showViewToggle={false} defaultItemsPerPage={50} itemsPerPageOptions={[25, 50, 100]} layout="fixed" density="compact" virtualized virtualizedMaxHeight={400} rowHeight={50}
           key={fx.tableKey}
           columns={columns as unknown as Column<Record<string, unknown>>[]}
           fetchData={

@@ -1,4 +1,5 @@
-import { ITBadget, ITButton, ITDataTable, ITText, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { ITBadget, ITButton, ITText, type Column, type ITDataTableFetchParams, type ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { DataTable } from "@shared/ui/data-table";
 import { LuPencil, LuPower, LuPowerOff } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import type { Plan } from "@entities/plan";
@@ -63,7 +64,7 @@ export default function PlansTable({ rows, canManage, onEdit, onToggleStatus }: 
   };
 
   return (
-    <ITDataTable
+    <DataTable
       showViewToggle={false}
       defaultItemsPerPage={50}
       itemsPerPageOptions={[25, 50, 100]}

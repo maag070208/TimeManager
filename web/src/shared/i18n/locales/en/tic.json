@@ -89,7 +89,7 @@
     },
     "sistemas": {
       "name": "Systems",
-      "idea": "Tickets, techs and maintenance"
+      "idea": "Systems, equipment and support"
     },
     "noche": {
       "name": "Night",
@@ -187,7 +187,7 @@
     },
     "assigned": {
       "name": "Assigned",
-      "hint": "Assigned ticket."
+      "hint": "Task assigned."
     },
     "fixing": {
       "name": "Fixing",
@@ -263,7 +263,7 @@
     "hint": "Need help? You are in {{screen}}",
     "context": "You are in {{screen}}. {{explain}}",
     "going": "Sure, taking you to {{screen}}.",
-    "unknown": "I don't have that answer. I can take you to the screen, or if something is broken, please raise a ticket.",
+    "unknown": "I don't have that answer. I can take you to the screen, or if something is broken, let support know.",
     "goTo": "Go to…",
     "surprise": "Surprise me",
     "greet": "Celebrate",
@@ -271,14 +271,8 @@
     "pause": "Coffee break ☕",
     "hello": "Hi! How can I help?",
     "back": "Back to help",
-    "ticketTitle": "New ticket with Tic",
-    "createTicket": "Create ticket here",
-    "agentTicket": "New ticket",
-    "ticketOffer": "I can create the new ticket myself, right here. Shall we?",
-    "ticketOfferBubble": "New ticket? I can create it right here.",
     "later": "Not now",
     "agentTask": "Create task here",
-    "taskOffer": "I can create a task for any of these tickets, without leaving the board. Shall we?",
     "taskOfferBubble": "New task? I can create it right here.",
     "agentEmployee": "Find a person",
     "agentEmployeeForm": "Fill it from here",
@@ -295,7 +289,7 @@
     },
     "navidad": {
       "name": "Christmas",
-      "greeting": "Happy holidays! 🎄 May every ticket come back closed."
+      "greeting": "Happy holidays! 🎄 May every punch add up."
     },
     "verano": {
       "name": "Baja summer",
